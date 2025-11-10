@@ -3,27 +3,28 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_c_sharp.Models
 {
-    [Table("t_e_journeau_jou")]
+    [Table("t_e_journal_jou")]
     public class Journal
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("jou_id")]
-        public int IdJournaux { get; set; }
+        public int IdJournal { get; set; }
 
         [Column("jou_date")]
-        public DateTime DateJournaux { get; set; }
-
-        [Column("jou_libelle")]
-        public string LibelleJournaux { get; set; } = null!;
+        [Required]
+        public DateTime DateJournal { get; set; } = DateTime.Now;
 
         [Column("jou_contenu")]
-        public string ContenuJournaux { get; set; } = string.Empty;
+        [Required]
+        public string ContenuJournal { get; set; } = string.Empty;
 
         [Column("tjo_id")]
-        public int IdTypeJournaux { get; set; }
+        [Required]
+        public int IdTypeJournal { get; set; }
 
         [Column("com_id")]
+        [Required]
         public int IdCompte { get; set; }
 
         [ForeignKey("IdCompte")]

@@ -12,15 +12,18 @@ namespace Api_c_sharp.Models
         public int IdAdresse { get; set; }
 
         [Column("adr_numero")]
-        public string Numero { get; set; } = null!;
+        [Required]
+        public int Numero { get; set; }
 
         [Column("adr_rue")]
+        [Required]
         public string Rue { get; set; } = null!;
 
         [Column("vil_id")]
+        [Required]
         public int IdVille { get; set; }
 
-        [ForeignKey("IdVille")]
+        [ForeignKey(nameof(IdVille))]
         [InverseProperty(nameof(Ville.Adresses))]
         public virtual Ville VilleAdresseNav { get; set; } = null!;
 

@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace Api_c_sharp.Models.Repository.Managers
 {
 
-        public abstract class ManagerGenerique<TEntity> : IRepository<TEntity>
+        public abstract class BaseManager<TEntity> : IRepository<TEntity>
     where TEntity : class
         {
             protected readonly ProduitsbdContext context;
             protected readonly DbSet<TEntity> dbSet;
 
-            public ManagerGenerique(ProduitsbdContext context)
+            public BaseManager(ProduitsbdContext context)
             {
                 this.context = context;
                 this.dbSet = context.Set<TEntity>();

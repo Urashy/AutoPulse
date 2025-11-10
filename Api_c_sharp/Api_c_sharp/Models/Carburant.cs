@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdCarburant{ get; set; }
 
         [Column("car_lib")]
+        [Required]
         public string LibelleCarburant{ get; set; } = null!;
 
         [InverseProperty(nameof(Voiture.CarburantVoitureNavigation))]

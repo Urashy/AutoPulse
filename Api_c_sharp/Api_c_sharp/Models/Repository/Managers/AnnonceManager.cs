@@ -1,24 +1,34 @@
-﻿namespace Api_c_sharp.Models.Repository.Managers
+﻿using Api_c_sharp.Models.Repository.Interfaces;
+using System.Collections.Generic;
+namespace Api_c_sharp.Models.Repository.Managers
 {
-    public class AnnonceManager : WritableManager<Annonce>, SearchableManager<Annonce>, ManagerGenerique<Annonce>
+    public class AnnonceManager : SearchableManager<Annonce>, IRepository<Annonce>, WritableRepository<Annonce>
     {
         public AnnonceManager(context context) : base(context)
         { 
             
         }
-        public override async Task<IEnumerable<Annonce>> GetAllAsync()
+
+        public Task<Annonce> AddAsync(Annonce entity)
         {
-            return await dbSet
-                .Include(m => m.Produits)
-                .ToListAsync();
-        }
-        public override async Task<Annonce?> GetByIdAsync(int id)
-        {
-            return await dbSet
-                .Include(m => m.Produits)
-                .FirstOrDefaultAsync(m => m.IdMarque == id);
+            throw new NotImplementedException();
         }
 
+        public Task DeleteAsync(Annonce entity)
+        {
+            throw new NotImplementedException();
+        }
 
+        public Task<Annonce?> GetByNameAsync(string name)
+        {
+            return await dbSet
+               .Include(m => m.Annonces)
+               .FirstOrDefaultAsync(m => m.Nom == name);
+        }
+
+        public Task UpdateAsync(Annonce entity)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -12,33 +12,42 @@ namespace Api_c_sharp.Models
         public int IdCompte { get; set; }
 
         [Column("com_pseudo")]
+        [Required]
         public string Pseudo { get; set; } = null!;
 
         [Column("com_mdp")]
+        [Required]
         public string MotDePasse { get; set; } = null!;
 
         [Column("com_nom")]
+        [Required]
         public string Nom { get; set; } = null!;
 
         [Column("com_prenom")]
+        [Required]
         public string Prenom { get; set; } = null!;
 
         [Column("com_email")]
+        [Required]
         public string Email { get; set; } = null!;
 
         [Column("com_date_creation")]
+        [Required]
         public DateTime DateCreation { get; set; }
 
         [Column("com_date_derniere_connexion")]
+        [Required]
         public DateTime? DateDerniereConnexion { get; set; }
 
         [Column("com_date_naissance")]
+        [Required]
         public DateTime DateNaissance { get; set; }
 
         [Column("com_biographie")]
         public string? Biographie { get; set; }
 
         [Column("tco_id")]
+        [Required]
         public int IdTypeCompte { get; set; }
 
         [ForeignKey("IdCompte")]

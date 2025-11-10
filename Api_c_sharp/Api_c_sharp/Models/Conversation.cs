@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdConversation { get; set; }
 
         [Column("ann_id")]
+        [Required]
         public int IdAnnonce { get; set; }
 
         [ForeignKey(nameof(IdAnnonce))]
