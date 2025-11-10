@@ -1,6 +1,0 @@
-@Api_AutoPulse_HostAddress = http://localhost:5032
-
-GET {{Api_AutoPulse_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
