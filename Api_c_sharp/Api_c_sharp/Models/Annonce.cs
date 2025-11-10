@@ -1,16 +1,20 @@
+using Api_c_sharp.Models.Repository.Interfaces;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_c_sharp.Models;
 
 [Table("t_e_annonce_ann")]
-public class Annonce
+public class Annonce : SearchableEntity
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("ann_id")]
     public int IdAnnonce { get; set; }
-    
+
+    [Column("ann_nom")]
+    public string Libelle { get; set; }
+
     [Column("com_id")]
     [Required]
     public int IdCompte{ get; set; }
@@ -63,4 +67,5 @@ public class Annonce
     [ForeignKey(nameof(IdVoiture))]
     [InverseProperty(nameof(Voiture.Annonces))]
     public virtual Voiture VoitureAnnonceNav { get; set; }
+
 }
