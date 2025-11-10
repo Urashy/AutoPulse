@@ -11,12 +11,12 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("Api_c_sharp")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("BlazorAutoPulse")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+52f64644b141ef057b9ee2ff50cb7416ae8ed58f")]
-[assembly: System.Reflection.AssemblyProductAttribute("Api_c_sharp")]
-[assembly: System.Reflection.AssemblyTitleAttribute("Api_c_sharp")]
+[assembly: System.Reflection.AssemblyProductAttribute("BlazorAutoPulse")]
+[assembly: System.Reflection.AssemblyTitleAttribute("BlazorAutoPulse")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 
 // Généré par la classe MSBuild WriteCodeFragment.
