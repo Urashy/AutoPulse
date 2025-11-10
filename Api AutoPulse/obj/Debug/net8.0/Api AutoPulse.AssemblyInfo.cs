@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Api AutoPulse")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a94ad57fa1186773ba423231450fd848be812d9a")]
 [assembly: System.Reflection.AssemblyProductAttribute("Api AutoPulse")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Api AutoPulse")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
