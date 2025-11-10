@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdMarque { get; set; }
 
         [Column("mar_lib")]
+        [Required]
         public string LibelleMarque { get; set; } = null!;
 
         [InverseProperty(nameof(Voiture.MarqueVoitureNavigation))]

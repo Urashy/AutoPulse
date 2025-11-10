@@ -10,16 +10,19 @@ namespace Api_c_sharp.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("vil_id")]
         public int IdVille { get; set; }
+
         [Column("vil_libelle")]
+        [Required]
         public string Libelle { get; set; } = null!;
 
         [Column("pay_id")]
+        [Required]
         public int IdPays { get; set; }
 
         [Column("vil_codepostal")]
         public string CodePostal { get; set; } = null!;
 
-        [ForeignKey("pay_id")]
+        [ForeignKey(nameof(IdPays))]
         [InverseProperty(nameof(Pays.Villes))]
         public virtual Pays PaysVilleNav  { get; set; } = null!;
 

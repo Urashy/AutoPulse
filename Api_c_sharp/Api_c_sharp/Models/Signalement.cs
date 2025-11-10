@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_c_sharp.Models
@@ -12,23 +13,36 @@ namespace Api_c_sharp.Models
         public int IdSignalement { get; set; }
 
         [Column("sig_description")]
+        [Required]
         public string? DescriptionSignalement { get; set; }
 
         [Column("sig_datecreation")]
-        public DateTime DateCreationSignalement { get; set; }
+        [Required]
+        [DefaultValue("DateTime.Now")]
+        public DateTime DateCreationSignalement { get; set; } = DateTime.Now;
 
         [Column("com_id_signalant")]
+        [Required]
         public int IdCompteSignalant { get; set; }
 
-        [Column("com_id_signalé")]
+        [Column("com_idsignale")]
+        [Required]
         public int IdCompteSignale { get; set; }
 
-        [ForeignKey("IdCompteSignalant")]
+        [Column("tsi_id")]
+        [Required]
+        public int IdTypeSignalement { get; set; }
+
+        [ForeignKey(nameof(IdCompteSignalant))]
         [InverseProperty(nameof(Compte.SignalementsFaits))]
         public virtual Compte CompteSignalantNav { get; set; } = null!;
 
-        [ForeignKey("IdCompteSignale")]
+        [ForeignKey(nameof(IdCompteSignale))]
         [InverseProperty(nameof(Compte.SignalementsRecus))]
         public virtual Compte CompteSignaleNav { get; set; } = null!;
+
+        [ForeignKey(nameof(IdTypeSignalement))]
+        [InverseProperty(nameof(TypeSignalement.Signalements))]
+        public virtual TypeSignalement TypeSignalementSignalementNav { get; set; } = null!;
     }
 }
