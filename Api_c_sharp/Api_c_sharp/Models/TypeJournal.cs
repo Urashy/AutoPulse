@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdTypeJournaux { get; set; }
 
         [Column("tjo_libelle")]
+        [Required]
         public string LibelleTypeJournaux { get; set; } = null!;
 
         [InverseProperty(nameof(Journal.TypeJournauxJournauxNav))]

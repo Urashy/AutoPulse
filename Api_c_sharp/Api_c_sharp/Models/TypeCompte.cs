@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdTypeCompte { get; set; }
 
         [Column("tco_libelle")]
+        [Required]
         public string Libelle { get; set; } = null!;
 
         [InverseProperty(nameof(Compte.TypeCompteCompteNav))]

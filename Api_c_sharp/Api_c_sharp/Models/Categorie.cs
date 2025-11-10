@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdCategorie { get; set; }
 
         [Column("cat_lib")]
+        [Required]
         public string LibelleCategorie { get; set; } = null!;
 
         [InverseProperty(nameof(Voiture.CategorieVoitureNavigation))]

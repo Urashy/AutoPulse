@@ -12,10 +12,11 @@ namespace Api_c_sharp.Models
         public int IdMessage { get; set; }
 
         [Column("mes_contenu")]
+        [Required]
         public string ContenuMessage { get; set; } = null!;
 
         [Column("mes_dateenvoi")]
-        public DateTime DateEnvoiMessage { get; set; }
+        public DateTime DateEnvoiMessage { get; set; } = DateTime.Now;
 
         [Column("con_id")]
 

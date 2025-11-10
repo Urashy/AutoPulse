@@ -12,9 +12,11 @@ namespace Api_c_sharp.Models
         public int IdMiseEnAvant { get; set; }
 
         [Column("mav_libelle")]
+        [Required]
         public string LibellMiseEnAvant { get; set; }
 
         [Column("mav_prixsemaine")]
+        [Required]
         public decimal PrixSemaine { get; set; }
 
         [InverseProperty(nameof(Annonce.MiseEnAvantNavigation))]

@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdImage { get; set; }
 
         [Column("img_fichier",TypeName ="bytea")]
+        [Required]
         public byte[] Fichier { get; set; } = null!;
 
 
