@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdCouleur { get; set; }
 
         [Column("cou_lib")]
+        [Required]
         public string LibelleCouleur { get; set; } = null!;
 
         [InverseProperty(nameof(APourCouleur.APourCouleurCouleurNavigation))]

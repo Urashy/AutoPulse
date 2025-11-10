@@ -11,9 +11,10 @@ public class MoyenPaiement
     [Column("mop_id")]
     public int IdMoyenPaiement { get; set; }
     
-    [Required]
     [Column("mop_typepaiement")]
+    [Required]
     public string TypePaiement { get; set; }
-    
+
+    [InverseProperty(nameof(Commande.MoyenPaiementNavigation))]
     public virtual Commande CommandeNavigation { get; set; }
 }

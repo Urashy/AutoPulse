@@ -12,36 +12,54 @@ namespace Api_c_sharp.Models
         public int IdCompte { get; set; }
 
         [Column("com_pseudo")]
+        [Required]
         public string Pseudo { get; set; } = null!;
 
         [Column("com_mdp")]
+        [Required]
         public string MotDePasse { get; set; } = null!;
 
         [Column("com_nom")]
+        [Required]
         public string Nom { get; set; } = null!;
 
         [Column("com_prenom")]
+        [Required]
         public string Prenom { get; set; } = null!;
 
         [Column("com_email")]
+        [Required]
         public string Email { get; set; } = null!;
 
         [Column("com_date_creation")]
+        [Required]
         public DateTime DateCreation { get; set; }
 
         [Column("com_date_derniere_connexion")]
+        [Required]
         public DateTime? DateDerniereConnexion { get; set; }
 
         [Column("com_date_naissance")]
+        [Required]
         public DateTime DateNaissance { get; set; }
 
         [Column("com_biographie")]
         public string? Biographie { get; set; }
 
         [Column("tco_id")]
+        [Required]
         public int IdTypeCompte { get; set; }
 
-        [ForeignKey("IdUtilisateur")]
+        [Column("cpr_siret")]
+        [Required]
+        [StringLength(14, MinimumLength = 14, ErrorMessage = "Le numéro SIRET doit contenir exactement 14 chiffres")]
+        [RegularExpression(@"^\d{14}$", ErrorMessage = "Le SIRET doit contenir uniquement des chiffres")]
+        public string NumeroSiret { get; set; } = null!;
+
+        [Column("cpr_raison_sociale")]
+        public string? RaisonSociale { get; set; }
+
+        [ForeignKey("IdCompte")]
         [InverseProperty(nameof(TypeCompte.Comptes))]
         public virtual TypeCompte TypeCompteCompteNav { get; set; } = null!;
 
@@ -59,6 +77,21 @@ namespace Api_c_sharp.Models
 
         [InverseProperty(nameof(Journal.CompteJournauxNav))]
         public virtual ICollection<Journal> Journaux { get; set; } = new List<Journal>();
+
+        [InverseProperty(nameof(Avis.CompteJugeeNav))]
+        public virtual ICollection<Avis> AvisJugees { get; set; } = new List<Avis>();
+
+        [InverseProperty(nameof(Avis.CompteJugeurNav))]
+        public virtual ICollection<Avis> AvisJugeur { get; set; } = new List<Avis>();
+
+        [InverseProperty(nameof(Annonce.CompteAnnonceNav))]
+        public virtual ICollection<Annonce> Annonces { get; set; } = new List<Annonce>();
+
+        [InverseProperty(nameof(Favori.CompteFavoriNav))]
+        public virtual ICollection<Favori> Favoris { get; set; } = new List<Favori>();
+
+        [InverseProperty(nameof(Image.CompteImageNav))]
+        public virtual ICollection<Image> Images { get; set; } = new List<Image>();
 
     }
 }

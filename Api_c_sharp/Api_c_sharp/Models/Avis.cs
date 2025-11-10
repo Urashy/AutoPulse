@@ -12,15 +12,15 @@ public class Avis
     public int IdAvis { get; set; }
 
     [Required]
-    [Column("uti_id_jugee")]
+    [Column("com_id_jugee")]
     public int IdJugee { get; set; }
 
     [Required]
-    [Column("uti_id_jugeur")]
+    [Column("com_id_jugeur")]
     public int IdJugeur { get; set; }
 
     [Required]
-    [Column("cmd_id_commande")]
+    [Column("cmd_idcommande")]
     public int IdCommande { get; set; }
 
     [Required]
@@ -39,5 +39,13 @@ public class Avis
     
     [ForeignKey(nameof(IdAvis))]
     [InverseProperty(nameof(Commande.AvisListe))]
-    public virtual Commande? CommandeNavigation { get; set; }
+    public virtual Commande? CommandeAvisNavigation { get; set; }
+
+    [ForeignKey(nameof(IdJugee))]
+    [InverseProperty(nameof(Compte.AvisJugees))]
+    public virtual Compte? CompteJugeeNav { get; set; }
+
+    [ForeignKey(nameof(IdJugee))]
+    [InverseProperty(nameof(Compte.AvisJugeur))]
+    public virtual Compte? CompteJugeurNav { get; set; }
 }
