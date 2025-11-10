@@ -38,9 +38,16 @@ namespace Api_c_sharp.Models
         [Column("com_biographie")]
         public string? Biographie { get; set; }
 
+        [Column("tco_id")]
+        public int IdTypeCompte { get; set; }
+
         [ForeignKey("IdUtilisateur")]
         [InverseProperty(nameof(TypeCompte.Comptes))]
-        public virtual TypeCompte? TypeCompteCompteNav { get; set; } = null!;
+        public virtual TypeCompte TypeCompteCompteNav { get; set; } = null!;
+
+        [InverseProperty(nameof(APourAdresse.CompteAPourAdresseNav))]
+        public virtual ICollection<APourAdresse> APourAdresses { get; set; } = new List<APourAdresse>();
+
 
     }
 }
