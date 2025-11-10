@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj": {}
+    "C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\akinb\\Downloads\\dossier\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj": {
+    "C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\akinb\\Downloads\\dossier\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj",
+        "projectUniqueName": "C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj",
         "projectName": "Api_c_sharp",
-        "projectPath": "C:\\Users\\akinb\\Downloads\\dossier\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj",
+        "projectPath": "C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj",
         "packagesPath": "C:\\Users\\akinb\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\akinb\\Downloads\\dossier\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\obj\\",
+        "outputPath": "C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -51,6 +51,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.10, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.6.2, )"
