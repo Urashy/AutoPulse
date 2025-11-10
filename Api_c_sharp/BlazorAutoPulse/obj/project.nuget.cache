@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "lW7ncBD3sFs=",
+  "dgSpecHash": "zCbhryYCV/c=",
   "success": true,
-  "projectFilePath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+  "projectFilePath": "P:\\S5\\SAE\\AutoPulseDev\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\servonnm\\.nuget\\packages\\microsoft.aspnetcore.authorization\\8.0.17\\microsoft.aspnetcore.authorization.8.0.17.nupkg.sha512",
     "C:\\Users\\servonnm\\.nuget\\packages\\microsoft.aspnetcore.components\\8.0.17\\microsoft.aspnetcore.components.8.0.17.nupkg.sha512",
