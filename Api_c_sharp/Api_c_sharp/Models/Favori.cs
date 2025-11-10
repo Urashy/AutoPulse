@@ -8,8 +8,8 @@ public class Favori
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    [Column("uti_id")]
-    public int IdUtilisateur { get; set; }
+    [Column("com_id")]
+    public int IdCompte { get; set; }
     
     [Required]
     [Column("ann_id")]
@@ -18,4 +18,8 @@ public class Favori
     [ForeignKey(nameof(IdAnnonce))]
     [InverseProperty(nameof(Annonce.Favoris))]
     public virtual Annonce AnnonceFavoriNavigation { get; set; }
+
+    [ForeignKey(nameof(IdCompte))]
+    [InverseProperty(nameof(Compte.Favoris))]
+    public virtual Annonce CompteFavoriNav { get; set; }
 }

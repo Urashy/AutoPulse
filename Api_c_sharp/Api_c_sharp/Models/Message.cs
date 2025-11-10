@@ -20,7 +20,7 @@ namespace Api_c_sharp.Models
         [Column("con_id")]
 
         [ForeignKey("IdConversation")]
-        [InverseProperty(nameof(Conversation.IdConversation))]
+        [InverseProperty(nameof(Conversation.Messages))]
         public virtual Conversation ConversationMessageNav { get; set; }
     }
 }

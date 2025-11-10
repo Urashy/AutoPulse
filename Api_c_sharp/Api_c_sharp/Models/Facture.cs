@@ -16,5 +16,6 @@ public class Facture
     public int IdCommande { get; set; }
     
     [ForeignKey(nameof(IdCommande))]
-    public virtual Commande CommandeNavigation { get; set; }
+    [InverseProperty(nameof(Commande.CommandeFactureNavigation))]
+    public virtual Commande CommandeFactureNavigation { get; set; }
 }
