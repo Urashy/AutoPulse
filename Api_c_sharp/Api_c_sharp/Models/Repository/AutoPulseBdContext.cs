@@ -5,17 +5,16 @@ namespace Api_c_sharp.Models.Repository
 {
     public class AutoPulseBdContext : DbContext
     {
-        // Constructeur requis pour la configuration via le fichier Program.cs
         public AutoPulseBdContext(DbContextOptions<AutoPulseBdContext> options)
             : base(options)
         {
         }
 
         // =======================================================
-        // Définition des DbSet (Vos tables de base de données)
+        // DbSets - Tables de base de données
         // =======================================================
 
-        // Modules principaux (Annonce et ses dépendances directes)
+        // Modules principaux
         public DbSet<Annonce> Annonces { get; set; }
         public DbSet<Compte> Comptes { get; set; }
         public DbSet<ComptePro> ComptesPro { get; set; }
@@ -34,6 +33,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Marque> Marques { get; set; }
         public DbSet<MiseEnAvant> MisesEnAvant { get; set; }
         public DbSet<Modele> Modeles { get; set; }
+        public DbSet<ModeleBlender> ModelesBlender { get; set; }
         public DbSet<Motricite> Motricites { get; set; }
         public DbSet<MoyenPaiement> MoyensPaiement { get; set; }
         public DbSet<Pays> Pays { get; set; }
@@ -49,32 +49,90 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Message> Messages { get; set; }
         public DbSet<Signalement> Signalements { get; set; }
 
+        // Tables de jointure
+        public DbSet<APourAdresse> APourAdresses { get; set; }
+        public DbSet<APourConversation> APourConversations { get; set; }
+        public DbSet<APourCouleur> APourCouleurs { get; set; }
 
         // =======================================================
-        // API Fluent pour la configuration avancée
+        // Configuration Fluent API
         // =======================================================
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // PostgreSQL est sensible aux noms de tables/colonnes en minuscules
-            // et aux noms de colonnes/contraintes trop longs.
-            // Le package Npgsql gère la majorité des conversions de noms (snake_case par défaut).
-
-            // Si vous avez des problèmes de clés primaires/étrangères non-conventionnelles
-            // ou des relations Many-to-Many sans classe intermédiaire, vous devez les configurer ici.
-
-            // Exemple pour Annonce: 
-            // Bien que [Key] dans Annonce.cs gère IdAnnonce, ceci peut être explicité:
-
-
-            modelBuilder.Entity<APourCouleur>().HasKey(e => new { e.IdCouleur, e.IdVoiture});
-            modelBuilder.Entity<APourConversation>().HasKey(e => new { e.IdCompte, e.IdConversation});
-            modelBuilder.Entity<APourAdresse>().HasKey(e => new { e.IdAdresse, e.IdCompte});
-            modelBuilder.Entity<Favori>().HasKey(e => new { e.IdAnnonce, e.IdCompte});
-
-
-
             base.OnModelCreating(modelBuilder);
+
+            // =======================================================
+            // Configuration des clés composites
+            // =======================================================
+
+            modelBuilder.Entity<APourCouleur>()
+                .HasKey(e => new { e.IdCouleur, e.IdVoiture });
+
+            modelBuilder.Entity<APourConversation>()
+                .HasKey(e => new { e.IdCompte, e.IdConversation });
+
+            modelBuilder.Entity<APourAdresse>()
+                .HasKey(e => new { e.IdAdresse, e.IdCompte });
+
+            modelBuilder.Entity<Favori>()
+                .HasKey(e => new { e.IdAnnonce, e.IdCompte });
+
+            // =======================================================
+            // Configuration des index pour optimisation
+            // =======================================================
+
+            // Index uniques sur Compte
+            modelBuilder.Entity<Compte>()
+                .HasIndex(e => e.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<Compte>()
+                .HasIndex(e => e.Pseudo)
+                .IsUnique();
+
+            // Index unique sur ComptePro
+            modelBuilder.Entity<ComptePro>()
+                .HasIndex(e => e.NumeroSiret)
+                .IsUnique();
+
+            // Index pour optimiser les recherches d'annonces
+            modelBuilder.Entity<Annonce>()
+                .HasIndex(e => new { e.IdEtatAnnonce, e.DatePublication });
+
+            // Index pour optimiser les recherches d'avis
+            modelBuilder.Entity<Avis>()
+                .HasIndex(e => e.IdJugee);
+
+            modelBuilder.Entity<Avis>()
+                .HasIndex(e => e.IdJugeur);
+
+            // Index pour optimiser les recherches de commandes
+            modelBuilder.Entity<Commande>()
+                .HasIndex(e => e.IdVendeur);
+
+            modelBuilder.Entity<Commande>()
+                .HasIndex(e => e.IdAcheteur);
+
+            // Index sur code postal
+            modelBuilder.Entity<Ville>()
+                .HasIndex(e => e.CodePostal);
+
+            // Index pour optimiser les messages par conversation
+            modelBuilder.Entity<Message>()
+                .HasIndex(e => new { e.IdMessage, e.DateEnvoiMessage });
+
+            // Index pour optimiser les journaux par compte
+            modelBuilder.Entity<Journal>()
+                .HasIndex(e => new { e.IdCompte, e.DateJournaux });
+
+            // =======================================================
+            // Configuration de la précision décimale
+            // =======================================================
+
+            modelBuilder.Entity<MiseEnAvant>()
+                .Property(e => e.PrixSemaine)
+                .HasPrecision(10, 2);
         }
     }
 }

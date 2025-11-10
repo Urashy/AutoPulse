@@ -4,7 +4,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 {
     public class AnnonceManager : SearchableManager<Annonce>, IRepository<Annonce>, WritableRepository<Annonce>
     {
-        public AnnonceManager(context context) : base(context)
+        public AnnonceManager(AutoPulseBdContext context) : base(context)
         { 
             
         }

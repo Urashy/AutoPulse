@@ -13,7 +13,7 @@ public class Annonce : SearchableEntity
     public int IdAnnonce { get; set; }
 
     [Column("ann_nom")]
-    public string Libelle { get; set; }
+    public string Nom{ get; set; }
 
     [Column("com_id")]
     public int IdCompte{ get; set; }
@@ -32,6 +32,9 @@ public class Annonce : SearchableEntity
 
     [Column("mav_id")]
     public int? IdMiseEnAvant { get; set; }
+
+    [Column("ann_dat")]
+    public DateTime? DatePublication{ get; set; }
 
     [ForeignKey(nameof(IdEtatAnnonce))]
     [InverseProperty(nameof(EtatAnnonce.Annonces))]
