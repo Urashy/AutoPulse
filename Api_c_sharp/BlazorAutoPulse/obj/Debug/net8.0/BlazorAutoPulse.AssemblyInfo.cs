@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BlazorAutoPulse")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+caab91273cba8f6bd519774a07f54168512151ee")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6defd511c21cbb5e98ad6996c7a1eda8ad887872")]
 [assembly: System.Reflection.AssemblyProductAttribute("BlazorAutoPulse")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BlazorAutoPulse")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
