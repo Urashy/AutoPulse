@@ -19,7 +19,7 @@ namespace Api_c_sharp.Models
         [Column("vil_codepostal")]
         public string CodePostal { get; set; } = null!;
 
-        [ForeignKey("IdUtilisateur")]
+        [ForeignKey("pay_id")]
         [InverseProperty(nameof(Pays.Villes))]
         public virtual Pays PaysVilleNav  { get; set; } = null!;
 

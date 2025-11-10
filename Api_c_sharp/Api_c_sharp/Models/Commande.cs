@@ -15,11 +15,11 @@ public class Commande
     public int? IdFacture { get; set; }
 
     [Required]
-    [Column("uti_id_vendeur")]
+    [Column("com_id_vendeur")]
     public int IdVendeur { get; set; }
 
     [Required]
-    [Column("uti_id_acheteur")]
+    [Column("com_id_acheteur")]
     public int IdAcheteur { get; set; }
 
     [Required]
@@ -34,11 +34,17 @@ public class Commande
     public int IdMoyenPaiement{ get; set; }
     
     [ForeignKey(nameof(IdMoyenPaiement))]
+    [InverseProperty(nameof(MoyenPaiement.Commandes))]
     public virtual MoyenPaiement MoyenPaiementNavigation { get; set; }
 
     [ForeignKey(nameof(IdFacture))]
-    public virtual Facture FactureNavigation { get; set; }
+    [InverseProperty(nameof(Facture.CommandeFactureNavigation))]
+    public virtual Facture CommandeFactureNavigation { get; set; }
     
-    [InverseProperty(nameof(Avis.CommandeNavigation))]
+    [InverseProperty(nameof(Avis.CommandeAvisNavigation))]
     public virtual ICollection<Avis> AvisListe { get; set; }
+
+    [ForeignKey(nameof(IdAnnonce))]
+    [InverseProperty(nameof(Annonce.CommandeAnnonceNav))]
+    public virtual Annonce CommandeAnnonceNav { get; set; }
 }

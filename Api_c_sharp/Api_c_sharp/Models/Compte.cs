@@ -41,7 +41,7 @@ namespace Api_c_sharp.Models
         [Column("tco_id")]
         public int IdTypeCompte { get; set; }
 
-        [ForeignKey("IdUtilisateur")]
+        [ForeignKey("IdCompte")]
         [InverseProperty(nameof(TypeCompte.Comptes))]
         public virtual TypeCompte TypeCompteCompteNav { get; set; } = null!;
 
@@ -59,6 +59,18 @@ namespace Api_c_sharp.Models
 
         [InverseProperty(nameof(Journal.CompteJournauxNav))]
         public virtual ICollection<Journal> Journaux { get; set; } = new List<Journal>();
+
+        [InverseProperty(nameof(Avis.CompteJugeeNav))]
+        public virtual ICollection<Avis> AvisJugees { get; set; } = new List<Avis>();
+
+        [InverseProperty(nameof(Avis.CompteJugeurNav))]
+        public virtual ICollection<Avis> AvisJugeur { get; set; } = new List<Avis>();
+
+        [InverseProperty(nameof(Annonce.CompteAnnonceNav))]
+        public virtual ICollection<Annonce> Annonces { get; set; } = new List<Annonce>();
+
+        [InverseProperty(nameof(Favori.CompteFavoriNav))]
+        public virtual ICollection<Favori> Favoris { get; set; } = new List<Favori>();
 
     }
 }

@@ -26,5 +26,8 @@ namespace Api_c_sharp.Models
 
         [InverseProperty(nameof(APourAdresse.AdresseAPourAdresseNav))]
         public virtual ICollection<APourAdresse> APourAdresses { get; set; } = new List<APourAdresse>();
+
+        [InverseProperty(nameof(Annonce.AdresseAnnonceNav))]
+        public virtual ICollection<Annonce> Annonces { get; set; } = new List<Annonce>();
     }
 }
