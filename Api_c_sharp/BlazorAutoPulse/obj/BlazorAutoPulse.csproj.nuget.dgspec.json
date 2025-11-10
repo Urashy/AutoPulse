@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "P:\\S5\\SAE\\AutoPulseDev\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj": {}
+    "C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj": {}
   },
   "projects": {
-    "P:\\S5\\SAE\\AutoPulseDev\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj": {
+    "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "P:\\S5\\SAE\\AutoPulseDev\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+        "projectUniqueName": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
         "projectName": "BlazorAutoPulse",
-        "projectPath": "P:\\S5\\SAE\\AutoPulseDev\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+        "projectPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
         "packagesPath": "C:\\Users\\servonnm\\.nuget\\packages\\",
-        "outputPath": "P:\\S5\\SAE\\AutoPulseDev\\Api_c_sharp\\BlazorAutoPulse\\obj\\",
+        "outputPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
