@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdBoiteDeVitesse { get; set; }
 
         [Column("boi_lib")]
+        [Required]
         public string LibelleBoite{ get; set; } = null!;
 
         [InverseProperty(nameof(Voiture.BoiteVoitureNavigation))]

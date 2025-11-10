@@ -12,18 +12,22 @@ public class Annonce
     public int IdAnnonce { get; set; }
     
     [Column("com_id")]
+    [Required]
     public int IdCompte{ get; set; }
     
     [Column("cmd_id")]
-    public int IdCommande { get; set; }
+    public int? IdCommande { get; set; }
         
     [Column("eta_id")]
+    [Required]
     public int IdEtatAnnonce { get; set; }
     
     [Column("adr_id")]
+    [Required]
     public int IdAdresseAnnonce { get; set; }
     
     [Column("voi_id")]
+    [Required]
     public int IdVoiture { get; set; }
 
     [Column("mav_id")]
