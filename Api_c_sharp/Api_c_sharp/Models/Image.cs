@@ -15,6 +15,19 @@ namespace Api_c_sharp.Models
         public byte[] Fichier { get; set; } = null!;
 
 
+        [Column("voi_id")]
+        public int? IdVoiture { get; set; }
+
+        [Column("com_id")]
+        public int? IdCompte { get; set; }
+
+        [ForeignKey(nameof(IdVoiture))]
+        [InverseProperty(nameof(Voiture.Images))]
+        public virtual Voiture? VoitureImageNav { get; set; } 
+
+        [ForeignKey(nameof(IdCompte))]
+        [InverseProperty(nameof(Compte.Images))]
+        public virtual Compte? CompteImageNav { get; set; }
 
     }
 }
