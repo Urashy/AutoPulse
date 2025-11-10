@@ -1,16 +1,33 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<header>
+    <nav>
+        <NavLink href="/">
+            <span class="logo"> AutoPulse </span>
+        </NavLink>
+        <ul class="nav-links">
+            <NavLink href="accueil">
+                <span> Accueil </span>
+            </NavLink>
+            <NavLink href="vendre">
+                <span> Vendre </span>
+            </NavLink>
+            <NavLink href="connexion">
+                <span class="btn-login"> Mode Admin </span>
+            </NavLink>
+            <NavLink href="admin">
+                <span class="btn-login"> Connexion </span>
+            </NavLink>
+        </ul>
+    </nav>
+</header>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+<div>
+    <article class="content">
+        @Body
+    </article>
 </div>
+
+<footer>
+    <p>&copy; 2025 AutoPulse - Tous droits réservés</p>
+    <p>📍 Chambéry, France | 📞 04 XX XX XX XX | ✉️ contact@AutoPulse.fr</p>
+</footer>

@@ -1,32 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj": {}
+    "/Users/mael/RiderProjects/AutoPulse/Api_c_sharp/BlazorAutoPulse/BlazorAutoPulse.csproj": {}
   },
   "projects": {
-    "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj": {
+    "/Users/mael/RiderProjects/AutoPulse/Api_c_sharp/BlazorAutoPulse/BlazorAutoPulse.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+        "projectUniqueName": "/Users/mael/RiderProjects/AutoPulse/Api_c_sharp/BlazorAutoPulse/BlazorAutoPulse.csproj",
         "projectName": "BlazorAutoPulse",
-        "projectPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
-        "packagesPath": "C:\\Users\\servonnm\\.nuget\\packages\\",
-        "outputPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\obj\\",
+        "projectPath": "/Users/mael/RiderProjects/AutoPulse/Api_c_sharp/BlazorAutoPulse/BlazorAutoPulse.csproj",
+        "packagesPath": "/Users/mael/.nuget/packages/",
+        "outputPath": "/Users/mael/RiderProjects/AutoPulse/Api_c_sharp/BlazorAutoPulse/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\servonnm\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/mael/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -44,8 +37,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -63,13 +55,13 @@
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[8.0.17, )",
+              "version": "[8.0.13, )",
               "autoReferenced": true
             },
             "Microsoft.NET.Sdk.WebAssembly.Pack": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[9.0.6, )",
+              "version": "[8.0.13, )",
               "autoReferenced": true
             }
           },
@@ -87,7 +79,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.NETCore.App.Runtime.Mono.browser-wasm",
-              "version": "[8.0.17, 8.0.17]"
+              "version": "[8.0.13, 8.0.13]"
             }
           ],
           "frameworkReferences": {
@@ -95,7 +87,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.406/PortableRuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {

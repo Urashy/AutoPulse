@@ -1,7 +1,86 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>AutoPulse</PageTitle>
 
-<h1>Hello, world!</h1>
+<section class="hero no-bootstrap">
+    <div class="hero-content">
+        <h1>Trouvez Votre Voiture Idéale</h1>
+        <p>Plus de 500 véhicules d'occasion sélectionnés et garantis</p>
+        <div class="search-bar">
+            <select>
+                <option>Marque</option>
+                <option>BMW</option>
+                <option>Mercedes</option>
+                <option>Audi</option>
+                <option>Peugeot</option>
+            </select>
+            <select>
+                <option>Modèle</option>
+            </select>
+            <input type="text" placeholder="Prix max">
+            <button>Rechercher</button>
+        </div>
+    </div>
+</section>
 
-Welcome to your new app.
+<div class="container">
+    <h2 class="section-title">Nos Dernières Offres</h2>
+    <div class="cars-grid">
+        <div class="car-card" onclick="showPage('detail')">
+            <div class="car-image">
+                <div class="car-badge">RÉCENT</div>
+            </div>
+            <div class="car-info">
+                <h3 class="car-title">BMW Série 3 2021</h3>
+                <div class="car-specs">
+                    <span>📅 2021</span>
+                    <span>⚙️ Automatique</span>
+                    <span>⛽ Diesel</span>
+                </div>
+                <div class="car-specs">
+                    <span>📊 45 000 km</span>
+                </div>
+                <div class="car-price">32 900 €</div>
+                <button class="car-btn">Voir Détails</button>
+            </div>
+        </div>
+
+        <div class="car-card" onclick="showPage('detail')">
+            <div class="car-image">
+                <div class="car-badge">PROMO</div>
+            </div>
+            <div class="car-info">
+                <h3 class="car-title">Mercedes Classe A 2020</h3>
+                <div class="car-specs">
+                    <span>📅 2020</span>
+                    <span>⚙️ Automatique</span>
+                    <span>⛽ Essence</span>
+                </div>
+                <div class="car-specs">
+                    <span>📊 38 000 km</span>
+                </div>
+                <div class="car-price">28 500 €</div>
+                <button class="car-btn">Voir Détails</button>
+            </div>
+        </div>
+
+        <div class="car-card" onclick="showPage('detail')">
+            <div class="car-image">
+                <div class="car-badge">GARANTIE</div>
+            </div>
+            <div class="car-info">
+                <h3 class="car-title">Audi A4 2022</h3>
+                <div class="car-specs">
+                    <span>📅 2022</span>
+                    <span>⚙️ Automatique</span>
+                    <span>⛽ Hybride</span>
+                </div>
+                <div class="car-specs">
+                    <span>📊 22 000 km</span>
+                </div>
+                <div class="car-price">38 900 €</div>
+                <button class="car-btn">Voir Détails</button>
+            </div>
+        </div>
+    </div>
+</div>
