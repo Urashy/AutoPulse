@@ -48,6 +48,17 @@ namespace Api_c_sharp.Models
         [InverseProperty(nameof(APourAdresse.CompteAPourAdresseNav))]
         public virtual ICollection<APourAdresse> APourAdresses { get; set; } = new List<APourAdresse>();
 
+        [InverseProperty(nameof(APourConversation.APourConversationCompteNav))]
+        public virtual ICollection<Conversation> ApourConversations { get; set; } = new List<Conversation>();    
+
+        [InverseProperty(nameof(Signalement.CompteSignalantNav))]
+        public virtual ICollection<Signalement> SignalementsFaits { get; set; } = new List<Signalement>();
+
+        [InverseProperty(nameof(Signalement.CompteSignaleNav))]
+        public virtual ICollection<Signalement> SignalementsRecus { get; set; } = new List<Signalement>();
+
+        [InverseProperty(nameof(Journal.CompteJournauxNav))]
+        public virtual ICollection<Journal> Journaux { get; set; } = new List<Journal>();
 
     }
 }

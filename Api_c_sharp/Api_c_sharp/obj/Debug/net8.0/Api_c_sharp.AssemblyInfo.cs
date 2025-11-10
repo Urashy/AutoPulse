@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Api_c_sharp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+40cfdf7e0eaa6a9ebf27a1e2a3659e2657e786cd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1df37e0f4d6aac71be911ff618e80611cc2d0fa3")]
 [assembly: System.Reflection.AssemblyProductAttribute("Api_c_sharp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Api_c_sharp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

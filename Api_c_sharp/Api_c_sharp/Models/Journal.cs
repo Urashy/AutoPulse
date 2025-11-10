@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_c_sharp.Models
 {
-    [Table("t_e_journaux_jou")]
-    public class Journaux
+    [Table("t_e_journeau_jou")]
+    public class Journal
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -23,8 +23,16 @@ namespace Api_c_sharp.Models
         [Column("tjo_id")]
         public int IdTypeJournaux { get; set; }
 
+        [Column("com_id")]
+        public int IdCompte { get; set; }
+
+        [ForeignKey("IdCompte")]
+        [InverseProperty(nameof(Compte.Journaux))]
+        public virtual Compte? CompteJournauxNav { get; set; } = null!;
+
+
         [ForeignKey("IdTypeJournaux")]
-        [InverseProperty(nameof(TypeJournaux.IdTypeJournaux))]
-        public virtual TypeJournaux? TypeCompteCompteNav { get; set; } = null!;
+        [InverseProperty(nameof(TypeJournal.Journaux))]
+        public virtual TypeJournal? TypeJournauxJournauxNav { get; set; } = null!;
     }
 }

@@ -1,0 +1,44 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Api_c_sharp.Models;
+
+[Table("t_e_commande_cmd")]
+public class Commande
+{
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Column("cmd_id")]
+    public int IdCommande { get; set; }
+
+    [Column("fac_id")]
+    public int? IdFacture { get; set; }
+
+    [Required]
+    [Column("uti_id_vendeur")]
+    public int IdVendeur { get; set; }
+
+    [Required]
+    [Column("uti_id_acheteur")]
+    public int IdAcheteur { get; set; }
+
+    [Required]
+    [Column("cmd_id_annonce")]
+    public int IdAnnonce { get; set; }
+
+    [Required]
+    [Column("cmd_date")]
+    public DateTime Date { get; set; } = DateTime.UtcNow;
+    
+    [Column("cmd_moyen_paiement")]
+    public int IdMoyenPaiement{ get; set; }
+    
+    [ForeignKey(nameof(IdMoyenPaiement))]
+    public virtual MoyenPaiement MoyenPaiementNavigation { get; set; }
+
+    [ForeignKey(nameof(IdFacture))]
+    public virtual Facture FactureNavigation { get; set; }
+    
+    [InverseProperty(nameof(Avis.CommandeNavigation))]
+    public virtual ICollection<Avis> AvisListe { get; set; }
+}

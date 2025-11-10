@@ -15,11 +15,11 @@ namespace Api_c_sharp.Models
         public int IdConversation { get; set; }
 
         [ForeignKey("IdCompte")]
-        [InverseProperty(nameof(Compte.APourConversationCompteNav))]
+        [InverseProperty(nameof(Compte.ApourConversations))]
         public virtual Compte APourConversationCompteNav { get; set; } = null!;
 
         [ForeignKey("IdConversation")]
-        [InverseProperty(nameof(Conversation.APourConversationConversationNav))]
+        [InverseProperty(nameof(Conversation.ApourConversations))]
         public virtual Conversation APourConversationConversationNav { get; set; } = null!;
     }
 }

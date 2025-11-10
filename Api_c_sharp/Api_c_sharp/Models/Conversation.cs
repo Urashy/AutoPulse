@@ -12,12 +12,7 @@ namespace Api_c_sharp.Models
         public int IdConversation { get; set; }
 
         [InverseProperty(nameof(APourConversation.APourConversationConversationNav))]
-        public virtual ICollection<APourConversation> APourConversationConversationNav { get; set; } = new List<APourConversation>();
-
-        //[ForeignKey("IdUtilisateur")]
-        //[InverseProperty(nameof(Annonce.idAnnonce))]
-        //public virtual Annonce AnnonceConversationNav { get; set; } = null!;
-
+        public virtual ICollection<APourConversation> ApourConversations { get; set; } = new List<APourConversation>();
 
     }
 }
