@@ -13,7 +13,8 @@ public class Annonce : SearchableEntity
     public int IdAnnonce { get; set; }
 
     [Column("ann_nom")]
-    public string Libelle { get; set; }
+    [Required]
+    public string Libelle { get; set; } = null!;
 
     [Column("com_id")]
     [Required]
