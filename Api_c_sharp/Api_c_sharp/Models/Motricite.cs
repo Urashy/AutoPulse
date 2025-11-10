@@ -13,6 +13,7 @@ namespace Api_c_sharp.Models
         public int IdMotricite { get; set; }
 
         [Column("mot_lib")]
+        [Required]
         public string LibelleMotricite { get; set; } = null!;
 
 

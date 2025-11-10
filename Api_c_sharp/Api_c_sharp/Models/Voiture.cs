@@ -12,39 +12,52 @@ namespace Api_c_sharp.Models
         public int IdVoiture{ get; set; }
 
         [Column("mar_id")]
+        [Required]
         public int IdMarque { get; set; }
 
         [Column("mot_id")]
+        [Required]
         public int IdMotricite{ get; set; }
 
         [Column("car_id")]
+        [Required]
         public int IdCarburant { get; set; }
 
         [Column("boi_id")]
+        [Required]
         public int IdBoiteDeVitesse{ get; set; }
 
         [Column("cou_id")]
+        [Required]
         public int IdCouleur{ get; set; }
 
         [Column("cat_id")]
+        [Required]
         public int IdCategorie{ get; set; }
 
         [Column("voi_kilometrage")]
+        [Required]
         public int Kilometrage { get; set; }
 
         [Column("voi_annee")]
+        [Required]
         public int Annee { get; set; }
 
         [Column("mod_puissance")]
+        [Required]
         public int Puissance { get; set; }
 
         [Column("mod_couple")]
         public int Couple { get; set; }
 
+        [Column("voi_nbcylindres")]
+        public int NbCylindres { get; set; }
+
         [Column("mod_id")]
         public int? IdModeleBlender { get; set; }
 
         [Column("mod_miseencirculation")]
+        [Required]
         public DateTime MiseEnCirculation { get; set; }
 
 

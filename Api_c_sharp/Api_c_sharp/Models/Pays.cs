@@ -12,6 +12,7 @@ namespace Api_c_sharp.Models
         public int IdPays { get; set; }
 
         [Column("pay_libelle")]
+        [Required]
         public string Libelle { get; set; } = null!;
 
         [InverseProperty(nameof(Ville.PaysVilleNav))]
