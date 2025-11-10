@@ -14,7 +14,10 @@ namespace Api_c_sharp.Models
         [Column("mar_lib")]
         public string LibelleMarque { get; set; } = null!;
 
-        [Column("mar_id")]
+        [InverseProperty(nameof(Voiture.MarqueVoitureNavigation))]
         public virtual ICollection<Voiture> Voitures { get; set; } = new List<Voiture>();
+
+        [InverseProperty(nameof(Modele.MarqueModeleNavigation))]
+        public virtual ICollection<Voiture> Modeles { get; set; } = new List<Voiture>();
     }
 }
