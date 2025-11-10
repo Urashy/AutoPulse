@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\akinb\\Downloads\\dossier\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj": {}
+    "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\akinb\\Downloads\\dossier\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj": {
+    "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\akinb\\Downloads\\dossier\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj",
+        "projectUniqueName": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj",
         "projectName": "Api_c_sharp",
-        "projectPath": "C:\\Users\\akinb\\Downloads\\dossier\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj",
-        "packagesPath": "C:\\Users\\akinb\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\akinb\\Downloads\\dossier\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\obj\\",
+        "projectPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\Api_c_sharp.csproj",
+        "packagesPath": "C:\\Users\\servonnm\\.nuget\\packages\\",
+        "outputPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\Api_c_sharp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\akinb\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\servonnm\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
