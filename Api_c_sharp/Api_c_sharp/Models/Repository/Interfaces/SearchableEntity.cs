@@ -2,6 +2,6 @@
 {
     public interface SearchableEntity
     {
-        string Nom { get; set; }
+        string Libelle { get; set; }
     }
 }
