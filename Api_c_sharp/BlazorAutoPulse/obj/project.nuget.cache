@@ -33,5 +33,15 @@
     "C:\\Users\\akinb\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
     "C:\\Users\\akinb\\.nuget\\packages\\microsoft.netcore.app.runtime.mono.browser-wasm\\8.0.17\\microsoft.netcore.app.runtime.mono.browser-wasm.8.0.17.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "message": "Problème de lecture du fichier cache C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\obj\\project.nuget.cache\u00A0: '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0.",
+      "projectPath": "C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+      "targetGraphs": []
+    }
+  ]
 }
