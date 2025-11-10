@@ -1845,23 +1845,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\servonnm\\.nuget\\packages\\": {},
+    "C:\\Users\\megiasv\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+      "projectUniqueName": "C:\\Users\\megiasv\\Desktop\\temp\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
       "projectName": "BlazorAutoPulse",
-      "projectPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
-      "packagesPath": "C:\\Users\\servonnm\\.nuget\\packages\\",
-      "outputPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\obj\\",
+      "projectPath": "C:\\Users\\megiasv\\Desktop\\temp\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+      "packagesPath": "C:\\Users\\megiasv\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\megiasv\\Desktop\\temp\\Api_c_sharp\\BlazorAutoPulse\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\servonnm\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\megiasv\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
