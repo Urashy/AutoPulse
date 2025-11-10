@@ -41,6 +41,9 @@ namespace Api_c_sharp.Models
         [Column("mod_couple")]
         public int Couple { get; set; }
 
+        [Column("mod_id")]
+        public int? IdModeleBlender { get; set; }
+
         [Column("mod_miseencirculation")]
         public DateTime MiseEnCirculation { get; set; }
 
@@ -70,6 +73,14 @@ namespace Api_c_sharp.Models
 
         [InverseProperty(nameof(Annonce.VoitureAnnonceNav))]
         public virtual ICollection<Annonce> Annonces { get; set; } = new List<Annonce>();
+
+
+        [InverseProperty(nameof(Image.VoitureImageNav))]
+        public virtual ICollection<Image> Images { get; set; } = new List<Image>();
+
+        [ForeignKey(nameof(IdModeleBlender))]
+        [InverseProperty(nameof(ModeleBlender.Voitures))]
+        public virtual ModeleBlender? ModeleBlenderNavigation { get; set; }
 
     }
 }

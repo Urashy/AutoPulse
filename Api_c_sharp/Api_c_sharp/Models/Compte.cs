@@ -72,5 +72,8 @@ namespace Api_c_sharp.Models
         [InverseProperty(nameof(Favori.CompteFavoriNav))]
         public virtual ICollection<Favori> Favoris { get; set; } = new List<Favori>();
 
+        [InverseProperty(nameof(Image.CompteImageNav))]
+        public virtual ICollection<Image> Images { get; set; } = new List<Image>();
+
     }
 }
