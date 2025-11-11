@@ -17,7 +17,6 @@ namespace Api_c_sharp.Models.Repository
         // Modules principaux
         public DbSet<Annonce> Annonces { get; set; }
         public DbSet<Compte> Comptes { get; set; }
-        public DbSet<ComptePro> ComptesPro { get; set; }
         public DbSet<Voiture> Voitures { get; set; }
         public DbSet<Adresse> Adresses { get; set; }
         public DbSet<Commande> Commandes { get; set; }
@@ -91,11 +90,6 @@ namespace Api_c_sharp.Models.Repository
                 .HasIndex(e => e.Pseudo)
                 .IsUnique();
 
-            // Index unique sur ComptePro
-            modelBuilder.Entity<ComptePro>()
-                .HasIndex(e => e.NumeroSiret)
-                .IsUnique();
-
             // Index pour optimiser les recherches d'annonces
             modelBuilder.Entity<Annonce>()
                 .HasIndex(e => new { e.IdEtatAnnonce, e.DatePublication });
@@ -124,7 +118,7 @@ namespace Api_c_sharp.Models.Repository
 
             // Index pour optimiser les journaux par compte
             modelBuilder.Entity<Journal>()
-                .HasIndex(e => new { e.IdCompte, e.DateJournaux });
+                .HasIndex(e => new { e.IdCompte, e.DateJournal });
 
             // =======================================================
             // Configuration de la précision décimale

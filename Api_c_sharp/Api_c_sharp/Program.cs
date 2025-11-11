@@ -1,3 +1,4 @@
+using Api_c_sharp.Models.Repository;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL; // Importez le namespace Npgsql
 using Api_c_sharp.Models.Repository.Managers;
@@ -13,7 +14,7 @@ builder.Services.AddSwaggerGen();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<ProduitsbdContext>(options =>
+builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     // Utilisation du fournisseur PostgreSQL
     options.UseNpgsql(connectionString));
 
