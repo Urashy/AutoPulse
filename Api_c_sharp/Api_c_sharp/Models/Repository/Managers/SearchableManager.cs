@@ -3,7 +3,7 @@ using Api_c_sharp.Models.Repository.Interfaces;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public abstract class SearchableManager<TEntity> : ReadableManager<TEntity>, SearchableRepository<TEntity> 
+    public abstract class SearchableManager<TEntity> : SearchableRepository<TEntity> 
     where TEntity : class, SearchableEntity
     {
         protected SearchableManager(AutoPulseBdContext context) : base(context)

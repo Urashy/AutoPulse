@@ -3,7 +3,7 @@ using System.Data.Entity;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public abstract class WritableManager<TEntity> : BaseManager<TEntity>, WritableRepository<TEntity>
+    public abstract class WritableManager<TEntity> :  WritableRepository<TEntity>
     where TEntity : class
     {
         protected WritableManager(AutoPulseBdContext context) : base(context)
