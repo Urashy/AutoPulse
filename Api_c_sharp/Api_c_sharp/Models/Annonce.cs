@@ -41,10 +41,6 @@ public class Annonce
     [Column("ann_dat")]
     public DateTime? DatePublication{ get; set; }
 
-    [Column("adr_id")]
-    [Required]
-    public int IdAdresse { get; set; }
-
     [ForeignKey(nameof(IdEtatAnnonce))]
     [InverseProperty(nameof(EtatAnnonce.Annonces))]
     public virtual EtatAnnonce EtatAnnonceNavigation { get; set; }
