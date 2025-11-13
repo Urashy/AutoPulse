@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace Api_c_sharp.Models.Repository.Managers
 {
 
-        public abstract class ReadableManager<TEntity> : ReadableRepository<TEntity>
+        public abstract class ReadableSearchableManager<TEntity> : ReadableRepository<TEntity>, SearchableRepository<TEntity>
     where TEntity : class
         {
             protected readonly AutoPulseBdContext context;
             protected readonly DbSet<TEntity> dbSet;
 
-            public ReadableManager(AutoPulseBdContext context)
+            public ReadableSearchableManager(AutoPulseBdContext context)
             {
                 this.context = context;
                 this.dbSet = context.Set<TEntity>();
@@ -26,6 +26,11 @@ namespace Api_c_sharp.Models.Repository.Managers
             {
                 return await dbSet.FindAsync(id);
             }
+
+        public Task<TEntity?> GetByNameAsync(string name)
+        {
+            throw new NotImplementedException();
         }
+    }
     
 }
