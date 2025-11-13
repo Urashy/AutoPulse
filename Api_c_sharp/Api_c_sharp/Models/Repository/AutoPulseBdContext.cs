@@ -10,78 +10,112 @@ namespace Api_c_sharp.Models.Repository
         {
         }
 
-        // =======================================================
-        // DbSets - Tables de base de données
-        // =======================================================
-
-        // Modules principaux
-        public DbSet<Annonce> Annonces { get; set; }
-        public DbSet<Compte> Comptes { get; set; }
-        public DbSet<Voiture> Voitures { get; set; }
         public DbSet<Adresse> Adresses { get; set; }
-        public DbSet<Commande> Commandes { get; set; }
-        public DbSet<Facture> Factures { get; set; }
-
-        // Entités de Configuration et de Référence
+        public DbSet<Annonce> Annonces { get; set; }
+        public DbSet<APourAdresse> APourAdresses { get; set; }
+        public DbSet<APourConversation> APourConversations { get; set; }
+        public DbSet<APourCouleur> APourCouleurs { get; set; }
         public DbSet<Avis> Avis { get; set; }
-        public DbSet<BoiteDeVitesse> BoitesDeVitesse { get; set; }
+        public DbSet<BoiteDeVitesse> BoitesDeVitesses { get; set; }
         public DbSet<Carburant> Carburants { get; set; }
         public DbSet<Categorie> Categories { get; set; }
+        public DbSet<Commande> Commandes { get; set; }
+        public DbSet<Compte> Comptes { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Couleur> Couleurs { get; set; }
         public DbSet<EtatAnnonce> EtatAnnonces { get; set; }
+        public DbSet<Facture> Factures { get; set; }
+        public DbSet<Favori> Favoris { get; set; }
+        public DbSet<Image> Images { get; set; }
+        public DbSet<Journal> Journaux { get; set; }
         public DbSet<Marque> Marques { get; set; }
+        public DbSet<Message> Messages { get; set; }
         public DbSet<MiseEnAvant> MisesEnAvant { get; set; }
         public DbSet<Modele> Modeles { get; set; }
         public DbSet<ModeleBlender> ModelesBlender { get; set; }
         public DbSet<Motricite> Motricites { get; set; }
-        public DbSet<MoyenPaiement> MoyensPaiement { get; set; }
+        public DbSet<MoyenPaiement> MoyensPaiements { get; set; }
         public DbSet<Pays> Pays { get; set; }
+        public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
         public DbSet<TypeJournal> TypesJournal { get; set; }
         public DbSet<Ville> Villes { get; set; }
-
-        // Entités de Journalisation et de Relation
-        public DbSet<Conversation> Conversations { get; set; }
-        public DbSet<Favori> Favoris { get; set; }
-        public DbSet<Image> Images { get; set; }
-        public DbSet<Journal> Journaux { get; set; }
-        public DbSet<Message> Messages { get; set; }
-        public DbSet<Signalement> Signalements { get; set; }
-
-        // Tables de jointure
-        public DbSet<APourAdresse> APourAdresses { get; set; }
-        public DbSet<APourConversation> APourConversations { get; set; }
-        public DbSet<APourCouleur> APourCouleurs { get; set; }
-
-        // =======================================================
-        // Configuration Fluent API
-        // =======================================================
+        public DbSet<Voiture> Voitures { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // =======================================================
-            // Configuration des clés composites
-            // =======================================================
 
-            modelBuilder.Entity<APourCouleur>()
-                .HasKey(e => new { e.IdCouleur, e.IdVoiture });
+            //-----------------------------Adresse-----------------------------
+            modelBuilder.Entity<Adresse>()
+                .HasKey(a => a.IdAdresse); 
+
+            modelBuilder.Entity<Adresse>()
+                .HasOne(a => a.VilleAdresseNav)
+                .WithMany(v => v.Adresses)
+                .HasForeignKey(a => a.IdVille);
+
+            modelBuilder.Entity<Adresse>()
+                .HasMany(a => a.APourAdresses)
+                .WithOne(ap => ap.AdresseAPourAdresseNav)
+                .HasForeignKey(a => a.IdAdresse);
+
+            //-----------------------------Annonce-----------------------------
+            modelBuilder.Entity<Annonce>()
+                .HasKey(a => a.IdAnnonce);
+
+            modelBuilder.Entity<Annonce>()
+                .HasOne(a => a.VoitureAnnonceNav)
+                .WithMany(v => v.Annonces)
+                .HasForeignKey(a => a.IdVoiture);
+
+            modelBuilder.Entity<Annonce>()
+                .HasOne(a => a.EtatAnnonceNavigation)
+                .WithMany(e => e.Annonces)
+                .HasForeignKey(a => a.IdEtatAnnonce);
+
+            modelBuilder.Entity<Annonce>()
+                .HasOne(a => a.AdresseAnnonceNav)
+                .WithMany(ad => ad.Annonces)
+                .HasForeignKey(a => a.IdAdresse);
+
+            modelBuilder.Entity<Annonce>()
+                .HasMany(a => a.Favoris)
+                .WithOne(f => f.AnnonceFavoriNavigation)
+                .HasForeignKey(f => f.IdAnnonce);
+
+            modelBuilder.Entity<Annonce>()
+                .HasOne(a => a.CompteAnnonceNav)
+                .WithMany(c => c.Annonces)
+                .HasForeignKey(a => a.IdCompte);
+
+            modelBuilder.Entity<Annonce>()
+                .HasOne(a => a.CommandeAnnonceNav)
+                .WithOne(c => c.CommandeAnnonceNav)
+                .HasForeignKey<Commande>(a => a.IdAnnonce);
+
+            modelBuilder.Entity<Annonce>()
+                .HasMany(a => a.Conversations)
+                .WithOne(c => c.AnnonceConversationNav)
+                .HasForeignKey(c => c.IdAnnonce);
+
+            modelBuilder.Entity<Annonce>()
+
+            //-----------------------------APourAdresse-----------------------------
+            modelBuilder.Entity<APourAdresse>()
+                .HasKey(e => new { e.IdAdresse, e.IdCompte });
 
             modelBuilder.Entity<APourConversation>()
                 .HasKey(e => new { e.IdCompte, e.IdConversation });
 
-            modelBuilder.Entity<APourAdresse>()
-                .HasKey(e => new { e.IdAdresse, e.IdCompte });
+            modelBuilder.Entity<APourCouleur>()
+                .HasKey(e => new { e.IdCouleur, e.IdVoiture });
+
 
             modelBuilder.Entity<Favori>()
                 .HasKey(e => new { e.IdAnnonce, e.IdCompte });
 
-            // =======================================================
-            // Configuration des index pour optimisation
-            // =======================================================
-
-            // Index uniques sur Compte
             modelBuilder.Entity<Compte>()
                 .HasIndex(e => e.Email)
                 .IsUnique();
@@ -90,39 +124,30 @@ namespace Api_c_sharp.Models.Repository
                 .HasIndex(e => e.Pseudo)
                 .IsUnique();
 
-            // Index pour optimiser les recherches d'annonces
             modelBuilder.Entity<Annonce>()
                 .HasIndex(e => new { e.IdEtatAnnonce, e.DatePublication });
 
-            // Index pour optimiser les recherches d'avis
             modelBuilder.Entity<Avis>()
                 .HasIndex(e => e.IdJugee);
 
             modelBuilder.Entity<Avis>()
                 .HasIndex(e => e.IdJugeur);
 
-            // Index pour optimiser les recherches de commandes
             modelBuilder.Entity<Commande>()
                 .HasIndex(e => e.IdVendeur);
 
             modelBuilder.Entity<Commande>()
                 .HasIndex(e => e.IdAcheteur);
 
-            // Index sur code postal
             modelBuilder.Entity<Ville>()
                 .HasIndex(e => e.CodePostal);
 
-            // Index pour optimiser les messages par conversation
             modelBuilder.Entity<Message>()
                 .HasIndex(e => new { e.IdMessage, e.DateEnvoiMessage });
 
-            // Index pour optimiser les journaux par compte
             modelBuilder.Entity<Journal>()
                 .HasIndex(e => new { e.IdCompte, e.DateJournal });
 
-            // =======================================================
-            // Configuration de la précision décimale
-            // =======================================================
 
             modelBuilder.Entity<MiseEnAvant>()
                 .Property(e => e.PrixSemaine)
