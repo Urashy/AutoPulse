@@ -3,10 +3,10 @@ using System.Data.Entity;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public abstract class WritableManager<TEntity> : ManagerGenerique<TEntity>, WritableRepository<TEntity>
+    public abstract class WritableManager<TEntity> : BaseManager<TEntity>, WritableRepository<TEntity>
     where TEntity : class
     {
-        protected WritableManager(ProduitsbdContext context) : base(context)
+        protected WritableManager(AutoPulseBdContext context) : base(context)
         {
         }
 
@@ -17,10 +17,9 @@ namespace Api_c_sharp.Models.Repository.Managers
             return entity;
         }
 
-        public virtual async Task UpdateAsync(TEntity entity)
+        public virtual async Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
         {
-            dbSet.Attach(entity);
-            context.Entry(entity).State = EntityState.Modified;
+            context.Entry(entityToUpdate).CurrentValues.SetValues(entity);
             await context.SaveChangesAsync();
         }
 

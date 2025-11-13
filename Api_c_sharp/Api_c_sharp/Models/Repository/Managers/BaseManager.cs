@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Api_c_sharp.Models.Repository.Managers
 {
 
-        public abstract class BaseManager<TEntity> : IRepository<TEntity>
+        public abstract class BaseManager<TEntity> : ReadableRepository<TEntity>
     where TEntity : class
         {
             protected readonly AutoPulseBdContext context;
