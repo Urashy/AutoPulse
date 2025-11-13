@@ -1,3 +1,4 @@
+using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Repository;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL; // Importez le namespace Npgsql
@@ -17,6 +18,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     // Utilisation du fournisseur PostgreSQL
     options.UseNpgsql(connectionString));
+
+builder.Services.AddAutoMapper(typeof(MapperProfile));
 
 var app = builder.Build();
 

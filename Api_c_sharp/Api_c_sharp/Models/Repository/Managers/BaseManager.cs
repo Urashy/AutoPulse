@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Api_c_sharp.Models.Repository.Managers
 {
 
-    public abstract class BaseManager<TEntity> : IdataRepository<TEntity>
+    public abstract class BaseManager<TEntity, TKey> : IdataRepository<TEntity, TKey>
     {
         protected readonly AutoPulseBdContext context;
         protected readonly DbSet<TEntity> dbSet;
@@ -36,10 +36,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.FindAsync(id);
         }
 
-        public Task<TEntity?> GetByNameAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract Task<TEntity?> GetByNameAsync(TKey name);
 
         public Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
         {
