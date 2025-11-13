@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Api_c_sharp.Models;
 
 [Table("t_e_annonce_ann")]
-public class Annonce : SearchableEntity
+public class Annonce
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

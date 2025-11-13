@@ -6,7 +6,6 @@ namespace Api_c_sharp.Models.Repository.Managers
 {
 
         public abstract class ReadableManager<TEntity> : ReadableRepository<TEntity>
-    where TEntity : class
         {
             protected readonly AutoPulseBdContext context;
             protected readonly DbSet<TEntity> dbSet;
