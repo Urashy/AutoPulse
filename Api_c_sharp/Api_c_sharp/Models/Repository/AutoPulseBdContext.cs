@@ -42,13 +42,13 @@ namespace Api_c_sharp.Models.Repository
 
         // Entités de Journalisation et de Relation
         public DbSet<Conversation> Conversations { get; set; }
-        public DbSet<Favori> Favoris { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<Journal> Journaux { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Signalement> Signalements { get; set; }
 
         // Tables de jointure
+        public DbSet<Favori> Favoris { get; set; }
         public DbSet<APourAdresse> APourAdresses { get; set; }
         public DbSet<APourConversation> APourConversations { get; set; }
         public DbSet<APourCouleur> APourCouleurs { get; set; }
