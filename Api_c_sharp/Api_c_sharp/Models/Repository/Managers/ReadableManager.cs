@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace Api_c_sharp.Models.Repository.Managers
 {
 
-        public abstract class BaseManager<TEntity> : ReadableRepository<TEntity>
+        public abstract class ReadableManager<TEntity> : IRepository<TEntity>
     where TEntity : class
         {
             protected readonly AutoPulseBdContext context;
             protected readonly DbSet<TEntity> dbSet;
 
-            public BaseManager(AutoPulseBdContext context)
+            public ReadableManager(AutoPulseBdContext context)
             {
                 this.context = context;
                 this.dbSet = context.Set<TEntity>();
