@@ -1,11 +1,12 @@
 ﻿using Api_c_sharp.Models.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public abstract class SearchableManager<TEntity> : ManagerGenerique<TEntity>, SearchableRepository<TEntity>
+    public abstract class SearchableManager<TEntity> : BaseManager<TEntity>, SearchableRepository<TEntity>
     where TEntity : class, SearchableEntity
     {
-        protected SearchableManager(ProduitsbdContext context) : base(context)
+        protected SearchableManager(AutoPulseBdContext context) : base(context)
         {
         }
 

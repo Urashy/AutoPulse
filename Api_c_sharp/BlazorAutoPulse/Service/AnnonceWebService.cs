@@ -12,7 +12,7 @@ public class AnnonceWebService: IService<Annonce>
 
     public async Task<IEnumerable<Annonce>> GetAllAsync()
     {
-        return await _httpClient.GetFromJsonAsync<IEnumerable<Annonce>>("<d");
+        return await _httpClient.GetFromJsonAsync<IEnumerable<Annonce>>("GetAll");
     }
 
     public async Task<Annonce> GetByIdAsync(int id)

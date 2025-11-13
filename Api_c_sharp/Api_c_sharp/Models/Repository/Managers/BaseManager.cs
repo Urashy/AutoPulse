@@ -8,10 +8,10 @@ namespace Api_c_sharp.Models.Repository.Managers
         public abstract class BaseManager<TEntity> : IRepository<TEntity>
     where TEntity : class
         {
-            protected readonly ProduitsbdContext context;
+            protected readonly AutoPulseBdContext context;
             protected readonly DbSet<TEntity> dbSet;
 
-            public BaseManager(ProduitsbdContext context)
+            public BaseManager(AutoPulseBdContext context)
             {
                 this.context = context;
                 this.dbSet = context.Set<TEntity>();
@@ -26,8 +26,6 @@ namespace Api_c_sharp.Models.Repository.Managers
             {
                 return await dbSet.FindAsync(id);
             }
-
-            
         }
     
 }
