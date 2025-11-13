@@ -1845,23 +1845,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\akinb\\.nuget\\packages\\": {},
+    "C:\\Users\\akopiane\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+      "projectUniqueName": "C:\\Users\\akopiane\\Source\\Repos\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
       "projectName": "BlazorAutoPulse",
-      "projectPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
-      "packagesPath": "C:\\Users\\servonnm\\.nuget\\packages\\",
-      "outputPath": "P:\\S5\\SAE\\AutoPulseDev\\BACK C#\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\obj\\",
+      "projectPath": "C:\\Users\\akopiane\\Source\\Repos\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\BlazorAutoPulse.csproj",
+      "packagesPath": "C:\\Users\\akopiane\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\akopiane\\Source\\Repos\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\servonnm\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\akopiane\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1947,13 +1947,5 @@
         "#import": []
       }
     }
-  },
-  "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Problème de lecture du fichier cache C:\\Users\\akinb\\Downloads\\saeeee\\AutoPulse\\Api_c_sharp\\BlazorAutoPulse\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0."
-    }
-  ]
+  }
 }

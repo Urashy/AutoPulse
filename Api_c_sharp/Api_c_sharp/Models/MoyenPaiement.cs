@@ -15,6 +15,6 @@ public class MoyenPaiement
     [Required]
     public string TypePaiement { get; set; }
 
-    [InverseProperty(nameof(Commande.MoyenPaiementNavigation))]
-    public virtual Commande CommandeNavigation { get; set; }
+    [InverseProperty(nameof(Commande.CommandeMoyenPaiementNav))]
+    public virtual ICollection<Commande> Commandes { get; set; } = new List<Commande>();
 }

@@ -81,8 +81,8 @@ namespace Api_c_sharp.Models
         [InverseProperty(nameof(BoiteDeVitesse.Voitures))]
         public virtual BoiteDeVitesse? BoiteVoitureNavigation { get; set; } = null!;
 
-        [InverseProperty(nameof(APourCouleur.APourCouleurVoitureNavigation))]
-        public virtual ICollection<APourCouleur> Couleurs { get; set; } = new List<APourCouleur>();
+        [InverseProperty(nameof(APourCouleur.APourCouleurVoitureNav))]
+        public virtual ICollection<APourCouleur> APourCouleurs { get; set; } = new List<APourCouleur>();
 
         [InverseProperty(nameof(Annonce.VoitureAnnonceNav))]
         public virtual ICollection<Annonce> Annonces { get; set; } = new List<Annonce>();
