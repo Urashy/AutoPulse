@@ -1,7 +1,7 @@
 ﻿namespace Api_c_sharp.Models.Repository.Interfaces
 {
-    public interface SearchableRepository<T> : ReadableRepository<T> where T : class
+    public interface SearchableRepository<T, TKey> 
     {
-        Task<T?> GetByNameAsync(string name);
+        Task<T?> GetByNameAsync(TKey key);
     }
 }
