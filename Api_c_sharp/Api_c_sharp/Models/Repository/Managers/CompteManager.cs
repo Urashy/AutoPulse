@@ -9,19 +9,23 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
-        public Task<Compte> AddAsync(Compte entity)
+        public virtual async Task<Compte> AddAsync(Compte entity)
         {
-
+            await dbSet.AddAsync(entity);
+            await context.SaveChangesAsync();
+            return entity;
         }
 
-        public Task DeleteAsync(Compte entity)
+        public virtual async Task DeleteAsync(Compte entity)
         {
-            throw new NotImplementedException();
+            dbSet.Remove(entity);
+            await context.SaveChangesAsync();
         }
 
-        public Task UpdateAsync(Compte entity)
+        public virtual async Task UpdateAsync(Compte entityToUpdate, Compte entity)
         {
-            throw new NotImplementedException();
+            context.Entry(entityToUpdate).CurrentValues.SetValues(entity);
+            await context.SaveChangesAsync();
         }
     }
 }

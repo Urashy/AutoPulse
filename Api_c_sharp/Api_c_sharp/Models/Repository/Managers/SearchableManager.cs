@@ -1,6 +1,5 @@
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Interfaces;
-using System.Data.Entity;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
@@ -13,7 +12,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public virtual async Task<TEntity?> GetByNameAsync(string name)
         {
-            return await dbSet.FirstOrDefaultAsync(e => e.Nom == name);
+            return await dbSet.first(e => e.Nom == name);
         }
     }
 }
