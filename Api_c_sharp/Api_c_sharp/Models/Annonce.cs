@@ -47,33 +47,32 @@ public class Annonce
 
     [ForeignKey(nameof(IdEtatAnnonce))]
     [InverseProperty(nameof(EtatAnnonce.Annonces))]
-    public virtual EtatAnnonce EtatAnnonceNavigation { get; set; }
-    
-    [ForeignKey(nameof(Favori.AnnonceFavoriNavigation))]
-    [InverseProperty(nameof(Favori.AnnonceFavoriNavigation))]
+    public virtual EtatAnnonce EtatAnnonceNavigation { get; set; } = null!;
+
+    [InverseProperty(nameof(Favori.AnnonceFavoriNav))]
     public virtual ICollection<Favori>Favoris { get; set; } = new List<Favori>();
 
     [ForeignKey(nameof(IdCompte))]
     [InverseProperty(nameof(Compte.Annonces))]
-    public virtual Compte CompteAnnonceNav { get; set; }
+    public virtual Compte CompteAnnonceNav { get; set; } =  null!;
 
     [InverseProperty(nameof(Conversation.AnnonceConversationNav))]
     public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
     [ForeignKey(nameof(IdCommande))]
     [InverseProperty(nameof(Commande.CommandeAnnonceNav))]
-    public virtual Commande CommandeAnnonceNav { get; set; }
+    public virtual Commande? CommandeAnnonceNav { get; set; }
 
     [ForeignKey(nameof(IdMiseEnAvant))]
     [InverseProperty(nameof(MiseEnAvant.Annonces))]
-    public virtual MiseEnAvant MiseEnAvantNavigation { get; set; }
+    public virtual MiseEnAvant MiseEnAvantAnnonceNav { get; set; } = null!;
 
     [ForeignKey(nameof(IdAdresseAnnonce))]
     [InverseProperty(nameof(Adresse.Annonces))]
-    public virtual Adresse AdresseAnnonceNav { get; set; }
+    public virtual Adresse AdresseAnnonceNav { get; set; } = null!;
 
     [ForeignKey(nameof(IdVoiture))]
     [InverseProperty(nameof(Voiture.Annonces))]
-    public virtual Voiture VoitureAnnonceNav { get; set; }
+    public virtual Voiture VoitureAnnonceNav { get; set; } = null!;
 
 }

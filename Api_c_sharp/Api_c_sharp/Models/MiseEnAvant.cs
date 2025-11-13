@@ -19,7 +19,7 @@ namespace Api_c_sharp.Models
         [Required]
         public decimal PrixSemaine { get; set; }
 
-        [InverseProperty(nameof(Annonce.MiseEnAvantNavigation))]
+        [InverseProperty(nameof(Annonce.MiseEnAvantAnnonceNav))]
         public virtual ICollection<Annonce> Annonces { get; set; } = new List<Annonce>();
     }
 }

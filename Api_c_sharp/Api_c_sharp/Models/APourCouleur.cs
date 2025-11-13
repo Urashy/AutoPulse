@@ -17,10 +17,10 @@ namespace Api_c_sharp.Models
 
         [ForeignKey("voi_idcouleur")]
         [InverseProperty(nameof(Voiture.Couleurs))]
-        public virtual Voiture? APourCouleurVoitureNavigation { get; set; } = null!;
+        public virtual Voiture? APourCouleurVoitureNav { get; set; } = null!;
 
         [ForeignKey("voi_idcouleur")]
         [InverseProperty(nameof(Couleur.Voitures))]
-        public virtual Couleur? APourCouleurCouleurNavigation { get; set; } = null!;
+        public virtual Couleur? APourCouleurCouleurNav { get; set; } = null!;
     }
 }

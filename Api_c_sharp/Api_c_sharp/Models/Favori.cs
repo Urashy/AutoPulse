@@ -17,9 +17,9 @@ public class Favori
     
     [ForeignKey(nameof(IdAnnonce))]
     [InverseProperty(nameof(Annonce.Favoris))]
-    public virtual Annonce AnnonceFavoriNavigation { get; set; }
+    public virtual Annonce AnnonceFavoriNav { get; set; } = null!; 
 
     [ForeignKey(nameof(IdCompte))]
     [InverseProperty(nameof(Compte.Favoris))]
-    public virtual Annonce CompteFavoriNav { get; set; }
+    public virtual Compte CompteFavoriNav { get; set; } = null!;
 }

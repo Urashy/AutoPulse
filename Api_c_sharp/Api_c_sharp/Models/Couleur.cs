@@ -15,7 +15,7 @@ namespace Api_c_sharp.Models
         [Required]
         public string LibelleCouleur { get; set; } = null!;
 
-        [InverseProperty(nameof(APourCouleur.APourCouleurCouleurNavigation))]
-        public virtual ICollection<APourCouleur> Voitures { get; set; } = new List<APourCouleur>();
+        [InverseProperty(nameof(APourCouleur.APourCouleurCouleurNav))]
+        public virtual ICollection<APourCouleur> APourCouleurs { get; set; } = new List<APourCouleur>();
     }
 }

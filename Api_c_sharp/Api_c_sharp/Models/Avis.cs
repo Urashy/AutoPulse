@@ -30,7 +30,7 @@ public class Avis
     [Required]
     [StringLength(1000, ErrorMessage = "Le contenu de l'avis ne doit pas dépasser 1000 caractères.")]
     [Column("avi_libelle")]
-    public string ContenuAvis { get; set; }
+    public string ContenuAvis { get; set; } = null!;
 
     [Required]
     [Range(0, 5, ErrorMessage = "La note doit être comprise entre 0 et 5.")]
@@ -39,7 +39,7 @@ public class Avis
     
     [ForeignKey(nameof(IdAvis))]
     [InverseProperty(nameof(Commande.AvisListe))]
-    public virtual Commande? CommandeAvisNavigation { get; set; }
+    public virtual Commande? CommandeAvisNav { get; set; }
 
     [ForeignKey(nameof(IdJugee))]
     [InverseProperty(nameof(Compte.AvisJugees))]
