@@ -4,13 +4,334 @@ using AutoMapper;
 
 namespace Api_c_sharp.Mapper;
 
-public class MapperProfile: Profile
+public class MapperProfile : Profile
 {
     public MapperProfile()
     {
+        // ============================================
+        // MAPPERS SIMPLES (Reference Data)
+        // ============================================
+        
+        CreateMap<Marque, MarqueDTO>();
+        
+        CreateMap<Modele, ModeleDTO>()
+            .ForMember(dest => dest.LibelleMarque, 
+                opt => opt.MapFrom(src => src.MarqueModeleNavigation.LibelleMarque));
+        
+        CreateMap<Carburant, CarburantDTO>();
+        CreateMap<BoiteDeVitesse, BoiteDeVitesseDTO>();
+        CreateMap<Categorie, CategorieDTO>();
+        CreateMap<Couleur, CouleurDTO>();
+        CreateMap<EtatAnnonce, EtatAnnonceDTO>();
+        CreateMap<TypeCompte, TypeCompteDTO>();
+        CreateMap<MoyenPaiement, MoyenPaiementDTO>();
+        CreateMap<Motricite, MotriciteDTO>();
+        
+        // ============================================
+        // MAPPERS ADRESSE
+        // ============================================
+        
         CreateMap<Adresse, AdresseDTO>()
-            .ForMember(dest => dest.LibelleVille, opt => opt.MapFrom(src => src.VilleAdresseNav.Libelle))
-            .ForMember(dest => dest.CodePostal, opt => opt.MapFrom(src => src.VilleAdresseNav.CodePostal))
-            .ReverseMap();
+            .ForMember(dest => dest.Numero, 
+                opt => opt.MapFrom(src => src.Numero.ToString()))
+            .ForMember(dest => dest.LibelleVille, 
+                opt => opt.MapFrom(src => src.VilleAdresseNav.Libelle))
+            .ForMember(dest => dest.CodePostal, 
+                opt => opt.MapFrom(src => src.VilleAdresseNav.CodePostal))
+            .ForMember(dest => dest.LibellePays, 
+                opt => opt.MapFrom(src => src.VilleAdresseNav.PaysVilleNav.Libelle));
+        
+        CreateMap<AdresseCreateUpdateDTO, Adresse>()
+            .ForMember(dest => dest.Numero, 
+                opt => opt.MapFrom(src => int.Parse(src.Numero)));
+        
+        // ============================================
+        // MAPPERS VILLE ET PAYS
+        // ============================================
+        
+        CreateMap<Ville, VilleDTO>()
+            .ForMember(dest => dest.LibellePays, 
+                opt => opt.MapFrom(src => src.PaysVilleNav.Libelle));
+        
+        CreateMap<Pays, PaysDTO>();
+        
+        // ============================================
+        // MAPPERS VOITURE
+        // ============================================
+        
+        CreateMap<Voiture, VoitureDTO>()
+            .ForMember(dest => dest.Marque, 
+                opt => opt.MapFrom(src => src.MarqueVoitureNavigation.LibelleMarque))
+            .ForMember(dest => dest.Modele, 
+                opt => opt.MapFrom(src => "N/A")) // À mapper avec la vraie relation Modele si disponible
+            .ForMember(dest => dest.Carburant, 
+                opt => opt.MapFrom(src => src.CarburantVoitureNavigation.LibelleCarburant))
+            .ForMember(dest => dest.Couleur, 
+                opt => opt.MapFrom(src => src.APourCouleurs.FirstOrDefault().APourCouleurCouleurNav.LibelleCouleur ?? "Non spécifié"));
+        
+        CreateMap<Voiture, VoitureDetailDTO>()
+            .ForMember(dest => dest.LibelleMarque, 
+                opt => opt.MapFrom(src => src.MarqueVoitureNavigation.LibelleMarque))
+            .ForMember(dest => dest.LibelleModele, 
+                opt => opt.MapFrom(src => "N/A")) // À mapper avec la vraie relation
+            .ForMember(dest => dest.LibelleMotricite, 
+                opt => opt.MapFrom(src => src.MotriciteVoitureNavigation.LibelleMotricite))
+            .ForMember(dest => dest.LibelleCarburant, 
+                opt => opt.MapFrom(src => src.CarburantVoitureNavigation.LibelleCarburant))
+            .ForMember(dest => dest.LibelleBoite, 
+                opt => opt.MapFrom(src => src.BoiteVoitureNavigation.LibelleBoite))
+            .ForMember(dest => dest.LibelleCouleur, 
+                opt => opt.MapFrom(src => src.APourCouleurs.FirstOrDefault().APourCouleurCouleurNav.LibelleCouleur ?? "Non spécifié"))
+            .ForMember(dest => dest.LibelleCategorie, 
+                opt => opt.MapFrom(src => src.CategorieVoitureNavigation.LibelleCategorie))
+            .ForMember(dest => dest.NbPlaces, 
+                opt => opt.MapFrom(src => 0)) // À mapper avec Modele
+            .ForMember(dest => dest.NbPortes, 
+                opt => opt.MapFrom(src => 0)) // À mapper avec Modele
+            .ForMember(dest => dest.LienModeleBlender, 
+                opt => opt.MapFrom(src => src.ModeleBlenderNavigation != null ? src.ModeleBlenderNavigation.Lien : null))
+            .ForMember(dest => dest.Images, 
+                opt => opt.MapFrom(src => src.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList()));
+        
+        CreateMap<VoitureCreateUpdateDTO, Voiture>();
+        
+        // ============================================
+        // MAPPERS ANNONCE
+        // ============================================
+        
+        CreateMap<Annonce, AnnonceDTO>()
+            .ForMember(dest => dest.PseudoVendeur, 
+                opt => opt.MapFrom(src => src.CompteAnnonceNav.Pseudo))
+            .ForMember(dest => dest.LibelleEtatAnnonce, 
+                opt => opt.MapFrom(src => src.EtatAnnonceNavigation.LibelleEtatAnnonce))
+            .ForMember(dest => dest.Marque, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.MarqueVoitureNavigation.LibelleMarque))
+            .ForMember(dest => dest.Modele, 
+                opt => opt.MapFrom(src => "N/A")) // À mapper avec la vraie relation
+            .ForMember(dest => dest.Annee, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Annee))
+            .ForMember(dest => dest.Kilometrage, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Kilometrage))
+            .ForMember(dest => dest.Carburant, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.CarburantVoitureNavigation.LibelleCarburant))
+            .ForMember(dest => dest.Ville, 
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.Libelle))
+            .ForMember(dest => dest.CodePostal, 
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.CodePostal))
+            .ForMember(dest => dest.ImagePrincipale, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Images.Any() 
+                    ? Convert.ToBase64String(src.VoitureAnnonceNav.Images.First().Fichier) 
+                    : null));
+        
+        CreateMap<Annonce, AnnonceDetailDTO>()
+            .ForMember(dest => dest.LibelleEtatAnnonce, 
+                opt => opt.MapFrom(src => src.EtatAnnonceNavigation.LibelleEtatAnnonce))
+            .ForMember(dest => dest.EstMiseEnAvant, 
+                opt => opt.MapFrom(src => src.IdMiseEnAvant.HasValue))
+            .ForMember(dest => dest.LibelleMiseEnAvant, 
+                opt => opt.MapFrom(src => src.MiseEnAvantAnnonceNav != null ? src.MiseEnAvantAnnonceNav.LibellMiseEnAvant : null))
+            // Vendeur
+            .ForMember(dest => dest.IdVendeur, 
+                opt => opt.MapFrom(src => src.CompteAnnonceNav.IdCompte))
+            .ForMember(dest => dest.PseudoVendeur, 
+                opt => opt.MapFrom(src => src.CompteAnnonceNav.Pseudo))
+            .ForMember(dest => dest.NomVendeur, 
+                opt => opt.MapFrom(src => src.CompteAnnonceNav.Nom))
+            .ForMember(dest => dest.PrenomVendeur, 
+                opt => opt.MapFrom(src => src.CompteAnnonceNav.Prenom))
+            .ForMember(dest => dest.BiographieVendeur, 
+                opt => opt.MapFrom(src => src.CompteAnnonceNav.Biographie))
+            .ForMember(dest => dest.DateInscriptionVendeur, 
+                opt => opt.MapFrom(src => src.CompteAnnonceNav.DateCreation))
+            .ForMember(dest => dest.TypeCompteVendeur, 
+                opt => opt.MapFrom(src => src.CompteAnnonceNav.TypeCompteCompteNav.Libelle))
+            // Adresse
+            .ForMember(dest => dest.NumeroRue, 
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.Numero.ToString()))
+            .ForMember(dest => dest.Rue, 
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.Rue))
+            .ForMember(dest => dest.Ville, 
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.Libelle))
+            .ForMember(dest => dest.CodePostal, 
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.CodePostal))
+            .ForMember(dest => dest.Pays, 
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.PaysVilleNav.Libelle))
+            // Voiture
+            .ForMember(dest => dest.IdVoiture, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.IdVoiture))
+            .ForMember(dest => dest.Marque, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.MarqueVoitureNavigation.LibelleMarque))
+            .ForMember(dest => dest.Modele, 
+                opt => opt.MapFrom(src => "N/A")) // À mapper
+            .ForMember(dest => dest.Categorie, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.CategorieVoitureNavigation.LibelleCategorie))
+            .ForMember(dest => dest.Couleur, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.APourCouleurs.FirstOrDefault().APourCouleurCouleurNav.LibelleCouleur ?? "Non spécifié"))
+            .ForMember(dest => dest.Carburant, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.CarburantVoitureNavigation.LibelleCarburant))
+            .ForMember(dest => dest.BoiteDeVitesse, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.BoiteVoitureNavigation.LibelleBoite))
+            .ForMember(dest => dest.Motricite, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.MotriciteVoitureNavigation.LibelleMotricite))
+            .ForMember(dest => dest.Kilometrage, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Kilometrage))
+            .ForMember(dest => dest.Annee, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Annee))
+            .ForMember(dest => dest.Puissance, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Puissance))
+            .ForMember(dest => dest.Couple, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Couple))
+            .ForMember(dest => dest.NbCylindres, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.NbCylindres))
+            .ForMember(dest => dest.MiseEnCirculation, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.MiseEnCirculation))
+            .ForMember(dest => dest.NbPlaces, 
+                opt => opt.MapFrom(src => 0)) // À mapper avec Modele
+            .ForMember(dest => dest.NbPortes, 
+                opt => opt.MapFrom(src => 0)) // À mapper avec Modele
+            .ForMember(dest => dest.Images, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList()))
+            .ForMember(dest => dest.LienModeleBlender, 
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.ModeleBlenderNavigation != null 
+                    ? src.VoitureAnnonceNav.ModeleBlenderNavigation.Lien 
+                    : null));
+        
+        CreateMap<AnnonceCreateUpdateDTO, Annonce>();
+        
+        // ============================================
+        // MAPPERS COMPTE
+        // ============================================
+        
+        CreateMap<Compte, CompteListDTO>()
+            .ForMember(dest => dest.TypeCompte, 
+                opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
+            .ForMember(dest => dest.DateInscription, 
+                opt => opt.MapFrom(src => src.DateCreation));
+        
+        CreateMap<Compte, CompteDetailDTO>()
+            .ForMember(dest => dest.TypeCompte, 
+                opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
+            .ForMember(dest => dest.Adresses, 
+                opt => opt.MapFrom(src => src.APourAdresses.Select(a => a.AdresseAPourAdresseNav)))
+            .ForMember(dest => dest.ImageProfil, 
+                opt => opt.MapFrom(src => src.Images.Any() 
+                    ? Convert.ToBase64String(src.Images.First().Fichier) 
+                    : null));
+        
+        CreateMap<Compte, CompteProfilPublicDTO>()
+            .ForMember(dest => dest.DateInscription, 
+                opt => opt.MapFrom(src => src.DateCreation))
+            .ForMember(dest => dest.TypeCompte, 
+                opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
+            .ForMember(dest => dest.ImageProfil, 
+                opt => opt.MapFrom(src => src.Images.Any() 
+                    ? Convert.ToBase64String(src.Images.First().Fichier) 
+                    : null))
+            .ForMember(dest => dest.NombreAnnonces, 
+                opt => opt.MapFrom(src => src.Annonces.Count))
+            .ForMember(dest => dest.NoteMoyenne, 
+                opt => opt.MapFrom(src => src.AvisJugees.Any() 
+                    ? src.AvisJugees.Average(a => a.NoteAvis) 
+                    : 0))
+            .ForMember(dest => dest.NombreAvis, 
+                opt => opt.MapFrom(src => src.AvisJugees.Count));
+        
+        CreateMap<CompteCreateUpdateDTO, Compte>();
+        
+        // ============================================
+        // MAPPERS AVIS
+        // ============================================
+        
+        CreateMap<Avis, AvisListDTO>()
+            .ForMember(dest => dest.PseudoJugeur, 
+                opt => opt.MapFrom(src => src.CompteJugeurNav.Pseudo));
+        
+        CreateMap<Avis, AvisDetailDTO>()
+            .ForMember(dest => dest.PseudoJugee, 
+                opt => opt.MapFrom(src => src.CompteJugeeNav.Pseudo))
+            .ForMember(dest => dest.PseudoJugeur, 
+                opt => opt.MapFrom(src => src.CompteJugeurNav.Pseudo));
+        
+        CreateMap<AvisCreateDTO, Avis>()
+            .ForMember(dest => dest.DateAvis, 
+                opt => opt.MapFrom(src => DateTime.UtcNow));
+        
+        // ============================================
+        // MAPPERS COMMANDE
+        // ============================================
+        
+        CreateMap<Commande, CommandeDTO>()
+            .ForMember(dest => dest.PseudoVendeur, 
+                opt => opt.MapFrom(src => src.CommandeAnnonceNav.CompteAnnonceNav.Pseudo))
+            .ForMember(dest => dest.PseudoAcheteur, 
+                opt => opt.MapFrom(src => "N/A")) // À mapper avec la relation acheteur
+            .ForMember(dest => dest.LibelleAnnonce, 
+                opt => opt.MapFrom(src => src.CommandeAnnonceNav.Libelle))
+            .ForMember(dest => dest.MoyenPaiement, 
+                opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav.TypePaiement));
+        
+        CreateMap<Commande, CommandeDetailDTO>()
+            .ForMember(dest => dest.MoyenPaiement, 
+                opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav.TypePaiement))
+            .ForMember(dest => dest.PseudoVendeur, 
+                opt => opt.MapFrom(src => src.CommandeAnnonceNav.CompteAnnonceNav.Pseudo))
+            .ForMember(dest => dest.PseudoAcheteur, 
+                opt => opt.MapFrom(src => "N/A")) // À mapper
+            .ForMember(dest => dest.Annonce, 
+                opt => opt.MapFrom(src => src.CommandeAnnonceNav));
+        
+        // ============================================
+        // MAPPERS FAVORI
+        // ============================================
+        
+        CreateMap<Favori, FavoriDTO>()
+            .ForMember(dest => dest.Annonce, 
+                opt => opt.MapFrom(src => src.AnnonceFavoriNav));
+        
+        // ============================================
+        // MAPPERS CONVERSATION
+        // ============================================
+        
+        CreateMap<Conversation, ConversationListDTO>()
+            .ForMember(dest => dest.LibelleAnnonce, 
+                opt => opt.MapFrom(src => src.AnnonceConversationNav.Libelle))
+            .ForMember(dest => dest.DernierMessage, 
+                opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault().ContenuMessage))
+            .ForMember(dest => dest.DateDernierMessage, 
+                opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault().DateEnvoiMessage))
+            .ForMember(dest => dest.ParticipantsPseudos, 
+                opt => opt.MapFrom(src => src.ApourConversations.Select(a => a.APourConversationCompteNav.Pseudo).ToList()));
+        
+        CreateMap<Conversation, ConversationDetailDTO>()
+            .ForMember(dest => dest.LibelleAnnonce, 
+                opt => opt.MapFrom(src => src.AnnonceConversationNav.Libelle))
+            .ForMember(dest => dest.Messages, 
+                opt => opt.MapFrom(src => src.Messages))
+            .ForMember(dest => dest.Participants, 
+                opt => opt.MapFrom(src => src.ApourConversations.Select(a => a.APourConversationCompteNav)));
+        
+        CreateMap<Message, MessageDTO>()
+            .ForMember(dest => dest.IdExpediteur, 
+                opt => opt.MapFrom(src => 0)) // À compléter selon votre logique
+            .ForMember(dest => dest.PseudoExpediteur, 
+                opt => opt.MapFrom(src => "N/A")); // À compléter
+        
+        CreateMap<MessageCreateDTO, Message>();
+        
+        // ============================================
+        // MAPPERS SIGNALEMENT
+        // ============================================
+        
+        CreateMap<Signalement, SignalementDTO>()
+            .ForMember(dest => dest.PseudoSignalant, 
+                opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
+            .ForMember(dest => dest.PseudoSignale, 
+                opt => opt.MapFrom(src => src.CompteSignaleNav.Pseudo))
+            .ForMember(dest => dest.LibelleTypeSignalement, 
+                opt => opt.MapFrom(src => src.TypeSignalementSignalementNav.LibelleTypeSignalement));
+        
+        CreateMap<SignalementCreateDTO, Signalement>()
+            .ForMember(dest => dest.DateCreationSignalement, 
+                opt => opt.MapFrom(src => DateTime.Now));
     }
 }
