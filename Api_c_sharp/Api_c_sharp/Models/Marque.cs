@@ -19,6 +19,6 @@ namespace Api_c_sharp.Models
         public virtual ICollection<Voiture> Voitures { get; set; } = new List<Voiture>();
 
         [InverseProperty(nameof(Modele.MarqueModeleNavigation))]
-        public virtual ICollection<Voiture> Modeles { get; set; } = new List<Voiture>();
+        public virtual ICollection<Modele> Modeles { get; set; } = new List<Modele>();
     }
 }

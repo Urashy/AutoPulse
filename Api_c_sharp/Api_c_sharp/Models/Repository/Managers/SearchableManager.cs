@@ -1,11 +1,11 @@
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Interfaces;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public abstract class SearchableManager<TEntity, TKey> : SearchableRepository<TEntity, TKey> 
+    public abstract class SearchableManager<TEntity, TKey> : SearchableRepository<TEntity, TKey> where TEntity : class
     {
         protected readonly AutoPulseBdContext context;
         protected readonly DbSet<TEntity> dbSet;

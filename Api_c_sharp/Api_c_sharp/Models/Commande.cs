@@ -34,7 +34,7 @@ public class Commande
     public int IdMoyenPaiement{ get; set; }
     
     [ForeignKey(nameof(IdMoyenPaiement))]
-    [InverseProperty(nameof(MoyenPaiement.CommandeNavigation))]
+    [InverseProperty(nameof(MoyenPaiement.Commandes))]
     public virtual MoyenPaiement CommandeMoyenPaiementNav { get; set; }
 
     [ForeignKey(nameof(IdFacture))]

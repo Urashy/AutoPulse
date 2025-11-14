@@ -1,12 +1,15 @@
 ﻿using Api_c_sharp.Models.Repository.Interfaces;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
     public abstract class WritableManager<TEntity> :  WritableRepository<TEntity>
     where TEntity : class
     {
-        protected WritableManager(AutoPulseBdContext context) : base(context)
+        protected readonly AutoPulseBdContext context;
+        protected readonly DbSet<TEntity> dbSet;
+
+        protected WritableManager(AutoPulseBdContext context)
         {
         }
 

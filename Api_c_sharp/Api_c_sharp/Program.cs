@@ -16,7 +16,6 @@ builder.Services.AddSwaggerGen();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
-    // Utilisation du fournisseur PostgreSQL
     options.UseNpgsql(connectionString));
 
 builder.Services.AddAutoMapper(typeof(MapperProfile));

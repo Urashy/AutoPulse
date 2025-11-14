@@ -29,7 +29,7 @@ public class Annonce
     
     [Column("adr_id")]
     [Required]
-    public int IdAdresseAnnonce { get; set; }
+    public int IdAdresse { get; set; }
     
     [Column("voi_id")]
     [Required]
@@ -63,7 +63,7 @@ public class Annonce
     [InverseProperty(nameof(MiseEnAvant.Annonces))]
     public virtual MiseEnAvant MiseEnAvantAnnonceNav { get; set; } = null!;
 
-    [ForeignKey(nameof(IdAdresseAnnonce))]
+    [ForeignKey(nameof(IdAdresse))]
     [InverseProperty(nameof(Adresse.Annonces))]
     public virtual Adresse AdresseAnnonceNav { get; set; } = null!;
 

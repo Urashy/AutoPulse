@@ -13,7 +13,7 @@ public class MoyenPaiement
     
     [Column("mop_typepaiement")]
     [Required]
-    public string TypePaiement { get; set; }
+    public string TypePaiement { get; set; }= null!;
 
     [InverseProperty(nameof(Commande.CommandeMoyenPaiementNav))]
     public virtual ICollection<Commande> Commandes { get; set; } = new List<Commande>();

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_c_sharp.Models
@@ -35,6 +37,13 @@ namespace Api_c_sharp.Models
         [Required]
         public int IdCategorie{ get; set; }
 
+        [Column("mod_nbplace")]
+        [DefaultValue(5)]
+        public int NbPlace { get; set; }
+
+        [Column("mod_nbporte")]
+        public int NbPorte { get; set; }
+
         [Column("voi_kilometrage")]
         [Required]
         public int Kilometrage { get; set; }
@@ -60,6 +69,13 @@ namespace Api_c_sharp.Models
         [Required]
         public DateTime MiseEnCirculation { get; set; }
 
+        [Column("mod_id")]
+        [Required]
+        public int IdModele { get; set; }
+
+        [ForeignKey(nameof(IdModele))]
+        [InverseProperty(nameof(Modele.Voitures))]
+        public virtual Modele? ModeleVoitureNavigation { get; set; } = null!;
 
         [ForeignKey(nameof(IdMarque))]
         [InverseProperty(nameof(Marque.Voitures))]

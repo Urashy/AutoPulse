@@ -14,18 +14,15 @@ namespace Api_c_sharp.Models
         [Column("mod_lib")]
         public string LibelleModele{ get; set; } = null!;
 
-        [Column("mod_nbplace")]
-        public int NbPlace { get; set; }
-
-        [Column("mod_nbporte")]
-        public int NbPorte { get; set; }
-
         [Column("mar_id")]
         public int IdMarque { get; set; }
 
-        [ForeignKey("mod_idmarque")]
+        [ForeignKey(nameof(IdMarque))]
         [InverseProperty(nameof(Marque.Modeles))]
         public virtual Marque? MarqueModeleNavigation { get; set; } = null!;
+
+        [InverseProperty(nameof(Voiture.ModeleVoitureNavigation))]
+        public virtual ICollection<Voiture> Voitures { get; set; } = new List<Voiture>();
 
     }
 }

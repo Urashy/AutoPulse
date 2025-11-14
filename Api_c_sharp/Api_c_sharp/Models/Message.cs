@@ -19,8 +19,11 @@ namespace Api_c_sharp.Models
         public DateTime DateEnvoiMessage { get; set; } = DateTime.Now;
 
         [Column("con_id")]
+        [Required]
+        public int IdConversation { get; set; }
 
-        [ForeignKey("IdConversation")]
+
+        [ForeignKey(nameof(IdConversation))]
         [InverseProperty(nameof(Conversation.Messages))]
         public virtual Conversation ConversationMessageNav { get; set; }
     }
