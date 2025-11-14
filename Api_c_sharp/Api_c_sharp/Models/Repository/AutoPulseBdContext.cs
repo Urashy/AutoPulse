@@ -92,11 +92,6 @@ namespace Api_c_sharp.Models.Repository
                 .HasForeignKey(a => a.IdCompte);
 
             modelBuilder.Entity<Annonce>()
-                .HasOne(a => a.CommandeAnnonceNav)
-                .WithOne(c => c.CommandeAnnonceNav)
-                .HasForeignKey<Commande>(a => a.IdAnnonce);
-
-            modelBuilder.Entity<Annonce>()
                 .HasOne(a => a.MiseEnAvantAnnonceNav)
                 .WithMany(m => m.Annonces)
                 .HasForeignKey(a => a.IdMiseEnAvant);
@@ -181,13 +176,8 @@ namespace Api_c_sharp.Models.Repository
 
             modelBuilder.Entity<Commande>()
                 .HasOne(c => c.CommandeAnnonceNav)
-                .WithOne(a => a.CommandeAnnonceNav)
-                .HasForeignKey<Annonce>(c => c.IdCommande);
-
-            modelBuilder.Entity<Commande>()
-                .HasOne(c => c.CommandeFactureNavigation)
-                .WithOne(f => f.CommandeFactureNavigation)
-                .HasForeignKey<Facture>(c => c.IdFacture);
+                .WithMany(a => a.Commandes)
+                .HasForeignKey(c => c.IdAnnonce);
 
             modelBuilder.Entity<Commande>()
                 .HasOne(c => c.CommandeMoyenPaiementNav)
@@ -226,9 +216,9 @@ namespace Api_c_sharp.Models.Repository
                 .HasKey(e => e.IdFacture);
 
             modelBuilder.Entity<Facture>()
-                .HasOne(f => f.CommandeFactureNavigation)
-                .WithOne(c => c.CommandeFactureNavigation)
-                .HasForeignKey<Facture>(f => f.IdFacture);
+                .HasOne(f => f.CommandeFactureNav)
+                .WithMany(c => c.Factures)
+                .HasForeignKey(f => f.IdFacture);
 
             //-----------------------------Favori-----------------------------
             modelBuilder.Entity<Favori>()

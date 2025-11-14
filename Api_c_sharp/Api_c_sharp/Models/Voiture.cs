@@ -37,11 +37,11 @@ namespace Api_c_sharp.Models
         [Required]
         public int IdCategorie{ get; set; }
 
-        [Column("mod_nbplace")]
+        [Column("voi_nbplace")]
         [DefaultValue(5)]
         public int NbPlace { get; set; }
 
-        [Column("mod_nbporte")]
+        [Column("voi_nbporte")]
         public int NbPorte { get; set; }
 
         [Column("voi_kilometrage")]
@@ -52,20 +52,20 @@ namespace Api_c_sharp.Models
         [Required]
         public int Annee { get; set; }
 
-        [Column("mod_puissance")]
+        [Column("voi_puissance")]
         [Required]
         public int Puissance { get; set; }
 
-        [Column("mod_couple")]
+        [Column("voi_couple")]
         public int Couple { get; set; }
 
         [Column("voi_nbcylindres")]
         public int NbCylindres { get; set; }
 
-        [Column("mod_id")]
+        [Column("mob_id")]
         public int? IdModeleBlender { get; set; }
 
-        [Column("mod_miseencirculation")]
+        [Column("voi_miseencirculation")]
         [Required]
         public DateTime MiseEnCirculation { get; set; }
 

@@ -45,7 +45,7 @@ public class Avis
     [InverseProperty(nameof(Compte.AvisJugees))]
     public virtual Compte? CompteJugeeNav { get; set; }
 
-    [ForeignKey(nameof(IdJugee))]
+    [ForeignKey(nameof(IdJugeur))]
     [InverseProperty(nameof(Compte.AvisJugeur))]
     public virtual Compte? CompteJugeurNav { get; set; }
 }

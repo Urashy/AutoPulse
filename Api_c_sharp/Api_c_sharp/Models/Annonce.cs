@@ -1,6 +1,7 @@
 using Api_c_sharp.Models.Repository.Interfaces;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Configuration;
 
 namespace Api_c_sharp.Models;
 
@@ -19,9 +20,7 @@ public class Annonce
     [Column("com_id")]
     [Required]
     public int IdCompte{ get; set; }
-    
-    [Column("cmd_id")]
-    public int? IdCommande { get; set; }
+   
         
     [Column("eta_id")]
     [Required]
@@ -55,9 +54,8 @@ public class Annonce
     [InverseProperty(nameof(Conversation.AnnonceConversationNav))]
     public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
-    [ForeignKey(nameof(IdCommande))]
     [InverseProperty(nameof(Commande.CommandeAnnonceNav))]
-    public virtual Commande? CommandeAnnonceNav { get; set; }
+    public virtual ICollection<Commande> Commandes { get; set; }
 
     [ForeignKey(nameof(IdMiseEnAvant))]
     [InverseProperty(nameof(MiseEnAvant.Annonces))]

@@ -37,14 +37,13 @@ public class Commande
     [InverseProperty(nameof(MoyenPaiement.Commandes))]
     public virtual MoyenPaiement CommandeMoyenPaiementNav { get; set; }
 
-    [ForeignKey(nameof(IdFacture))]
-    [InverseProperty(nameof(Facture.CommandeFactureNavigation))]
-    public virtual Facture CommandeFactureNavigation { get; set; }
-    
+    [InverseProperty(nameof(Facture.CommandeFactureNav))]
+    public virtual ICollection<Facture> Factures { get; set; }
+
     [InverseProperty(nameof(Avis.CommandeAvisNav))]
     public virtual ICollection<Avis> AvisListe { get; set; }
 
     [ForeignKey(nameof(IdAnnonce))]
-    [InverseProperty(nameof(Annonce.CommandeAnnonceNav))]
+    [InverseProperty(nameof(Annonce.Commandes))]
     public virtual Annonce CommandeAnnonceNav { get; set; }
 }
