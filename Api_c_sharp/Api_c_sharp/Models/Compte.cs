@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Api_c_sharp.Models
 {
     [Table("t_e_compte_com")]
-    public class Compte : SearchableEntity
+    public class Compte
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
