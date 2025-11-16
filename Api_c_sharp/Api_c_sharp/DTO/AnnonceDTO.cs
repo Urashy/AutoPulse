@@ -22,4 +22,7 @@ public class AnnonceDTO
     
     // Image principale
     public string ImagePrincipale { get; set; } // Base64 ou URL
+    
+    // Mise en avant
+    public int IdMiseEnAvant { get; set; }
 }

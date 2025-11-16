@@ -1,0 +1,22 @@
+@using BlazorAutoPulse.Model
+
+<div class="car-card">
+    <div class="car-image">
+        <div class="car-badge">RÉCENT</div>
+    </div>
+    <div class="car-info">
+        <h3 class="car-title">@Annonce.Libelle</h3>
+        <div class="car-specs">
+            <span>📅 @Annonce.Annee</span>
+        </div>
+        <div class="car-specs">
+            <span>📊 @Annonce.Kilometrage</span>
+        </div>
+        <button class="car-btn">Voir Détails</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Annonce Annonce { get; set; }
+}

@@ -7,7 +7,7 @@ public class AnnonceWebService: IService<Annonce>
 {
     private readonly HttpClient _httpClient = new()
     {
-        BaseAddress = new Uri("http://localhost:5117/api/Annonce/")
+        BaseAddress = new Uri("http://localhost:5086/api/Annonce/")
     };
 
     public async Task<IEnumerable<Annonce>> GetAllAsync()

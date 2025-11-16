@@ -27,26 +27,21 @@
 
 <div class="container">
     <h2 class="section-title">Nos Dernières Offres</h2>
-    <div class="cars-grid">
-        <div class="car-card" onclick="showPage('detail')">
-            <div class="car-image">
-                <div class="car-badge">RÉCENT</div>
-            </div>
-            <div class="car-info">
-                <h3 class="car-title">BMW Série 3 2021</h3>
-                <div class="car-specs">
-                    <span>📅 2021</span>
-                    <span>⚙️ Automatique</span>
-                    <span>⛽ Diesel</span>
-                </div>
-                <div class="car-specs">
-                    <span>📊 45 000 km</span>
-                </div>
-                <div class="car-price">32 900 €</div>
-                <button class="car-btn">Voir Détails</button>
+    @if (VM.allAnnonces is null)
+    {
+        <h2>Pas d'annonces mise en avant</h2>
+    }
+    else
+    {
+        <div class="container">
+            <div class="cars-grid">
+                @foreach (var a in VM.allAnnonces)
+                {
+                    <AnnonceComposant Annonce="@a" />
+                }
             </div>
         </div>
-    </div>
+    }
 </div>
 
 @code {

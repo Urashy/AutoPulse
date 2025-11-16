@@ -1,6 +1,7 @@
 using Api_c_sharp.DTO;
 using Api_c_sharp.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace Api_c_sharp.Mapper;
 
@@ -98,30 +99,32 @@ public class MapperProfile : Profile
         // ============================================
         // MAPPERS ANNONCE
         // ============================================
-        
+
         CreateMap<Annonce, AnnonceDTO>()
-            .ForMember(dest => dest.PseudoVendeur, 
+            .ForMember(dest => dest.PseudoVendeur,
                 opt => opt.MapFrom(src => src.CompteAnnonceNav.Pseudo))
-            .ForMember(dest => dest.LibelleEtatAnnonce, 
+            .ForMember(dest => dest.LibelleEtatAnnonce,
                 opt => opt.MapFrom(src => src.EtatAnnonceNavigation.LibelleEtatAnnonce))
-            .ForMember(dest => dest.Marque, 
+            .ForMember(dest => dest.Marque,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.MarqueVoitureNavigation.LibelleMarque))
-            .ForMember(dest => dest.Modele, 
+            .ForMember(dest => dest.Modele,
                 opt => opt.MapFrom(src => "N/A")) // À mapper avec la vraie relation
-            .ForMember(dest => dest.Annee, 
+            .ForMember(dest => dest.Annee,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.Annee))
-            .ForMember(dest => dest.Kilometrage, 
+            .ForMember(dest => dest.Kilometrage,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.Kilometrage))
-            .ForMember(dest => dest.Carburant, 
+            .ForMember(dest => dest.Carburant,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.CarburantVoitureNavigation.LibelleCarburant))
-            .ForMember(dest => dest.Ville, 
+            .ForMember(dest => dest.Ville,
                 opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.Libelle))
-            .ForMember(dest => dest.CodePostal, 
+            .ForMember(dest => dest.CodePostal,
                 opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.CodePostal))
-            .ForMember(dest => dest.ImagePrincipale, 
-                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Images.Any() 
-                    ? Convert.ToBase64String(src.VoitureAnnonceNav.Images.First().Fichier) 
-                    : null));
+            .ForMember(dest => dest.ImagePrincipale,
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Images.Any()
+                    ? Convert.ToBase64String(src.VoitureAnnonceNav.Images.First().Fichier)
+                    : null))
+            .ForMember(dest => dest.IdMiseEnAvant,
+                opt => opt.MapFrom(src => src.IdMiseEnAvant));
         
         CreateMap<Annonce, AnnonceDetailDTO>()
             .ForMember(dest => dest.LibelleEtatAnnonce, 
