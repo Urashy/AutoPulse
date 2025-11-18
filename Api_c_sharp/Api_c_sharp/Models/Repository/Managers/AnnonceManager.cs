@@ -1,6 +1,8 @@
 ﻿using Api_c_sharp.Models.Repository.Interfaces;
-using System.Collections.Generic;
+using FuzzySharp;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Collections.Generic;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
@@ -33,6 +35,55 @@ namespace Api_c_sharp.Models.Repository.Managers
         public async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId)
         {
             return  await dbSet.Where(a => a.IdMiseEnAvant == miseAvantId).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(int id, int idcarburant, int idmarque, int idmodele, int prixmin, int prixmax, int idtypevoiture, int idtypevendeur, string nom, int kmmin, int kmmax, string departement)
+        {
+            var query = dbSet.AsQueryable();
+
+            // Filtre par département
+            if (!string.IsNullOrEmpty(departement))
+                query = query.Where(a => a.AdresseAnnonceNav.VilleAdresseNav.CodePostal == departement);
+
+            // Filtre par carburant
+            if (idcarburant > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.IdCarburant == idcarburant);
+
+            // Filtre par marque
+            if (idmarque > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.IdMarque == idmarque);
+
+            // Filtre par modèle
+            if (idmodele > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.IdModele == idmodele);
+
+            // Filtre par prix
+            if (prixmin > 0)
+                query = query.Where(a => a.Prix >= prixmin);
+            if (prixmax > 0)
+                query = query.Where(a => a.Prix <= prixmax);
+
+            // Filtre par type de voiture
+            if (idtypevoiture > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.IdCategorie == idtypevoiture);
+
+            // Filtre par type de vendeur
+            if (idtypevendeur > 0)
+                query = query.Where(a => a.CompteAnnonceNav.IdTypeCompte == idtypevendeur);
+
+            // Filtre par nom
+            if (!string.IsNullOrEmpty(nom))
+            {
+                query = query.Where(a => Fuzz.PartialRatio(a.Libelle.ToLower(), nom.ToLower()) > 70);
+            }
+
+            // Filtre par kilométrage
+            if (kmmin > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.Kilometrage >= kmmin);
+            if (kmmax > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.Kilometrage <= kmmax);
+
+            return await query.ToListAsync();
         }
     }
 }
