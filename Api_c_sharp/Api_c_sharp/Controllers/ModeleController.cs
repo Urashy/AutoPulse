@@ -27,6 +27,7 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     /// <item><description><see cref="NotFoundResult"/> si aucun modele ne correspond (404).</description></item>
     /// </list>
     /// </returns>
+    [ActionName("GetAll")]
     [HttpGet("{id}")]
     public async Task<ActionResult<ModeleDTO>> Get(int id)
     {
@@ -44,6 +45,7 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     /// <returns>
     /// Une liste de <see cref="ModeleDTO"/> (200 OK).
     /// </returns>
+    [ActionName("GetAll")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ModeleDTO>>> GetAll()
     {
@@ -57,7 +59,8 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     /// <returns>
     /// Une liste de <see cref="ModeleDTO"/> (200 OK).
     /// </returns>
-    [HttpGet("byMarque/{marqueId}")]
+    [ActionName("GetAllByMarque")]
+    [HttpGet("{marqueId}")]
     public async Task<ActionResult<IEnumerable<ModeleDTO>>> GetAllByMarque(int marqueId)
     {
         var list = await _manager.GetModelesByMarqueIdAsync(marqueId);

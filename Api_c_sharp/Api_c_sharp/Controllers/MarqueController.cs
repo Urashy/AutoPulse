@@ -27,8 +27,9 @@ public class MarqueController(MarqueManager _manager, IMapper _marqueMapper) : C
     /// <item><description><see cref="NotFoundResult"/> si aucune marque ne correspond (404).</description></item>
     /// </list>
     /// </returns>
+    [ActionName("GetById")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<MarqueDTO>> Get(int id)
+    public async Task<ActionResult<MarqueDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
 
@@ -45,6 +46,7 @@ public class MarqueController(MarqueManager _manager, IMapper _marqueMapper) : C
     /// Une liste de <see cref="MarqueDTO"/> (200 OK).
     /// </returns>
     [HttpGet]
+    [ActionName("GetAll")]
     public async Task<ActionResult<IEnumerable<MarqueDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

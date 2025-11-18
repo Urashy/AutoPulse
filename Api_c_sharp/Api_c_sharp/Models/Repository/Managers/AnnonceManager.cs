@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public class AnnonceManager : BaseManager<Annonce,string>
+    public class AnnonceManager : BaseManager<Annonce,string>, IAnnonceRepository
     {
         private IQueryable<Annonce> ApplyIncludes()
         {
@@ -20,12 +20,19 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public override async Task<IEnumerable<Annonce>> GetAllAsync()
         {
-            return await ApplyIncludes().ToListAsync();
+            return await ApplyIncludes()
+                .OrderByDescending(a => a.IdMiseEnAvant).
+                ToListAsync();
         }
 
-        public override Task<Annonce?> GetByNameAsync(string name)
+        public override async Task<Annonce?> GetByNameAsync(string name)
         {
-            throw new NotImplementedException();
+            return await ApplyIncludes().FirstOrDefaultAsync(a => a.Libelle == name);
+        }
+
+        public async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId)
+        {
+            return  await dbSet.Where(a => a.IdMiseEnAvant == miseAvantId).ToListAsync();
         }
     }
 }

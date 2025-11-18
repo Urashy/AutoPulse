@@ -6,4 +6,9 @@
         Task<IEnumerable<Modele>> GetModelesByMarqueIdAsync(int marqueId);
     }
 
+    public interface  IAnnonceRepository
+    {
+        Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId);
+    }
+
 }

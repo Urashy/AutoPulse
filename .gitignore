@@ -1,8 +1,5 @@
 .vs/
 **/bin/
 **/obj/
-/Api_c_sharp/Api_c_sharp/obj/Api_c_sharp.csproj.nuget.dgspec.json
-/Api_c_sharp/Api_c_sharp/obj/Api_c_sharp.csproj.nuget.g.props
-/Api_c_sharp/Api_c_sharp/obj/project.assets.json
-/Api_c_sharp/Api_c_sharp/obj/project.nuget.cache
-
+*.user
+*.suo
