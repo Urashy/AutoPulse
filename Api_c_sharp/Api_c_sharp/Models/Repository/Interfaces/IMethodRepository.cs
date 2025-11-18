@@ -9,6 +9,8 @@
     public interface  IAnnonceRepository
     {
         Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId);
+        Task<IEnumerable<Annonce>> GetFilteredAnnonces(int id, int idcarburant, int idmarque, int idmodele, int prixmin, int prixmax, int idtypevoiture, int idtypevendeur, string nom, int kmmin, int kmmax, string departement);
+        
     }
 
 }

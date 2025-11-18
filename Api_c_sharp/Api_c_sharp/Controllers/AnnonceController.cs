@@ -176,4 +176,56 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
 
         return _annonceMapper.Map<AnnonceDTO>(result);
     }
+
+    /// <summary>
+    /// Récupère une liste d'annonces filtrées selon plusieurs critères.
+    /// </summary>
+    /// <param name="id">Identifiant de l'annonce (optionnel).</param>
+    /// <param name="idcarburant">Identifiant du type de carburant (optionnel).</param>
+    /// <param name="idmarque">Identifiant de la marque (optionnel).</param>
+    /// <param name="idmodele">Identifiant du modèle (optionnel).</param>
+    /// <param name="prixmin">Prix minimum (optionnel).</param>
+    /// <param name="prixmax">Prix maximum (optionnel).</param>
+    /// <param name="idtypevoiture">Identifiant du type de voiture (optionnel).</param>
+    /// <param name="idtypevendeur">Identifiant du type de vendeur (optionnel).</param>
+    /// <param name="nom">Nom ou mot-clé de recherche (optionnel).</param>
+    /// <param name="kmmin">Kilométrage minimum (optionnel).</param>
+    /// <param name="kmmax">Kilométrage maximum (optionnel).</param>
+    /// <param name="departement">Code postal du département (optionnel).</param>
+    /// <returns>
+    /// Une liste de <see cref="AnnonceDTO"/> correspondant aux critères de recherche (200 OK).
+    /// </returns>
+    [ActionName("GetFiltered")]
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetFiltered(
+        [FromQuery] int? id = null,
+        [FromQuery] int? idcarburant = null,
+        [FromQuery] int? idmarque = null,
+        [FromQuery] int? idmodele = null,
+        [FromQuery] int? prixmin = null,
+        [FromQuery] int? prixmax = null,
+        [FromQuery] int? idtypevoiture = null,
+        [FromQuery] int? idtypevendeur = null,
+        [FromQuery] string? nom = null,
+        [FromQuery] int? kmmin = null,
+        [FromQuery] int? kmmax = null,
+        [FromQuery] string? departement = null)
+    {
+        var result = await _manager.GetFilteredAnnonces(
+            id ?? 0,
+            idcarburant ?? 0,
+            idmarque ?? 0,
+            idmodele ?? 0,
+            prixmin ?? 0,
+            prixmax ?? 0,
+            idtypevoiture ?? 0,
+            idtypevendeur ?? 0,
+            nom ?? string.Empty,
+            kmmin ?? 0,
+            kmmax ?? 0,
+            departement ?? string.Empty
+        );
+
+        return Ok(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
+    }
 }

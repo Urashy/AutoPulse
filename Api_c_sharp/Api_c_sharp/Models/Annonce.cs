@@ -40,6 +40,10 @@ public class Annonce
     [Column("ann_dat")]
     public DateTime? DatePublication{ get; set; }
 
+    [Column("ann_pri")]
+    public int Prix { get; set; }
+
+
     [ForeignKey(nameof(IdEtatAnnonce))]
     [InverseProperty(nameof(EtatAnnonce.Annonces))]
     public virtual EtatAnnonce EtatAnnonceNavigation { get; set; } = null!;
@@ -68,5 +72,4 @@ public class Annonce
     [ForeignKey(nameof(IdVoiture))]
     [InverseProperty(nameof(Voiture.Annonces))]
     public virtual Voiture VoitureAnnonceNav { get; set; } = null!;
-
 }
