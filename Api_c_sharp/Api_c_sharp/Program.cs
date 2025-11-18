@@ -25,10 +25,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
 
-
 //------------------------------Mapper/Controller------------------------------
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.AddScoped<IDataRepository<Annonce, string>, AnnonceManager>();
+builder.Services.AddScoped<ReadableRepository<Modele>, ModeleManager>();
+builder.Services.AddScoped<IModeleRepository, ModeleManager>();
+builder.Services.AddScoped<ReadableRepository<Marque>, MarqueManager>();
 
 
 //------------------------------Authentification------------------------------
