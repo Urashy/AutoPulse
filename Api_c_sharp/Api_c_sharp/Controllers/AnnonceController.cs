@@ -8,46 +8,48 @@ using Microsoft.AspNetCore.Mvc;
 namespace App.Controllers;
 
 /// <summary>
-/// Contrôleur REST permettant de gérer les marques.
+/// Contrôleur REST permettant de gérer les annonces.
 /// Les méthodes exposent ou consomment des DTO afin
 /// d’assurer la séparation entre le modèle de domaine
 /// et la couche API.
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AnnonceController(IDataRepository<Annonce, string> _manager, IMapper _marqueMapper) : ControllerBase
+public class AnnonceController(IDataRepository<Annonce, string> _manager, IMapper _annonceMapper) : ControllerBase
 {
     /// <summary>
-    /// Récupère une marque à partir de son identifiant.
+    /// Récupère une annoncs à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la marque recherchée.</param>
+    /// <param name="id">Identifiant unique de la annonce recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="AnnonceDTO"/> si la marque existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune marque ne correspond (404).</description></item>
+    /// <item><description><see cref="AnnonceDTO"/> si la annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
     /// </list>
     /// </returns>
+    [ActionName("GetById")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<AnnonceDTO>> Get(int id)
+    public async Task<ActionResult<AnnonceDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
 
         if (result is null)
             return NotFound();
 
-        return _marqueMapper.Map<AnnonceDTO>(result);
+        return _annonceMapper.Map<AnnonceDTO>(result);
     }
 
     /// <summary>
-    /// Récupère une marque à partir de son nom exact (insensible à la casse).
+    /// Récupère une annonce à partir de son nom exact (insensible à la casse).
     /// </summary>
-    /// <param name="str">Nom de la marque recherchée.</param>
+    /// <param name="str">Nom de la annonce recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="AnnonceDTO"/> si la marque existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune marque ne correspond (404).</description></item>
+    /// <item><description><see cref="AnnonceDTO"/> si la annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
     /// </list>
     /// </returns>
+    [ActionName("GetByString")]
     [HttpGet("{str}")]
     public async Task<ActionResult<AnnonceDTO>> GetByString(string str)
     {
@@ -58,56 +60,59 @@ public class AnnonceController(IDataRepository<Annonce, string> _manager, IMappe
             return NotFound();
         }
 
-        return _marqueMapper.Map<AnnonceDTO>(result);
+        return _annonceMapper.Map<AnnonceDTO>(result);
     }
 
     /// <summary>
-    /// Récupère la liste de toutes les marques.
+    /// Récupère la liste de toutes les annonces.
     /// </summary>
     /// <returns>
     /// Une liste de <see cref="AnnonceDTO"/> (200 OK).
     /// </returns>
+    [ActionName("GetAll")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
-        return new ActionResult<IEnumerable<AnnonceDTO>>(_marqueMapper.Map<IEnumerable<AnnonceDTO>>(list));
+        return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(list));
     }
 
     /// <summary>
-    /// Crée une nouvelle marque.
+    /// Crée une nouvelle annonce.
     /// </summary>
-    /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les informations de la marque à créer.</param>
+    /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les informations de la annonce à créer.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec la marque créée (201).</description></item>
+    /// <item><description><see cref="CreatedAtActionResult"/> avec la annonce créée (201).</description></item>
     /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
     /// </list>
     /// </returns>
+    [ActionName("Post")]
     [HttpPost]
     public async Task<ActionResult<AnnonceDTO>> Post([FromBody] AnnonceDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var entity = _marqueMapper.Map<Annonce>(dto);
+        var entity = _annonceMapper.Map<Annonce>(dto);
         await _manager.AddAsync(entity);
 
-        return CreatedAtAction(nameof(Get), new { id = entity.IdAnnonce }, entity);
+        return CreatedAtAction(nameof(GetByID), new { id = entity.IdAnnonce }, entity);
     }
 
     /// <summary>
-    /// Met à jour une marque existante.
+    /// Met à jour une annonce existante.
     /// </summary>
-    /// <param name="id">Identifiant unique de la marque à mettre à jour.</param>
+    /// <param name="id">Identifiant unique de la annonce à mettre à jour.</param>
     /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
     /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune marque ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
     /// </list>
     /// </returns>
+    [ActionName("Put")]
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] AnnonceDTO dto)
     {
@@ -119,22 +124,23 @@ public class AnnonceController(IDataRepository<Annonce, string> _manager, IMappe
         if (toUpdate == null)
             return NotFound();
 
-        var updatedEntity = _marqueMapper.Map<Annonce>(dto);
+        var updatedEntity = _annonceMapper.Map<Annonce>(dto);
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
         return NoContent();
     }
 
     /// <summary>
-    /// Supprime une marque existante.
+    /// Supprime une annonce existante.
     /// </summary>
-    /// <param name="id">Identifiant unique de la marque à supprimer.</param>
+    /// <param name="id">Identifiant unique de la annonce à supprimer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune marque ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
     /// </list>
     /// </returns>
+    [ActionName("Delete")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
