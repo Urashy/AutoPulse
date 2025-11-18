@@ -4,6 +4,7 @@ using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Api_c_sharp.Models.Repository.Managers;
 
 namespace App.Controllers;
 
@@ -15,7 +16,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AnnonceController(IDataRepository<Annonce, string> _manager, IMapper _annonceMapper) : ControllerBase
+public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) : ControllerBase
 {
     /// <summary>
     /// Récupère une annoncs à partir de son identifiant.
@@ -151,5 +152,28 @@ public class AnnonceController(IDataRepository<Annonce, string> _manager, IMappe
 
         await _manager.DeleteAsync(entity);
         return NoContent();
+    }
+
+
+    /// <summary>
+    /// Récupère une annoncs à partir d'un id de mise en avant.
+    /// </summary>
+    /// <param name="idmiseenavant">Identifiant unique de la annonce recherchée.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="AnnonceDTO"/> si les annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("GetByIdMiseEnAvant")]
+    [HttpGet("{idmiseenavant}")]
+    public async Task<ActionResult<AnnonceDTO>> GetByIdMiseEnAvant(int idmiseenavant)
+    {
+        var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant);
+
+        if (result is null)
+            return NotFound();
+
+        return _annonceMapper.Map<AnnonceDTO>(result);
     }
 }
