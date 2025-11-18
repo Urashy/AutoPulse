@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public class MarqueManager : ReadableManager<Marque>
+    public class CarburantManager : ReadableManager<Carburant>
     {
-        public MarqueManager(AutoPulseBdContext context) : base(context)
+        public CarburantManager(AutoPulseBdContext context) : base(context)
         {
         }
     }

@@ -25,11 +25,13 @@ public class MapperProfile : Profile
         CreateMap<TypeCompte, TypeCompteDTO>();
         CreateMap<MoyenPaiement, MoyenPaiementDTO>();
         CreateMap<Motricite, MotriciteDTO>();
-        
+        CreateMap<MiseEnAvant, MiseEnAvantDTO>();
+        CreateMap<TypeJournal, TypeJournalDTO>();
+
         // ============================================
         // MAPPERS ADRESSE
         // ============================================
-        
+
         CreateMap<Adresse, AdresseDTO>()
             .ForMember(dest => dest.Numero, 
                 opt => opt.MapFrom(src => src.Numero.ToString()))
