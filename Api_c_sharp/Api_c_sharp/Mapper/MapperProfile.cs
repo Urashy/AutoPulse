@@ -14,10 +14,8 @@ public class MapperProfile : Profile
         // ============================================
         
         CreateMap<Marque, MarqueDTO>();
-        
-        CreateMap<Modele, ModeleDTO>()
-            .ForMember(dest => dest.LibelleMarque, 
-                opt => opt.MapFrom(src => src.MarqueModeleNavigation.LibelleMarque));
+
+        CreateMap<Modele, ModeleDTO>();
         
         CreateMap<Carburant, CarburantDTO>();
         CreateMap<BoiteDeVitesse, BoiteDeVitesseDTO>();
