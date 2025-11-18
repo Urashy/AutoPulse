@@ -1,5 +1,5 @@
 using BlazorAutoPulse.Model;
-using BlazorAutoPulse.Service;
+using BlazorAutoPulse.Service.Authentification;
 
 namespace BlazorAutoPulse.ViewModel;
 

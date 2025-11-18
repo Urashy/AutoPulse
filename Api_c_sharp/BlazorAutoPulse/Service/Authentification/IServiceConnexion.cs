@@ -1,6 +1,6 @@
 using BlazorAutoPulse.Model;
 
-namespace BlazorAutoPulse.Service;
+namespace BlazorAutoPulse.Service.Authentification;
 
 public interface IServiceConnexion
 {

@@ -1,34 +1,58 @@
 ﻿using BlazorAutoPulse.Model;
-using BlazorAutoPulse.Service;
+using BlazorAutoPulse.Service.Interface;
+using Microsoft.AspNetCore.Components;
 
 namespace BlazorAutoPulse.ViewModel;
 
 public class HomeViewModel
 {
+    //-------------------------------- Service
     private readonly IService<Annonce> _annonceService;
-    
+    private readonly IService<Marque> _marqueService;
+    private readonly IModeleService _modeleService;
+
+    //-------------------------------- Annocne
     public Annonce[] filteredAnnonces;
     public Annonce[] allAnnonces;
-    
+
+    //-------------------------------- Marque
+    public Marque[] allMarques;
+
+    //-------------------------------- modele
+    public Modele[] allModeles;
+    public Modele[] filteredModeles;
+
     private Action? _refreshUI;
 
-    public HomeViewModel(IService<Annonce> annonceService)
+    public HomeViewModel(IService<Annonce> annonceService, IService<Marque> marqueService, IModeleService modeleService)
     {
         _annonceService = annonceService;
+        _marqueService = marqueService;
+        _modeleService = modeleService;
     }
 
     public async Task InitializeAsync(Action refreshUI)
     {
         _refreshUI = refreshUI;
         allAnnonces = (await _annonceService.GetAllAsync()).ToArray();
-        await ReloadAnnonce();
+        allMarques = (await _marqueService.GetAllAsync()).ToArray();
+        allModeles = (await _modeleService.GetAllAsync()).ToArray();
+        filteredModeles = allModeles;
     }
 
-    public async Task ReloadAnnonce()
+    public async Task FiltreModeleParMarque(ChangeEventArgs e)
     {
-        filteredAnnonces = null;
-        await Task.Delay(100);
-        //filteredAnnonces = (await _annonceService.GetMiseEnAvantAsync()).ToArray();
+        int selectedMarqueId = int.Parse(e.Value.ToString());
+
+        if (selectedMarqueId == null || selectedMarqueId == 0)
+        {
+            filteredModeles = allModeles;
+        }
+        else
+        {
+            filteredModeles = (await _modeleService.FiltreModeleParMarque(selectedMarqueId)).ToArray();
+        }
+
         _refreshUI?.Invoke();
     }
 }

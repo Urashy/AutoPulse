@@ -5,7 +5,7 @@ using Api_c_sharp.Models.Authentification;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL; // Importez le namespace Npgsql
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Api_c_sharp.Models.Repository.Managers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -13,9 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -25,13 +23,25 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
 
-//------------------------------Mapper/Controller------------------------------
+//------------------------------Mapper------------------------------
 builder.Services.AddAutoMapper(typeof(MapperProfile));
-builder.Services.AddScoped<IDataRepository<Annonce, string>, AnnonceManager>();
-builder.Services.AddScoped<ReadableRepository<Modele>, ModeleManager>();
-builder.Services.AddScoped<IModeleRepository, ModeleManager>();
-builder.Services.AddScoped<ReadableRepository<Marque>, MarqueManager>();
 
+//------------------------------Managers (DI)------------------------------
+// IMPORTANT: Enregistrer les managers en tant que classes concrètes
+builder.Services.AddScoped<AnnonceManager>();
+builder.Services.AddScoped<MarqueManager>();
+builder.Services.AddScoped<ModeleManager>();
+builder.Services.AddScoped<BoiteDeVitesseManager>();
+builder.Services.AddScoped<CarburantManager>();
+builder.Services.AddScoped<CategorieManager>();
+builder.Services.AddScoped<MiseEnAvantManager>();
+builder.Services.AddScoped<MotriciteManager>();
+builder.Services.AddScoped<PaysManager>();
+builder.Services.AddScoped<TypeJournalManager>();
+builder.Services.AddScoped<CompteManager>();
+
+// Enregistrer aussi les interfaces pour ModeleManager (car il a une méthode spéciale)
+builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
 
 //------------------------------Authentification------------------------------
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -75,6 +85,7 @@ app.UseCors(policy =>
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); // IMPORTANT: À placer AVANT UseAuthorization
 app.UseAuthorization();
 
 app.MapControllers();

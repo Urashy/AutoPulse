@@ -9,15 +9,26 @@
         <h1>Trouvez Votre Voiture Idéale</h1>
         <p>Plus de 500 véhicules d'occasion sélectionnés et garantis</p>
         <div class="search-bar">
-            <select>
-                <option>Marque</option>
-                <option>BMW</option>
-                <option>Mercedes</option>
-                <option>Audi</option>
-                <option>Peugeot</option>
+            <select @onchange="@VM.FiltreModeleParMarque">
+                <option value="">Marque</option>
+                @if (VM.allMarques != null)
+                {
+                    @foreach (var marque in VM.allMarques)
+                    {
+                        <option value="@marque.IdMarque">@marque.LibelleMarque</option>
+                    }
+                }
             </select>
+
             <select>
-                <option>Modèle</option>
+                <option value="">Modèle</option>
+                @if (VM.filteredModeles != null)
+                {
+                    @foreach (var modele in VM.filteredModeles)
+                    {
+                        <option value="@modele.IdModele">@modele.LibelleModele</option>
+                    }
+                }
             </select>
             <input type="text" placeholder="Prix max">
             <button>Rechercher</button>
