@@ -8,4 +8,5 @@ public class AdresseDTO
     public string LibelleVille { get; set; }
     public string CodePostal { get; set; }
     public string LibellePays { get; set; }
+    public string Nom { get; set; }
 }
