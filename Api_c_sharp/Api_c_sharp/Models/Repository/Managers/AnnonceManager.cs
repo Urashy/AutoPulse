@@ -43,7 +43,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
             // Filtre par département
             if (!string.IsNullOrEmpty(departement))
-                query = query.Where(a => a.AdresseAnnonceNav.VilleAdresseNav.CodePostal == departement);
+                query = query.Where(a => a.AdresseAnnonceNav.CodePostal == departement);
 
          // Filtre par carburant
             if (idcarburant > 0)

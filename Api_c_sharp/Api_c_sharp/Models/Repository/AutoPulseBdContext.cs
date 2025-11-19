@@ -15,7 +15,6 @@ namespace Api_c_sharp.Models.Repository
 
         public DbSet<Adresse> Adresses { get; set; }
         public DbSet<Annonce> Annonces { get; set; }
-        public DbSet<APourAdresse> APourAdresses { get; set; }
         public DbSet<APourConversation> APourConversations { get; set; }
         public DbSet<APourCouleur> APourCouleurs { get; set; }
         public DbSet<Avis> Avis { get; set; }
@@ -42,7 +41,6 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
         public DbSet<TypeJournal> TypesJournal { get; set; }
-        public DbSet<Ville> Villes { get; set; }
         public DbSet<Voiture> Voitures { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -63,9 +61,9 @@ namespace Api_c_sharp.Models.Repository
                 .HasKey(a => a.IdAdresse); 
 
             modelBuilder.Entity<Adresse>()
-                .HasOne(a => a.VilleAdresseNav)
+                .HasOne(a => a.PaysAdresseNav)
                 .WithMany(v => v.Adresses)
-                .HasForeignKey(a => a.IdVille);
+                .HasForeignKey(a => a.IdPays);
 
             //-----------------------------Annonce-----------------------------
             modelBuilder.Entity<Annonce>()
@@ -96,20 +94,6 @@ namespace Api_c_sharp.Models.Repository
                 .WithMany(m => m.Annonces)
                 .HasForeignKey(a => a.IdMiseEnAvant);
 
-
-            //-----------------------------APourAdresse-----------------------------
-            modelBuilder.Entity<APourAdresse>()
-                .HasKey(e => new { e.IdAdresse, e.IdCompte });
-
-            modelBuilder.Entity<APourAdresse>()
-                .HasOne(ap => ap.AdresseAPourAdresseNav)
-                .WithMany(a => a.APourAdresses)
-                .HasForeignKey(ap => ap.IdAdresse);
-
-            modelBuilder.Entity<APourAdresse>()
-                .HasOne(ap => ap.CompteAPourAdresseNav)
-                .WithMany(c => c.APourAdresses)
-                .HasForeignKey(ap => ap.IdCompte);
 
             //-----------------------------APourConversation-----------------------------
             modelBuilder.Entity<APourConversation>()
@@ -339,15 +323,6 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<TypeSignalement>()
                 .HasKey(e => e.IdTypeSignalement);
 
-            //-----------------------------Ville-----------------------------
-            modelBuilder.Entity<Ville>()
-                .HasKey(e => e.IdVille);
-
-            modelBuilder.Entity<Ville>()
-                .HasOne(v => v.PaysVilleNav)
-                .WithMany(p => p.Villes)
-                .HasForeignKey(v => v.IdPays);
-
             //-----------------------------Voiture-----------------------------
             modelBuilder.Entity<Voiture>()
                 .HasKey(e => e.IdVoiture);
@@ -411,9 +386,6 @@ namespace Api_c_sharp.Models.Repository
 
             modelBuilder.Entity<Commande>()
                 .HasIndex(e => e.IdAcheteur);
-
-            modelBuilder.Entity<Ville>()
-                .HasIndex(e => e.CodePostal);
 
             modelBuilder.Entity<Message>()
                 .HasIndex(e => new { e.IdMessage, e.DateEnvoiMessage });
