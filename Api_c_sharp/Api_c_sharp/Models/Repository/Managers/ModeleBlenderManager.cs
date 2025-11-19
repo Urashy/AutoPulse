@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public class ModeleBlenderManager : ReadableManager<Motricite>
+    public class ModeleBlenderManager : ReadableManager<ModeleBlender>
     {
         public ModeleBlenderManager(AutoPulseBdContext context) : base(context)
         {

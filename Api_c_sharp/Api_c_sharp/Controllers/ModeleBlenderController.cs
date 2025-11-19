@@ -23,20 +23,20 @@ public class ModeleBlenderController(ModeleBlenderManager _manager, IMapper _mod
     /// </summary>
     /// <param name="id">Identifiant unique du modele recherchée.</param>
     /// <returns>
-    /// <item><description><see cref="MotriciteDTO"/> si la motricité existe (200 OK).</description></item>
+    /// <item><description><see cref="ModeleBlender"/> si la motricité existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune motricité ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<MotriciteDTO>> GetById(int id)
+    public async Task<ActionResult<ModeleBlender>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
 
         if (result is null)
             return NotFound();
 
-        return new ActionResult<MotriciteDTO>(_modeldeblendermapper.Map<MotriciteDTO>(result));
+        return result;
     }
 
     /// <summary>
@@ -47,9 +47,9 @@ public class ModeleBlenderController(ModeleBlenderManager _manager, IMapper _mod
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
-    public async Task<ActionResult<IEnumerable<MotriciteDTO>>> GetAll()
+    public async Task<ActionResult<IEnumerable<ModeleBlender>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
-        return new ActionResult<IEnumerable<MotriciteDTO>>(_modeldeblendermapper.Map<IEnumerable<MotriciteDTO>>(list));
+        return Ok(list);
     }
 }
