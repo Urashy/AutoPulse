@@ -29,17 +29,14 @@ public class CreationCompteViewModel
     public async Task CreateCompteAsync()
     {
         compte.IdTypeCompte = (pro) ? 1 : 2;
-        Console.WriteLine("Prénom : " + compte.Prenom);
-        Console.WriteLine("Nom : " + compte.Nom);
-        Console.WriteLine("Pseudo : " + compte.Pseudo);
-        Console.WriteLine("MotDePasse : " + compte.MotDePasse);
-        Console.WriteLine("Email : " + compte.Email);
-        Console.WriteLine("DateNaissance : " + compte.DateNaissance);
-        Console.WriteLine("Biographie : " + compte.Biographie);
-        Console.WriteLine("IdTypeCompte : " + compte.IdTypeCompte);
-        Console.WriteLine("NumeroSiret : " + compte.NumeroSiret);
-        Console.WriteLine("RaisonSociale : " + compte.RaisonSociale);
-        Console.WriteLine(_compteService.CreateAsync(compte));
+        try
+        {
+            var createdCompte = await _compteService.CreateAsync(compte);
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine("Erreur lors de la création : " + ex.Message);
+        }
     }
 
     public async Task ReloadPage()
