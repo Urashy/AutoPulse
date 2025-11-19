@@ -17,8 +17,13 @@ public class ConnexionWebService : IServiceConnexion
 
         var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
-        Console.WriteLine(loginResponse.UserDetails);
-
         return loginResponse?.UserDetails;
+    }
+
+    public async Task<Compte> CreateUser(Compte compte)
+    {
+        var response = await _httpClient.PostAsJsonAsync("CreateUser", compte);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Compte>();
     }
 }

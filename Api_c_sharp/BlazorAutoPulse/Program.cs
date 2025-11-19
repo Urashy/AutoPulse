@@ -21,13 +21,14 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IService<Annonce>, AnnonceWebService>();
             builder.Services.AddScoped<IService<Marque>, MarqueWebService>();
 
-            //----------------------- Service avec interface spécifique
+            //----------------------- Service avec interface spï¿½cifique
             builder.Services.AddScoped<IModeleService, ModeleWebService>();
             builder.Services.AddScoped<IServiceConnexion, ConnexionWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
             builder.Services.AddScoped<ConnexionViewModel>();
+            builder.Services.AddScoped<CreationCompteViewModel>();
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
