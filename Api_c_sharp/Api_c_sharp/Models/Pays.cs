@@ -15,7 +15,7 @@ namespace Api_c_sharp.Models
         [Required]
         public string Libelle { get; set; } = null!;
 
-        [InverseProperty(nameof(Ville.PaysVilleNav))]
-        public virtual ICollection<Ville> Villes { get; set; } = new List<Ville>();
+        [InverseProperty(nameof(Adresse.PaysAdresseNav))]
+        public virtual ICollection<Adresse> Adresses { get; set; } = new List<Adresse>();
     }
 }

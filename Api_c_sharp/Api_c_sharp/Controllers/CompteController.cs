@@ -99,6 +99,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper) : C
 
         var entity = _compteMapper.Map<Compte>(dto);
         entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);
+        entity.DateNaissance = DateTime.SpecifyKind(entity.DateNaissance, DateTimeKind.Utc);
+        entity.DateCreation = DateTime.UtcNow;
+        entity.DateDerniereConnexion = DateTime.UtcNow;
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);

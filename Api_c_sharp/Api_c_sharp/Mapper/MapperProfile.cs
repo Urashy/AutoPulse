@@ -35,24 +35,13 @@ public class MapperProfile : Profile
         CreateMap<Adresse, AdresseDTO>()
             .ForMember(dest => dest.Numero, 
                 opt => opt.MapFrom(src => src.Numero.ToString()))
-            .ForMember(dest => dest.LibelleVille, 
-                opt => opt.MapFrom(src => src.VilleAdresseNav.Libelle))
-            .ForMember(dest => dest.CodePostal, 
-                opt => opt.MapFrom(src => src.VilleAdresseNav.CodePostal))
             .ForMember(dest => dest.LibellePays, 
-                opt => opt.MapFrom(src => src.VilleAdresseNav.PaysVilleNav.Libelle));
-        
-        CreateMap<AdresseCreateUpdateDTO, Adresse>()
-            .ForMember(dest => dest.Numero, 
-                opt => opt.MapFrom(src => int.Parse(src.Numero)));
+                opt => opt.MapFrom(src => src.PaysAdresseNav.Libelle));
+       
         
         // ============================================
-        // MAPPERS VILLE ET PAYS
+        // MAPPERS ET PAYS
         // ============================================
-        
-        CreateMap<Ville, VilleDTO>()
-            .ForMember(dest => dest.LibellePays, 
-                opt => opt.MapFrom(src => src.PaysVilleNav.Libelle));
         
         CreateMap<Pays, PaysDTO>();
         
@@ -116,9 +105,9 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Carburant,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.CarburantVoitureNavigation.LibelleCarburant))
             .ForMember(dest => dest.Ville,
-                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.Libelle))
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.LibelleVille))
             .ForMember(dest => dest.CodePostal,
-                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.CodePostal))
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.CodePostal))
             .ForMember(dest => dest.ImagePrincipale,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.Images.Any()
                     ? Convert.ToBase64String(src.VoitureAnnonceNav.Images.First().Fichier)
@@ -154,11 +143,11 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Rue, 
                 opt => opt.MapFrom(src => src.AdresseAnnonceNav.Rue))
             .ForMember(dest => dest.Ville, 
-                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.Libelle))
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.LibelleVille))
             .ForMember(dest => dest.CodePostal, 
-                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.CodePostal))
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.CodePostal))
             .ForMember(dest => dest.Pays, 
-                opt => opt.MapFrom(src => src.AdresseAnnonceNav.VilleAdresseNav.PaysVilleNav.Libelle))
+                opt => opt.MapFrom(src => src.AdresseAnnonceNav.PaysAdresseNav.Libelle))
             // Voiture
             .ForMember(dest => dest.IdVoiture, 
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.IdVoiture))
@@ -215,7 +204,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.TypeCompte, 
                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.Adresses, 
-                opt => opt.MapFrom(src => src.APourAdresses.Select(a => a.AdresseAPourAdresseNav)))
+                opt => opt.MapFrom(src => src.Adresses.Select(a => a.CompteAdresseNav)))
             .ForMember(dest => dest.ImageProfil, 
                 opt => opt.MapFrom(src => src.Images.Any() 
                     ? Convert.ToBase64String(src.Images.First().Fichier) 
@@ -239,9 +228,11 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.NombreAvis, 
                 opt => opt.MapFrom(src => src.AvisJugees.Count));
         
-        CreateMap<CompteCreateDTO, Compte>();
+        CreateMap<CompteCreateDTO, Compte>()
+            .ReverseMap();
         
-        CreateMap<CompteUpdateDTO, Compte>();
+        CreateMap<CompteUpdateDTO, Compte>()
+            .ReverseMap();
         
         // ============================================
         // MAPPERS AVIS

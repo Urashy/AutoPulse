@@ -63,8 +63,8 @@ namespace Api_c_sharp.Models
         [InverseProperty(nameof(TypeCompte.Comptes))]
         public virtual TypeCompte TypeCompteCompteNav { get; set; } = null!;
 
-        [InverseProperty(nameof(APourAdresse.CompteAPourAdresseNav))]
-        public virtual ICollection<APourAdresse> APourAdresses { get; set; } = new List<APourAdresse>();
+        [InverseProperty(nameof(Adresse.CompteAdresseNav))]
+        public virtual ICollection<Adresse> Adresses { get; set; } = new List<Adresse>();
 
         [InverseProperty(nameof(APourConversation.APourConversationCompteNav))]
         public virtual ICollection<APourConversation> ApourConversations { get; set; } = new List<APourConversation>();    
