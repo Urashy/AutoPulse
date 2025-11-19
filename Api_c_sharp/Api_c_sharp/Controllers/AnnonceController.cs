@@ -21,10 +21,10 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// <summary>
     /// Récupère une annoncs à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce recherchée.</param>
+    /// <param name="id">Identifiant unique de l'annonce recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="AnnonceDTO"/> si la annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="AnnonceDTO"/> si l'nnonce existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
     /// </list>
     /// </returns>
@@ -43,10 +43,10 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// <summary>
     /// Récupère une annonce à partir de son nom exact (insensible à la casse).
     /// </summary>
-    /// <param name="str">Nom de la annonce recherchée.</param>
+    /// <param name="str">Nom de l'annonce recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="AnnonceDTO"/> si la annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="AnnonceDTO"/> si l'annonce existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
     /// </list>
     /// </returns>
@@ -81,10 +81,10 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// <summary>
     /// Crée une nouvelle annonce.
     /// </summary>
-    /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les informations de la annonce à créer.</param>
+    /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les informations de l'annonce à créer.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec la annonce créée (201).</description></item>
+    /// <item><description><see cref="CreatedAtActionResult"/> avec l'annonce créée (201).</description></item>
     /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
     /// </list>
     /// </returns>
@@ -104,7 +104,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// <summary>
     /// Met à jour une annonce existante.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à mettre à jour.</param>
+    /// <param name="id">Identifiant unique de l'annonce à mettre à jour.</param>
     /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
@@ -134,7 +134,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// <summary>
     /// Supprime une annonce existante.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à supprimer.</param>
+    /// <param name="id">Identifiant unique de l'annonce à supprimer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
@@ -158,7 +158,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// <summary>
     /// Récupère une annoncs à partir d'un id de mise en avant.
     /// </summary>
-    /// <param name="idmiseenavant">Identifiant unique de la annonce recherchée.</param>
+    /// <param name="idmiseenavant">Identifiant unique de l'annonce recherchée.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="AnnonceDTO"/> si les annonce existe (200 OK).</description></item>
