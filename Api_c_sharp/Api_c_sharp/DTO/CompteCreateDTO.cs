@@ -10,6 +10,6 @@ public class CompteCreateDTO
     public DateTime DateNaissance { get; set; }
     public string? Biographie { get; set; }
     public int IdTypeCompte { get; set; }
-    public string NumeroSiret { get; set; }
-    public string RaisonSociale { get; set; }
+    public string? NumeroSiret { get; set; }
+    public string? RaisonSociale { get; set; }
 }
