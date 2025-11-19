@@ -52,10 +52,9 @@ namespace Api_c_sharp.Models
         public int IdTypeCompte { get; set; }
 
         [Column("cpr_siret")]
-        [Required]
         [StringLength(14, MinimumLength = 14, ErrorMessage = "Le numéro SIRET doit contenir exactement 14 chiffres")]
         [RegularExpression(@"^\d{14}$", ErrorMessage = "Le SIRET doit contenir uniquement des chiffres")]
-        public string NumeroSiret { get; set; } = null!;
+        public string? NumeroSiret { get; set; } 
 
         [Column("cpr_raison_sociale")]
         public string? RaisonSociale { get; set; }
