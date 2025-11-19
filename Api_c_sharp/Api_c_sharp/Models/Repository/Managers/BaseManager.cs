@@ -16,14 +16,17 @@ namespace Api_c_sharp.Models.Repository.Managers
             this.dbSet = context.Set<TEntity>();
         }
 
-        public Task<TEntity> AddAsync(TEntity entity)
+        public async Task<TEntity> AddAsync(TEntity entity)
         {
-            throw new NotImplementedException();
+            await dbSet.AddAsync(entity);
+            await context.SaveChangesAsync();
+            return entity;
         }
 
-        public Task DeleteAsync(TEntity entity)
+        public async Task DeleteAsync(TEntity entity)
         {
-            throw new NotImplementedException();
+            dbSet.Remove(entity);
+            await context.SaveChangesAsync();
         }
 
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
@@ -38,9 +41,10 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public abstract Task<TEntity?> GetByNameAsync(TKey name);
 
-        public Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
+        public async Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
         {
-            throw new NotImplementedException();
+            context.Entry(entityToUpdate).CurrentValues.SetValues(entity);
+            await context.SaveChangesAsync();
         }
     }
     

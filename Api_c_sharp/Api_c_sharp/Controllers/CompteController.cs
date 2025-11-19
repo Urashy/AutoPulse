@@ -165,7 +165,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper) : C
     /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
-    [ActionName("GetByIdMiseEnAvant")]
+    [ActionName("GetByTypeCompte")]
     [HttpGet("{idmiseenavant}")]
     public async Task<ActionResult<IEnumerable<CompteListDTO>>> GetByTypeCompte(int type)
     {
