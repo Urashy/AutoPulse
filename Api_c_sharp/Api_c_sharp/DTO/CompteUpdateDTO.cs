@@ -1,7 +1,8 @@
 namespace Api_c_sharp.DTO;
 
-public class CompteCreateUpdateDTO
+public class CompteUpdateDTO
 {
+    public int Id { get; set; }
     public string Pseudo { get; set; }
     public string MotDePasse { get; set; }
     public string Nom { get; set; }
@@ -13,3 +14,8 @@ public class CompteCreateUpdateDTO
     public string NumeroSiret { get; set; }
     public string RaisonSociale { get; set; }
 }
+
+
+
+
+

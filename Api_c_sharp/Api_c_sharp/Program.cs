@@ -27,7 +27,6 @@ builder.Services.AddDbContext<AutoPulseBdContext>(options =>
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
 //------------------------------Managers (DI)------------------------------
-// IMPORTANT: Enregistrer les managers en tant que classes concrètes
 builder.Services.AddScoped<AnnonceManager>();
 builder.Services.AddScoped<MarqueManager>();
 builder.Services.AddScoped<ModeleManager>();

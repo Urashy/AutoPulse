@@ -13,4 +13,9 @@
         
     }
 
+    public interface ICompteRepository
+    {
+        Task<IEnumerable<Compte>> GetComptesByTypes(int  type);
+    }
+
 }

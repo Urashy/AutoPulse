@@ -45,7 +45,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             if (!string.IsNullOrEmpty(departement))
                 query = query.Where(a => a.AdresseAnnonceNav.VilleAdresseNav.CodePostal == departement);
 
-            // Filtre par carburant
+         // Filtre par carburant
             if (idcarburant > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.IdCarburant == idcarburant);
 
@@ -83,7 +83,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             if (kmmax > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.Kilometrage <= kmmax);
 
-            return await query.ToListAsync();
+            return await query.ToListAsync();   
         }
     }
 }

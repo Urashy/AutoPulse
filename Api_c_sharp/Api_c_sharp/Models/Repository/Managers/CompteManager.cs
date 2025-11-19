@@ -4,34 +4,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public class CompteManager : SearchableManager<Compte,string>, WritableRepository<Compte>
+    public class CompteManager : BaseManager<Compte,string> , ICompteRepository
     {
         public CompteManager(AutoPulseBdContext context) : base(context)
         {
         }
 
-        public virtual async Task<Compte> AddAsync(Compte entity)
+        public override async Task<Compte?> GetByNameAsync(string name)
         {
-            await dbSet.AddAsync(entity);
-            await context.SaveChangesAsync();
-            return entity;
+            return await dbSet.Where(c => c.Pseudo == name).FirstOrDefaultAsync();
         }
 
-        public virtual async Task DeleteAsync(Compte entity)
+        public async Task<IEnumerable<Compte>> GetComptesByTypes(int type)
         {
-            dbSet.Remove(entity);
-            await context.SaveChangesAsync();
-        }
-
-        public override Task<Compte?> GetByNameAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual async Task UpdateAsync(Compte entityToUpdate, Compte entity)
-        {
-            context.Entry(entityToUpdate).CurrentValues.SetValues(entity);
-            await context.SaveChangesAsync();
+            return await dbSet.Where(c => c.IdTypeCompte == type).ToListAsync();
         }
     }
 }
