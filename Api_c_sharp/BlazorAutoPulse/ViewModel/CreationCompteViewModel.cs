@@ -1,11 +1,12 @@
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Authentification;
+using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.ViewModel;
 
 public class CreationCompteViewModel
 {
-    private readonly IServiceConnexion _connexionService;
+    private readonly IService<Compte> _compteService;
 
     public bool pro = false;
     
@@ -13,9 +14,9 @@ public class CreationCompteViewModel
     
     private Action? _refreshUI;
 
-    public CreationCompteViewModel(IServiceConnexion connexionService)
+    public CreationCompteViewModel(IService<Compte> compteService)
     {
-        _connexionService  = connexionService;
+        _compteService  = compteService;
         compte = new Compte();
         compte.DateNaissance = new DateTime(2000, 1, 1);
     }
@@ -38,7 +39,7 @@ public class CreationCompteViewModel
         Console.WriteLine("IdTypeCompte : " + compte.IdTypeCompte);
         Console.WriteLine("NumeroSiret : " + compte.NumeroSiret);
         Console.WriteLine("RaisonSociale : " + compte.RaisonSociale);
-        Console.WriteLine(_connexionService.CreateUser(compte));
+        Console.WriteLine(_compteService.CreateAsync(compte));
     }
 
     public async Task ReloadPage()

@@ -20,6 +20,7 @@ namespace BlazorAutoPulse
             //----------------------- Service de base
             builder.Services.AddScoped<IService<Annonce>, AnnonceWebService>();
             builder.Services.AddScoped<IService<Marque>, MarqueWebService>();
+            builder.Services.AddScoped<IService<Compte>, CompteWebService>();
 
             //----------------------- Service avec interface sp�cifique
             builder.Services.AddScoped<IModeleService, ModeleWebService>();
