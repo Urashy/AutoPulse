@@ -10,7 +10,7 @@
         <p>Plus de 500 véhicules d'occasion sélectionnés et garantis</p>
         <div class="search-bar">
             <select @onchange="@VM.FiltreModeleParMarque">
-                <option value="">Marque</option>
+                <option value="0">Marque</option>
                 @if (VM.allMarques != null)
                 {
                     @foreach (var marque in VM.allMarques)

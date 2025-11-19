@@ -64,6 +64,11 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     public async Task<ActionResult<IEnumerable<ModeleDTO>>> GetAllByMarque(int marqueId)
     {
         var list = await _manager.GetModelesByMarqueIdAsync(marqueId);
+        if (list is null)
+        {
+            return NotFound();
+        }
+
         return new ActionResult<IEnumerable<ModeleDTO>>(_marqueMapper.Map<IEnumerable<ModeleDTO>>(list));
     }
 }
