@@ -18,4 +18,9 @@
         Task<IEnumerable<Compte>> GetComptesByTypes(int  type);
     }
 
+    public interface IMessageRepository
+    {
+        Task<IEnumerable<Message>> GetMessagesByConversation(int conversationId);
+    }
+
 }

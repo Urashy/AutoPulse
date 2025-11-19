@@ -1,11 +1,12 @@
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Authentification;
+using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.ViewModel;
 
 public class CreationCompteViewModel
 {
-    private readonly IServiceConnexion _connexionService;
+    private readonly IService<Compte> _compteService;
 
     public bool pro = false;
     
@@ -13,9 +14,9 @@ public class CreationCompteViewModel
     
     private Action? _refreshUI;
 
-    public CreationCompteViewModel(IServiceConnexion connexionService)
+    public CreationCompteViewModel(IService<Compte> compteService)
     {
-        _connexionService  = connexionService;
+        _compteService  = compteService;
         compte = new Compte();
         compte.DateNaissance = new DateTime(2000, 1, 1);
     }
@@ -28,17 +29,14 @@ public class CreationCompteViewModel
     public async Task CreateCompteAsync()
     {
         compte.IdTypeCompte = (pro) ? 1 : 2;
-        Console.WriteLine("Prénom : " + compte.Prenom);
-        Console.WriteLine("Nom : " + compte.Nom);
-        Console.WriteLine("Pseudo : " + compte.Pseudo);
-        Console.WriteLine("MotDePasse : " + compte.MotDePasse);
-        Console.WriteLine("Email : " + compte.Email);
-        Console.WriteLine("DateNaissance : " + compte.DateNaissance);
-        Console.WriteLine("Biographie : " + compte.Biographie);
-        Console.WriteLine("IdTypeCompte : " + compte.IdTypeCompte);
-        Console.WriteLine("NumeroSiret : " + compte.NumeroSiret);
-        Console.WriteLine("RaisonSociale : " + compte.RaisonSociale);
-        Console.WriteLine(_connexionService.CreateUser(compte));
+        try
+        {
+            var createdCompte = await _compteService.CreateAsync(compte);
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine("Erreur lors de la création : " + ex.Message);
+        }
     }
 
     public async Task ReloadPage()

@@ -1,7 +1,9 @@
+using System.Text;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.DTO;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
+using System.Security.Cryptography;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Repository.Managers;
@@ -96,6 +98,10 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper) : C
             return BadRequest(ModelState);
 
         var entity = _compteMapper.Map<Compte>(dto);
+        entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);
+        entity.DateNaissance = DateTime.SpecifyKind(entity.DateNaissance, DateTimeKind.Utc);
+        entity.DateCreation = DateTime.UtcNow;
+        entity.DateDerniereConnexion = DateTime.UtcNow;
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
@@ -165,7 +171,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper) : C
     /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
-    [ActionName("GetByIdMiseEnAvant")]
+    [ActionName("GetByTypeCompte")]
     [HttpGet("{idmiseenavant}")]
     public async Task<ActionResult<IEnumerable<CompteListDTO>>> GetByTypeCompte(int type)
     {
@@ -177,4 +183,20 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper) : C
         return new ActionResult<IEnumerable<CompteListDTO>>(_compteMapper.Map<IEnumerable<CompteListDTO>>(result));
     }
 
+    /// <summary>
+    /// Calcule le hachage SHA-256 d'une chaîne de caractères.
+    /// </summary>
+    /// <param name="rawData">Les données brutes à hacher.</param>
+    /// <returns>Le hachage SHA-256 de la chaîne d'entrée.</returns>
+    static public string ComputeSha256Hash(string rawData)
+    {
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+            StringBuilder builder = new StringBuilder();
+            foreach (byte b in bytes)
+                builder.Append(b.ToString("x2"));
+            return builder.ToString();
+        }
+    }
 }

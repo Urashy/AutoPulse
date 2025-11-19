@@ -228,7 +228,11 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.NombreAvis, 
                 opt => opt.MapFrom(src => src.AvisJugees.Count));
         
-        CreateMap<CompteCreateUpdateDTO, Compte>();
+        CreateMap<CompteCreateDTO, Compte>()
+            .ReverseMap();
+        
+        CreateMap<CompteUpdateDTO, Compte>()
+            .ReverseMap();
         
         // ============================================
         // MAPPERS AVIS
