@@ -1,0 +1,118 @@
+@page "/vente"
+@using BlazorAutoPulse.ViewModel
+@inject VenteViewModel VM
+
+<PageTitle>AutoPulse</PageTitle>
+
+<div id="sell" class="page active">
+    <div class="sell-container">
+        <h2 class="section-title">Vendez Votre Voiture</h2>
+        <div class="sell-form">
+            @if(@VM.imageUpload != null){
+                <form>
+                    <h3 style="margin-bottom: 30px; color: #00d4ff;">Informations du véhicule</h3>
+
+                    <div class="form-group">
+                        <label>Photos du véhicule (la première sera la photo de couverture)</label>
+                        <label for="vehiclePhotos" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
+                            <p style="color: #aaa;">Cliquez pour ajouter des photos</p>
+                            <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
+                        </label>
+                        <InputFile id="vehiclePhotos" OnChange="@VM.UploadImage" multiple style="display:none"/>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Marque</label>
+                            <input type="text" placeholder="BMW, Mercedes, Audi..." required>
+                        </div>
+                        <div class="form-group">
+                            <label>Modèle</label>
+                            <input type="text" placeholder="Série 3, Classe A..." required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Année</label>
+                            <input type="number" placeholder="2021" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kilométrage</label>
+                            <input type="number" placeholder="45000" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Carburant</label>
+                            <select required>
+                                <option>Essence</option>
+                                <option>Diesel</option>
+                                <option>Hybride</option>
+                                <option>Électrique</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Transmission</label>
+                            <select required>
+                                <option>Manuelle</option>
+                                <option>Automatique</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prix souhaité (€)</label>
+                            <input type="number" placeholder="25000" required>
+                            <button type="button" class="btn-ia" onclick="alert('Estimation IA : Basé sur les informations fournies, un prix juste se situerait entre 29 500 € et 31 000 €.')">✨ Estimer le prix par l'IA</button>
+                        </div>
+                        <div class="form-group">
+                            <label>Couleur</label>
+                            <input type="text" placeholder="Noir, Blanc, Gris..." required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Adresse</label>
+                        <input type="text" placeholder="123 rue de l'Exemple" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Code postal</label>
+                            <input type="text" placeholder="73000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ville</label>
+                            <input type="text" placeholder="Chambéry" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Pays</label>
+                        <input type="text" placeholder="France" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea placeholder="Décrivez votre véhicule, son état, ses équipements..." required></textarea>
+                    </div>
+
+                    <button @onclick="@VM.CreateAnnonce" type="button" class="btn-submit" style="margin-top: 20px;">Publier mon annonce</button>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+
+}
