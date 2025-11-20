@@ -23,23 +23,6 @@ namespace Api_c_sharp.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Api_c_sharp.Models.APourAdresse", b =>
-                {
-                    b.Property<int>("IdAdresse")
-                        .HasColumnType("integer")
-                        .HasColumnName("adr_id");
-
-                    b.Property<int>("IdCompte")
-                        .HasColumnType("integer")
-                        .HasColumnName("com_id");
-
-                    b.HasKey("IdAdresse", "IdCompte");
-
-                    b.HasIndex("IdCompte");
-
-                    b.ToTable("t_j_apouradresse_apa", "public");
-                });
-
             modelBuilder.Entity("Api_c_sharp.Models.APourConversation", b =>
                 {
                     b.Property<int>("IdCompte")
@@ -86,9 +69,28 @@ namespace Api_c_sharp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdAdresse"));
 
-                    b.Property<int>("IdVille")
+                    b.Property<string>("CodePostal")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("adr_codepostal");
+
+                    b.Property<int>("IdCompte")
                         .HasColumnType("integer")
-                        .HasColumnName("vil_id");
+                        .HasColumnName("com_id");
+
+                    b.Property<int>("IdPays")
+                        .HasColumnType("integer")
+                        .HasColumnName("pays_id");
+
+                    b.Property<string>("LibelleVille")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("adr_libelleville");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("adr_nom");
 
                     b.Property<int>("Numero")
                         .HasColumnType("integer")
@@ -101,7 +103,9 @@ namespace Api_c_sharp.Migrations
 
                     b.HasKey("IdAdresse");
 
-                    b.HasIndex("IdVille");
+                    b.HasIndex("IdCompte");
+
+                    b.HasIndex("IdPays");
 
                     b.ToTable("t_e_adresse_adr", "public");
                 });
@@ -143,6 +147,10 @@ namespace Api_c_sharp.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("ann_nom");
+
+                    b.Property<int>("Prix")
+                        .HasColumnType("integer")
+                        .HasColumnName("ann_pri");
 
                     b.HasKey("IdAnnonce");
 
@@ -353,7 +361,6 @@ namespace Api_c_sharp.Migrations
                         .HasColumnName("com_nom");
 
                     b.Property<string>("NumeroSiret")
-                        .IsRequired()
                         .HasMaxLength(14)
                         .HasColumnType("character varying(14)")
                         .HasColumnName("cpr_siret");
@@ -819,38 +826,6 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_typesignalement_tsi", "public");
                 });
 
-            modelBuilder.Entity("Api_c_sharp.Models.Ville", b =>
-                {
-                    b.Property<int>("IdVille")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("vil_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdVille"));
-
-                    b.Property<string>("CodePostal")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("vil_codepostal");
-
-                    b.Property<int>("IdPays")
-                        .HasColumnType("integer")
-                        .HasColumnName("pay_id");
-
-                    b.Property<string>("Libelle")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("vil_libelle");
-
-                    b.HasKey("IdVille");
-
-                    b.HasIndex("CodePostal");
-
-                    b.HasIndex("IdPays");
-
-                    b.ToTable("t_e_ville_vil", "public");
-                });
-
             modelBuilder.Entity("Api_c_sharp.Models.Voiture", b =>
                 {
                     b.Property<int>("IdVoiture")
@@ -943,25 +918,6 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_voiture_voi", "public");
                 });
 
-            modelBuilder.Entity("Api_c_sharp.Models.APourAdresse", b =>
-                {
-                    b.HasOne("Api_c_sharp.Models.Adresse", "AdresseAPourAdresseNav")
-                        .WithMany("APourAdresses")
-                        .HasForeignKey("IdAdresse")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Api_c_sharp.Models.Compte", "CompteAPourAdresseNav")
-                        .WithMany("APourAdresses")
-                        .HasForeignKey("IdCompte")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AdresseAPourAdresseNav");
-
-                    b.Navigation("CompteAPourAdresseNav");
-                });
-
             modelBuilder.Entity("Api_c_sharp.Models.APourConversation", b =>
                 {
                     b.HasOne("Api_c_sharp.Models.Compte", "APourConversationCompteNav")
@@ -1002,13 +958,21 @@ namespace Api_c_sharp.Migrations
 
             modelBuilder.Entity("Api_c_sharp.Models.Adresse", b =>
                 {
-                    b.HasOne("Api_c_sharp.Models.Ville", "VilleAdresseNav")
+                    b.HasOne("Api_c_sharp.Models.Compte", "CompteAdresseNav")
                         .WithMany("Adresses")
-                        .HasForeignKey("IdVille")
+                        .HasForeignKey("IdCompte")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("VilleAdresseNav");
+                    b.HasOne("Api_c_sharp.Models.Pays", "PaysAdresseNav")
+                        .WithMany("Adresses")
+                        .HasForeignKey("IdPays")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompteAdresseNav");
+
+                    b.Navigation("PaysAdresseNav");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Annonce", b =>
@@ -1233,17 +1197,6 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("TypeSignalementSignalementNav");
                 });
 
-            modelBuilder.Entity("Api_c_sharp.Models.Ville", b =>
-                {
-                    b.HasOne("Api_c_sharp.Models.Pays", "PaysVilleNav")
-                        .WithMany("Villes")
-                        .HasForeignKey("IdPays")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PaysVilleNav");
-                });
-
             modelBuilder.Entity("Api_c_sharp.Models.Voiture", b =>
                 {
                     b.HasOne("Api_c_sharp.Models.BoiteDeVitesse", "BoiteVoitureNavigation")
@@ -1303,8 +1256,6 @@ namespace Api_c_sharp.Migrations
 
             modelBuilder.Entity("Api_c_sharp.Models.Adresse", b =>
                 {
-                    b.Navigation("APourAdresses");
-
                     b.Navigation("Annonces");
                 });
 
@@ -1341,7 +1292,7 @@ namespace Api_c_sharp.Migrations
 
             modelBuilder.Entity("Api_c_sharp.Models.Compte", b =>
                 {
-                    b.Navigation("APourAdresses");
+                    b.Navigation("Adresses");
 
                     b.Navigation("Annonces");
 
@@ -1413,7 +1364,7 @@ namespace Api_c_sharp.Migrations
 
             modelBuilder.Entity("Api_c_sharp.Models.Pays", b =>
                 {
-                    b.Navigation("Villes");
+                    b.Navigation("Adresses");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.TypeCompte", b =>
@@ -1429,11 +1380,6 @@ namespace Api_c_sharp.Migrations
             modelBuilder.Entity("Api_c_sharp.Models.TypeSignalement", b =>
                 {
                     b.Navigation("Signalements");
-                });
-
-            modelBuilder.Entity("Api_c_sharp.Models.Ville", b =>
-                {
-                    b.Navigation("Adresses");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Voiture", b =>
