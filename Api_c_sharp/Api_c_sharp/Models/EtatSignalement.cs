@@ -11,10 +11,10 @@ public class EtatSignalement
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int IdEtatSignalement { get; set; }
     
-    [Required]
     [Column("eta_lib")]
+    [Required]
     public string LibelleEtatSignalement { get; set; }
     
     [InverseProperty(nameof(Signalement.EtatSignalementNav))]
-    public virtual ICollection<Signalement> Signalements { get; set; }
+    public virtual ICollection<Signalement> Signalements { get; set; } = new List<Signalement>();
 }
