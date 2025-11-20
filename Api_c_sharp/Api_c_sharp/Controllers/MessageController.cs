@@ -22,11 +22,11 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper) 
     /// <summary>
     /// Récupère un message à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce recherchée.</param>
+    /// <param name="id">Identifiant unique de la message recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="MessageDTO"/> si la annonce existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// <item><description><see cref="MessageDTO"/> si la message existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
@@ -58,10 +58,10 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper) 
     /// <summary>
     /// Crée une nouveau message.
     /// </summary>
-    /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les informations de la annonce à créer.</param>
+    /// <param name="dto">Objet <see cref="messageDTO"/> contenant les informations de la message à créer.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec la annonce créée (201).</description></item>
+    /// <item><description><see cref="CreatedAtActionResult"/> avec la message créée (201).</description></item>
     /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
     /// </list>
     /// </returns>
@@ -81,13 +81,13 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper) 
     /// <summary>
     /// Met à jour un message existant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="id">Identifiant unique de la message à mettre à jour.</param>
+    /// <param name="dto">Objet <see cref="messageDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
     /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Put")]
@@ -111,11 +111,11 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper) 
     /// <summary>
     /// Supprime un message existante.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à supprimer.</param>
+    /// <param name="id">Identifiant unique de la message à supprimer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Delete")]
@@ -132,13 +132,13 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper) 
     }
 
     /// <summary>
-    /// Récupère un message à partir de son identifiant.
+    /// Récupère une liste de message à partir d'une conversation.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce recherchée.</param>
+    /// <param name="id">Identifiant unique de la message recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="MessageDTO"/> si la annonce existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// <item><description><see cref="MessageDTO"/> si la message existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetAllByConversation")]

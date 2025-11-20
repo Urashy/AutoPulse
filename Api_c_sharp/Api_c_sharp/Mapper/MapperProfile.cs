@@ -28,6 +28,12 @@ public class MapperProfile : Profile
         CreateMap<MiseEnAvant, MiseEnAvantDTO>();
         CreateMap<TypeJournal, TypeJournalDTO>();
 
+        CreateMap<TypeSignalement, TypeSignalementDTO>()
+            .ReverseMap();
+
+        CreateMap<EtatSignalement, EtatSignalementDTO>()
+            .ReverseMap();
+
         // ============================================
         // MAPPERS ADRESSE
         // ============================================

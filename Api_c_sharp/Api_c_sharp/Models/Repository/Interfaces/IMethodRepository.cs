@@ -23,4 +23,14 @@
         Task<IEnumerable<Message>> GetMessagesByConversation(int conversationId);
     }
 
+    public interface ISignalementRepository
+    {
+        Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId);
+    }
+
+    public interface IJournalRepository
+    {
+        Task<IEnumerable<Journal>> GetJournalByType(int typeID);
+    }
+
 }
