@@ -82,8 +82,9 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("pays_id");
 
-                    b.Property<int>("LibelleVille")
-                        .HasColumnType("integer")
+                    b.Property<string>("LibelleVille")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("adr_libelleville");
 
                     b.Property<string>("Nom")
