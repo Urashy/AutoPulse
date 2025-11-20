@@ -38,6 +38,7 @@ builder.Services.AddScoped<MotriciteManager>();
 builder.Services.AddScoped<PaysManager>();
 builder.Services.AddScoped<TypeJournalManager>();
 builder.Services.AddScoped<CompteManager>();
+builder.Services.AddScoped<ImageManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une méthode spéciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());

@@ -20,7 +20,6 @@ public class Annonce
     [Column("com_id")]
     [Required]
     public int IdCompte{ get; set; }
-   
         
     [Column("eta_id")]
     [Required]
