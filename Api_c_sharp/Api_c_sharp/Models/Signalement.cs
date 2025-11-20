@@ -33,6 +33,14 @@ namespace Api_c_sharp.Models
         [Required]
         public int IdTypeSignalement { get; set; }
 
+        [Column("ets_id")]
+        [Required]
+        public int IdEtatSignalement { get; set; }
+
+        [ForeignKey(nameof(IdEtatSignalement))]
+        [InverseProperty(nameof(EtatSignalement.Signalements))]
+        public virtual EtatSignalement EtatSignalementNav { get; set; } = null!;
+
         [ForeignKey(nameof(IdCompteSignalant))]
         [InverseProperty(nameof(Compte.SignalementsFaits))]
         public virtual Compte CompteSignalantNav { get; set; } = null!;
