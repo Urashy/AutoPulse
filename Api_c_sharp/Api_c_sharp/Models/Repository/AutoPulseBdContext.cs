@@ -26,6 +26,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Couleur> Couleurs { get; set; }
         public DbSet<EtatAnnonce> EtatAnnonces { get; set; }
+        public DbSet<EtatSignalement> EtatSignalements { get; set; }
         public DbSet<Facture> Factures { get; set; }
         public DbSet<Favori> Favoris { get; set; }
         public DbSet<Image> Images { get; set; }
@@ -194,6 +195,10 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<EtatAnnonce>()
                 .HasKey(e => e.IdEtatAnnonce);
 
+            //-----------------------------EtatSignalement-----------------------------
+            modelBuilder.Entity<EtatSignalement>()
+                .HasKey(e => e.IdEtatSignalement);
+
             //-----------------------------Facture-----------------------------
 
             modelBuilder.Entity<Facture>()
@@ -310,6 +315,11 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(s => s.TypeSignalementSignalementNav)
                 .WithMany(t => t.Signalements)
                 .HasForeignKey(s => s.IdTypeSignalement);
+
+            modelBuilder.Entity<Signalement>()
+                .HasOne(s => s.EtatSignalementNav)
+                .WithMany(e => e.Signalements)
+                .HasForeignKey(s => s.IdEtatSignalement);
 
             //-----------------------------TypeCompte-----------------------------
             modelBuilder.Entity<TypeCompte>()

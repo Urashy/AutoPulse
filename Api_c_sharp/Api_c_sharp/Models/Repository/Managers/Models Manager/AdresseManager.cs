@@ -1,5 +1,5 @@
 ﻿using Api_c_sharp.Models.Repository.Interfaces;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore; 
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
@@ -11,10 +11,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task<IEnumerable<Adresse>> GetAllAsync()
         {
-            {
                 return await dbSet.ToListAsync();
-            }
-            ;
         }
 
         public async Task<Adresse?> GetByIdAsync(int id)
