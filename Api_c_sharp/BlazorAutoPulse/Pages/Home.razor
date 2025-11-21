@@ -2,6 +2,7 @@
 @using BlazorAutoPulse.ViewModel
 @inject HomeViewModel VM
 @inject NavigationManager Navigation
+@inject RechercheViewModel RechercheVM
 
 <PageTitle>AutoPulse</PageTitle>
 
@@ -10,30 +11,8 @@
         <h1>Trouvez Votre Voiture Idéale</h1>
         <p>Plus de 500 véhicules d'occasion sélectionnés et garantis</p>
 
-        <div class="search-bar">
-            <select value="@VM.SearchParams.IdMarque" @onchange="OnMarqueChanged">
-                <option value="0">Marque</option>
-                @if (VM.allMarques != null)
-                {
-                    @foreach (var marque in VM.allMarques)
-                    {
-                        <option value="@marque.IdMarque">@marque.LibelleMarque</option>
-                    }
-                }
-            </select>
-            <select value="@VM.SearchParams.IdModele" @onchange="OnModeleChanged">
-                <option value="0">Modèle</option>
-                @if (VM.filteredModeles != null)
-                {
-                    @foreach (var modele in VM.filteredModeles)
-                    {
-                        <option value="@modele.IdModele">@modele.LibelleModele</option>
-                    }
-                }
-            </select>
-            <input type="number" value="@VM.SearchParams.PrixMax" @oninput="OnPrixMaxChanged" placeholder="Prix max">
-            <button @onclick="RechercherVoitures">Rechercher</button>
-        </div>
+        <BarreDeRechercheAvecFiltresComposant VM="@RechercheVM"/>
+        
     </div>
 </section>
 

@@ -3,20 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
-    public class JournalManager : WritableManager<Journal>, ReadableRepository<Journal>, IJournalRepository
+    public class JournalManager : WriteableReadableManager<Journal>, IJournalRepository
     {
         public JournalManager(AutoPulseBdContext context) : base(context)
         {
-        }
-
-        public async Task<IEnumerable<Journal>> GetAllAsync()
-        {
-            return await dbSet.ToListAsync();
-        }
-
-        public async Task<Journal?> GetByIdAsync(int id)
-        {
-            return await dbSet.FindAsync(id);
         }
 
         public async Task<IEnumerable<Journal>> GetJournalByType(int typeID)
