@@ -15,12 +15,12 @@ namespace Api_c_sharp.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ImageDTO>> GetById(int id)
         {
-            var entity = await _manager.GetByIdAsync(id);
-
-            if (entity is null)
+            var imageEntity = await _manager.GetByIdAsync(id);
+            if (imageEntity == null || imageEntity.Fichier == null)
                 return NotFound();
 
-            return _mapper.Map<ImageDTO>(entity);
+            // Tu peux adapter le type MIME selon le fichier
+            return File(imageEntity.Fichier, "image/jpeg"); 
         }
 
         // GET ALL

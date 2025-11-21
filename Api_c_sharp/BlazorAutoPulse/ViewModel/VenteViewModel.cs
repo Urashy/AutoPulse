@@ -2,7 +2,6 @@
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Http;
 using static System.Net.WebRequestMethods;
 
 namespace BlazorAutoPulse.ViewModel
@@ -10,20 +9,20 @@ namespace BlazorAutoPulse.ViewModel
     public class VenteViewModel
     {
         //-------------------------------- Service
-        private readonly IService<Annonce> _annonceService;
+        private readonly IAnnonceService _annonceService;
         private readonly IService<Image> _imageService;
-        private readonly IPostImageService _uploadImageService;
+        private readonly IPostImageService _postImageService;
 
         //-------------------------------- Modele
         public ImageUpload imageUpload;
 
         private Action? _refreshUI;
 
-        public VenteViewModel(IService<Annonce> annonceService, IService<Image> imageService, IPostImageService uploadImageService)
+        public VenteViewModel(IAnnonceService annonceService, IService<Image> imageService, IPostImageService postImageService)
         {
             _annonceService = annonceService;
             _imageService = imageService;
-            _uploadImageService = uploadImageService;
+            _postImageService = postImageService;
             imageUpload = new ImageUpload();
         }
 
@@ -41,7 +40,7 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task CreateAnnonce()
         {
-            var result = await _uploadImageService.CreateAsync(imageUpload);
+            var result = await _postImageService.CreateAsync(imageUpload);
             Console.WriteLine(result);
             _refreshUI?.Invoke();
         }

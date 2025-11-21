@@ -70,28 +70,11 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        public async Task InitializeWithParams(
-            string? marque,
-            string? modele,
-            string? carburant,
-            string? categorie,
-            string? prixMin,
-            string? prixMax,
-            string? kmMin,
-            string? kmMax,
-            string? nom,
-            string? departement)
+        public async Task InitializeWithParams(string? marque, string? modele, string? prix)
         {
             SelectedMarque = marque ?? "0";
             SelectedModele = modele ?? "";
-            SelectedCarburant = carburant ?? "0";
-            SelectedCategorie = categorie ?? "0";
-            PrixMin = prixMin ?? "";
-            PrixMax = prixMax ?? "";
-            KmMin = kmMin ?? "";
-            KmMax = kmMax ?? "";
-            Nom = nom ?? "";
-            Departement = departement ?? "";
+            PrixMax = prix ?? "";
 
             if (SelectedMarque != "0")
             {
