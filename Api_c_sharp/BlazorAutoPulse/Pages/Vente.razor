@@ -1,6 +1,7 @@
 @page "/vente"
 @using BlazorAutoPulse.ViewModel
 @inject VenteViewModel VM
+@inject GetAllViewModel VMAll
 
 <PageTitle>AutoPulse</PageTitle>
 
@@ -25,40 +26,68 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Marque</label>
-                            <input type="text" placeholder="BMW, Mercedes, Audi..." required>
+                            <select @onchange="VM.OnMarqueChanged">
+                                <option value="0">BMW</option>
+                                @if (VMAll.allMarques != null)
+                                {
+                                    @foreach (var marque in VMAll.allMarques)
+                                    {
+                                        <option value="@marque.IdMarque">@marque.LibelleMarque</option>
+                                    }
+                                }
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Modèle</label>
-                            <input type="text" placeholder="Série 3, Classe A..." required>
+                            <select @onchange="VM.OnModeleChanged">
+                                <option value="0">M4 CS</option>
+                                @if (VMAll.allModeles != null)
+                                {
+                                    @foreach (var marque in VMAll.allModeles)
+                                    {
+                                        <option value="@marque.IdModele">@marque.LibelleModele</option>
+                                    }
+                                }
+                            </select>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Année</label>
-                            <input type="number" placeholder="2021" required>
+                            <input type="number" placeholder="2021" required @bind="VM.annonce.Annee">
                         </div>
                         <div class="form-group">
                             <label>Kilométrage</label>
-                            <input type="number" placeholder="45000" required>
+                            <input type="number" placeholder="45000" required @bind="VM.annonce.Kilometrage">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Carburant</label>
-                            <select required>
-                                <option>Essence</option>
-                                <option>Diesel</option>
-                                <option>Hybride</option>
-                                <option>Électrique</option>
+                            <select @onchange="VM.OnModeleChanged">
+                                <option value="0">Essence</option>
+                                @if (VMAll.allCarburants != null)
+                                {
+                                    @foreach (var marque in VMAll.allCarburants)
+                                    {
+                                        <option value="@marque.IdCarburant">@marque.LibelleCarburant</option>
+                                    }
+                                }
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Transmission</label>
-                            <select required>
-                                <option>Manuelle</option>
-                                <option>Automatique</option>
+                            <label>Motricité</label>
+                            <select @onchange="VM.OnModeleChanged">
+                                <option value="0">Propulsion</option>
+                                @if (VMAll.allMotricite != null)
+                                {
+                                    @foreach (var marque in VMAll.allMotricite)
+                                    {
+                                        <option value="@marque.IdMotricite">@marque.LibelleMotricite</option>
+                                    }
+                                }
                             </select>
                         </div>
                     </div>
@@ -71,7 +100,7 @@
                         </div>
                         <div class="form-group">
                             <label>Couleur</label>
-                            <input type="text" placeholder="Noir, Blanc, Gris..." required>
+                            <input type="text" placeholder="Noir, Blanc, Gris..." required @bind="VM.annonce.Couleur">
                         </div>
                     </div>
 
@@ -114,5 +143,4 @@
     {
         await VM.InitializeAsync(StateHasChanged);
     }
-
 }

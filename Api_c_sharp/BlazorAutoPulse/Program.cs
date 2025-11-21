@@ -37,6 +37,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<CreationCompteViewModel>();
             builder.Services.AddScoped<VenteViewModel>();
             builder.Services.AddScoped<RechercheViewModel>();
+            builder.Services.AddScoped<GetAllViewModel>();
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 

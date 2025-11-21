@@ -15,6 +15,10 @@ namespace BlazorAutoPulse.ViewModel
 
         //-------------------------------- Modele
         public ImageUpload imageUpload;
+        
+        public Annonce annonce;
+        public Voiture voiture;
+        public Adresse adresse;
 
         private Action? _refreshUI;
 
@@ -43,6 +47,16 @@ namespace BlazorAutoPulse.ViewModel
             var result = await _postImageService.CreateAsync(imageUpload);
             Console.WriteLine(result);
             _refreshUI?.Invoke();
+        }
+        
+        public void OnMarqueChanged(ChangeEventArgs e)
+        {
+            annonce.Marque = e.Value.ToString();
+        }
+    
+        public void OnModeleChanged(ChangeEventArgs e)
+        {
+            annonce.Modele = e.Value.ToString();
         }
     }
 }
