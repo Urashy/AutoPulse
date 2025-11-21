@@ -228,4 +228,26 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
         Console.WriteLine(result.ToString());
         return Ok(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
     }
+
+    /// <summary>
+    /// Récupère une annoncs à partir d'un id de mise en avant.
+    /// </summary>
+    /// <param name="compteid">Identifiant unique de l'annonce recherchée.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="AnnonceDTO"/> si les annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("GetByCompteFavoris")]
+    [HttpGet("{idmiseenavant}")]
+    public async Task<ActionResult<AnnonceDTO>> GetByCompteFavoris(int compteid)
+    {
+        var result = await _manager.GetAnnoncesByCompteFavoris(compteid);
+
+        if (result is null)
+            return NotFound();
+
+        return _annonceMapper.Map<AnnonceDTO>(result);
+    }
 }

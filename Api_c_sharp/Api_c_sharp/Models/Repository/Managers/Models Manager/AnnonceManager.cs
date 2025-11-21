@@ -95,5 +95,10 @@ namespace Api_c_sharp.Models.Repository.Managers
 
             return await query.ToListAsync();   
         }
+
+        public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
+        {
+            return await dbSet.Where(a => a.Favoris.Any(f => f.IdCompte == compteId)).ToListAsync();
+        }
     }
 }

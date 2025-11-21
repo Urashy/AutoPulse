@@ -34,6 +34,15 @@ public class MapperProfile : Profile
         CreateMap<EtatSignalement, EtatSignalementDTO>()
             .ReverseMap();
 
+        CreateMap<Journal, JournalDTO>()
+            .ReverseMap();
+
+        CreateMap<Facture, FactureDTO>()
+            .ReverseMap();
+
+        CreateMap<Conversation, ConversationCreateDTO>()
+            .ReverseMap();
+
         // ============================================
         // MAPPERS ADRESSE
         // ============================================
@@ -89,7 +98,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Images, 
                 opt => opt.MapFrom(src => src.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList())).ReverseMap();
         
-        CreateMap<VoitureCreateUpdateDTO, Voiture>();
+        CreateMap<VoitureUpdateDTO, Voiture>();
         
         // ============================================
         // MAPPERS ANNONCE

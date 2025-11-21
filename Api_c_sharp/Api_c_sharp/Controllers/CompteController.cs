@@ -172,10 +172,32 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper) : C
     /// </list>
     /// </returns>
     [ActionName("GetByTypeCompte")]
-    [HttpGet("{idmiseenavant}")]
+    [HttpGet("{type}")]
     public async Task<ActionResult<IEnumerable<CompteListDTO>>> GetByTypeCompte(int type)
     {
         var result = await _manager.GetComptesByTypes(type);
+
+        if (result is null)
+            return NotFound();
+
+        return new ActionResult<IEnumerable<CompteListDTO>>(_compteMapper.Map<IEnumerable<CompteListDTO>>(result));
+    }
+
+    /// <summary>
+    /// Récupère des comptes qui ont mis en favoris à partir d'une annonce.
+    /// </summary>
+    /// <param name="type">Identifiant unique de la compte recherchée.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="CompteListDTO"/> si les comptes existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("GetComptesByFavoris")]
+    [HttpGet("{idannonce}")]
+    public async Task<ActionResult<IEnumerable<CompteListDTO>>> GetCompteByAnnonceFavori(int idannonce)
+    {
+        var result = await _manager.GetCompteByIdAnnonceFavori(idannonce);
 
         if (result is null)
             return NotFound();

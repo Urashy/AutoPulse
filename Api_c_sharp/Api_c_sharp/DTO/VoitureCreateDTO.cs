@@ -1,7 +1,8 @@
 namespace Api_c_sharp.DTO;
 
-public class VoitureCreateUpdateDTO
+public class VoitureCreateDTO
 {
+    public int IdVoiture { get; set; }
     public int IdMarque { get; set; }
     public int IdMotricite { get; set; }
     public int IdCarburant { get; set; }

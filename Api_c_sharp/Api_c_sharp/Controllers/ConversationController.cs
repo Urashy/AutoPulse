@@ -59,7 +59,7 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     /// <summary>
     /// Crée une nouveau conversation.
     /// </summary>
-    /// <param name="dto">Objet <see cref="Conversation"/> contenant les informations du conversation à créer.</param>
+    /// <param name="dto">Objet <see cref="ConversationCreateDTO"/> contenant les informations du conversation à créer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="CreatedAtActionResult"/> avec le conversation créée (201).</description></item>
@@ -68,7 +68,7 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<ConversationDetailDTO>> Post([FromBody] ConversationDetailDTO dto)
+    public async Task<ActionResult<ConversationDetailDTO>> Post([FromBody] ConversationCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
