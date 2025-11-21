@@ -1,0 +1,106 @@
+@page "/search"
+@using BlazorAutoPulse.ViewModel
+@inject RechercheViewModel VM
+@inject NavigationManager Navigation
+@using System.Web
+
+<PageTitle>Recherche - AutoPulse</PageTitle>
+
+<section class="search-results-header">
+    <div class="container">
+        <h1>Résultats de recherche</h1>
+
+        <SearchBar VM="@VM" />
+
+        @if (VM.HasActiveFilters())
+        {
+            <div class="active-filters">
+                <span>Filtres actifs :</span>
+                @if (VM.SelectedMarque != "0")
+                {
+                    <span class="filter-tag">Marque: @VM.GetMarqueLibelle(VM.SelectedMarque)</span>
+                }
+                @if (!string.IsNullOrEmpty(VM.SelectedModele))
+                {
+                    <span class="filter-tag">Modèle: @VM.GetModeleLibelle(VM.SelectedModele)</span>
+                }
+                @if (VM.SelectedCarburant != "0")
+                {
+                    <span class="filter-tag">Carburant: @VM.GetCarburantLibelle(VM.SelectedCarburant)</span>
+                }
+                @if (VM.SelectedCategorie != "0")
+                {
+                    <span class="filter-tag">Catégorie: @VM.GetCategorieLibelle(VM.SelectedCategorie)</span>
+                }
+                @if (!string.IsNullOrEmpty(VM.PrixMin))
+                {
+                    <span class="filter-tag">Prix min: @VM.PrixMin €</span>
+                }
+                @if (!string.IsNullOrEmpty(VM.PrixMax))
+                {
+                    <span class="filter-tag">Prix max: @VM.PrixMax €</span>
+                }
+                @if (!string.IsNullOrEmpty(VM.KmMin))
+                {
+                    <span class="filter-tag">Km min: @VM.KmMin</span>
+                }
+                @if (!string.IsNullOrEmpty(VM.KmMax))
+                {
+                    <span class="filter-tag">Km max: @VM.KmMax</span>
+                }
+                @if (!string.IsNullOrEmpty(VM.Nom))
+                {
+                    <span class="filter-tag">Nom: @VM.Nom</span>
+                }
+                @if (!string.IsNullOrEmpty(VM.Departement))
+                {
+                    <span class="filter-tag">Département: @VM.Departement</span>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<div class="container">
+    @if (VM.IsLoading)
+    {
+        <div class="loading">
+            <p>Chargement des résultats...</p>
+        </div>
+    }
+    else if (VM.FilteredAnnonces != null && VM.FilteredAnnonces.Any())
+    {
+        <div class="results-info">
+            <h2>@VM.FilteredAnnonces.Length résultat(s) trouvé(s)</h2>
+        </div>
+        <div class="cars-grid">
+            @foreach (var a in VM.FilteredAnnonces)
+            {
+                <AnnonceComposant Annonce="@a" />
+            }
+        </div>
+    }
+    else
+    {
+        <div class="no-results">
+            <h2>Aucun résultat trouvé</h2>
+            <p>Essayez de modifier vos critères de recherche ou <a href="/">retournez à l'accueil</a> pour voir toutes nos annonces.</p>
+        </div>
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        var marque = query["marque"];
+        var modele = query["modele"];
+        var prix = query["prix"];
+
+        await VM.InitializeWithParams(marque, modele, prix);
+    }
+}

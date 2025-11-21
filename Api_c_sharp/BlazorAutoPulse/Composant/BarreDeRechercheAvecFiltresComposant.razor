@@ -1,0 +1,98 @@
+﻿@using BlazorAutoPulse.ViewModel
+
+<div class="search-bar">
+    <!-- Marque -->
+    <select value="@VM.SelectedMarque" @onchange="VM.OnMarqueChanged">
+        <option value="0">Toutes les marques</option>
+        @if (VM.AllMarques != null)
+        {
+            @foreach (var marque in VM.AllMarques)
+            {
+                <option value="@marque.IdMarque">@marque.LibelleMarque</option>
+            }
+        }
+    </select>
+
+    <!-- Modèle -->
+    <select value="@VM.SelectedModele" @onchange="e => { VM.SelectedModele = e.Value?.ToString() ?? string.Empty; }">
+        <option value="">Tous les modèles</option>
+        @if (VM.FilteredModeles != null)
+        {
+            @foreach (var modele in VM.FilteredModeles)
+            {
+                <option value="@modele.IdModele">@modele.LibelleModele</option>
+            }
+        }
+    </select>
+
+    <!-- Carburant -->
+    <select value="@VM.SelectedCarburant" @onchange="e => { VM.SelectedCarburant = e.Value?.ToString() ?? string.Empty; }">
+        <option value="0">Tous les carburants</option>
+        @if (VM.AllCarburants != null)
+        {
+            @foreach (var carburant in VM.AllCarburants)
+            {
+                <option value="@carburant.IdCarburant">@carburant.LibelleCarburant</option>
+            }
+        }
+    </select>
+
+    <!-- Catégorie -->
+    <select value="@VM.SelectedCategorie" @onchange="e => { VM.SelectedCategorie = e.Value?.ToString() ?? string.Empty; }">
+        <option value="0">Toutes les catégories</option>
+        @if (VM.AllCategories != null)
+        {
+            @foreach (var categorie in VM.AllCategories)
+            {
+                <option value="@categorie.IdCategorie">@categorie.LibelleCategorie</option>
+            }
+        }
+    </select>
+
+    <!-- Filtres avancés -->
+    <div class="advanced-filters">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Nom</label>
+                <input type="text" @bind="VM.Nom" placeholder="Recherche par nom...">
+            </div>
+
+            <div class="filter-group">
+                <label>Prix min</label>
+                <input type="number" @bind="VM.PrixMin" placeholder="Min">
+            </div>
+
+            <div class="filter-group">
+                <label>Prix max</label>
+                <input type="number" @bind="VM.PrixMax" placeholder="Max">
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Km min</label>
+                <input type="number" @bind="VM.KmMin" placeholder="Min">
+            </div>
+
+            <div class="filter-group">
+                <label>Km max</label>
+                <input type="number" @bind="VM.KmMax" placeholder="Max">
+            </div>
+
+            <div class="filter-group">
+                <label>Département</label>
+                <input type="text" @bind="VM.Departement" placeholder="Ex: 73">
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button @onclick="VM.EffectuerRecherche" class="btn-primary">🔍 Rechercher</button>
+        <button @onclick="VM.ReinitialiserFiltres" class="btn-secondary">🔄 Réinitialiser</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public required RechercheViewModel VM { get; set; }
+}
