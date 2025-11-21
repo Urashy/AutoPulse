@@ -26,20 +26,20 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// <param name="id">Identifiant unique de la annonce recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="Journal"/> si la annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="JournalDTO"/> si la annonce existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<Journal>> GetByID(int id)
+    public async Task<ActionResult<JournalDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
 
         if (result is null)
             return NotFound();
 
-        return _mapper.Map<Journal>(result);
+        return _mapper.Map<JournalDTO>(result);
     }
 
     /// <summary>
@@ -50,10 +50,10 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Journal>>> GetAll()
+    public async Task<ActionResult<IEnumerable<JournalDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
-        return new ActionResult<IEnumerable<Journal>>(_mapper.Map<IEnumerable<Journal>>(list));
+        return new ActionResult<IEnumerable<JournalDTO>>(_mapper.Map<IEnumerable<JournalDTO>>(list));
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<Journal>> Post([FromBody] Journal dto)
+    public async Task<ActionResult<JournalDTO>> Post([FromBody] JournalDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -83,7 +83,7 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// Met à jour un journal existant.
     /// </summary>
     /// <param name="id">Identifiant unique de la annonce à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="Journal"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="JournalDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -93,7 +93,7 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] Journal dto)
+    public async Task<ActionResult> Put(int id, [FromBody] JournalDTO dto)
     {
         if (id != dto.IdJournal)
             return BadRequest();
@@ -138,20 +138,20 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// <param name="idtype">Identifiant unique du type recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="Journal"/> si le journal existe (200 OK).</description></item>
+    /// <item><description><see cref="JournalDTO"/> si le journal existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucun journal ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetAllByType")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<Journal>>> GetAllByType(int idtype)
+    public async Task<ActionResult<IEnumerable<JournalDTO>>> GetAllByType(int idtype)
     {
         var result = await _manager.GetJournalByType(idtype);
 
         if (result is null)
             return NotFound();
 
-        return new ActionResult<IEnumerable<Journal>>(_mapper.Map<IEnumerable<Journal>>(result));
+        return new ActionResult<IEnumerable<JournalDTO>>(_mapper.Map<IEnumerable<JournalDTO>>(result));
 
     }
 

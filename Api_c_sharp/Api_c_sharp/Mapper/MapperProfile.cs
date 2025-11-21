@@ -34,6 +34,15 @@ public class MapperProfile : Profile
         CreateMap<EtatSignalement, EtatSignalementDTO>()
             .ReverseMap();
 
+        CreateMap<Journal, JournalDTO>()
+            .ReverseMap();
+
+        CreateMap<Facture, FactureDTO>()
+            .ReverseMap();
+
+        CreateMap<Conversation, ConversationCreateDTO>()
+            .ReverseMap();
+
         // ============================================
         // MAPPERS ADRESSE
         // ============================================
