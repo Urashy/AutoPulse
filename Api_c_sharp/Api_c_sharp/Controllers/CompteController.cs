@@ -94,8 +94,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper) : C
     [HttpPost]
     public async Task<ActionResult<Compte>> Post([FromBody] CompteCreateDTO dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
 
         var entity = _compteMapper.Map<Compte>(dto);
         entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);
