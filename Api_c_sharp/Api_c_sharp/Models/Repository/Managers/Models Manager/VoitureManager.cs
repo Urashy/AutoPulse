@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
-    public class VoitureManager : WritableManager<Voiture>, ReadableRepository<Voiture>
+    public class VoitureManager : WriteableReadableManager<Voiture>
     {
         public VoitureManager(AutoPulseBdContext context) : base(context)
         {

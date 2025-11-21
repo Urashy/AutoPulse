@@ -1,0 +1,59 @@
+@page "/search"
+@using BlazorAutoPulse.ViewModel
+@inject RechercheViewModel VM
+@inject NavigationManager Navigation
+@using System.Web
+
+<PageTitle>Recherche - AutoPulse</PageTitle>
+
+<section class="search-results-header">
+    <div class="container">
+        <h1>Résultats de recherche</h1>
+
+        <BarreDeRechercheAvecFiltresComposant VM="@VM" />
+    </div>
+</section>
+
+<div class="container">
+    @if (VM.IsLoading)
+    {
+        <div class="loading">
+            <p>Chargement des résultats...</p>
+        </div>
+    }
+    else if (VM.FilteredAnnonces != null && VM.FilteredAnnonces.Any())
+    {
+        <div class="results-info">
+            <h2>@VM.FilteredAnnonces.Length résultat(s) trouvé(s)</h2>
+        </div>
+        <div class="cars-grid">
+            @foreach (var a in VM.FilteredAnnonces)
+            {
+                <AnnonceComposant Annonce="@a" />
+            }
+        </div>
+    }
+    else
+    {
+        <div class="no-results">
+            <h2>Aucun résultat trouvé</h2>
+            <p>Essayez de modifier vos critères de recherche ou <a href="/">retournez à l'accueil</a> pour voir toutes nos annonces.</p>
+        </div>
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        var marque = query["marque"];
+        var modele = query["modele"];
+        var prix = query["prix"];
+
+        await VM.InitializeWithParams(marque, modele, prix);
+    }
+}

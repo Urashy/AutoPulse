@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
-    public class SignalementManager : WritableManager<Signalement>, ReadableRepository<Signalement>, ISignalementRepository
+    public class SignalementManager : WriteableReadableManager<Signalement>, ISignalementRepository
     {
         public SignalementManager(AutoPulseBdContext context) : base(context)
         {

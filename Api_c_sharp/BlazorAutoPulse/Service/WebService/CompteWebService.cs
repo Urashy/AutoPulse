@@ -7,4 +7,5 @@ namespace BlazorAutoPulse.Service;
 public class CompteWebService : BaseWebService<Compte>
 {
     protected override string ApiEndpoint => "Compte";
+
 }

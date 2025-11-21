@@ -178,6 +178,15 @@ namespace Api_c_sharp.Models.Repository
                 .WithMany(t => t.Comptes)
                 .HasForeignKey(c => c.IdTypeCompte);
 
+
+            modelBuilder.Entity<Compte>()
+                .HasIndex(e => e.Pseudo)
+                .IsUnique();
+
+            modelBuilder.Entity<Compte>()
+                .HasIndex(e => e.Email)
+                .IsUnique(); 
+
             //-----------------------------Conversation-----------------------------
             modelBuilder.Entity<Conversation>()
                 .HasKey(e => e.IdConversation);
