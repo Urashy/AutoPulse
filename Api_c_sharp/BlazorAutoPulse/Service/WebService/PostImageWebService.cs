@@ -27,5 +27,10 @@ namespace BlazorAutoPulse.Service.WebService
 
             return await response.Content.ReadFromJsonAsync<Image>();
         }
+
+        public string GetImageUrl(int id)
+        {
+            return $"{_httpClient.BaseAddress}GetById/{id}";
+        }
     }
 }

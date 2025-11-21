@@ -6,12 +6,14 @@ namespace BlazorAutoPulse.ViewModel;
 
 public class HomeViewModel
 {
+    // Service
     private readonly IAnnonceService _annonceService;
     private readonly IService<Marque> _marqueService;
     private readonly IModeleService _modeleService;
     private readonly IService<Carburant> _carburantService;
     private readonly IService<Categorie> _categorieService;
     private readonly IService<TypeCompte> _typeCompteService;
+    private readonly IPostImageService _postImageService;
 
     // Paramètres de recherche
     public ParametreRecherche SearchParams { get; set; } = new();
@@ -34,7 +36,8 @@ public class HomeViewModel
         IModeleService modeleService,
         IService<Carburant> carburantService,
         IService<Categorie> categorieService,
-        IService<TypeCompte> typeCompteService)
+        IService<TypeCompte> typeCompteService,
+        IPostImageService postImageService)
     {
         _annonceService = annonceService;
         _marqueService = marqueService;
@@ -42,6 +45,7 @@ public class HomeViewModel
         _carburantService = carburantService;
         _categorieService = categorieService;
         _typeCompteService = typeCompteService;
+        _postImageService = postImageService;
     }
 
     public async Task InitializeAsync(Action refreshUI)
@@ -58,7 +62,7 @@ public class HomeViewModel
 
         allCarburants = (await _carburantService.GetAllAsync()).ToArray();
         allCategories = (await _categorieService.GetAllAsync()).ToArray();
-        allTypesCompte = (await _typeCompteService.GetAllAsync()).ToArray();
+        //allTypesCompte = (await _typeCompteService.GetAllAsync()).ToArray();
     }
 
     public async Task FiltreModeleParMarque(ChangeEventArgs e)
@@ -98,5 +102,10 @@ public class HomeViewModel
         filteredModeles = allModeles;
         filteredAnnonces = allAnnonces;
         _refreshUI?.Invoke();
+    }
+    
+    public string GetImage(int id)
+    {
+        return _postImageService.GetImageUrl(id);
     }
 }
