@@ -11,7 +11,7 @@
         <h1>Résultats de recherche</h1>
         
         <div class="search-bar">
-            <select value="@VM.SelectedMarque" @onchange="OnMarqueChanged">
+            <select value="@VM.SelectedMarque" @onchange="VM.OnMarqueChanged">
                 <option value="0">Marque</option>
                 @if (VM.AllMarques != null)
                 {
@@ -32,8 +32,8 @@
                 }
             </select>
             <input type="text" @bind="VM.PrixMax" placeholder="Prix max">
-            <button @onclick="RechercherVoitures">Rechercher</button>
-            <button @onclick="ReinitialiserRecherche" class="btn-secondary">Réinitialiser</button>
+            <button @onclick="VM.EffectuerRecherche">Rechercher</button>
+            <button  class="btn-secondary">Réinitialiser</button>
         </div>
 
         @if (VM.HasActiveFilters())
@@ -89,31 +89,5 @@
     protected override async Task OnInitializedAsync()
     {
         await VM.InitializeAsync(StateHasChanged);
-        
-        // Récupère les query parameters depuis l'URL
-        var uri = new Uri(Navigation.Uri);
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        
-        var marque = query["marque"];
-        var modele = query["modele"];
-        var prix = query["prix"];
-
-        await VM.InitializeWithParams(marque, modele, prix);
-    }
-
-    private async Task OnMarqueChanged(ChangeEventArgs e)
-    {
-        await VM.OnMarqueChanged(e);
-    }
-
-    private async Task RechercherVoitures()
-    {
-        var queryString = VM.BuildQueryString();
-        Navigation.NavigateTo($"/search{queryString}", forceLoad: true);
-    }
-
-    private void ReinitialiserRecherche()
-    {
-        Navigation.NavigateTo("/");
     }
 }

@@ -1,0 +1,84 @@
+@page "/compte"
+@using BlazorAutoPulse.ViewModel
+@inject HomeViewModel VM
+@inject NavigationManager Navigation
+@inject CompteViewModel CVM
+
+<PageTitle>Mon Compte - AutoPulse</PageTitle>
+
+<div class="account-container">
+    <div class="sidebar">
+        <div class="profile-section">
+            <!-- Photo de profil -->
+            <img src="@VM.GetImage" alt="Photo de Profil" class="profile-photo" />
+            <h3>@CVM.allComptes</h3>
+            <p>@VM.</p>
+        </div>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="/annonces">Annonces</a></li>
+                <li><a href="/avis">Avis</a></li>
+                <li><a href="/adresses">Adresses</a></li>
+                <li><a href="/favoris">Favoris</a></li>
+                <li><a href="/commandes">Commandes</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="account-details">
+        <h2>Informations de Compte</h2>
+
+        <!-- Informations personnelles -->
+        <div class="info-item">
+            <strong>Nom:</strong> @VM.
+        </div>
+        <div class="info-item">
+            <strong>Prénom:</strong> @VM.
+        </div>
+        <div class="info-item">
+            <strong>Date de naissance:</strong> @VM..ToString("dd/MM/yyyy")
+        </div>
+        <div class="info-item">
+            <strong>Pseudo:</strong> @VM.
+        </div>
+        <div class="info-item">
+            <strong>Email:</strong> @VM.
+        </div>
+        <div class="info-item">
+            <strong>Type de compte:</strong> @VM.
+        </div>
+
+        <!-- Informations pour vendeur pro -->
+        @* @if (VM. == "Vendeur Pro")
+        {
+            <div class="info-item">
+                <strong>Numéro SIRET:</strong> @VM. 
+            </div>
+            <div class="info-item">
+                <strong>Raison Sociale:</strong> @VM.
+            </div>
+        } *@
+
+        <div class="edit-profile">
+            <button @onclick="EditProfile">Modifier le profil</button>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialisation de l'utilisateur et des informations de profil
+        // await VM.LoadUserProfileAsync();
+
+        await CVM.InitializeAsync(StateHasChanged);
+    }
+
+    private void EditProfile()
+    {
+        // Logique pour modifier le profil utilisateur
+        Navigation.NavigateTo("/edit-profile");
+    }
+}
