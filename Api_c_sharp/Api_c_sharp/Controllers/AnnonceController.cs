@@ -225,7 +225,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             kmmax ?? 0,
             departement ?? string.Empty
         );
-
+        Console.WriteLine(result.ToString());
         return Ok(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
     }
 }

@@ -103,7 +103,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Marque,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.MarqueVoitureNavigation.LibelleMarque))
             .ForMember(dest => dest.Modele,
-                opt => opt.MapFrom(src => "N/A")) // À mapper avec la vraie relation
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.ModeleVoitureNavigation.LibelleModele))
             .ForMember(dest => dest.Annee,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.Annee))
             .ForMember(dest => dest.Kilometrage,
