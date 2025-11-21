@@ -36,6 +36,31 @@
     </div>
 </section>
 
+<div>
+    <h2>
+        Résultats
+    </h2>
+    @if(VM.filteredAnnonces is not null)
+    {
+        <div class="container">
+            <div class="cars-grid">
+                @foreach (var a in VM.filteredAnnonces)
+                {
+                    <div>
+                        <p>annonce</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <p>Aucun résultat de recherche pour le moment.</p>
+    })
+</div>
+
+
+
 <div class="container">
     <h2 class="section-title">Nos Dernières Offres</h2>
     @if (VM.allAnnonces is null)

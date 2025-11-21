@@ -11,10 +11,20 @@ namespace Api_c_sharp.Models.Repository.Managers
         private IQueryable<Annonce> ApplyIncludes()
         {
             return context.Set<Annonce>()
-                .Include(p => p.MiseEnAvantAnnonceNav)
-                .Include(p => p.CompteAnnonceNav)
-                .Include(p => p.VoitureAnnonceNav);
+                .Include(a => a.MiseEnAvantAnnonceNav)
+                .Include(a => a.CompteAnnonceNav)
+                .Include(a => a.EtatAnnonceNavigation) 
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.MarqueVoitureNavigation)
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.ModeleVoitureNavigation) 
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.CarburantVoitureNavigation)
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.Images) 
+                .Include(a => a.AdresseAnnonceNav); 
         }
+
         public AnnonceManager(AutoPulseBdContext context) : base(context)
         { 
             
@@ -39,7 +49,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(int id, int idcarburant, int idmarque, int idmodele, int prixmin, int prixmax, int idtypevoiture, int idtypevendeur, string nom, int kmmin, int kmmax, string departement)
         {
-            var query = dbSet.AsQueryable();
+            var query = ApplyIncludes();
 
             // Filtre par département
             if (!string.IsNullOrEmpty(departement))
