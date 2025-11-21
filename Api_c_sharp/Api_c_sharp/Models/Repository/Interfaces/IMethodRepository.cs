@@ -38,5 +38,10 @@
     {
         Task<IEnumerable<Avis>> GetAvisByCompteId(int compteId);
     }
+        
+    public interface ICommandeRepository
+    {
+        Task<IEnumerable<Commande>> GetCommandeByCompteId(int compteId);
+    }
 
 }
