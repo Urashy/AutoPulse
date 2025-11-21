@@ -89,7 +89,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Images, 
                 opt => opt.MapFrom(src => src.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList())).ReverseMap();
         
-        CreateMap<VoitureCreateUpdateDTO, Voiture>();
+        CreateMap<VoitureUpdateDTO, Voiture>();
         
         // ============================================
         // MAPPERS ANNONCE
