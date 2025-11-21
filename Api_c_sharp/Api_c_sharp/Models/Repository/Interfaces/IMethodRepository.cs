@@ -33,4 +33,9 @@
         Task<IEnumerable<Journal>> GetJournalByType(int typeID);
     }
 
+    public interface IAvisRepository
+    {
+        Task<IEnumerable<Avis>> GetAvisByCompteId(int compteId);
+    }
+
 }
