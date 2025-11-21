@@ -15,6 +15,11 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.Where(c => c.Pseudo == name).FirstOrDefaultAsync();
         }
 
+        public async Task<IEnumerable<Compte>> GetCompteByIdAnnonceFavori(int annonceId)
+        {
+            return await dbSet.Where(c => c.Favoris.Any(a => a.IdAnnonce == annonceId)).ToListAsync();
+        }
+
         public async Task<IEnumerable<Compte>> GetComptesByTypes(int type)
         {
             return await dbSet.Where(c => c.IdTypeCompte == type).ToListAsync();
