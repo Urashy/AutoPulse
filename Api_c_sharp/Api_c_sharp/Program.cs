@@ -28,6 +28,7 @@ builder.Services.AddAutoMapper(typeof(MapperProfile));
 
 //------------------------------Managers (DI)------------------------------
 builder.Services.AddScoped<AnnonceManager>();
+builder.Services.AddScoped<AdresseManager>();
 builder.Services.AddScoped<MarqueManager>();
 builder.Services.AddScoped<ModeleManager>();
 builder.Services.AddScoped<BoiteDeVitesseManager>();
