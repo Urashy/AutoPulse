@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api_c_sharp", "Api_c_sharp\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorAutoPulse", "BlazorAutoPulse\BlazorAutoPulse.csproj", "{1BA216AC-62B5-4225-893C-1E5F7B2D0339}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api_c_sharpTests", "Api_c_sharpTests\Api_c_sharpTests.csproj", "{4BF1C1E0-EA10-4E18-9575-B5A620611A85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{1BA216AC-62B5-4225-893C-1E5F7B2D0339}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1BA216AC-62B5-4225-893C-1E5F7B2D0339}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1BA216AC-62B5-4225-893C-1E5F7B2D0339}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BF1C1E0-EA10-4E18-9575-B5A620611A85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BF1C1E0-EA10-4E18-9575-B5A620611A85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BF1C1E0-EA10-4E18-9575-B5A620611A85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BF1C1E0-EA10-4E18-9575-B5A620611A85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

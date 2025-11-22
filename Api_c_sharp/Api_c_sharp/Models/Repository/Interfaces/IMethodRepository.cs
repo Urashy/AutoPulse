@@ -44,4 +44,9 @@
         Task<IEnumerable<Commande>> GetCommandeByCompteId(int compteId);
     }
 
+    public interface IImageRepository
+    {
+        Task<IEnumerable<Image>> GetImagesByVoitureId(int voitureId);
+    }
+
 }

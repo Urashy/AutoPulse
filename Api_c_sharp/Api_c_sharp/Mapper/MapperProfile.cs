@@ -43,6 +43,9 @@ public class MapperProfile : Profile
         CreateMap<Conversation, ConversationCreateDTO>()
             .ReverseMap();
 
+        CreateMap<ModeleBlender, ModeleBlenderDTO>()
+            .ReverseMap();
+
         // ============================================
         // MAPPERS ADRESSE
         // ============================================

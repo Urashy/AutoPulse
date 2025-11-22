@@ -1,17 +1,18 @@
 ﻿
+using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
-    public class ImageManager : BaseManager<Image, int>
+    public class ImageManager : WriteableReadableManager<Image>, IImageRepository
     {
         public ImageManager(AutoPulseBdContext context) : base(context)
         {
         }
 
-        public override async Task<Image?> GetByNameAsync(int id)
+        public async Task<IEnumerable<Image>> GetImagesByVoitureId(int voitureId)
         {
-            return await dbSet.FirstOrDefaultAsync(e => e.IdImage == id);
+            return await dbSet.Where(img => img.IdVoiture == voitureId).ToListAsync();
         }
     }
 }
