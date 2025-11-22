@@ -1,4 +1,5 @@
 ﻿@using BlazorAutoPulse.ViewModel
+@inject NavigationManager Navigation
 
 <div class="search-bar">
     <!-- Marque -->
@@ -87,7 +88,7 @@
     </div>
 
     <div class="action-buttons">
-        <button @onclick="VM.EffectuerRecherche" class="btn-primary">🔍 Rechercher</button>
+        <button @onclick="HandleRecherche" class="btn-primary">🔍 Rechercher</button>
         <button @onclick="VM.ReinitialiserFiltres" class="btn-secondary">🔄 Réinitialiser</button>
     </div>
 </div>
@@ -142,4 +143,22 @@
 @code {
     [Parameter]
     public required RechercheViewModel VM { get; set; }
+
+    [Parameter]
+    public bool IsHomePage { get; set; } = false;
+
+    private async Task HandleRecherche()
+    {
+        if (IsHomePage)
+        {
+            // Sur la page d'accueil, on navigue vers la page de recherche avec les paramètres
+            var queryString = VM.BuildQueryString();
+            Navigation.NavigateTo($"/search{queryString}");
+        }
+        else
+        {
+            // Sur la page de recherche, on exécute directement la recherche
+            await VM.EffectuerRecherche();
+        }
+    }
 }

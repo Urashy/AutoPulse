@@ -89,7 +89,7 @@ namespace Api_c_sharp.Controllers
         }
 
         // GET BY ID
-        [ActionName("GetById")]
+        [ActionName("GetByVoitureId")]
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<ImageDTO>>> GetImagesByVoitureId(int voitureId)
         {
