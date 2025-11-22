@@ -192,47 +192,40 @@
     private const int MinGapPrix = 5000;
     private const int MinGapKm = 10000;
 
-    private void OnPrixMinChanged(ChangeEventArgs e)
+    private async Task OnPrixMinChanged(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int value))
         {
-            if (value > VM.PrixMaxValue - MinGapPrix)
-                value = VM.PrixMaxValue - MinGapPrix;
-
-            VM.PrixMinValue = value;
+            VM.PrixMinValue = Math.Min(value, VM.PrixMaxValue - MinGapPrix);
         }
+        await InvokeAsync(StateHasChanged);
     }
 
-
-    private void OnPrixMaxChanged(ChangeEventArgs e)
+    private async Task OnPrixMaxChanged(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int value))
         {
-            if (value < VM.PrixMinValue + MinGapPrix)
-                value = VM.PrixMinValue + MinGapPrix;
-
-            VM.PrixMaxValue = value;
+            VM.PrixMaxValue = Math.Max(value, VM.PrixMinValue + MinGapPrix);
         }
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void OnKmMinChanged(ChangeEventArgs e)
+    private async Task OnKmMinChanged(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int value))
         {
-            if (value > VM.KmMaxValue - MinGapKm)
-                value = VM.KmMaxValue - MinGapKm;
-
-            VM.KmMinValue = value;
+            VM.KmMinValue = Math.Min(value, VM.KmMaxValue - MinGapKm);
         }
+        await InvokeAsync(StateHasChanged);
     }
 
-
-    private void OnKmMaxChanged(ChangeEventArgs e)
+    private async Task OnKmMaxChanged(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int value))
         {
             VM.KmMaxValue = Math.Max(value, VM.KmMinValue + MinGapKm);
         }
+        await InvokeAsync(StateHasChanged);
     }
 
     private string GetRangeStyle(int minValue, int maxValue, int rangeMin, int rangeMax)
