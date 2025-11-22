@@ -1,4 +1,4 @@
-﻿@using BlazorAutoPulse.ViewModel
+@using BlazorAutoPulse.ViewModel
 @inject NavigationManager Navigation
 
 <div class="search-bar">
@@ -82,53 +82,57 @@
 
     <!-- Sliders pour Prix et Kilométrage -->
     <div class="sliders-container">
-        <!-- Slider Prix -->
+        <!-- Dual Slider Prix -->
         <div class="slider-group">
             <label>Prix</label>
             <div class="slider-info">
                 <span>@FormatPrice(VM.PrixMinValue) €</span>
                 <span>@FormatPrice(VM.PrixMaxValue) €</span>
             </div>
-            <div class="dual-slider">
+            <div class="dual-range-slider">
+                <div class="slider-track"></div>
+                <div class="slider-range" style="@GetRangeStyle(VM.PrixMinValue, VM.PrixMaxValue, 0, 200000)"></div>
                 <input type="range"
                        min="0"
                        max="200000"
                        step="1000"
-                       @bind="VM.PrixMinValue"
-                       @bind:event="oninput"
-                       class="slider slider-min">
+                       value="@VM.PrixMinValue"
+                       @oninput="OnPrixMinChanged"
+                       class="range-input range-min">
                 <input type="range"
                        min="0"
                        max="200000"
                        step="1000"
-                       @bind="VM.PrixMaxValue"
-                       @bind:event="oninput"
-                       class="slider slider-max">
+                       value="@VM.PrixMaxValue"
+                       @oninput="OnPrixMaxChanged"
+                       class="range-input range-max">
             </div>
         </div>
 
-        <!-- Slider Kilométrage -->
+        <!-- Dual Slider Kilométrage -->
         <div class="slider-group">
             <label>Kilométrage</label>
             <div class="slider-info">
                 <span>@FormatKm(VM.KmMinValue) km</span>
                 <span>@FormatKm(VM.KmMaxValue) km</span>
             </div>
-            <div class="dual-slider">
+            <div class="dual-range-slider">
+                <div class="slider-track"></div>
+                <div class="slider-range" style="@GetRangeStyle(VM.KmMinValue, VM.KmMaxValue, 0, 300000)"></div>
                 <input type="range"
                        min="0"
                        max="300000"
                        step="5000"
-                       @bind="VM.KmMinValue"
-                       @bind:event="oninput"
-                       class="slider slider-min">
+                       value="@VM.KmMinValue"
+                       @oninput="OnKmMinChanged"
+                       class="range-input range-min">
                 <input type="range"
                        min="0"
                        max="300000"
                        step="5000"
-                       @bind="VM.KmMaxValue"
-                       @bind:event="oninput"
-                       class="slider slider-max">
+                       value="@VM.KmMaxValue"
+                       @oninput="OnKmMaxChanged"
+                       class="range-input range-max">
             </div>
         </div>
     </div>
@@ -184,6 +188,60 @@
 
     [Parameter]
     public bool IsHomePage { get; set; } = false;
+
+    private const int MinGapPrix = 5000;
+    private const int MinGapKm = 10000;
+
+    private void OnPrixMinChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            if (value > VM.PrixMaxValue - MinGapPrix)
+                value = VM.PrixMaxValue - MinGapPrix;
+
+            VM.PrixMinValue = value;
+        }
+    }
+
+
+    private void OnPrixMaxChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            if (value < VM.PrixMinValue + MinGapPrix)
+                value = VM.PrixMinValue + MinGapPrix;
+
+            VM.PrixMaxValue = value;
+        }
+    }
+
+    private void OnKmMinChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            if (value > VM.KmMaxValue - MinGapKm)
+                value = VM.KmMaxValue - MinGapKm;
+
+            VM.KmMinValue = value;
+        }
+    }
+
+
+    private void OnKmMaxChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            VM.KmMaxValue = Math.Max(value, VM.KmMinValue + MinGapKm);
+        }
+    }
+
+    private string GetRangeStyle(int minValue, int maxValue, int rangeMin, int rangeMax)
+    {
+        double range = rangeMax - rangeMin;
+        double left = ((minValue - rangeMin) / range) * 100;
+        double right = 100 - ((maxValue - rangeMin) / range) * 100;
+        return $"left: {left.ToString(System.Globalization.CultureInfo.InvariantCulture)}%; right: {right.ToString(System.Globalization.CultureInfo.InvariantCulture)}%;";
+    }
 
     private async Task HandleRecherche()
     {
