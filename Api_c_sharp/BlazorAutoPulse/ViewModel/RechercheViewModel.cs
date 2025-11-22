@@ -19,13 +19,21 @@ namespace BlazorAutoPulse.ViewModel
         public string SelectedModele { get; set; } = "";
         public string SelectedCarburant { get; set; } = "0";
         public string SelectedCategorie { get; set; } = "0";
-        public string PrixMin { get; set; } = "";
-        public string PrixMax { get; set; } = "";
-        public string KmMin { get; set; } = "";
-        public string KmMax { get; set; } = "";
         public string Nom { get; set; } = "";
         public string Departement { get; set; } = "";
         public bool IsLoading { get; set; } = true;
+
+        // Propriétés pour les sliders (valeurs numériques)
+        public int PrixMinValue { get; set; } = 0;
+        public int PrixMaxValue { get; set; } = 200000;
+        public int KmMinValue { get; set; } = 0;
+        public int KmMaxValue { get; set; } = 300000;
+
+        // Anciennes propriétés string (pour compatibilité avec le BuildQueryString)
+        public string PrixMin => PrixMinValue > 0 ? PrixMinValue.ToString() : "";
+        public string PrixMax => PrixMaxValue < 200000 ? PrixMaxValue.ToString() : "";
+        public string KmMin => KmMinValue > 0 ? KmMinValue.ToString() : "";
+        public string KmMax => KmMaxValue < 300000 ? KmMaxValue.ToString() : "";
 
         // Données
         public Annonce[] FilteredAnnonces { get; private set; } = Array.Empty<Annonce>();
@@ -74,7 +82,10 @@ namespace BlazorAutoPulse.ViewModel
         {
             SelectedMarque = marque ?? "0";
             SelectedModele = modele ?? "";
-            PrixMax = prix ?? "";
+            if (!string.IsNullOrEmpty(prix) && int.TryParse(prix, out int prixValue))
+            {
+                PrixMaxValue = prixValue;
+            }
 
             if (SelectedMarque != "0")
             {
@@ -125,12 +136,12 @@ namespace BlazorAutoPulse.ViewModel
                     IdCarburant = SelectedCarburant != "0" ? int.Parse(SelectedCarburant) : 0,
                     IdMarque = SelectedMarque != "0" ? int.Parse(SelectedMarque) : 0,
                     IdModele = !string.IsNullOrEmpty(SelectedModele) ? int.Parse(SelectedModele) : 0,
-                    PrixMin = !string.IsNullOrEmpty(PrixMin) ? int.Parse(PrixMin) : 0,
-                    PrixMax = !string.IsNullOrEmpty(PrixMax) ? int.Parse(PrixMax) : 0,
+                    PrixMin = PrixMinValue,
+                    PrixMax = PrixMaxValue < 200000 ? PrixMaxValue : 0,
                     IdTypeVoiture = SelectedCategorie != "0" ? int.Parse(SelectedCategorie) : 0,
                     Nom = Nom ?? string.Empty,
-                    KmMin = !string.IsNullOrEmpty(KmMin) ? int.Parse(KmMin) : 0,
-                    KmMax = !string.IsNullOrEmpty(KmMax) ? int.Parse(KmMax) : 0,
+                    KmMin = KmMinValue,
+                    KmMax = KmMaxValue < 300000 ? KmMaxValue : 0,
                     Departement = Departement ?? string.Empty
                 };
 
@@ -154,14 +165,15 @@ namespace BlazorAutoPulse.ViewModel
             SelectedModele = "";
             SelectedCarburant = "0";
             SelectedCategorie = "0";
-            PrixMin = "";
-            PrixMax = "";
-            KmMin = "";
-            KmMax = "";
+            PrixMinValue = 0;
+            PrixMaxValue = 200000;
+            KmMinValue = 0;
+            KmMaxValue = 300000;
             Nom = "";
             Departement = "";
             FilteredModeles = AllModeles;
             FilteredAnnonces = Array.Empty<Annonce>();
+            _refreshUI?.Invoke();
         }
 
         public string GetMarqueLibelle(string idMarque)
@@ -198,10 +210,10 @@ namespace BlazorAutoPulse.ViewModel
                 || !string.IsNullOrEmpty(SelectedModele)
                 || SelectedCarburant != "0"
                 || SelectedCategorie != "0"
-                || !string.IsNullOrEmpty(PrixMin)
-                || !string.IsNullOrEmpty(PrixMax)
-                || !string.IsNullOrEmpty(KmMin)
-                || !string.IsNullOrEmpty(KmMax)
+                || PrixMinValue > 0
+                || PrixMaxValue < 200000
+                || KmMinValue > 0
+                || KmMaxValue < 300000
                 || !string.IsNullOrEmpty(Nom)
                 || !string.IsNullOrEmpty(Departement);
         }
@@ -222,17 +234,17 @@ namespace BlazorAutoPulse.ViewModel
             if (SelectedCategorie != "0")
                 queryParams.Add($"categorie={SelectedCategorie}");
 
-            if (!string.IsNullOrEmpty(PrixMin))
-                queryParams.Add($"prixmin={PrixMin}");
+            if (PrixMinValue > 0)
+                queryParams.Add($"prixmin={PrixMinValue}");
 
-            if (!string.IsNullOrEmpty(PrixMax))
-                queryParams.Add($"prixmax={PrixMax}");
+            if (PrixMaxValue < 200000)
+                queryParams.Add($"prixmax={PrixMaxValue}");
 
-            if (!string.IsNullOrEmpty(KmMin))
-                queryParams.Add($"kmmin={KmMin}");
+            if (KmMinValue > 0)
+                queryParams.Add($"kmmin={KmMinValue}");
 
-            if (!string.IsNullOrEmpty(KmMax))
-                queryParams.Add($"kmmax={KmMax}");
+            if (KmMaxValue < 300000)
+                queryParams.Add($"kmmax={KmMaxValue}");
 
             if (!string.IsNullOrEmpty(Nom))
                 queryParams.Add($"nom={Uri.EscapeDataString(Nom)}");
