@@ -48,5 +48,10 @@
     {
         Task<IEnumerable<Image>> GetImagesByVoitureId(int voitureId);
     }
+    
+    public interface ICouleurRepository
+    {
+        Task<IEnumerable<Couleur>> GetCouleursByVoitureId(int voitureId);
+    }
 
 }

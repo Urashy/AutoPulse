@@ -139,7 +139,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.EstMiseEnAvant, 
                 opt => opt.MapFrom(src => src.IdMiseEnAvant.HasValue))
             .ForMember(dest => dest.LibelleMiseEnAvant, 
-                opt => opt.MapFrom(src => src.MiseEnAvantAnnonceNav != null ? src.MiseEnAvantAnnonceNav.LibellMiseEnAvant : null))
+                opt => opt.MapFrom(src => src.MiseEnAvantAnnonceNav != null ? src.MiseEnAvantAnnonceNav.LibelleMiseEnAvant : null))
             // Vendeur
             .ForMember(dest => dest.IdVendeur, 
                 opt => opt.MapFrom(src => src.CompteAnnonceNav.IdCompte))
