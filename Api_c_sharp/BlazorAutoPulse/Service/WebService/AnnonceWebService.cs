@@ -7,6 +7,11 @@ namespace BlazorAutoPulse.Service;
 public class AnnonceWebService : BaseWebService<Annonce> , IAnnonceService
 {
     protected override string ApiEndpoint => "Annonce";
+    public async Task<IEnumerable<Annonce>> GetByIdMiseEnAvant(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<IEnumerable<Annonce>>($"GetByIdMiseEnAvant/{id}");
+    }
+
     public async Task<IEnumerable<Annonce>> GetFilteredAnnoncesAsync(ParametreRecherche searchParams)
     {
         var queryString = searchParams.ToQueryString();

@@ -77,7 +77,6 @@ public class CreationCompteViewModel
     public async Task ReloadPage()
     {
         pro = !pro;
-        Console.WriteLine(pro);
         _refreshUI?.Invoke();
     }
 }

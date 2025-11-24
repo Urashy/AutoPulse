@@ -64,6 +64,8 @@ public class MapperProfile : Profile
         // MAPPERS VOITURE
         // ============================================
         
+        CreateMap<Voiture, VoitureCreateDTO>().ReverseMap();
+        
         CreateMap<Voiture, VoitureDTO>()
             .ForMember(dest => dest.Marque, 
                 opt => opt.MapFrom(src => src.MarqueVoitureNavigation.LibelleMarque))
@@ -72,7 +74,8 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Carburant, 
                 opt => opt.MapFrom(src => src.CarburantVoitureNavigation.LibelleCarburant))
             .ForMember(dest => dest.Couleur, 
-                opt => opt.MapFrom(src => src.APourCouleurs.FirstOrDefault().APourCouleurCouleurNav.LibelleCouleur ?? "Non spécifié")).ReverseMap();
+                opt => opt.MapFrom(src => src.APourCouleurs.FirstOrDefault().APourCouleurCouleurNav.LibelleCouleur ?? "Non spécifié")).ReverseMap()
+            .ReverseMap();
         
         CreateMap<Voiture, VoitureDetailDTO>()
             .ForMember(dest => dest.LibelleMarque, 
