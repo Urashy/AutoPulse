@@ -421,6 +421,11 @@ namespace Api_c_sharp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCouleur"));
 
+                    b.Property<string>("CodeHexaCouleur")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("cou_codehexa");
+
                     b.Property<string>("LibelleCouleur")
                         .IsRequired()
                         .HasColumnType("text")
@@ -631,7 +636,7 @@ namespace Api_c_sharp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdMiseEnAvant"));
 
-                    b.Property<string>("LibellMiseEnAvant")
+                    b.Property<string>("LibelleMiseEnAvant")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("mav_libelle");
@@ -879,10 +884,6 @@ namespace Api_c_sharp.Migrations
                     b.Property<int>("IdCategorie")
                         .HasColumnType("integer")
                         .HasColumnName("cat_id");
-
-                    b.Property<int>("IdCouleur")
-                        .HasColumnType("integer")
-                        .HasColumnName("cou_id");
 
                     b.Property<int>("IdMarque")
                         .HasColumnType("integer")
