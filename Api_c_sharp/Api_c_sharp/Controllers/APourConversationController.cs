@@ -20,7 +20,7 @@ namespace Api_c_sharp.Controllers
         /// <summary>
         /// Crée une nouvelle adresse.
         /// </summary>
-        /// <param name="dto">Objet <see cref="APourConversation"/> contenant les informations de l'adresse à créer.</param>
+        /// <param name="dto">Objet <see cref="APourConversationDTO"/> contenant les informations de l'adresse à créer.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
@@ -29,7 +29,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
-        public async Task<ActionResult<APourConversation>> Post([FromBody] APourConversation dto)
+        public async Task<ActionResult<APourConversationDTO>> Post([FromBody] APourConversationDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -44,7 +44,7 @@ namespace Api_c_sharp.Controllers
         /// Met à jour une Adresse existante.
         /// </summary>
         /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
-        /// <param name="dto">Objet <see cref="APourConversation"/> contenant les nouvelles valeurs.</param>
+        /// <param name="dto">Objet <see cref="APourConversationDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -54,7 +54,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] APourConversation dto)
+        public async Task<ActionResult> Put(int id, [FromBody] APourConversationDTO dto)
         {
             if (id != dto.IdConversation)
                 return BadRequest();
@@ -95,14 +95,14 @@ namespace Api_c_sharp.Controllers
         /// Récupère la liste de toutes les adresses.
         /// </summary>
         /// <returns>
-        /// Une liste de <see cref="APourConversation"/> (200 OK).
+        /// Une liste de <see cref="APourConversationDTO"/> (200 OK).
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<APourConversation>>> GetAll()
+        public async Task<ActionResult<IEnumerable<APourConversationDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
-            return new ActionResult<IEnumerable<APourConversation>>(_adresseMapper.Map<IEnumerable<APourConversation>>(list));
+            return new ActionResult<IEnumerable<APourConversationDTO>>(_adresseMapper.Map<IEnumerable<APourConversationDTO>>(list));
         }
         /// <summary>
         /// Récupère une adresse à partir de son identifiant.
@@ -110,20 +110,20 @@ namespace Api_c_sharp.Controllers
         /// <param name="id">Identifiant unique de l'adresse recherchée.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="APourConversation"/> si l'adresse existe (200 OK).</description></item>
+        /// <item><description><see cref="APourConversationDTO"/> si l'adresse existe (200 OK).</description></item>
         /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<APourConversation>> GetByID(int id)
+        public async Task<ActionResult<APourConversationDTO>> GetByID(int id)
         {
             var result = await _manager.GetByIdAsync(id);
 
             if (result is null)
                 return NotFound();
 
-            return _adresseMapper.Map<APourConversation>(result);
+            return _adresseMapper.Map<APourConversationDTO>(result);
         }
     }
 }
