@@ -47,6 +47,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return  await dbSet.Where(a => a.IdMiseEnAvant == miseAvantId).ToListAsync();
         }
 
+
         public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(int id, int idcarburant, int idmarque, int idmodele, int prixmin, int prixmax, int idtypevoiture, int idtypevendeur, string nom, int kmmin, int kmmax, string departement, int pageNumber, int pageSize)
         {
             var query = ApplyIncludes();
