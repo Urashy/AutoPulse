@@ -74,6 +74,7 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
             return BadRequest(ModelState);
 
         var entity = _mapper.Map<Voiture>(dto);
+        entity.MiseEnCirculation = DateTime.SpecifyKind(dto.MiseEnCirculation, DateTimeKind.Utc);
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdVoiture }, entity);

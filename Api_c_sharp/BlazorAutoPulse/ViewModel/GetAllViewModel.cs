@@ -11,6 +11,8 @@ public class GetAllViewModel
     private readonly IService<Carburant> _carburantService;
     private readonly IService<Categorie> _categorieService;
     private readonly IService<Motricite> _motriciteService;
+    private readonly IService<BoiteDeVitesse> _boiteVitesseService;
+    private readonly IService<Couleur> _couleurService;
     
     public Marque[] allMarques;
     public Modele[] allModeles;
@@ -18,19 +20,25 @@ public class GetAllViewModel
     public Carburant[] allCarburants;
     public Motricite[] allMotricite;
     public Categorie[] allCategories;
+    public BoiteDeVitesse[] allBoiteDeVitesse;
+    public Couleur[] AllCouleurs;
     
     public GetAllViewModel(
         IService<Marque> marqueService,
         IModeleService modeleService,
         IService<Carburant> carburantService,
         IService<Categorie> categorieService,
-        IService<Motricite> _motriciteService)
+        IService<Motricite> motriciteService,
+        IService<BoiteDeVitesse> boiteVitesseService,
+        IService<Couleur> couleurService)
     {
         _marqueService = marqueService;
         _modeleService = modeleService;
         _carburantService = carburantService;
         _categorieService = categorieService;
-        _motriciteService = _motriciteService;
+        _motriciteService = motriciteService;
+        _boiteVitesseService = boiteVitesseService;
+        _couleurService = couleurService;
     }
     
     public async Task InitializeAsync()
@@ -42,5 +50,7 @@ public class GetAllViewModel
         allCarburants = (await _carburantService.GetAllAsync()).ToArray();
         allCategories = (await _categorieService.GetAllAsync()).ToArray();
         allMotricite = (await _motriciteService.GetAllAsync()).ToArray();
+        allBoiteDeVitesse = (await _boiteVitesseService.GetAllAsync()).ToArray();
+        AllCouleurs = (await _couleurService.GetAllAsync()).ToArray();
     }
 }

@@ -53,7 +53,7 @@ public class HomeViewModel
         _refreshUI = refreshUI;
 
         // Charger toutes les données nécessaires
-        allAnnonces = (await _annonceService.GetAllAsync()).ToArray();
+        allAnnonces = (await _annonceService.GetByIdMiseEnAvant(3)).ToArray();
         filteredAnnonces = allAnnonces;
 
         allMarques = (await _marqueService.GetAllAsync()).ToArray();

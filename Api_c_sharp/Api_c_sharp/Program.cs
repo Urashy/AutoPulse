@@ -7,6 +7,7 @@ using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Api_c_sharp.Models.Repository.Managers;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -41,8 +42,10 @@ builder.Services.AddScoped<TypeJournalManager>();
 builder.Services.AddScoped<CompteManager>();
 builder.Services.AddScoped<ImageManager>();
 builder.Services.AddScoped<TypeCompteManager>();
+builder.Services.AddScoped<CouleurManager>();
+builder.Services.AddScoped<VoitureManager>();
 
-// Enregistrer aussi les interfaces pour ModeleManager (car il a une méthode spéciale)
+// Enregistrer aussi les interfaces pour ModeleManager (car il a une mï¿½thode spï¿½ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
 
 //------------------------------Authentification------------------------------
@@ -87,7 +90,7 @@ app.UseCors(policy =>
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); // IMPORTANT: À placer AVANT UseAuthorization
+app.UseAuthentication(); // IMPORTANT: ï¿½ placer AVANT UseAuthorization
 app.UseAuthorization();
 
 app.MapControllers();
