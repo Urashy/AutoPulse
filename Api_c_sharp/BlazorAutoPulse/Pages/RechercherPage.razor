@@ -10,7 +10,7 @@
     <div class="container">
         <h1>Résultats de recherche</h1>
 
-        <BarreDeRechercheAvecFiltresComposant VM="@VM" />
+        <BarreDeRechercheAvecFiltresComposant VM="@VM" IsHomePage="false" />
     </div>
 </section>
 
@@ -18,6 +18,7 @@
     @if (VM.IsLoading)
     {
         <div class="loading">
+            <div class="loader"></div>
             <p>Chargement des résultats...</p>
         </div>
     }
@@ -47,13 +48,40 @@
     {
         await VM.InitializeAsync(StateHasChanged);
 
+        // Récupération des paramètres de l’URL
         var uri = new Uri(Navigation.Uri);
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var query = HttpUtility.ParseQueryString(uri.Query);
 
-        var marque = query["marque"];
-        var modele = query["modele"];
-        var prix = query["prix"];
+        VM.SelectedMarque = query["marque"] ?? "0";
+        VM.SelectedModele = query["modele"] ?? "";
+        VM.SelectedCarburant = query["carburant"] ?? "0";
+        VM.SelectedCategorie = query["categorie"] ?? "0";
+        VM.Nom = query["nom"] ?? "";
+        VM.Departement = query["departement"] ?? "";
 
-        await VM.InitializeWithParams(marque, modele, prix);
+        // Parse des valeurs numériques vers les propriétés *Value
+        if (int.TryParse(query["prixmin"], out var prixMinParsed))
+            VM.PrixMinValue = prixMinParsed;
+
+        if (int.TryParse(query["prixmax"], out var prixMaxParsed))
+            VM.PrixMaxValue = prixMaxParsed;
+
+        if (int.TryParse(query["kmmin"], out var kmMinParsed))
+            VM.KmMinValue = kmMinParsed;
+
+        if (int.TryParse(query["kmmax"], out var kmMaxParsed))
+            VM.KmMaxValue = kmMaxParsed;
+
+        // Charger les modèles si une marque est sélectionnée
+        if (VM.SelectedMarque != "0")
+        {
+            await VM.OnMarqueChanged(new Microsoft.AspNetCore.Components.ChangeEventArgs
+            {
+                Value = VM.SelectedMarque
+            });
+        }
+
+        // Lancer la recherche
+        await VM.EffectuerRecherche();
     }
 }

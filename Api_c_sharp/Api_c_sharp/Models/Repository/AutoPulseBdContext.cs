@@ -42,6 +42,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
         public DbSet<TypeJournal> TypesJournal { get; set; }
+        public DbSet<TypeSignalement> TypesSignalement { get; set; }
         public DbSet<Voiture> Voitures { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

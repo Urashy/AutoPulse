@@ -11,29 +11,9 @@
         <h1>Trouvez Votre Voiture Idéale</h1>
         <p>Plus de 500 véhicules d'occasion sélectionnés et garantis</p>
 
-        <BarreDeRechercheAvecFiltresComposant VM="@RechercheVM"/>
-        
+        <BarreDeRechercheAvecFiltresComposant VM="@RechercheVM" IsHomePage="true"/>
     </div>
 </section>
-
-<div>
-    <h2>Résultats</h2>
-    @if (VM.filteredAnnonces != null && VM.filteredAnnonces.Any())
-    {
-        <div class="container">
-            <div class="cars-grid">
-                @foreach (var a in VM.filteredAnnonces)
-                {
-                    <AnnonceComposant Annonce="@a" />
-                }
-            </div>
-        </div>
-    }
-    else
-    {
-        <p>Aucun résultat de recherche pour le moment.</p>
-    }
-</div>
 
 <div class="container">
     <h2 class="section-title">Nos Dernières Offres</h2>
@@ -43,59 +23,20 @@
     }
     else
     {
-        <div class="container">
-            <div class="cars-grid">
-                @foreach (var a in VM.allAnnonces)
-                {
-                    <AnnonceComposant Annonce="@a" />
-                }
-            </div>
+        <div class="cars-grid">
+            @foreach (var a in VM.allAnnonces)
+            {
+                <AnnonceComposant Annonce="@a" />
+            }
         </div>
     }
 </div>
+
 
 @code {
     protected override async Task OnInitializedAsync()
     {
         await VM.InitializeAsync(StateHasChanged);
-    }
-
-    private async Task OnMarqueChanged(ChangeEventArgs e)
-    {
-        await VM.FiltreModeleParMarque(e);
-    }
-
-    private void OnModeleChanged(ChangeEventArgs e)
-    {
-        VM.SearchParams.IdModele = int.Parse(e.Value?.ToString() ?? "0");
-    }
-
-    private void OnPrixMaxChanged(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out var prix))
-        {
-            VM.SearchParams.PrixMax = prix;
-        }
-        else
-        {
-            VM.SearchParams.PrixMax = 0;
-        }
-    }
-
-    private void RechercherVoitures()
-    {
-        var queryParams = new List<string>();
-
-        if (VM.SearchParams.IdMarque != 0)
-            queryParams.Add($"marque={VM.SearchParams.IdMarque}");
-
-        if (VM.SearchParams.IdModele != 0)
-            queryParams.Add($"modele={VM.SearchParams.IdModele}");
-
-        if (VM.SearchParams.PrixMax > 0)
-            queryParams.Add($"prix={VM.SearchParams.PrixMax}");
-
-        var queryString = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-        Navigation.NavigateTo($"/search{queryString}");
+        await RechercheVM.InitializeAsync(StateHasChanged);
     }
 }

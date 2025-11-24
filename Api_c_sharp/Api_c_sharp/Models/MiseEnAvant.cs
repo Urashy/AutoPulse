@@ -13,7 +13,7 @@ namespace Api_c_sharp.Models
 
         [Column("mav_libelle")]
         [Required]
-        public string LibellMiseEnAvant { get; set; }
+        public string LibelleMiseEnAvant { get; set; }
 
         [Column("mav_prixsemaine")]
         [Required]

@@ -87,5 +87,19 @@ namespace Api_c_sharp.Controllers
 
             return NoContent();
         }
+
+        // GET BY ID
+        [ActionName("GetByVoitureId")]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<IEnumerable<ImageDTO>>> GetImagesByVoitureId(int voitureId)
+        {
+            var imageEntity = await _manager.GetByIdAsync(voitureId);
+
+            if (imageEntity == null || imageEntity.Fichier == null)
+                return NotFound();
+
+            return File(imageEntity.Fichier, "image/jpeg");
+        }
+
     }
 }

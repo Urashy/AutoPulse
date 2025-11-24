@@ -23,33 +23,33 @@ public class ModeleBlenderController(ModeleBlenderManager _manager, IMapper _mod
     /// </summary>
     /// <param name="id">Identifiant unique du modele recherchée.</param>
     /// <returns>
-    /// <item><description><see cref="ModeleBlender"/> si la motricité existe (200 OK).</description></item>
+    /// <item><description><see cref="ModeleBlenderDTO"/> si la motricité existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune motricité ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<ModeleBlender>> GetById(int id)
+    public async Task<ActionResult<ModeleBlenderDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
 
         if (result is null)
             return NotFound();
 
-        return result;
+        return new ActionResult<ModeleBlenderDTO>(_modeldeblendermapper.Map<ModeleBlenderDTO>(result));
     }
 
     /// <summary>
     /// Récupère la liste de toutes les modeles blender.
     /// </summary>
     /// <returns>
-    /// Une liste de <see cref="MotriciteDTO"/> (200 OK).
+    /// Une liste de <see cref="ModeleBlenderDTO"/> (200 OK).
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
-    public async Task<ActionResult<IEnumerable<ModeleBlender>>> GetAll()
+    public async Task<ActionResult<IEnumerable<ModeleBlenderDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
-        return Ok(list);
+        return new ActionResult<IEnumerable<ModeleBlenderDTO>>(_modeldeblendermapper.Map<IEnumerable<ModeleBlenderDTO>>(list));
     }
 }

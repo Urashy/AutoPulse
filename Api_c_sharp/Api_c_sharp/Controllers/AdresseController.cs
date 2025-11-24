@@ -43,7 +43,7 @@ namespace Api_c_sharp.Controllers
         /// Met à jour une Adresse existante.
         /// </summary>
         /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
-        /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les nouvelles valeurs.</param>
+        /// <param name="dto">Objet <see cref="AdresseDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
