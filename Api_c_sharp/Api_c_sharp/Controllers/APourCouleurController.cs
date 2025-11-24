@@ -20,7 +20,7 @@ namespace Api_c_sharp.Controllers
         /// <summary>
         /// Crée une nouvelle adresse.
         /// </summary>
-        /// <param name="dto">Objet <see cref="APourCouleur"/> contenant les informations de l'adresse à créer.</param>
+        /// <param name="dto">Objet <see cref="APourCouleurDTO"/> contenant les informations de l'adresse à créer.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
@@ -29,7 +29,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
-        public async Task<ActionResult<APourCouleur>> Post([FromBody] APourCouleur dto)
+        public async Task<ActionResult<APourCouleurDTO>> Post([FromBody] APourCouleurDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -44,7 +44,7 @@ namespace Api_c_sharp.Controllers
         /// Met à jour une Adresse existante.
         /// </summary>
         /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
-        /// <param name="dto">Objet <see cref="APourCouleur"/> contenant les nouvelles valeurs.</param>
+        /// <param name="dto">Objet <see cref="APourCouleurDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -54,7 +54,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] APourCouleur dto)
+        public async Task<ActionResult> Put(int id, [FromBody] APourCouleurDTO dto)
         {
             if (id != dto.IdCouleur)
                 return BadRequest();
@@ -95,14 +95,14 @@ namespace Api_c_sharp.Controllers
         /// Récupère la liste de toutes les adresses.
         /// </summary>
         /// <returns>
-        /// Une liste de <see cref="APourCouleur"/> (200 OK).
+        /// Une liste de <see cref="APourCouleurDTO"/> (200 OK).
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<APourCouleur>>> GetAll()
+        public async Task<ActionResult<IEnumerable<APourCouleurDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
-            return new ActionResult<IEnumerable<APourCouleur>>(_adresseMapper.Map<IEnumerable<APourCouleur>>(list));
+            return new ActionResult<IEnumerable<APourCouleurDTO>>(_adresseMapper.Map<IEnumerable<APourCouleurDTO>>(list));
         }
         /// <summary>
         /// Récupère une adresse à partir de son identifiant.
@@ -116,14 +116,14 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<APourCouleur>> GetByID(int id)
+        public async Task<ActionResult<APourCouleurDTO>> GetByID(int id)
         {
             var result = await _manager.GetByIdAsync(id);
 
             if (result is null)
                 return NotFound();
 
-            return _adresseMapper.Map<APourCouleur>(result);
+            return _adresseMapper.Map<APourCouleurDTO>(result);
         }
     }
 }
