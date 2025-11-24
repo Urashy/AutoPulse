@@ -24,10 +24,10 @@
     else if (VM.FilteredAnnonces != null && VM.FilteredAnnonces.Any())
     {
         <div class="results-info">
-            <h2>@VM.TotalResults résultat(s) trouvé(s)</h2>
+            <h2>@VM.CurrentPageResultCount résultat(s) sur cette page</h2>
             <p class="pagination-info">@VM.PaginationInfo</p>
         </div>
-        
+
         <div class="cars-grid">
             @foreach (var a in VM.FilteredAnnonces)
             {
@@ -38,18 +38,18 @@
         @if (VM.ShowPagination)
         {
             var paginationData = VM.GetPaginationData();
-            
+
             <div class="pagination">
-                <button class="pagination-btn" 
-                        @onclick="VM.GoToPreviousPage" 
+                <button class="pagination-btn"
+                        @onclick="async () => await VM.GoToPreviousPage()"
                         disabled="@(!paginationData.CanGoToPrevious)">
                     ← Précédent
                 </button>
 
                 @if (paginationData.ShowFirstPage)
                 {
-                    <button class="pagination-btn" @onclick="() => VM.GoToPage(1)">1</button>
-                    
+                    <button class="pagination-btn" @onclick="async () => await VM.GoToPage(1)">1</button>
+
                     @if (paginationData.ShowFirstDots)
                     {
                         <span class="pagination-dots">...</span>
@@ -57,28 +57,22 @@
                 }
 
                 @foreach (var pageNumber in paginationData.VisiblePages)
-{
-    var isCurrentPage = pageNumber == paginationData.CurrentPage;
-    <button class="pagination-btn @(isCurrentPage ? "active" : "")" 
-            @onclick="() => VM.GoToPage(pageNumber)">
-        @pageNumber
-    </button>
-}
-
-                @if (paginationData.ShowLastPage)
                 {
-                    @if (paginationData.ShowLastDots)
-                    {
-                        <span class="pagination-dots">...</span>
-                    }
-                    <button class="pagination-btn" 
-                            @onclick="() => VM.GoToPage(paginationData.TotalPages)">
-                        @paginationData.TotalPages
+                    var isCurrentPage = pageNumber == paginationData.CurrentPage;
+                    <button class="pagination-btn @(isCurrentPage ? "active" : "")"
+                            @onclick="async () => await VM.GoToPage(pageNumber)"
+                            disabled="@isCurrentPage">
+                        @pageNumber
                     </button>
                 }
 
-                <button class="pagination-btn" 
-                        @onclick="VM.GoToNextPage" 
+                @if (paginationData.ShowLastDots)
+                {
+                    <span class="pagination-dots">...</span>
+                }
+
+                <button class="pagination-btn"
+                        @onclick="async () => await VM.GoToNextPage()"
                         disabled="@(!paginationData.CanGoToNext)">
                     Suivant →
                 </button>
