@@ -29,6 +29,16 @@ namespace BlazorAutoPulse.ViewModel
         public int KmMinValue { get; set; } = 0;
         public int KmMaxValue { get; set; } = 300000;
 
+        // Propriétés de pagination
+        public int CurrentPage { get; private set; } = 1;
+        public int ItemsPerPage { get; private set; } = 21;
+        public int TotalPages => CalculateTotalPages();
+        public int TotalResults => AllFilteredAnnonces?.Length ?? 0;
+
+        // Annonces complètes et paginées
+        private Annonce[] AllFilteredAnnonces { get; set; } = Array.Empty<Annonce>();
+        public Annonce[] FilteredAnnonces => GetPagedAnnonces();
+
         // Anciennes propriétés string (pour compatibilité avec le BuildQueryString)
         public string PrixMin => PrixMinValue > 0 ? PrixMinValue.ToString() : "";
         public string PrixMax => PrixMaxValue < 200000 ? PrixMaxValue.ToString() : "";
@@ -36,12 +46,17 @@ namespace BlazorAutoPulse.ViewModel
         public string KmMax => KmMaxValue < 300000 ? KmMaxValue.ToString() : "";
 
         // Données
-        public Annonce[] FilteredAnnonces { get; private set; } = Array.Empty<Annonce>();
         public Marque[] AllMarques { get; private set; } = Array.Empty<Marque>();
         public Modele[] FilteredModeles { get; private set; } = Array.Empty<Modele>();
         public Modele[] AllModeles { get; private set; } = Array.Empty<Modele>();
         public Carburant[] AllCarburants { get; private set; } = Array.Empty<Carburant>();
         public Categorie[] AllCategories { get; private set; } = Array.Empty<Categorie>();
+
+        // Propriétés calculées pour la pagination
+        public string PaginationInfo => $"Page {CurrentPage} sur {TotalPages}";
+        public bool CanGoToPreviousPage => CurrentPage > 1;
+        public bool CanGoToNextPage => CurrentPage < TotalPages;
+        public bool ShowPagination => TotalPages > 1;
 
         public RechercheViewModel(
             IAnnonceService annonceService,
@@ -64,7 +79,6 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // Charger les données de base
                 AllMarques = (await _marqueService.GetAllAsync()).ToArray();
                 AllModeles = (await _modeleService.GetAllAsync()).ToArray();
                 FilteredModeles = AllModeles;
@@ -127,36 +141,131 @@ namespace BlazorAutoPulse.ViewModel
         public async Task EffectuerRecherche()
         {
             IsLoading = true;
+            ResetToFirstPage();
             _refreshUI?.Invoke();
 
             try
             {
-                var searchParams = new ParametreRecherche
-                {
-                    IdCarburant = SelectedCarburant != "0" ? int.Parse(SelectedCarburant) : 0,
-                    IdMarque = SelectedMarque != "0" ? int.Parse(SelectedMarque) : 0,
-                    IdModele = !string.IsNullOrEmpty(SelectedModele) ? int.Parse(SelectedModele) : 0,
-                    PrixMin = PrixMinValue,
-                    PrixMax = PrixMaxValue < 200000 ? PrixMaxValue : 0,
-                    IdTypeVoiture = SelectedCategorie != "0" ? int.Parse(SelectedCategorie) : 0,
-                    Nom = Nom ?? string.Empty,
-                    KmMin = KmMinValue,
-                    KmMax = KmMaxValue < 300000 ? KmMaxValue : 0,
-                    Departement = Departement ?? string.Empty
-                };
-
-                FilteredAnnonces = (await _annonceService.GetFilteredAnnoncesAsync(searchParams)).ToArray();
+                var searchParams = BuildSearchParams();
+                AllFilteredAnnonces = (await _annonceService.GetFilteredAnnoncesAsync(searchParams)).ToArray();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de la recherche: {ex.Message}");
-                FilteredAnnonces = Array.Empty<Annonce>();
+                AllFilteredAnnonces = Array.Empty<Annonce>();
             }
             finally
             {
                 IsLoading = false;
                 _refreshUI?.Invoke();
             }
+        }
+
+        private ParametreRecherche BuildSearchParams()
+        {
+            return new ParametreRecherche
+            {
+                IdCarburant = SelectedCarburant != "0" ? int.Parse(SelectedCarburant) : 0,
+                IdMarque = SelectedMarque != "0" ? int.Parse(SelectedMarque) : 0,
+                IdModele = !string.IsNullOrEmpty(SelectedModele) ? int.Parse(SelectedModele) : 0,
+                PrixMin = PrixMinValue,
+                PrixMax = PrixMaxValue < 200000 ? PrixMaxValue : 0,
+                IdTypeVoiture = SelectedCategorie != "0" ? int.Parse(SelectedCategorie) : 0,
+                Nom = Nom ?? string.Empty,
+                KmMin = KmMinValue,
+                KmMax = KmMaxValue < 300000 ? KmMaxValue : 0,
+                Departement = Departement ?? string.Empty
+            };
+        }
+
+        // ==================== Méthodes de pagination ====================
+
+        private int CalculateTotalPages()
+        {
+            if (TotalResults == 0) return 1;
+            return (int)Math.Ceiling((double)TotalResults / ItemsPerPage);
+        }
+
+        private Annonce[] GetPagedAnnonces()
+        {
+            if (AllFilteredAnnonces == null || AllFilteredAnnonces.Length == 0)
+                return Array.Empty<Annonce>();
+
+            var skip = (CurrentPage - 1) * ItemsPerPage;
+            return AllFilteredAnnonces.Skip(skip).Take(ItemsPerPage).ToArray();
+        }
+
+        private void ResetToFirstPage()
+        {
+            CurrentPage = 1;
+        }
+
+        public void GoToPage(int pageNumber)
+        {
+            if (IsValidPageNumber(pageNumber))
+            {
+                CurrentPage = pageNumber;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        public void GoToNextPage()
+        {
+            if (CanGoToNextPage)
+            {
+                CurrentPage++;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        public void GoToPreviousPage()
+        {
+            if (CanGoToPreviousPage)
+            {
+                CurrentPage--;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        private bool IsValidPageNumber(int pageNumber)
+        {
+            return pageNumber >= 1 && pageNumber <= TotalPages;
+        }
+
+        public PaginationData GetPaginationData()
+        {
+            return new PaginationData
+            {
+                CurrentPage = CurrentPage,
+                TotalPages = TotalPages,
+                TotalResults = TotalResults,
+                CanGoToPrevious = CanGoToPreviousPage,
+                CanGoToNext = CanGoToNextPage,
+                ShowFirstPage = ShouldShowFirstPage(),
+                ShowLastPage = ShouldShowLastPage(),
+                ShowFirstDots = ShouldShowFirstDots(),
+                ShowLastDots = ShouldShowLastDots(),
+                VisiblePages = GetVisiblePageNumbers()
+            };
+        }
+
+        private bool ShouldShowFirstPage() => CurrentPage > 3;
+        private bool ShouldShowLastPage() => CurrentPage < TotalPages - 2;
+        private bool ShouldShowFirstDots() => CurrentPage > 4;
+        private bool ShouldShowLastDots() => CurrentPage < TotalPages - 3;
+
+        private int[] GetVisiblePageNumbers()
+        {
+            var pages = new List<int>();
+            var startPage = Math.Max(1, CurrentPage - 2);
+            var endPage = Math.Min(TotalPages, CurrentPage + 2);
+
+            for (int i = startPage; i <= endPage; i++)
+            {
+                pages.Add(i);
+            }
+
+            return pages.ToArray();
         }
 
         public void ReinitialiserFiltres()
@@ -171,8 +280,9 @@ namespace BlazorAutoPulse.ViewModel
             KmMaxValue = 300000;
             Nom = "";
             Departement = "";
+            ResetToFirstPage();
             FilteredModeles = AllModeles;
-            FilteredAnnonces = Array.Empty<Annonce>();
+            AllFilteredAnnonces = Array.Empty<Annonce>();
             _refreshUI?.Invoke();
         }
 
@@ -254,5 +364,19 @@ namespace BlazorAutoPulse.ViewModel
 
             return queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
         }
+    }
+
+    public class PaginationData
+    {
+        public int CurrentPage { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalResults { get; set; }
+        public bool CanGoToPrevious { get; set; }
+        public bool CanGoToNext { get; set; }
+        public bool ShowFirstPage { get; set; }
+        public bool ShowLastPage { get; set; }
+        public bool ShowFirstDots { get; set; }
+        public bool ShowLastDots { get; set; }
+        public int[] VisiblePages { get; set; } = Array.Empty<int>();
     }
 }
