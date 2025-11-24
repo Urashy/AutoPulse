@@ -1,5 +1,6 @@
 @using BlazorAutoPulse.ViewModel
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <div class="search-bar">
     <!-- Champ de recherche par nom -->
@@ -86,25 +87,25 @@
         <div class="slider-group">
             <label>Prix</label>
             <div class="slider-info">
-                <span>@FormatPrice(VM.PrixMinValue) €</span>
-                <span>@FormatPrice(VM.PrixMaxValue) €</span>
+                <span id="prix-min-display">@FormatPrixMin(VM.PrixMinValue) €</span>
+                <span id="prix-max-display">@FormatPrixMax(VM.PrixMaxValue)</span>
             </div>
             <div class="dual-range-slider">
                 <div class="slider-track"></div>
-                <div class="slider-range" style="@GetRangeStyle(VM.PrixMinValue, VM.PrixMaxValue, 0, 200000)"></div>
+                <div class="slider-range" id="prix-range" style="@GetRangeStyle(VM.PrixMinValue, VM.PrixMaxValue, 0, 200000)"></div>
                 <input type="range"
+                       id="prix-slider-min"
                        min="0"
                        max="200000"
                        step="1000"
                        value="@VM.PrixMinValue"
-                       @oninput="OnPrixMinChanged"
                        class="range-input range-min">
                 <input type="range"
+                       id="prix-slider-max"
                        min="0"
                        max="200000"
                        step="1000"
                        value="@VM.PrixMaxValue"
-                       @oninput="OnPrixMaxChanged"
                        class="range-input range-max">
             </div>
         </div>
@@ -113,25 +114,25 @@
         <div class="slider-group">
             <label>Kilométrage</label>
             <div class="slider-info">
-                <span>@FormatKm(VM.KmMinValue) km</span>
-                <span>@FormatKm(VM.KmMaxValue) km</span>
+                <span id="km-min-display">@FormatKmMin(VM.KmMinValue) km</span>
+                <span id="km-max-display">@FormatKmMax(VM.KmMaxValue)</span>
             </div>
             <div class="dual-range-slider">
                 <div class="slider-track"></div>
-                <div class="slider-range" style="@GetRangeStyle(VM.KmMinValue, VM.KmMaxValue, 0, 300000)"></div>
+                <div class="slider-range" id="km-range" style="@GetRangeStyle(VM.KmMinValue, VM.KmMaxValue, 0, 300000)"></div>
                 <input type="range"
+                       id="km-slider-min"
                        min="0"
                        max="300000"
                        step="5000"
                        value="@VM.KmMinValue"
-                       @oninput="OnKmMinChanged"
                        class="range-input range-min">
                 <input type="range"
+                       id="km-slider-max"
                        min="0"
                        max="300000"
                        step="5000"
                        value="@VM.KmMaxValue"
-                       @oninput="OnKmMaxChanged"
                        class="range-input range-max">
             </div>
         </div>
@@ -192,40 +193,43 @@
     private const int MinGapPrix = 5000;
     private const int MinGapKm = 10000;
 
-    private async Task OnPrixMinChanged(ChangeEventArgs e)
+    private DotNetObjectReference<BarreDeRechercheAvecFiltresComposant>? objRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (int.TryParse(e.Value?.ToString(), out int value))
+        if (firstRender)
         {
-            VM.PrixMinValue = Math.Min(value, VM.PrixMaxValue - MinGapPrix);
+            objRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("initDualSliders", objRef, MinGapPrix, MinGapKm);
         }
-        await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OnPrixMaxChanged(ChangeEventArgs e)
+    [JSInvokable]
+    public void UpdatePrixMin(int value)
     {
-        if (int.TryParse(e.Value?.ToString(), out int value))
-        {
-            VM.PrixMaxValue = Math.Max(value, VM.PrixMinValue + MinGapPrix);
-        }
-        await InvokeAsync(StateHasChanged);
+        VM.PrixMinValue = value;
+        StateHasChanged();
     }
 
-    private async Task OnKmMinChanged(ChangeEventArgs e)
+    [JSInvokable]
+    public void UpdatePrixMax(int value)
     {
-        if (int.TryParse(e.Value?.ToString(), out int value))
-        {
-            VM.KmMinValue = Math.Min(value, VM.KmMaxValue - MinGapKm);
-        }
-        await InvokeAsync(StateHasChanged);
+        VM.PrixMaxValue = value;
+        StateHasChanged();
     }
 
-    private async Task OnKmMaxChanged(ChangeEventArgs e)
+    [JSInvokable]
+    public void UpdateKmMin(int value)
     {
-        if (int.TryParse(e.Value?.ToString(), out int value))
-        {
-            VM.KmMaxValue = Math.Max(value, VM.KmMinValue + MinGapKm);
-        }
-        await InvokeAsync(StateHasChanged);
+        VM.KmMinValue = value;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void UpdateKmMax(int value)
+    {
+        VM.KmMaxValue = value;
+        StateHasChanged();
     }
 
     private string GetRangeStyle(int minValue, int maxValue, int rangeMin, int rangeMax)
@@ -252,6 +256,7 @@
     private async Task HandleReset()
     {
         VM.ReinitialiserFiltres();
+        await JSRuntime.InvokeVoidAsync("resetSliders", VM.PrixMinValue, VM.PrixMaxValue, VM.KmMinValue, VM.KmMaxValue);
         if (!IsHomePage)
         {
             await VM.EffectuerRecherche();
@@ -267,4 +272,164 @@
     {
         return km.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
     }
+
+    private string FormatPrixMin(int price)
+    {
+        return price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
+    }
+
+    private string FormatPrixMax(int price)
+    {
+        if (price >= 200000)
+            return "Illimité";
+        return price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR")) + " €";
+    }
+
+    private string FormatKmMin(int km)
+    {
+        return km.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
+    }
+
+    private string FormatKmMax(int km)
+    {
+        if (km >= 300000)
+            return "Illimité";
+        return km.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR")) + " km";
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
 }
+
+<script>
+    window.initDualSliders = (dotnetHelper, minGapPrix, minGapKm) => {
+        const prixSliderMin = document.getElementById("prix-slider-min");
+        const prixSliderMax = document.getElementById("prix-slider-max");
+        const kmSliderMin = document.getElementById("km-slider-min");
+        const kmSliderMax = document.getElementById("km-slider-max");
+
+        const prixMinDisplay = document.getElementById("prix-min-display");
+        const prixMaxDisplay = document.getElementById("prix-max-display");
+        const kmMinDisplay = document.getElementById("km-min-display");
+        const kmMaxDisplay = document.getElementById("km-max-display");
+
+        const prixRange = document.getElementById("prix-range");
+        const kmRange = document.getElementById("km-range");
+
+        function formatPrice(value) {
+            if (value >= 200000) {
+                return 'Illimité';
+            }
+            return new Intl.NumberFormat('fr-FR').format(value) + ' €';
+        }
+
+        function formatKm(value) {
+            if (value >= 300000) {
+                return 'Illimité';
+            }
+            return new Intl.NumberFormat('fr-FR').format(value) + ' km';
+        }
+
+        function updatePrixRange() {
+            const min = parseInt(prixSliderMin.value);
+            const max = parseInt(prixSliderMax.value);
+            const percent1 = (min / 200000) * 100;
+            const percent2 = (max / 200000) * 100;
+            prixRange.style.left = percent1 + '%';
+            prixRange.style.right = (100 - percent2) + '%';
+        }
+
+        function updateKmRange() {
+            const min = parseInt(kmSliderMin.value);
+            const max = parseInt(kmSliderMax.value);
+            const percent1 = (min / 300000) * 100;
+            const percent2 = (max / 300000) * 100;
+            kmRange.style.left = percent1 + '%';
+            kmRange.style.right = (100 - percent2) + '%';
+        }
+
+        // Prix Slider Min
+        prixSliderMin.addEventListener('input', function () {
+            let minVal = parseInt(this.value);
+            let maxVal = parseInt(prixSliderMax.value);
+
+            if (maxVal - minVal < minGapPrix) {
+                this.value = maxVal - minGapPrix;
+                minVal = maxVal - minGapPrix;
+            }
+
+            prixMinDisplay.textContent = formatPrice(minVal);
+            updatePrixRange();
+            dotnetHelper.invokeMethodAsync('UpdatePrixMin', minVal);
+        });
+
+        // Prix Slider Max
+        prixSliderMax.addEventListener('input', function () {
+            let minVal = parseInt(prixSliderMin.value);
+            let maxVal = parseInt(this.value);
+
+            if (maxVal - minVal < minGapPrix) {
+                this.value = minVal + minGapPrix;
+                maxVal = minVal + minGapPrix;
+            }
+
+            prixMaxDisplay.textContent = formatPrice(maxVal);
+            updatePrixRange();
+            dotnetHelper.invokeMethodAsync('UpdatePrixMax', maxVal);
+        });
+
+        // Km Slider Min
+        kmSliderMin.addEventListener('input', function () {
+            let minVal = parseInt(this.value);
+            let maxVal = parseInt(kmSliderMax.value);
+
+            if (maxVal - minVal < minGapKm) {
+                this.value = maxVal - minGapKm;
+                minVal = maxVal - minGapKm;
+            }
+
+            kmMinDisplay.textContent = formatKm(minVal);
+            updateKmRange();
+            dotnetHelper.invokeMethodAsync('UpdateKmMin', minVal);
+        });
+
+        // Km Slider Max
+        kmSliderMax.addEventListener('input', function () {
+            let minVal = parseInt(kmSliderMin.value);
+            let maxVal = parseInt(this.value);
+
+            if (maxVal - minVal < minGapKm) {
+                this.value = minVal + minGapKm;
+                maxVal = minVal + minGapKm;
+            }
+
+            kmMaxDisplay.textContent = formatKm(maxVal);
+            updateKmRange();
+            dotnetHelper.invokeMethodAsync('UpdateKmMax', maxVal);
+        });
+
+        // Initialisation
+        updatePrixRange();
+        updateKmRange();
+    };
+
+    window.resetSliders = (prixMin, prixMax, kmMin, kmMax) => {
+        const prixSliderMin = document.getElementById("prix-slider-min");
+        const prixSliderMax = document.getElementById("prix-slider-max");
+        const kmSliderMin = document.getElementById("km-slider-min");
+        const kmSliderMax = document.getElementById("km-slider-max");
+
+        if (prixSliderMin) prixSliderMin.value = prixMin;
+        if (prixSliderMax) prixSliderMax.value = prixMax;
+        if (kmSliderMin) kmSliderMin.value = kmMin;
+        if (kmSliderMax) kmSliderMax.value = kmMax;
+
+        // Trigger input events to update displays
+        prixSliderMin?.dispatchEvent(new Event('input'));
+        prixSliderMax?.dispatchEvent(new Event('input'));
+        kmSliderMin?.dispatchEvent(new Event('input'));
+        kmSliderMax?.dispatchEvent(new Event('input'));
+    };
+</script>

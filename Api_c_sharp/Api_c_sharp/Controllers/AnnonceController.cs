@@ -233,7 +233,6 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             pageNumber,
             pageSize
         );
-        Console.WriteLine(result.ToString());
         return Ok(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
     }
 
