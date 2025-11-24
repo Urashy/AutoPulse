@@ -178,7 +178,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     }
 
     /// <summary>
-    /// Récupère une liste d'annonces filtrées selon plusieurs critères.
+    /// Récupère une liste d'annonces filtrées selon plusieurs critères, avec pagination.
     /// </summary>
     /// <param name="id">Identifiant de l'annonce (optionnel).</param>
     /// <param name="idcarburant">Identifiant du type de carburant (optionnel).</param>
@@ -192,6 +192,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// <param name="kmmin">Kilométrage minimum (optionnel).</param>
     /// <param name="kmmax">Kilométrage maximum (optionnel).</param>
     /// <param name="departement">Code postal du département (optionnel).</param>
+    /// <param name="pageNumber">Numéro de la page (commence à 1, par défaut: 1).</param>
+    /// <param name="pageSize">Nombre d'annonces par page (par défaut: 21).</param>
     /// <returns>
     /// Une liste de <see cref="AnnonceDTO"/> correspondant aux critères de recherche (200 OK).
     /// </returns>
@@ -209,7 +211,9 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
         [FromQuery] string? nom = null,
         [FromQuery] int? kmmin = null,
         [FromQuery] int? kmmax = null,
-        [FromQuery] string? departement = null)
+        [FromQuery] string? departement = null,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 21)
     {
         var result = await _manager.GetFilteredAnnonces(
             id ?? 0,
@@ -223,7 +227,9 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             nom ?? string.Empty,
             kmmin ?? 0,
             kmmax ?? 0,
-            departement ?? string.Empty
+            departement ?? string.Empty,
+            pageNumber,
+            pageSize
         );
         Console.WriteLine(result.ToString());
         return Ok(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));

@@ -47,7 +47,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return  await dbSet.Where(a => a.IdMiseEnAvant == miseAvantId).ToListAsync();
         }
 
-        public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(int id, int idcarburant, int idmarque, int idmodele, int prixmin, int prixmax, int idtypevoiture, int idtypevendeur, string nom, int kmmin, int kmmax, string departement)
+        public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(int id, int idcarburant, int idmarque, int idmodele, int prixmin, int prixmax, int idtypevoiture, int idtypevendeur, string nom, int kmmin, int kmmax, string departement, int pageNumber, int pageSize)
         {
             var query = ApplyIncludes();
 
@@ -55,7 +55,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             if (!string.IsNullOrEmpty(departement))
                 query = query.Where(a => a.AdresseAnnonceNav.CodePostal == departement);
 
-         // Filtre par carburant
+            // Filtre par carburant
             if (idcarburant > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.IdCarburant == idcarburant);
 
@@ -93,7 +93,20 @@ namespace Api_c_sharp.Models.Repository.Managers
             if (kmmax > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.Kilometrage <= kmmax);
 
-            return await query.ToListAsync();   
+            // Ajout du tri par défaut avant pagination
+            query = query
+                .OrderByDescending(a => a.IdMiseEnAvant)
+                .ThenByDescending(a => a.DatePublication);
+
+            // Logique de pagination
+            if (pageNumber > 0 && pageSize > 0)
+            {
+                query = query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize);
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
