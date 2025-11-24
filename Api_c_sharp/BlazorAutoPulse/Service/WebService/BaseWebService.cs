@@ -1,5 +1,7 @@
 ﻿using BlazorAutoPulse.Service.Interface;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 
 namespace BlazorAutoPulse.Service;
 
@@ -28,7 +30,19 @@ public abstract class BaseWebService<T> : IService<T> where T : class
 
     public virtual async Task<T> CreateAsync(T entity)
     {
-        var response = await _httpClient.PostAsJsonAsync("Post", entity);
+        // Convertit ton objet en JSON
+        var json = JsonSerializer.Serialize(entity, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+
+        Console.WriteLine("JSON envoyé :");
+        Console.WriteLine(json);
+
+        // Envoie du JSON
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync("Post", content);
+
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<T>();
     }

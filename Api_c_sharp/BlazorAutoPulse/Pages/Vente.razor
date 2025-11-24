@@ -9,130 +9,199 @@
     <div class="sell-container">
         <h2 class="section-title">Vendez Votre Voiture</h2>
         <div class="sell-form">
-            @if(@VM.imageUpload != null){
-                <form>
-                    <h3 style="margin-bottom: 30px; color: #00d4ff;">Informations du véhicule</h3>
+            <form>
+                <h3 style="margin-bottom: 30px; color: #00d4ff;">Informations du véhicule</h3>
+                
+                <div class="form-group">
+                    <label>Titre</label>
+                    <input type="text" placeholder="Titre de votre annonce" @bind="VM.annonce.Libelle" required/>
+                </div>
 
+                <div class="form-group">
+                    <label>Photos du véhicule (la première sera la photo de couverture)</label>
+                    <label for="vehiclePhotos" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
+                        <p style="color: #aaa;">Cliquez pour ajouter des photos</p>
+                        <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
+                    </label>
+                    <InputFile id="vehiclePhotos" OnChange="@VM.UploadImage" multiple style="display:none"/>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
-                        <label>Photos du véhicule (la première sera la photo de couverture)</label>
-                        <label for="vehiclePhotos" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
-                            <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
-                            <p style="color: #aaa;">Cliquez pour ajouter des photos</p>
-                            <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
-                        </label>
-                        <InputFile id="vehiclePhotos" OnChange="@VM.UploadImage" multiple style="display:none"/>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Marque</label>
-                            <select @onchange="VM.OnMarqueChanged">
-                                <option value="0">BMW</option>
-                                @if (VMAll.allMarques != null)
+                        <label>Marque</label>
+                        <select @onchange="VM.OnMarqueChanged">
+                            <option value="0" disabled>Toutes les marques</option>
+                            @if (VMAll.allMarques != null)
+                            {
+                                @foreach (var marque in VMAll.allMarques)
                                 {
-                                    @foreach (var marque in VMAll.allMarques)
-                                    {
-                                        <option value="@marque.IdMarque">@marque.LibelleMarque</option>
-                                    }
+                                    <option value="@marque.IdMarque">@marque.LibelleMarque</option>
                                 }
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Modèle</label>
-                            <select @onchange="VM.OnModeleChanged">
-                                <option value="0">M4 CS</option>
-                                @if (VMAll.allModeles != null)
-                                {
-                                    @foreach (var marque in VMAll.allModeles)
-                                    {
-                                        <option value="@marque.IdModele">@marque.LibelleModele</option>
-                                    }
-                                }
-                            </select>
-                        </div>
+                            }
+                        </select>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Année</label>
-                            <input type="number" placeholder="2021" required @bind="VM.annonce.Annee">
-                        </div>
-                        <div class="form-group">
-                            <label>Kilométrage</label>
-                            <input type="number" placeholder="45000" required @bind="VM.annonce.Kilometrage">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Carburant</label>
-                            <select @onchange="VM.OnModeleChanged">
-                                <option value="0">Essence</option>
-                                @if (VMAll.allCarburants != null)
-                                {
-                                    @foreach (var marque in VMAll.allCarburants)
-                                    {
-                                        <option value="@marque.IdCarburant">@marque.LibelleCarburant</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Motricité</label>
-                            <select @onchange="VM.OnModeleChanged">
-                                <option value="0">Propulsion</option>
-                                @if (VMAll.allMotricite != null)
-                                {
-                                    @foreach (var marque in VMAll.allMotricite)
-                                    {
-                                        <option value="@marque.IdMotricite">@marque.LibelleMotricite</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Prix souhaité (€)</label>
-                            <input type="number" placeholder="25000" required>
-                            <button type="button" class="btn-ia" onclick="alert('Estimation IA : Basé sur les informations fournies, un prix juste se situerait entre 29 500 € et 31 000 €.')">✨ Estimer le prix par l'IA</button>
-                        </div>
-                        <div class="form-group">
-                            <label>Couleur</label>
-                            <input type="text" placeholder="Noir, Blanc, Gris..." required @bind="VM.annonce.Couleur">
-                        </div>
-                    </div>
-
                     <div class="form-group">
-                        <label>Adresse</label>
-                        <input type="text" placeholder="123 rue de l'Exemple" required>
+                        <label>Modèle</label>
+                        <select @onchange="VM.OnModeleChanged">
+                            <option value="0" disabled>Tout les modèles</option>
+                            @if (VMAll.allModeles != null)
+                            {
+                                @foreach (var modele in VMAll.allModeles)
+                                {
+                                    <option value="@modele.IdModele">@modele.LibelleModele</option>
+                                }
+                            }
+                        </select>
                     </div>
+                </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Code postal</label>
-                            <input type="text" placeholder="73000" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Ville</label>
-                            <input type="text" placeholder="Chambéry" required>
-                        </div>
-                    </div>
-
+                <div class="form-row">
                     <div class="form-group">
-                        <label>Pays</label>
-                        <input type="text" placeholder="France" required>
+                        <label>Année</label>
+                        <input type="number" placeholder="2021" required @bind="VM.voiture.Annee">
                     </div>
-
                     <div class="form-group">
-                        <label>Description</label>
-                        <textarea placeholder="Décrivez votre véhicule, son état, ses équipements..." required></textarea>
+                        <label>Kilométrage</label>
+                        <input type="number" placeholder="45000" required @bind="VM.voiture.Kilometrage">
                     </div>
+                </div>
 
-                    <button @onclick="@VM.CreateAnnonce" type="button" class="btn-submit" style="margin-top: 20px;">Publier mon annonce</button>
-                </form>
-            }
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Carburant</label>
+                        <select @onchange="VM.OnCarburantChange">
+                            <option value="0" disabled>Tout les carburants</option>
+                            @if (VMAll.allCarburants != null)
+                            {
+                                @foreach (var carburant in VMAll.allCarburants)
+                                {
+                                    <option value="@carburant.IdCarburant">@carburant.LibelleCarburant</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Motricité</label>
+                        <select @onchange="VM.OnMotriciteChange">
+                            <option value="0" disabled>Toutes les motricité</option>
+                            @if (VMAll.allMotricite != null)
+                            {
+                                @foreach (var motricite in VMAll.allMotricite)
+                                {
+                                    <option value="@motricite.IdMotricite">@motricite.LibelleMotricite</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Puissance</label>
+                        <input type="number" placeholder="170" @bind="VM.voiture.Puissance" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Couple</label>
+                        <input type="number" placeholder="122" @bind="VM.voiture.Couple" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre de cylindre</label>
+                        <input type="number" placeholder="170" @bind="VM.voiture.NbCylindres" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date de mise en circulation</label>
+                        <input type="date" placeholder="2000-01-01" @bind="VM.voiture.MiseEnCirculation" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Boite de vitesse</label>
+                        <select @onchange="VM.OnBoiteDeVitesseChange">
+                            <option value="0" disabled>Toutes les boîte de vitesse</option>
+                            @if (VMAll.allBoiteDeVitesse != null)
+                            {
+                                @foreach (var boite in VMAll.allBoiteDeVitesse)
+                                {
+                                    <option value="@boite.IdBoiteDeVitesse">@boite.LibelleBoite</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Catégorie de ma voiture</label>
+                        <select @onchange="VM.OnCategorieChange">
+                            <option value="0" disabled>Toutes les catégorie</option>
+                            @if (VMAll.allBoiteDeVitesse != null)
+                            {
+                                @foreach (var categorie in VMAll.allCategories)
+                                {
+                                    <option value="@categorie.IdCategorie">@categorie.LibelleCategorie</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Prix souhaité (€)</label>
+                        <input type="number" placeholder="25000" @bind="VM.annonce.Prix" required>
+                        <button type="button" class="btn-ia" onclick="alert('Estimation IA : Basé sur les informations fournies, un prix juste se situerait entre 29 500 € et 31 000 €.')">✨ Estimer le prix par l'IA</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Couleur</label>
+                        <select @onchange="VM.OnCouleurChange">
+                            <option value="0" disabled>Toutes les couleur</option>
+                            @if (VMAll.AllCouleurs != null)
+                            {
+                                @foreach (var couleur in VMAll.AllCouleurs)
+                                {
+                                    <option value="@couleur.IdCouleur">@couleur.LibelleCouleur</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Nom de l'adresse</label>
+                    <input type="text" placeholder="123 rue de l'Exemple" @bind="VM.adresse.Nom" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Numéro de rue</label>
+                        <input type="number" placeholder="12" @bind="VM.adresse.Numero" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Rue</label>
+                        <input type="text" placeholder="Rue de l'exemple" @bind="VM.adresse.Rue" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Code postal</label>
+                        <input type="text" placeholder="73000" @bind="VM.adresse.CodePostal" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ville</label>
+                        <input type="text" placeholder="Chambéry" @bind="VM.adresse.LibelleVille" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea placeholder="Décrivez votre véhicule, son état, ses équipements..." required></textarea>
+                </div>
+
+                <button @onclick="@VM.CreateAnnonce" type="button" class="btn-submit" style="margin-top: 20px;">Publier mon annonce</button>
+            </form>
         </div>
     </div>
 </div>
@@ -142,5 +211,6 @@
     protected override async Task OnInitializedAsync()
     {
         await VM.InitializeAsync(StateHasChanged);
+        await VMAll.InitializeAsync();
     }
 }

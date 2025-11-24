@@ -5,6 +5,7 @@ using Api_c_sharp.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Repository.Managers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace App.Controllers;
 
@@ -89,13 +90,15 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// </list>
     /// </returns>
     [ActionName("Post")]
+    [Authorize]
     [HttpPost]
-    public async Task<ActionResult<AnnonceDTO>> Post([FromBody] AnnonceDTO dto)
+    public async Task<ActionResult<AnnonceDTO>> Post([FromBody] AnnonceCreateUpdateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
+        
         var entity = _annonceMapper.Map<Annonce>(dto);
+        entity.DatePublication = DateTime.SpecifyKind(dto.DatePublication, DateTimeKind.Utc);
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdAnnonce }, entity);
@@ -167,14 +170,15 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// </returns>
     [ActionName("GetByIdMiseEnAvant")]
     [HttpGet("{idmiseenavant}")]
-    public async Task<ActionResult<AnnonceDTO>> GetByIdMiseEnAvant(int idmiseenavant)
+    public async Task<ActionResult<List<AnnonceDTO>>> GetByIdMiseEnAvant(int idmiseenavant)
     {
         var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant);
 
-        if (result is null)
+        if (result == null || !result.Any())
             return NotFound();
 
-        return _annonceMapper.Map<AnnonceDTO>(result);
+        var dtos = _annonceMapper.Map<List<AnnonceDTO>>(result);
+        return Ok(dtos);
     }
 
     /// <summary>

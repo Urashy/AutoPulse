@@ -4,6 +4,7 @@ public class Voiture
 {
     public int IdVoiture { get; set; }
     public int IdMarque { get; set; }
+    public int IdModele { get; set; }
     public int IdMotricite { get; set; }
     public int IdCarburant { get; set; }
     public int IdBoiteDeVitesse { get; set; }

@@ -18,15 +18,20 @@ namespace BlazorAutoPulse
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
             //----------------------- Service de base
-            builder.Services.AddScoped<IAnnonceService, AnnonceWebService>();
             builder.Services.AddScoped<IService<Marque>, MarqueWebService>();
             builder.Services.AddScoped<IService<Compte>, CompteWebService>();
             builder.Services.AddScoped<IService<Image>, ImageWebService>();
             builder.Services.AddScoped<IService<Carburant>, CarburantWebService>();
             builder.Services.AddScoped<IService<Categorie>, CategorieWebService>();
             builder.Services.AddScoped<IService<TypeCompte>, TypeCompteWebService>();
+            builder.Services.AddScoped<IService<BoiteDeVitesse>, BoiteVitesseWebService>();
+            builder.Services.AddScoped<IService<Motricite>, MotriciteWebService>();
+            builder.Services.AddScoped<IService<Couleur>, CouleurWebService>();
+            builder.Services.AddScoped<IService<Voiture>, VoitureWebService>();
+            builder.Services.AddScoped<IService<Adresse>, AdresseWebService>();
 
             //----------------------- Service avec interface spécifique
+            builder.Services.AddScoped<IAnnonceService, AnnonceWebService>();
             builder.Services.AddScoped<IModeleService, ModeleWebService>();
             builder.Services.AddScoped<IServiceConnexion, ConnexionWebService>();
             builder.Services.AddScoped<IPostImageService, PostImageWebService>();
