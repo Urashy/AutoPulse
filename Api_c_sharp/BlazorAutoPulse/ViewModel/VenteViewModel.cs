@@ -15,13 +15,16 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IPostImageService _postImageService;
 
         //-------------------------------- Modele
-        public ImageUpload imageUpload;
+        public List<ImageUpload> imageUpload;
         
         public Annonce annonce;
         public Voiture voiture;
         public Adresse adresse;
+        
+        public List<string> nomPhotos { get; set; } = new();
 
         private Action? _refreshUI;
+        private NavigationManager _nav;
 
         public VenteViewModel(
             IAnnonceService annonceService, 
@@ -33,7 +36,7 @@ namespace BlazorAutoPulse.ViewModel
             _voitureService = voitureService;
             _postImageService = postImageService;
             _adresseService = adresseService;
-            imageUpload = new ImageUpload();
+            imageUpload = new List<ImageUpload>();
             
             annonce = new Annonce()
             {
@@ -60,14 +63,21 @@ namespace BlazorAutoPulse.ViewModel
             adresse = new Adresse();
         }
 
-        public async Task InitializeAsync(Action refreshUI)
+        public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
         {
             _refreshUI = refreshUI;
+            _nav = nav;
         }
 
         public async Task UploadImage(InputFileChangeEventArgs e)
         {
-            imageUpload.File = e.File;
+            foreach (var file in e.GetMultipleFiles())
+            {
+                nomPhotos.Add(file.Name);
+                ImageUpload image = new ImageUpload();
+                image.File = file;
+                imageUpload.Add(image);
+            }
 
             _refreshUI?.Invoke();
         }
@@ -85,6 +95,11 @@ namespace BlazorAutoPulse.ViewModel
         public void OnCarburantChange(ChangeEventArgs e)
         {
             voiture.IdCarburant = int.Parse(e.Value.ToString());
+            if (voiture.IdCarburant == 4)
+            {
+                voiture.IdBoiteDeVitesse = 2;
+            }
+            _refreshUI?.Invoke();
         }
 
         public void OnMotriciteChange(ChangeEventArgs e)
@@ -109,7 +124,10 @@ namespace BlazorAutoPulse.ViewModel
         
         public async Task CreateAnnonce()
         {
-            await _postImageService.CreateAsync(imageUpload);
+            foreach (var image in imageUpload)
+            {
+                await _postImageService.CreateAsync(image);
+            }
             adresse.IdAdresse = 0;
             adresse.IdPays = 1;
             adresse.IdCompte = 1;
@@ -118,6 +136,7 @@ namespace BlazorAutoPulse.ViewModel
             annonce.IdAdresse = resultAdr.IdAdresse;
             annonce.IdVoiture = resultVoiture.IdVoiture;
             var resultAnnonce = await _annonceService.CreateAsync(annonce);
+            _nav.NavigateTo("/");
             _refreshUI?.Invoke();
         }
     }

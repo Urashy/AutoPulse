@@ -16,7 +16,9 @@ public class MapperProfile : Profile
         CreateMap<Marque, MarqueDTO>().ReverseMap();
 
         CreateMap<Modele, ModeleDTO>().ReverseMap();
-        
+        CreateMap<APourConversation, APourConversationDTO>().ReverseMap();
+        CreateMap<APourCouleur, APourCouleurDTO>().ReverseMap();
+
         CreateMap<Carburant, CarburantDTO>().ReverseMap();
         CreateMap<BoiteDeVitesse, BoiteDeVitesseDTO>().ReverseMap();
         CreateMap<Categorie, CategorieDTO>().ReverseMap();
