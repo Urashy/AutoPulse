@@ -78,7 +78,7 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => "N/A")) // À mapper avec la vraie relation Modele si disponible
             .ForMember(dest => dest.Carburant, 
                 opt => opt.MapFrom(src => src.CarburantVoitureNavigation.LibelleCarburant))
-            .ForMember(dest => dest.Couleur, 
+            .ForMember(dest => dest.LibelleCouleur, 
                 opt => opt.MapFrom(src => src.APourCouleurs.FirstOrDefault().APourCouleurCouleurNav.LibelleCouleur ?? "Non spécifié")).ReverseMap()
             .ReverseMap();
         
@@ -97,16 +97,10 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.APourCouleurs.FirstOrDefault().APourCouleurCouleurNav.LibelleCouleur ?? "Non spécifié"))
             .ForMember(dest => dest.LibelleCategorie, 
                 opt => opt.MapFrom(src => src.CategorieVoitureNavigation.LibelleCategorie))
-            .ForMember(dest => dest.NbPlaces, 
-                opt => opt.MapFrom(src => 0)) // À mapper avec Modele
-            .ForMember(dest => dest.NbPortes, 
-                opt => opt.MapFrom(src => 0)) // À mapper avec Modele
             .ForMember(dest => dest.LienModeleBlender, 
                 opt => opt.MapFrom(src => src.ModeleBlenderNavigation != null ? src.ModeleBlenderNavigation.Lien : null))
             .ForMember(dest => dest.Images, 
                 opt => opt.MapFrom(src => src.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList())).ReverseMap();
-        
-        CreateMap<VoitureUpdateDTO, Voiture>();
         
         // ============================================
         // MAPPERS ANNONCE

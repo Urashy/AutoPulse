@@ -29,10 +29,6 @@ namespace Api_c_sharp.Models
         [Required]
         public int IdBoiteDeVitesse{ get; set; }
 
-        [Column("cou_id")]
-        [Required]
-        public int IdCouleur{ get; set; }
-
         [Column("cat_id")]
         [Required]
         public int IdCategorie{ get; set; }
