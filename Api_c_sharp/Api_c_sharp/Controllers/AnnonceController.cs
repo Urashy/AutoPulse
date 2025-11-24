@@ -90,7 +90,6 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// </list>
     /// </returns>
     [ActionName("Post")]
-    [Authorize]
     [HttpPost]
     public async Task<ActionResult<AnnonceDTO>> Post([FromBody] AnnonceCreateUpdateDTO dto)
     {

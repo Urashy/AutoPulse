@@ -46,11 +46,11 @@ textarea {
     resize: vertical;
 }
 
-    textarea:focus,
-    .form-group input:focus,
-    .form-group select:focus {
-        border-color: #00d4ff;
-    }
+textarea:focus,
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #00d4ff;
+}
 
 .file-upload {
     width: 100%;
@@ -63,9 +63,9 @@ textarea {
     transition: border 0.3s;
 }
 
-    .file-upload:hover {
-        border-color: #00d4ff;
-    }
+.file-upload:hover {
+    border-color: #00d4ff;
+}
 
 .btn-submit {
     width: 100%;
@@ -107,30 +107,20 @@ textarea {
     gap: 20px;
 }
 
-.autocomplete-container {
-    position: relative;
-    width: 100%;
+input:disabled,
+select:disabled,
+textarea:disabled {
+    background-color: rgba(255, 0, 0, 0.51);
+    border-color: #ccc;
+    color: white;
 }
 
-.dropdown-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ccc;
-    border-top: none;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+.photos-list {
+    margin-top: 10px;
+    padding-left: 20px;
 }
 
-.dropdown-item {
-    padding: 10px;
-    cursor: pointer;
-}
-
-.dropdown-item:hover {
-    background-color: #f0f0f0;
+.photos-list li {
+    color: #444;
+    margin-bottom: 4px;
 }
