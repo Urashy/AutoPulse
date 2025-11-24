@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new BoiteDeVitesseManager(_context);
             _controller = new BoiteDeVitesseController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.BoitesDeVitesses.RemoveRange(_context.BoitesDeVitesses);
             await _context.SaveChangesAsync();
 
             var objet = new BoiteDeVitesse()

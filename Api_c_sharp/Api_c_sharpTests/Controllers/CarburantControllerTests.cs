@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new CarburantManager(_context);
             _controller = new CarburantController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.Carburants.RemoveRange(_context.Carburants);
             await _context.SaveChangesAsync();
 
             var objet = new Carburant()

@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new EtatSignalementManager(_context);
             _controller = new EtatSignalementController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.EtatSignalements.RemoveRange(_context.EtatSignalements);
             await _context.SaveChangesAsync();
 
             var objet = new EtatSignalement()

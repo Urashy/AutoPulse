@@ -44,8 +44,7 @@ namespace App.Controllers.Tests
             _manager = new PaysManager(_context);
             _controller = new PaysController(_manager, _mapper);
 
-            // Correction : suppression des TypesJournal au lieu des Commandes
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.Pays.RemoveRange(_context.Pays);
             await _context.SaveChangesAsync();
 
             var objet = new Pays()

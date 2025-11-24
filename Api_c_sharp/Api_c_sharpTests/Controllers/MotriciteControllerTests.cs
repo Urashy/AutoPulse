@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new MotriciteManager(_context);
             _controller = new MotriciteController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.Motricites.RemoveRange(_context.Motricites);
             await _context.SaveChangesAsync();
 
             var objet = new Motricite()

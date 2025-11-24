@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new ModeleBlenderManager(_context);
             _controller = new ModeleBlenderController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.ModelesBlender.RemoveRange(_context.ModelesBlender);
             await _context.SaveChangesAsync();
 
             var objet = new ModeleBlender()
