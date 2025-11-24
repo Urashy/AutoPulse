@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new CategorieManager(_context);
             _controller = new CategorieController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.Categories.RemoveRange(_context.Categories);
             await _context.SaveChangesAsync();
 
             var objet = new Categorie()

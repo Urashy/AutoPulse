@@ -1,9 +1,10 @@
-﻿using Api_c_sharp.Mapper;
+﻿using Api_c_sharp.Controllers;
+using Api_c_sharp.DTO;
+using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using Api_c_sharp.DTO;
 using App.Controllers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -13,18 +14,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Api_c_sharp.Controllers;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace App.Controllers.Tests
 {
     [TestClass()]
-    public class VoitureControllerTests
+    public class AdresseControllerTests
     {
-        private VoitureController _controller;
+        private AdresseController _controller;
         private AutoPulseBdContext _context;
-        private VoitureManager _manager;
+        private AdresseManager _manager;
         private IMapper _mapper;
-        private Voiture _objetcommun;
+        private Adresse _objetcommun;
 
         [TestInitialize]
         public async Task Initialize()
@@ -41,38 +42,52 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
-            _manager = new VoitureManager(_context);
-            _controller = new VoitureController(_manager, _mapper);
+            _manager = new AdresseManager(_context);
+            _controller = new AdresseController(_manager, _mapper);
 
-            _context.Voitures.RemoveRange(_context.Voitures);
+            _context.Adresses.RemoveRange(_context.Adresses);
             await _context.SaveChangesAsync();
 
-            _context.Marques.Add(new Marque { IdMarque = 1, LibelleMarque = "TestMarque" });
-            _context.Motricites.Add(new Motricite { IdMotricite = 1, LibelleMotricite = "4x4" });
-            _context.Carburants.Add(new Carburant { IdCarburant = 1, LibelleCarburant = "Essence" });
-            _context.BoitesDeVitesses.Add(new BoiteDeVitesse { IdBoiteDeVitesse = 1, LibelleBoite = "Manuelle" });
-            _context.Categories.Add(new Categorie { IdCategorie = 1, LibelleCategorie = "SUV" });
-            _context.Modeles.Add(new Modele { IdModele = 1, LibelleModele = "Modele Test" });
-
-            await _context.SaveChangesAsync();
-
-            var objet = new Voiture()
+            var pays = new Pays
             {
-                IdMarque = 1,
-                IdMotricite = 1,
-                IdCarburant = 1,
-                IdBoiteDeVitesse = 1,
-                IdCategorie = 1,
-                Kilometrage = 10000,
-                Annee = 2020,
-                Puissance = 150,
-                MiseEnCirculation = DateTime.Now,
-                IdModele = 1,
-                NbPlace = 5,
-                NbPorte = 5
+                Libelle = "France"
             };
 
-            await _context.Voitures.AddAsync(objet);
+            _context.Pays.Add(pays);
+            await _context.SaveChangesAsync(); // important pour récupérer l'IdPays
+
+
+            // 2. Création du compte
+            var compte = new Compte
+            {
+                Pseudo = "testuser",
+                MotDePasse = "Password123!",
+                Nom = "Dupont",
+                Prenom = "Jean",
+                Email = "jean.dupont@test.com",
+                DateCreation = DateTime.Now,
+                DateDerniereConnexion = null,
+                DateNaissance = new DateTime(2000, 1, 1),
+                IdTypeCompte = 1 // à adapter selon ta table TypeCompte
+            };
+
+            _context.Comptes.Add(compte);
+            await _context.SaveChangesAsync(); // pour récupérer l'IdCompte
+
+
+            // 3. Création de l'adresse (avec les FKs)
+            var objet = new Adresse
+            {
+                Nom = "Domicile",
+                LibelleVille = "Annecy",
+                CodePostal = "74000",
+                Rue = "Route de test",
+                Numero = 12,
+                IdPays = pays.IdPays,         // clé étrangère vers Pays
+                IdCompte = compte.IdCompte    // clé étrangère vers Compte
+            };
+
+            _context.Adresses.Add(objet);
             await _context.SaveChangesAsync();
 
             _objetcommun = objet;
@@ -82,13 +97,13 @@ namespace App.Controllers.Tests
         public async Task GetByIdTest()
         {
             // Act
-            var result = await _controller.GetByID(_objetcommun.IdBoiteDeVitesse);
+            var result = await _controller.GetByID(_objetcommun.IdAdresse);
 
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(VoitureDetailDTO));
-            Assert.AreEqual(_objetcommun.Puissance, result.Value.Puissance);
+            Assert.AreEqual(_objetcommun.Rue, result.Value.Rue);
         }
 
         [TestMethod]
@@ -113,45 +128,41 @@ namespace App.Controllers.Tests
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<VoitureDTO>));
             Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Kilometrage == _objetcommun.Kilometrage));
+            Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
         }
 
         [TestMethod]
         public async Task PostVoitureTest_Entity()
         {
-            var voiture = new VoitureCreateDTO
+            var adresse = new AdresseDTO()
             {
-                IdMarque = 1,
-                IdMotricite = 1,
-                IdCarburant = 1,
-                IdBoiteDeVitesse = 1,
-                IdCategorie = 1,
-                Kilometrage = 12000,
-                Annee = 2022,
-                Puissance = 140,
-                MiseEnCirculation = DateTime.Now,
-                IdModele = 1,
-                NbPlace = 5,
-                NbPorte = 5
-            };
+                Nom = "Domicile",
+                LibelleVille = "Annecy",
+                CodePostal = "74000",
+                Rue = "Route de test",
+                Numero = 12,
+                IdPays = 1,       // clé étrangère vers Pays
+                IdCompte = 1
+            }
+            ;
 
-            var actionResult = await _controller.Post(voiture);
+            var actionResult = await _controller.Post(adresse);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
-            var createdVoiture = (Voiture)created.Value;
-            Assert.AreEqual(voiture.Kilometrage, createdVoiture.Kilometrage);
+            var createdVoiture = (Adresse)created.Value;
+            Assert.AreEqual(adresse.Rue, createdVoiture.Rue);
         }
 
 
         [TestMethod]
         public async Task DeleteVoitureTest()
         {
-            var result = await _controller.Delete(_objetcommun.IdVoiture);
+            var result = await _controller.Delete(_objetcommun.IdAdresse);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedVoiture = await _manager.GetByIdAsync(_objetcommun.IdVoiture);
+            var deletedVoiture = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
             Assert.IsNull(deletedVoiture);
         }
 

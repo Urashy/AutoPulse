@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new EtatAnnonceManager(_context);
             _controller = new EtatAnnonceController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.EtatAnnonces.RemoveRange(_context.EtatAnnonces);
             await _context.SaveChangesAsync();
 
             var objet = new EtatAnnonce()

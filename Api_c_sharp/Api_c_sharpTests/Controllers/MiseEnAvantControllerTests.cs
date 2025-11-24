@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new MiseEnAvantManager(_context);
             _controller = new MiseEnAvantController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.MisesEnAvant.RemoveRange(_context.MisesEnAvant);
             await _context.SaveChangesAsync();
 
             var objet = new MiseEnAvant()

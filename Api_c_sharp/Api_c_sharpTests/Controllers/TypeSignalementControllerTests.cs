@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new TypeSignalementManager(_context);
             _controller = new TypeSignalementController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.TypesSignalement.RemoveRange(_context.TypesSignalement);
             await _context.SaveChangesAsync();
 
             var objet = new TypeSignalement()

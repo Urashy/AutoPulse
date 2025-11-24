@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new MarqueManager(_context);
             _controller = new MarqueController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.Marques.RemoveRange(_context.Marques);
             await _context.SaveChangesAsync();
 
             var objet = new Marque()
