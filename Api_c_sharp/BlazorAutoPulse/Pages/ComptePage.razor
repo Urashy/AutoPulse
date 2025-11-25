@@ -1,8 +1,7 @@
 @page "/compte"
 @using BlazorAutoPulse.ViewModel
-@inject HomeViewModel VM
 @inject NavigationManager Navigation
-@inject CompteViewModel CVM
+@inject CompteViewModel VM
 
 <PageTitle>Mon Compte - AutoPulse</PageTitle>
 
@@ -11,8 +10,6 @@
         <div class="profile-section">
             <!-- Photo de profil -->
             <img src="" alt="Photo de Profil" class="profile-photo" />
-            <h3>@CVM.allComptes</h3>
-            <p>@VM.</p>
         </div>
 
         <nav class="navbar">
@@ -31,22 +28,19 @@
 
         <!-- Informations personnelles -->
         <div class="info-item">
-            <strong>Nom:</strong> @VM.
+            <strong>Nom:</strong> @VM.compte.Nom
         </div>
         <div class="info-item">
-            <strong>Prénom:</strong> @VM.
+            <strong>Prénom:</strong> @VM.compte.Prenom
         </div>
         <div class="info-item">
-            <strong>Date de naissance:</strong> @VM..ToString("dd/MM/yyyy")
+            <strong>Date de naissance:</strong> @VM.compte.DateNaissance
         </div>
         <div class="info-item">
-            <strong>Pseudo:</strong> @VM.
+            <strong>Pseudo:</strong> @VM.compte.Pseudo
         </div>
         <div class="info-item">
-            <strong>Email:</strong> @VM.
-        </div>
-        <div class="info-item">
-            <strong>Type de compte:</strong> @VM.
+            <strong>Email:</strong> @VM.compte.Email
         </div>
 
         <!-- Informations pour vendeur pro -->
@@ -70,10 +64,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Initialisation de l'utilisateur et des informations de profil
-        // await VM.LoadUserProfileAsync();
-
-        await CVM.InitializeAsync(StateHasChanged);
+        await VM.InitializeAsync(StateHasChanged);
     }
 
     private void EditProfile()

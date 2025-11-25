@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using BlazorAutoPulse.Model;
 
@@ -7,16 +8,13 @@ public class ConnexionWebService : IServiceConnexion
 {
     private readonly HttpClient _httpClient = new()
     {
-        BaseAddress = new Uri("http://localhost:5086/api/Login/")
+        BaseAddress = new Uri("https://localhost:7295/api/Compte/")
     };
 
-    public async Task<Compte> LoginUser(LoginRequest compte)
+    public async Task<HttpStatusCode> LoginUser(LoginRequest compte)
     {
         var response = await _httpClient.PostAsJsonAsync("Login", compte);
         response.EnsureSuccessStatusCode();
-
-        var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-
-        return loginResponse?.UserDetails;
+        return response.StatusCode;
     }
 }

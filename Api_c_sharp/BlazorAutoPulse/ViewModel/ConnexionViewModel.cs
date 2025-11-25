@@ -1,5 +1,7 @@
+using System.Net;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Authentification;
+using Microsoft.AspNetCore.Components;
 
 namespace BlazorAutoPulse.ViewModel;
 
@@ -9,19 +11,20 @@ public class ConnexionViewModel
     
     public string emailUtilisateur { get; set; }
     public string motDePasseUtilisateur { get; set; }
-    
-    public Compte User { get; set; }
+    private HttpStatusCode httpCode;
     
     private Action? _refreshUI;
+    private NavigationManager _nav;
 
     public ConnexionViewModel(IServiceConnexion connexionService)
     {
         _connexionService  = connexionService;
     }
 
-    public async Task InitializeAsync(Action refreshUI)
+    public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
     {
         _refreshUI = refreshUI;
+        _nav = nav;
     }
 
     public async Task ConnexionUtilisateur()
@@ -31,9 +34,16 @@ public class ConnexionViewModel
             Email = emailUtilisateur,
             MotDePasse = motDePasseUtilisateur,
         };
-
-        User = await _connexionService.LoginUser(req);
-        await Task.Delay(100);
-        _refreshUI?.Invoke();
+        
+        httpCode = await _connexionService.LoginUser(req);
+        if (httpCode == HttpStatusCode.OK)
+        {
+            await Task.Delay(100);
+            //_nav.NavigateTo("Compte");
+        }
+        else
+        {
+            Console.WriteLine("Erreur lors de la connexion de l'utilisateur");
+        }
     }
 }

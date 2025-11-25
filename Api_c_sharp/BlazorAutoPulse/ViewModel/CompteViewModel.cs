@@ -5,21 +5,22 @@ namespace BlazorAutoPulse.ViewModel
 {
     public class CompteViewModel
     {
-        private readonly IService<Compte> _compteService;
+        private readonly ICompteService _compteService;
 
-        public Compte[] allComptes;
+        public Compte compte;
         private Action? _refreshUI;
 
-        public CompteViewModel(IService<Compte> compteService)
-            {
+        public CompteViewModel(ICompteService compteService)
+        {
             _compteService = compteService;
-            }
+        }
+        
         public async Task InitializeAsync(Action refreshUI)
         {
             _refreshUI = refreshUI;
-
             
-            allComptes = (await _compteService.GetAllAsync()).ToArray();
+            compte = new Compte();
+            compte = await _compteService.GetMe();
         }
     }
 }

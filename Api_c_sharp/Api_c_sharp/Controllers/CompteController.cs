@@ -7,6 +7,13 @@ using System.Security.Cryptography;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Repository.Managers;
+using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.IdentityModel.Tokens;
+using Api_c_sharp.Models.Authentification;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
 
 namespace App.Controllers;
 
@@ -18,7 +25,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CompteController(CompteManager _manager, IMapper _compteMapper) : ControllerBase
+public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config) : ControllerBase
 {
     /// <summary>
     /// Récupère une annoncs à partir de son identifiant.
@@ -40,6 +47,24 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper) : C
             return NotFound();
 
         return _compteMapper.Map<CompteDetailDTO>(result);
+    }
+    
+    [ActionName("GetMe")]
+    [Authorize]
+    [HttpGet]
+    public IActionResult GetMe()
+    {
+        var claim = User.FindFirst("idUser")?.Value;
+        if (string.IsNullOrEmpty(claim))
+            return Unauthorized();
+
+        int userId = int.Parse(claim);
+        Compte user = _manager.GetByIdAsync(userId).Result;
+
+        if (user == null)
+            return NotFound();
+
+        return Ok(user);
     }
 
     /// <summary>
@@ -201,6 +226,81 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper) : C
             return NotFound();
 
         return new ActionResult<IEnumerable<CompteListDTO>>(_compteMapper.Map<IEnumerable<CompteListDTO>>(result));
+    }
+    
+    //----------------------------------------------
+    // LOGIN
+    //----------------------------------------------
+    [HttpPost]
+    [AllowAnonymous]
+    public IActionResult Login([FromBody] LoginRequest login)
+    {
+        IActionResult response = Unauthorized();
+        Compte compte = AuthenticateCompte(login);
+        if (compte != null)
+        {
+            var tokenString = GenerateJwtToken(login);
+            CookieOptions cookieOptions = new CookieOptions()
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.None,
+                Secure = true,
+                Expires = DateTimeOffset.UtcNow.AddDays(1),
+            };
+            Response.Cookies.Append("access_token", tokenString, cookieOptions);
+        }
+        
+        return Ok(new {message = "Login OK"});
+    }
+
+    /// <summary>
+    /// Vérifie si un utilisateur existe dans la base de données en fonction du mot de passe.
+    /// </summary>
+    /// <param name="mdp">Mot de passe à vérifier.</param>
+    /// <returns>Vrai si l'utilisateur avec ce mot de passe existe, sinon faux.</returns>
+    [HttpGet("{mdp}")]
+    public bool VerifUser(string mdp)
+    {
+        string hash = ComputeSha256Hash(mdp);
+        return _manager.VerifMotDePasse(hash) != null;
+    }
+
+    /// <summary>
+    /// Authentifie un compte utilisateur avec les informations de connexion.
+    /// </summary>
+    /// <param name="login">Les informations de connexion de l'utilisateur.</param>
+    /// <returns>Le compte utilisateur si l'authentification réussit, sinon null.</returns>
+    private Compte AuthenticateCompte(LoginRequest login)
+    {
+        return _manager.AuthenticateCompte(login.Email, ComputeSha256Hash(login.MotDePasse)).Result;
+    }
+
+    /// <summary>
+    /// Génère un jeton JWT pour un utilisateur authentifié.
+    /// </summary>
+    /// <param name="compteInfo">Les informations de l'utilisateur pour générer le jeton.</param>
+    /// <returns>Le jeton JWT généré.</returns>
+    private string GenerateJwtToken(LoginRequest compteInfo)
+    {
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:SecretKey"]));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        Compte compte = _manager.GetByNameAsync(compteInfo.Email).Result;
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, compteInfo.Email),
+            new Claim("role", "Authorized"),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("idUser", compte.IdCompte.ToString()),
+        };
+        
+        var token = new JwtSecurityToken(
+            issuer: config["Jwt:Issuer"],
+            audience: config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.Now.AddMinutes(30),
+            signingCredentials: credentials
+        );
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     /// <summary>
