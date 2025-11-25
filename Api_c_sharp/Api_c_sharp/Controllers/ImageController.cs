@@ -89,11 +89,11 @@ namespace Api_c_sharp.Controllers
         }
 
         // GET BY ID
-        [ActionName("GetByVoitureId")]
-        [HttpGet("{id}")]
+        [ActionName("GetFirstImage")]
+        [HttpGet("{voitureId}")]
         public async Task<ActionResult<IEnumerable<ImageDTO>>> GetImagesByVoitureId(int voitureId)
         {
-            var imageEntity = await _manager.GetByIdAsync(voitureId);
+            var imageEntity = await _manager.GetFirstImageByVoitureID(voitureId);
 
             if (imageEntity == null || imageEntity.Fichier == null)
                 return NotFound();
@@ -101,5 +101,12 @@ namespace Api_c_sharp.Controllers
             return File(imageEntity.Fichier, "image/jpeg");
         }
 
+        [ActionName("GetAllImagesByVoitureId")]
+        [HttpGet("{voitureId}")]
+        public async Task<ActionResult<IEnumerable<int>>> GetAllImagesByVoitureId(int voitureId)
+        {
+            var listId = await _manager.GetAllImagesByVoitureId(voitureId);
+            return listId == null ? NoContent() : Ok(listId);
+        }
     }
 }

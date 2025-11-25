@@ -11,6 +11,7 @@ public class AnnonceDTO
     // Informations voiture essentielles
     public string Marque { get; set; }
     public string Modele { get; set; }
+    public int IdVoiture { get; set; }
     public int Annee { get; set; }
     public int Kilometrage { get; set; }
     public string Carburant { get; set; }

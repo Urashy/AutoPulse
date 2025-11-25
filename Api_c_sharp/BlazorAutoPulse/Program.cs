@@ -29,6 +29,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IService<Couleur>, CouleurWebService>();
             builder.Services.AddScoped<IService<Voiture>, VoitureWebService>();
             builder.Services.AddScoped<IService<Adresse>, AdresseWebService>();
+            builder.Services.AddScoped<IService<APourCouleur>, APourCouleurWebService>();
 
             //----------------------- Service avec interface spécifique
             builder.Services.AddScoped<IAnnonceService, AnnonceWebService>();
@@ -42,6 +43,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<CreationCompteViewModel>();
             builder.Services.AddScoped<VenteViewModel>();
             builder.Services.AddScoped<RechercheViewModel>();
+            builder.Services.AddScoped<AnnonceComposantViewModel>();
             builder.Services.AddScoped<GetAllViewModel>();
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });

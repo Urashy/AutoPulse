@@ -1,8 +1,14 @@
 @using BlazorAutoPulse.Model
+@using BlazorAutoPulse.ViewModel
+@inject AnnonceComposantViewModel VM
 
 <div class="car-card">
     <div class="car-image">
-        <div class="car-badge">RÉCENT</div>
+        @if (@Annonce.DatePublication >= DateTime.Now.AddMonths(-1))
+        {
+            <div class="car-badge">RÉCENT</div>
+        }
+        <img src="@VM.GetFirstImage(Annonce.IdVoiture)"/>
     </div>
     <div class="car-info">
         <h3 class="car-title">@Annonce.Libelle</h3>

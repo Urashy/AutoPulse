@@ -21,7 +21,7 @@ public class GetAllViewModel
     public Motricite[] allMotricite;
     public Categorie[] allCategories;
     public BoiteDeVitesse[] allBoiteDeVitesse;
-    public Couleur[] AllCouleurs;
+    public Couleur[] allCouleurs;
     
     public GetAllViewModel(
         IService<Marque> marqueService,
@@ -51,6 +51,33 @@ public class GetAllViewModel
         allCategories = (await _categorieService.GetAllAsync()).ToArray();
         allMotricite = (await _motriciteService.GetAllAsync()).ToArray();
         allBoiteDeVitesse = (await _boiteVitesseService.GetAllAsync()).ToArray();
-        AllCouleurs = (await _couleurService.GetAllAsync()).ToArray();
+        allCouleurs = (await _couleurService.GetAllAsync()).ToArray();
+    }
+    
+    public async Task OnMarqueChanged(ChangeEventArgs e)
+    {
+        string SelectedMarque = e.Value?.ToString() ?? "0";
+        string SelectedModele = "";
+
+        if (SelectedMarque == "0")
+        {
+            filteredModeles = allModeles;
+        }
+        else
+        {
+            await FiltrerModeleParMarque(int.Parse(SelectedMarque));
+        }
+    }
+
+    private async Task FiltrerModeleParMarque(int idMarque)
+    {
+        if (idMarque == 0)
+        {
+            filteredModeles = allModeles;
+        }
+        else
+        {
+            filteredModeles = (await _modeleService.FiltreModeleParMarque(idMarque)).ToArray();
+        }
     }
 }

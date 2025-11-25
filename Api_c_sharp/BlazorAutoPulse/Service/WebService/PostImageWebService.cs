@@ -28,9 +28,19 @@ namespace BlazorAutoPulse.Service.WebService
             return await response.Content.ReadFromJsonAsync<Image>();
         }
 
-        public string GetImageUrl(int id)
+        public string GetImage(int id)
         {
             return $"{_httpClient.BaseAddress}GetById/{id}";
+        }
+
+        public string GetFirstImage(int id)
+        {
+            return $"{_httpClient.BaseAddress}GetFirstImage/{id}";
+        }
+
+        public string GetAllIdImage(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

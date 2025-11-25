@@ -13,6 +13,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IService<Voiture> _voitureService;
         private readonly IService<Adresse> _adresseService;
         private readonly IPostImageService _postImageService;
+        private readonly IService<APourCouleur> _aPourCouleurService;
 
         //-------------------------------- Modele
         public List<ImageUpload> imageUpload;
@@ -22,6 +23,12 @@ namespace BlazorAutoPulse.ViewModel
         public Adresse adresse;
         
         public List<string> nomPhotos { get; set; } = new();
+        public List<int> selectedCouleurs { get; set; } = new();
+        public bool dropdownOpen = false;
+
+        // Gestion des erreurs
+        public Dictionary<string, string> errors { get; set; } = new();
+        public bool showErrors { get; set; } = false;
 
         private Action? _refreshUI;
         private NavigationManager _nav;
@@ -30,12 +37,15 @@ namespace BlazorAutoPulse.ViewModel
             IAnnonceService annonceService, 
             IService<Voiture> voitureService, 
             IPostImageService postImageService,
-            IService<Adresse> adresseService)
+            IService<Adresse> adresseService,
+            IService<APourCouleur> aPourCouleurService)
         {
             _annonceService = annonceService;
             _voitureService = voitureService;
             _postImageService = postImageService;
             _adresseService = adresseService;
+            _aPourCouleurService = aPourCouleurService;
+            
             imageUpload = new List<ImageUpload>();
             
             annonce = new Annonce()
@@ -61,6 +71,8 @@ namespace BlazorAutoPulse.ViewModel
             };
             voiture.MiseEnCirculation = DateTime.Now;
             adresse = new Adresse();
+            
+            selectedCouleurs = new List<int>();
         }
 
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -78,6 +90,9 @@ namespace BlazorAutoPulse.ViewModel
                 image.File = file;
                 imageUpload.Add(image);
             }
+            
+            if (errors.ContainsKey("photos"))
+                errors.Remove("photos");
 
             _refreshUI?.Invoke();
         }
@@ -85,11 +100,16 @@ namespace BlazorAutoPulse.ViewModel
         public void OnMarqueChanged(ChangeEventArgs e)
         {
             voiture.IdMarque = int.Parse(e.Value.ToString());
+            if (voiture.IdMarque != 0 && errors.ContainsKey("marque"))
+                errors.Remove("marque");
+            _refreshUI?.Invoke();
         }
         
         public void OnModeleChanged(ChangeEventArgs e)
         {
             voiture.IdModele = int.Parse(e.Value.ToString());
+            if (voiture.IdModele != 0 && errors.ContainsKey("modele"))
+                errors.Remove("modele");
         }
 
         public void OnCarburantChange(ChangeEventArgs e)
@@ -99,45 +119,193 @@ namespace BlazorAutoPulse.ViewModel
             {
                 voiture.IdBoiteDeVitesse = 2;
             }
+            if (voiture.IdCarburant != 0 && errors.ContainsKey("carburant"))
+                errors.Remove("carburant");
             _refreshUI?.Invoke();
         }
 
         public void OnMotriciteChange(ChangeEventArgs e)
         {
             voiture.IdMotricite = int.Parse(e.Value.ToString());
+            if (voiture.IdMotricite != 0 && errors.ContainsKey("motricite"))
+                errors.Remove("motricite");
         }
         
         public void OnBoiteDeVitesseChange(ChangeEventArgs e)
         {
             voiture.IdBoiteDeVitesse = int.Parse(e.Value.ToString());
+            if (voiture.IdBoiteDeVitesse != 0 && errors.ContainsKey("boitedevitesse"))
+                errors.Remove("boitedevitesse");
         }
         
         public void OnCategorieChange(ChangeEventArgs e)
         {
             voiture.IdCategorie = int.Parse(e.Value.ToString());
+            if (voiture.IdCategorie != 0 && errors.ContainsKey("categorie"))
+                errors.Remove("categorie");
         }
         
-        public void OnCouleurChange(ChangeEventArgs e)
+        public void ToggleCouleur(int idCouleur)
         {
-            voiture.IdCouleur = int.Parse(e.Value.ToString());
+            if (selectedCouleurs.Contains(idCouleur))
+                selectedCouleurs.Remove(idCouleur);
+            else
+                selectedCouleurs.Add(idCouleur);
+            
+            if (selectedCouleurs.Any() && errors.ContainsKey("couleurs"))
+                errors.Remove("couleurs");
+            
+            _refreshUI?.Invoke();
         }
         
+        public void ToggleDropdown()
+        {
+            dropdownOpen = !dropdownOpen;
+            _refreshUI?.Invoke();
+        }
+
+        public void CloseDropdown()
+        {
+            if (dropdownOpen)
+            {
+                dropdownOpen = false;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        private bool ValidateForm()
+        {
+            errors.Clear();
+
+            if (string.IsNullOrWhiteSpace(annonce.Libelle))
+                errors.Add("titre", "Le titre est requis");
+
+            if (!nomPhotos.Any())
+                errors.Add("photos", "Au moins une photo est requise");
+
+            if (voiture.IdMarque == null || voiture.IdMarque == 0)
+                errors.Add("marque", "Veuillez sélectionner une marque");
+
+            if (voiture.IdModele == null || voiture.IdModele == 0)
+                errors.Add("modele", "Veuillez sélectionner un modèle");
+
+            if (voiture.Annee == 0 || voiture.Annee < 1900 || voiture.Annee > DateTime.Now.Year + 1)
+                errors.Add("annee", "Année invalide");
+
+            if (voiture.Kilometrage < 0)
+                errors.Add("kilometrage", "Kilométrage invalide");
+
+            if (voiture.IdCarburant == null || voiture.IdCarburant == 0)
+                errors.Add("carburant", "Veuillez sélectionner un carburant");
+
+            if (voiture.IdMotricite == null || voiture.IdMotricite == 0)
+                errors.Add("motricite", "Veuillez sélectionner une motricité");
+
+            if (voiture.Puissance <= 0)
+                errors.Add("puissance", "Puissance invalide");
+
+            if (voiture.Couple <= 0)
+                errors.Add("couple", "Couple invalide");
+
+            if (voiture.NbPorte <= 0)
+                errors.Add("nbporte", "Nombre de portes invalide");
+
+            if (voiture.NbPlace <= 0)
+                errors.Add("nbplace", "Nombre de places invalide");
+
+            if (voiture.IdCarburant != 4 && voiture.NbCylindres <= 0)
+                errors.Add("nbcylindres", "Nombre de cylindres invalide");
+
+            if (voiture.IdBoiteDeVitesse == null || voiture.IdBoiteDeVitesse == 0)
+                errors.Add("boitedevitesse", "Veuillez sélectionner une boîte de vitesse");
+
+            if (voiture.IdCategorie == null || voiture.IdCategorie == 0)
+                errors.Add("categorie", "Veuillez sélectionner une catégorie");
+
+            if (annonce.Prix == null || annonce.Prix <= 0)
+                errors.Add("prix", "Prix invalide");
+
+            if (!selectedCouleurs.Any())
+                errors.Add("couleurs", "Veuillez sélectionner au moins une couleur");
+
+            if (string.IsNullOrWhiteSpace(adresse.Nom))
+                errors.Add("nomadresse", "Le nom de l'adresse est requis");
+
+            if (adresse.Numero == null || adresse.Numero <= 0)
+                errors.Add("numeroadresse", "Numéro de rue invalide");
+
+            if (string.IsNullOrWhiteSpace(adresse.Rue))
+                errors.Add("rueadresse", "La rue est requise");
+
+            if (string.IsNullOrWhiteSpace(adresse.CodePostal))
+                errors.Add("codepostal", "Le code postal est requis");
+
+            if (string.IsNullOrWhiteSpace(adresse.LibelleVille))
+                errors.Add("ville", "La ville est requise");
+
+            return !errors.Any();
+        }
+
+        public bool HasError(string fieldName)
+        {
+            return showErrors && errors.ContainsKey(fieldName);
+        }
+
+        public string GetError(string fieldName)
+        {
+            return errors.ContainsKey(fieldName) ? errors[fieldName] : "";
+        }
+
         public async Task CreateAnnonce()
         {
-            foreach (var image in imageUpload)
+            showErrors = true;
+
+            if (!ValidateForm())
             {
-                await _postImageService.CreateAsync(image);
+                _refreshUI?.Invoke();
+                return;
             }
-            adresse.IdAdresse = 0;
-            adresse.IdPays = 1;
-            adresse.IdCompte = 1;
-            var resultAdr = await _adresseService.CreateAsync(adresse);
-            var resultVoiture = await _voitureService.CreateAsync(voiture);
-            annonce.IdAdresse = resultAdr.IdAdresse;
-            annonce.IdVoiture = resultVoiture.IdVoiture;
-            var resultAnnonce = await _annonceService.CreateAsync(annonce);
-            _nav.NavigateTo("/");
-            _refreshUI?.Invoke();
+
+            try
+            {
+                adresse.IdAdresse = 0;
+                adresse.IdPays = 1;
+                adresse.IdCompte = 1;
+                Adresse resultAdr = await _adresseService.CreateAsync(adresse);
+                Voiture resultVoiture = await _voitureService.CreateAsync(voiture);
+                
+                foreach (ImageUpload image in imageUpload)
+                {
+                    image.IdVoiture = resultVoiture.IdVoiture;
+                    await _postImageService.CreateAsync(image);
+                }
+                
+                foreach (int couleur in selectedCouleurs)
+                {
+                    APourCouleur aPourCouleur = new APourCouleur()
+                    {
+                        IdCouleur = couleur,
+                        IdVoiture = resultVoiture.IdVoiture,
+                    };
+                    await _aPourCouleurService.CreateAsync(aPourCouleur);
+                }
+                
+                annonce.IdAdresse = resultAdr.IdAdresse;
+                annonce.IdVoiture = resultVoiture.IdVoiture;
+                await _annonceService.CreateAsync(annonce);
+                _nav.NavigateTo("/");
+
+                voiture = new Voiture();
+                adresse = new Adresse();
+                annonce = new Annonce();
+                nomPhotos = new List<string>();
+                selectedCouleurs = new List<int>();
+            }
+            catch (Exception ex)
+            {
+                errors.Add("general", "Une erreur est survenue lors de la publication de l'annonce. Veuillez réessayer.");
+                _refreshUI?.Invoke();
+            }
         }
     }
 }

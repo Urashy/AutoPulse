@@ -46,7 +46,9 @@
 
     public interface IImageRepository
     {
-        Task<IEnumerable<Image>> GetImagesByVoitureId(int voitureId);
+        Task<IEnumerable<int>> GetAllImagesByVoitureId(int voitureId);
+        
+        Task<Image> GetFirstImageByVoitureID(int idvoiture);
     }
     
     public interface ICouleurRepository

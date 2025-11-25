@@ -5,6 +5,8 @@ namespace BlazorAutoPulse.Service.Interface
     public interface IPostImageService
     {
         public Task<Image> CreateAsync(ImageUpload entity);
-        public string GetImageUrl(int id);
+        public string GetImage(int id);
+        public string GetFirstImage(int id);
+        public string GetAllIdImage(int id);
     }
 }

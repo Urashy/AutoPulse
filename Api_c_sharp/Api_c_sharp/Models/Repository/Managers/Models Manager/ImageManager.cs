@@ -10,9 +10,25 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
-        public async Task<IEnumerable<Image>> GetImagesByVoitureId(int voitureId)
+        public async Task<IEnumerable<int>> GetAllImagesByVoitureId(int voitureId)
         {
-            return await dbSet.Where(img => img.IdVoiture == voitureId).ToListAsync();
+            var list = await dbSet
+                .Where(img => img.IdVoiture == voitureId)
+                .ToListAsync();
+
+            List<int> ret = new List<int>();
+
+            foreach (Image element in list)
+            {
+                ret.Add(element.IdImage);
+            }
+
+            return ret;
+        }
+
+        public async Task<Image> GetFirstImageByVoitureID(int idvoiture)
+        {
+            return await dbSet.FirstOrDefaultAsync(img => img.IdVoiture == idvoiture);
         }
     }
 }

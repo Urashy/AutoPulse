@@ -10,6 +10,8 @@ public class VoitureCreateDTO
     public int IdBoiteDeVitesse { get; set; }
     public int IdCouleur { get; set; }
     public int IdCategorie { get; set; }
+    public int NbPlace { get; set; }
+    public int NbPorte { get; set; }
     public int Kilometrage { get; set; }
     public int Annee { get; set; }
     public int Puissance { get; set; }

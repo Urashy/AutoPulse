@@ -13,7 +13,6 @@ public class HomeViewModel
     private readonly IService<Carburant> _carburantService;
     private readonly IService<Categorie> _categorieService;
     private readonly IService<TypeCompte> _typeCompteService;
-    private readonly IPostImageService _postImageService;
 
     // Paramètres de recherche
     public ParametreRecherche SearchParams { get; set; } = new();
@@ -36,8 +35,7 @@ public class HomeViewModel
         IModeleService modeleService,
         IService<Carburant> carburantService,
         IService<Categorie> categorieService,
-        IService<TypeCompte> typeCompteService,
-        IPostImageService postImageService)
+        IService<TypeCompte> typeCompteService)
     {
         _annonceService = annonceService;
         _marqueService = marqueService;
@@ -45,7 +43,6 @@ public class HomeViewModel
         _carburantService = carburantService;
         _categorieService = categorieService;
         _typeCompteService = typeCompteService;
-        _postImageService = postImageService;
     }
 
     public async Task InitializeAsync(Action refreshUI)
@@ -102,10 +99,5 @@ public class HomeViewModel
         filteredModeles = allModeles;
         filteredAnnonces = allAnnonces;
         _refreshUI?.Invoke();
-    }
-    
-    public string GetImage(int id)
-    {
-        return _postImageService.GetImageUrl(id);
     }
 }

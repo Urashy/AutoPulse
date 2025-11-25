@@ -6,19 +6,36 @@
 
 <PageTitle>AutoPulse</PageTitle>
 
+@* Overlay pour fermer le dropdown *@
+@if (VM.dropdownOpen)
+{
+    <div @onclick="VM.CloseDropdown" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:998;background:transparent;"></div>
+}
+
 <div id="sell" class="page active">
     <div class="sell-container">
         <h2 class="section-title">Vendez Votre Voiture</h2>
         <div class="sell-form">
             <form>
                 <h3 style="margin-bottom: 30px; color: #00d4ff;">Informations du véhicule</h3>
-                
-                <div class="form-group">
+
+                @if (VM.showErrors && VM.errors.ContainsKey("general"))
+                {
+                    <div class="error-message-global">
+                        @VM.GetError("general")
+                    </div>
+                }
+
+                <div class="form-group @(VM.HasError("titre") ? "has-error" : "")">
                     <label>Titre</label>
                     <input type="text" placeholder="Titre de votre annonce" @bind="VM.annonce.Libelle" required/>
+                    @if (VM.HasError("titre"))
+                    {
+                        <span class="error-message">@VM.GetError("titre")</span>
+                    }
                 </div>
 
-                <div class="form-group">
+                <div class="form-group @(VM.HasError("photos") ? "has-error" : "")">
                     <label>Photos du véhicule (la première sera la photo de couverture)</label>
                     <label for="vehiclePhotos" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
                         <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
@@ -26,8 +43,11 @@
                         <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
                     </label>
                     <InputFile id="vehiclePhotos" OnChange="@VM.UploadImage" multiple style="display:none"/>
+                    @if (VM.HasError("photos"))
+                    {
+                        <span class="error-message">@VM.GetError("photos")</span>
+                    }
                 </div>
-
 
                 @if (VM.nomPhotos?.Any() == true)
                 {
@@ -40,10 +60,14 @@
                 }
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("marque") ? "has-error" : "")">
                         <label>Marque</label>
-                        <select @onchange="VM.OnMarqueChanged">
-                            <option value="0" disabled>Toutes les marques</option>
+                        <select @onchange="async e =>
+                            {
+                                await VMAll.OnMarqueChanged(e);
+                                VM.OnMarqueChanged(e);
+                            }">
+                            <option value="0">Toutes les marques</option>
                             @if (VMAll.allMarques != null)
                             {
                                 @foreach (var marque in VMAll.allMarques)
@@ -52,38 +76,54 @@
                                 }
                             }
                         </select>
+                        @if (VM.HasError("marque"))
+                        {
+                            <span class="error-message">@VM.GetError("marque")</span>
+                        }
                     </div>
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("modele") ? "has-error" : "")">
                         <label>Modèle</label>
                         <select @onchange="VM.OnModeleChanged">
-                            <option value="0" disabled>Tout les modèles</option>
-                            @if (VMAll.allModeles != null)
+                            <option value="0">Tous les modèles</option>
+                            @if (VMAll.filteredModeles != null)
                             {
-                                @foreach (var modele in VMAll.allModeles)
+                                @foreach (var modele in VMAll.filteredModeles)
                                 {
                                     <option value="@modele.IdModele">@modele.LibelleModele</option>
                                 }
                             }
                         </select>
+                        @if (VM.HasError("modele"))
+                        {
+                            <span class="error-message">@VM.GetError("modele")</span>
+                        }
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("annee") ? "has-error" : "")">
                         <label>Année</label>
                         <input type="number" placeholder="2021" required @bind="VM.voiture.Annee">
+                        @if (VM.HasError("annee"))
+                        {
+                            <span class="error-message">@VM.GetError("annee")</span>
+                        }
                     </div>
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("kilometrage") ? "has-error" : "")">
                         <label>Kilométrage</label>
                         <input type="number" placeholder="45000" required @bind="VM.voiture.Kilometrage">
+                        @if (VM.HasError("kilometrage"))
+                        {
+                            <span class="error-message">@VM.GetError("kilometrage")</span>
+                        }
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("carburant") ? "has-error" : "")">
                         <label>Carburant</label>
                         <select @onchange="VM.OnCarburantChange">
-                            <option value="0" disabled>Tout les carburants</option>
+                            <option value="0">Tous les carburants</option>
                             @if (VMAll.allCarburants != null)
                             {
                                 @foreach (var carburant in VMAll.allCarburants)
@@ -92,11 +132,15 @@
                                 }
                             }
                         </select>
+                        @if (VM.HasError("carburant"))
+                        {
+                            <span class="error-message">@VM.GetError("carburant")</span>
+                        }
                     </div>
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("motricite") ? "has-error" : "")">
                         <label>Motricité</label>
                         <select @onchange="VM.OnMotriciteChange">
-                            <option value="0" disabled>Toutes les motricité</option>
+                            <option value="0">Toutes les motricités</option>
                             @if (VMAll.allMotricite != null)
                             {
                                 @foreach (var motricite in VMAll.allMotricite)
@@ -105,24 +149,59 @@
                                 }
                             }
                         </select>
+                        @if (VM.HasError("motricite"))
+                        {
+                            <span class="error-message">@VM.GetError("motricite")</span>
+                        }
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("puissance") ? "has-error" : "")">
                         <label>Puissance</label>
                         <input type="number" placeholder="170" @bind="VM.voiture.Puissance" required>
+                        @if (VM.HasError("puissance"))
+                        {
+                            <span class="error-message">@VM.GetError("puissance")</span>
+                        }
                     </div>
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("couple") ? "has-error" : "")">
                         <label>Couple</label>
                         <input type="number" placeholder="122" @bind="VM.voiture.Couple" required>
+                        @if (VM.HasError("couple"))
+                        {
+                            <span class="error-message">@VM.GetError("couple")</span>
+                        }
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
-                        <label>Nombre de cylindre</label>
-                        <input type="number" placeholder="170" @bind="VM.voiture.NbCylindres" disabled="@(VM.voiture.IdCarburant == 4)" required>
+                    <div class="form-group @(VM.HasError("nbporte") ? "has-error" : "")">
+                        <label>Nombre de portes</label>
+                        <input type="number" placeholder="5" @bind="VM.voiture.NbPorte" required>
+                        @if (VM.HasError("nbporte"))
+                        {
+                            <span class="error-message">@VM.GetError("nbporte")</span>
+                        }
+                    </div>
+                    <div class="form-group @(VM.HasError("nbplace") ? "has-error" : "")">
+                        <label>Nombre de places</label>
+                        <input type="number" placeholder="5" @bind="VM.voiture.NbPlace" required>
+                        @if (VM.HasError("nbplace"))
+                        {
+                            <span class="error-message">@VM.GetError("nbplace")</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group @(VM.HasError("nbcylindres") ? "has-error" : "")">
+                        <label>Nombre de cylindres</label>
+                        <input type="number" placeholder="4" @bind="VM.voiture.NbCylindres" disabled="@(VM.voiture.IdCarburant == 4)" required>
+                        @if (VM.HasError("nbcylindres"))
+                        {
+                            <span class="error-message">@VM.GetError("nbcylindres")</span>
+                        }
                     </div>
                     <div class="form-group">
                         <label>Date de mise en circulation</label>
@@ -131,8 +210,8 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
-                        <label>Boite de vitesse</label>
+                    <div class="form-group @(VM.HasError("boitedevitesse") ? "has-error" : "")">
+                        <label>Boîte de vitesse</label>
                         <select @onchange="VM.OnBoiteDeVitesseChange" disabled="@(VM.voiture.IdCarburant == 4)">
                             @if (VM.voiture.IdCarburant == 4)
                             {
@@ -140,8 +219,8 @@
                             }
                             else
                             {
-                                <option value="0" disabled>Toutes les boîte de vitesse</option>
-                            
+                                <option value="0">Toutes les boîtes de vitesse</option>
+
                                 @if (VMAll.allBoiteDeVitesse != null)
                                 {
                                     @foreach (var boite in VMAll.allBoiteDeVitesse)
@@ -151,12 +230,16 @@
                                 }
                             }
                         </select>
+                        @if (VM.HasError("boitedevitesse"))
+                        {
+                            <span class="error-message">@VM.GetError("boitedevitesse")</span>
+                        }
                     </div>
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("categorie") ? "has-error" : "")">
                         <label>Catégorie de ma voiture</label>
                         <select @onchange="VM.OnCategorieChange">
-                            <option value="0" disabled>Toutes les catégorie</option>
-                            @if (VMAll.allBoiteDeVitesse != null)
+                            <option value="0">Toutes les catégories</option>
+                            @if (VMAll.allCategories != null)
                             {
                                 @foreach (var categorie in VMAll.allCategories)
                                 {
@@ -164,60 +247,116 @@
                                 }
                             }
                         </select>
+                        @if (VM.HasError("categorie"))
+                        {
+                            <span class="error-message">@VM.GetError("categorie")</span>
+                        }
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("prix") ? "has-error" : "")">
                         <label>Prix souhaité (€)</label>
                         <input type="number" placeholder="25000" @bind="VM.annonce.Prix" required>
+                        @if (VM.HasError("prix"))
+                        {
+                            <span class="error-message">@VM.GetError("prix")</span>
+                        }
                         <button type="button" class="btn-ia" onclick="alert('Estimation IA : Basé sur les informations fournies, un prix juste se situerait entre 29 500 € et 31 000 €.')">✨ Estimer le prix par l'IA</button>
                     </div>
-                    <div class="form-group">
-                        <label>Couleur</label>
-                        <select @onchange="VM.OnCouleurChange">
-                            <option value="0" disabled>Toutes les couleur</option>
-                            @if (VMAll.AllCouleurs != null)
-                            {
-                                @foreach (var couleur in VMAll.AllCouleurs)
+                    <div class="form-group @(VM.HasError("couleurs") ? "has-error" : "")">
+                        <label>Couleurs</label>
+                        <div class="multiselect-dropdown" style="position:relative;">
+                            <div class="select-box" @onclick="VM.ToggleDropdown">
+                                @if (VM.selectedCouleurs.Any())
                                 {
-                                    <option value="@couleur.IdCouleur">@couleur.LibelleCouleur</option>
+                                    <span>@string.Join(", ", VM.selectedCouleurs.Select(id => VMAll.allCouleurs.First(c => c.IdCouleur == id).LibelleCouleur))</span>
                                 }
+                                else
+                                {
+                                    <span>Sélectionnez des couleurs</span>
+                                }
+                                <span class="arrow">&#9662;</span>
+                            </div>
+
+                            @if (VM.dropdownOpen)
+                            {
+                                <div class="options" @onmouseleave="VM.ToggleDropdown" style="position:absolute;z-index:999;background:white;border:1px solid #ccc;width:100%;max-height:200px;overflow-y:auto;">
+                                    @if (VMAll.allCouleurs != null)
+                                    {
+                                        @foreach (var couleur in VMAll.allCouleurs)
+                                        {
+                                            <div class="couleur-option"
+                                                 @onclick="() => VM.ToggleCouleur(couleur.IdCouleur)"
+                                                 @onclick:stopPropagation="true">
+                                                <input type="checkbox"
+                                                       checked="@VM.selectedCouleurs.Contains(couleur.IdCouleur)"
+                                                       style="pointer-events:none;margin:0;" />
+                                                <span>@couleur.LibelleCouleur</span>
+                                                <div class="color-square"></div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
                             }
-                        </select>
+                        </div>
+                        @if (VM.HasError("couleurs"))
+                        {
+                            <span class="error-message">@VM.GetError("couleurs")</span>
+                        }
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group @(VM.HasError("nomadresse") ? "has-error" : "")">
                     <label>Nom de l'adresse</label>
                     <input type="text" placeholder="123 rue de l'Exemple" @bind="VM.adresse.Nom" required>
+                    @if (VM.HasError("nomadresse"))
+                    {
+                        <span class="error-message">@VM.GetError("nomadresse")</span>
+                    }
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("numeroadresse") ? "has-error" : "")">
                         <label>Numéro de rue</label>
                         <input type="number" placeholder="12" @bind="VM.adresse.Numero" required>
+                        @if (VM.HasError("numeroadresse"))
+                        {
+                            <span class="error-message">@VM.GetError("numeroadresse")</span>
+                        }
                     </div>
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("rueadresse") ? "has-error" : "")">
                         <label>Rue</label>
                         <input type="text" placeholder="Rue de l'exemple" @bind="VM.adresse.Rue" required>
+                        @if (VM.HasError("rueadresse"))
+                        {
+                            <span class="error-message">@VM.GetError("rueadresse")</span>
+                        }
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("codepostal") ? "has-error" : "")">
                         <label>Code postal</label>
                         <input type="text" placeholder="73000" @bind="VM.adresse.CodePostal" required>
+                        @if (VM.HasError("codepostal"))
+                        {
+                            <span class="error-message">@VM.GetError("codepostal")</span>
+                        }
                     </div>
-                    <div class="form-group">
+                    <div class="form-group @(VM.HasError("ville") ? "has-error" : "")">
                         <label>Ville</label>
                         <input type="text" placeholder="Chambéry" @bind="VM.adresse.LibelleVille" required>
+                        @if (VM.HasError("ville"))
+                        {
+                            <span class="error-message">@VM.GetError("ville")</span>
+                        }
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea placeholder="Décrivez votre véhicule, son état, ses équipements..." required></textarea>
+                    <textarea placeholder="Décrivez votre véhicule, son état, ses équipements..."></textarea>
                 </div>
 
                 <button @onclick="@VM.CreateAnnonce" type="button" class="btn-submit" style="margin-top: 20px;">Publier mon annonce</button>
@@ -225,7 +364,6 @@
         </div>
     </div>
 </div>
-
 
 @code {
     protected override async Task OnInitializedAsync()
