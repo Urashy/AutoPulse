@@ -48,15 +48,14 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<AnnonceComposantViewModel>();
             builder.Services.AddScoped<GetAllViewModel>();
             builder.Services.AddScoped<AnnonceDetailViewModel>();
-
             builder.Services.AddScoped<CompteViewModel>();
 
-            builder.Services.AddScoped(sp => new HttpClient(new HttpClientHandler
+            builder.Services.AddScoped(sp =>
             {
-                UseCookies = true
-            })
-            {
-                BaseAddress = new Uri("https://localhost:7295/")
+                return new HttpClient
+                {
+                    BaseAddress = new Uri("https://localhost:7295/api/")
+                };
             });
 
             await builder.Build().RunAsync();

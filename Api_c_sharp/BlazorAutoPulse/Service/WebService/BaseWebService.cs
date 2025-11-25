@@ -11,14 +11,12 @@ public abstract class BaseWebService<T> : IService<T> where T : class
 {
     protected readonly HttpClient _httpClient;
     protected abstract string ApiEndpoint { get; }
-
-    protected BaseWebService()
+    
+    protected BaseWebService(HttpClient httpClient)
     {
-        _httpClient = new HttpClient
-        {
-            //BaseAddress = new Uri($"https://localhost:5086/api/{ApiEndpoint}/")
-            BaseAddress = new Uri($"https://localhost:7295/api/{ApiEndpoint}/")
-        };
+        _httpClient = httpClient;
+        // Définir l'adresse de base relative à l'endpoint
+        _httpClient.BaseAddress = new Uri($"{_httpClient.BaseAddress}{ApiEndpoint}/");
     }
 
     public virtual async Task<IEnumerable<T>> GetAllAsync()

@@ -7,6 +7,10 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class PostImageWebService: BaseWebService<ImageUpload>, IPostImageService
     {
+        public PostImageWebService(HttpClient httpClient) : base(httpClient)
+        {
+        }
+
         protected override string ApiEndpoint => "Image";
 
         public async Task<Image> CreateAsync(ImageUpload entity)

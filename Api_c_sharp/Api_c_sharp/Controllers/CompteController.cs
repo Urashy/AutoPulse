@@ -246,6 +246,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 SameSite = SameSiteMode.None,
                 Secure = true,
                 Expires = DateTimeOffset.UtcNow.AddDays(1),
+                Domain = null
             };
             Response.Cookies.Append("access_token", tokenString, cookieOptions);
         }

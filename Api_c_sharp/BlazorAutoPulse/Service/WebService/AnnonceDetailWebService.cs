@@ -6,6 +6,10 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class AnnonceDetailWebService : BaseWebService<AnnonceDetailDTO>, IAnnonceDetailService
     {
+        public AnnonceDetailWebService(HttpClient httpClient) : base(httpClient)
+        {
+        }
+
         protected override string ApiEndpoint => "Annonce";
 
         public override async Task<AnnonceDetailDTO> GetByIdAsync(int id)

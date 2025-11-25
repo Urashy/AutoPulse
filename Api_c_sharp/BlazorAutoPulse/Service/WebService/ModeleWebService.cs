@@ -6,6 +6,10 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class ModeleWebService : BaseWebService<Modele>, IModeleService
     {
+        public ModeleWebService(HttpClient httpClient) : base(httpClient)
+        {
+        }
+
         protected override string ApiEndpoint => "Modele";
 
         public async Task<IEnumerable<Modele>> FiltreModeleParMarque(int idMarque)

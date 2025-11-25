@@ -6,6 +6,10 @@ namespace BlazorAutoPulse.Service;
 
 public class CompteWebService : BaseWebService<Compte>, ICompteService
 {
+    public CompteWebService(HttpClient httpClient) : base(httpClient)
+    {
+    }
+
     protected override string ApiEndpoint => "Compte";
 
     public async Task<Compte> GetMe()

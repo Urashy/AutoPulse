@@ -6,6 +6,10 @@ namespace BlazorAutoPulse.Service;
 
 public class AnnonceWebService : BaseWebService<Annonce> , IAnnonceService
 {
+    public AnnonceWebService(HttpClient httpClient) : base(httpClient)
+    {
+    }
+
     protected override string ApiEndpoint => "Annonce";
     public async Task<IEnumerable<Annonce>> GetByIdMiseEnAvant(int id)
     {
