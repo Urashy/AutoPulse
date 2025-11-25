@@ -14,11 +14,9 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
 
     public async Task<Compte> GetMe()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "GetMe");
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl("GetMe"));
         var response = await SendWithCredentialsAsync(request);
-
         response.EnsureSuccessStatusCode();
-
         return await response.Content.ReadFromJsonAsync<Compte>();
     }
 }

@@ -39,7 +39,7 @@ public class ConnexionViewModel
         if (httpCode == HttpStatusCode.OK)
         {
             await Task.Delay(100);
-            //_nav.NavigateTo("Compte");
+            _nav.NavigateTo("Compte");
         }
         else
         {

@@ -26,7 +26,7 @@ namespace BlazorAutoPulse.Service.WebService
             content.Add(new StringContent(entity.IdVoiture?.ToString() ?? ""), "IdVoiture");
             content.Add(new StringContent(entity.IdCompte?.ToString() ?? ""), "IdCompte");
 
-            var response = await _httpClient.PostAsync("Post", content);
+            var response = await _httpClient.PostAsync(BuildUrl("Post"), content);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<Image>();
@@ -34,12 +34,12 @@ namespace BlazorAutoPulse.Service.WebService
 
         public string GetImage(int id)
         {
-            return $"{_httpClient.BaseAddress}GetById/{id}";
+            return $"{_httpClient.BaseAddress}{ApiEndpoint}/GetById/{id}";
         }
 
         public string GetFirstImage(int id)
         {
-            return $"{_httpClient.BaseAddress}GetFirstImage/{id}";
+            return $"{_httpClient.BaseAddress}{ApiEndpoint}/GetFirstImage/{id}";
         }
 
         public string GetAllIdImage(int id)

@@ -10,9 +10,9 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
-        public override async Task<Compte?> GetByNameAsync(string name)
+        public override async Task<Compte?> GetByNameAsync(string mail)
         {
-            return await dbSet.Where(c => c.Pseudo == name).FirstOrDefaultAsync();
+            return await dbSet.Where(c => c.Email == mail).FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Compte>> GetCompteByIdAnnonceFavori(int annonceId)

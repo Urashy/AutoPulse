@@ -14,7 +14,10 @@ namespace BlazorAutoPulse.Service.WebService
 
         public async Task<IEnumerable<Modele>> FiltreModeleParMarque(int idMarque)
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<Modele>>($"GetAllByMarque/{idMarque}")
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetAllByMarque/{idMarque}"));
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<Modele>>() 
                    ?? Enumerable.Empty<Modele>();
         }
     }

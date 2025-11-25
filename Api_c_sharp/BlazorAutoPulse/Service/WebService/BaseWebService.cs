@@ -15,13 +15,19 @@ public abstract class BaseWebService<T> : IService<T> where T : class
     protected BaseWebService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        // Définir l'adresse de base relative à l'endpoint
-        _httpClient.BaseAddress = new Uri($"{_httpClient.BaseAddress}{ApiEndpoint}/");
+        // NE PAS modifier la BaseAddress ici !
+        // Elle est déjà définie dans Program.cs comme https://localhost:7295/api/
+    }
+
+    // Méthode helper pour construire l'URL complète
+    protected string BuildUrl(string relativeUrl)
+    {
+        return $"{ApiEndpoint}/{relativeUrl}";
     }
 
     public virtual async Task<IEnumerable<T>> GetAllAsync()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "GetAll");
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl("GetAll"));
         var response = await SendWithCredentialsAsync(request);
 
         response.EnsureSuccessStatusCode();
@@ -31,7 +37,7 @@ public abstract class BaseWebService<T> : IService<T> where T : class
 
     public virtual async Task<T> GetByIdAsync(int id)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(id.ToString()));
         var response = await SendWithCredentialsAsync(request);
 
         response.EnsureSuccessStatusCode();
@@ -44,7 +50,7 @@ public abstract class BaseWebService<T> : IService<T> where T : class
         var json = JsonSerializer.Serialize(entity);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "Post");
+        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("Post"));
         request.Content = content;
 
         var response = await SendWithCredentialsAsync(request);
@@ -56,7 +62,7 @@ public abstract class BaseWebService<T> : IService<T> where T : class
 
     public virtual async Task UpdateAsync(int id, T entity)
     {
-        var request = new HttpRequestMessage(HttpMethod.Put, $"Put/{id}")
+        var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
         {
             Content = JsonContent.Create(entity)
         };
@@ -67,7 +73,7 @@ public abstract class BaseWebService<T> : IService<T> where T : class
 
     public virtual async Task DeleteAsync(int id)
     {
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"Delete/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Delete, BuildUrl($"Delete/{id}"));
         var response = await SendWithCredentialsAsync(request);
 
         response.EnsureSuccessStatusCode();

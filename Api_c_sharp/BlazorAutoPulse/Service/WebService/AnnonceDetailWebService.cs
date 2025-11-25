@@ -14,8 +14,10 @@ namespace BlazorAutoPulse.Service.WebService
 
         public override async Task<AnnonceDetailDTO> GetByIdAsync(int id)
         {
-            // Appel à l'endpoint qui retourne les détails complets
-            return await _httpClient.GetFromJsonAsync<AnnonceDetailDTO>($"GetById/{id}");
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetById/{id}"));
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<AnnonceDetailDTO>();
         }
     }
 }
