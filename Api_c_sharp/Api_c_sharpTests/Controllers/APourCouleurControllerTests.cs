@@ -7,53 +7,57 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 
 namespace App.Controllers.Tests
 {
     [TestClass]
-    public class APourConversationControllerTests
+    public class APourCouleurControllerTests
     {
-        private APourConversationController _controller;
+        private APourCouleurController _controller;
         private AutoPulseBdContext _context;
-        private APourConversationManager _manager;
+        private APourCouleurManager _manager;
         private IMapper _mapper;
-        private APourConversation _objetCommun;
+        private APourCouleur _objetCommun;
 
         [TestInitialize]
         public async Task Initialize()
         {
+            // Configuration d'une base de données en mémoire pour les tests
             var options = new DbContextOptionsBuilder<AutoPulseBdContext>()
                 .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
                 .Options;
 
             _context = new AutoPulseBdContext(options);
 
+            // Configuration d'AutoMapper
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<MapperProfile>();
             });
             _mapper = config.CreateMapper();
 
-            _manager = new APourConversationManager(_context);
-            _controller = new APourConversationController(_manager, _mapper);
+            // Initialisation du manager et du contrôleur
+            _manager = new APourCouleurManager(_context);
+            _controller = new APourCouleurController(_manager, _mapper);
 
-            // Nettoyage
-            _context.APourConversations.RemoveRange(_context.APourConversations);
+            // Nettoyage de la base de données
+            _context.APourCouleurs.RemoveRange(_context.APourCouleurs);
             await _context.SaveChangesAsync();
 
             // Création d’un objet de test
-            var entry = new APourConversation
+            var entry = new APourCouleur
             {
-                IdCompte = 1,
-                IdConversation = 10
+                IdCouleur = 1,
+                IdVoiture = 10
             };
 
-            await _context.APourConversations.AddAsync(entry);
+            await _context.APourCouleurs.AddAsync(entry);
             await _context.SaveChangesAsync();
 
             _objetCommun = entry;
@@ -65,13 +69,13 @@ namespace App.Controllers.Tests
             // Given : un enregistrement existant en base (_objetCommun)
 
             // When : on appelle le contrôleur pour récupérer l'objet par son ID
-            var result = await _controller.GetByID(_objetCommun.IdConversation);
+            var result = await _controller.GetByID(_objetCommun.IdCouleur);
 
             // Then : l'objet est retrouvé et correspond aux valeurs attendues
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.AreEqual(_objetCommun.IdConversation, result.Value.IdConversation);
-            Assert.AreEqual(_objetCommun.IdCompte, result.Value.IdUtilisateur);
+            Assert.AreEqual(_objetCommun.IdCouleur, result.Value.IdCouleur);
+            Assert.AreEqual(_objetCommun.IdVoiture, result.Value.IdVoiture);
         }
 
         [TestMethod]
@@ -80,7 +84,7 @@ namespace App.Controllers.Tests
             // Given : un ID inexistant
 
             // When : on demande un objet avec cet ID
-            var result = await _controller.GetByID(9999);
+            var result = await _controller.GetByID(9999);  // ID inexistant
 
             // Then : la réponse est NotFound
             Assert.IsNotNull(result.Result);
@@ -101,17 +105,17 @@ namespace App.Controllers.Tests
 
             var list = result.Value.ToList();
             Assert.IsTrue(list.Any());
-            Assert.IsTrue(list.Any(x => x.IdConversation == _objetCommun.IdConversation));
+            Assert.IsTrue(list.Any(x => x.IdCouleur == _objetCommun.IdCouleur));  // Vérification sur IdCouleur
         }
 
         [TestMethod]
         public async Task PostTest()
         {
             // Given : un DTO valide à insérer
-            var dto = new APourConversationDTO
+            var dto = new APourCouleurDTO
             {
-                IdUtilisateur = 5,
-                IdConversation = 50
+                IdVoiture = 5,
+                IdCouleur = 50
             };
 
             // When : on appelle le POST
@@ -121,18 +125,18 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
 
             var created = (CreatedAtActionResult)actionResult.Result;
-            var createdEntity = (APourConversation)created.Value;
+            var createdEntity = (APourCouleur)created.Value;
 
-            Assert.AreEqual(dto.IdConversation, createdEntity.IdConversation);
-            Assert.AreEqual(dto.IdUtilisateur, createdEntity.IdCompte);
+            Assert.AreEqual(dto.IdCouleur, createdEntity.IdCouleur); 
+            Assert.AreEqual(dto.IdVoiture, createdEntity.IdVoiture); 
         }
 
         [TestMethod]
         public async Task BadRequestPostTest()
         {
             // Given : un DTO invalide + ModelState en erreur
-            var dto = new APourConversationDTO();
-            _controller.ModelState.AddModelError("IdConversation", "Required");
+            var dto = new APourCouleurDTO();
+            _controller.ModelState.AddModelError("IdCouleur", "Required");
 
             // When : on appelle POST avec un modèle invalide
             var actionResult = await _controller.Post(dto);
@@ -145,30 +149,30 @@ namespace App.Controllers.Tests
         public async Task PutTest()
         {
             // Given : un DTO valide pour mettre à jour un élément existant
-            var dto = new APourConversationDTO
+            var dto = new APourCouleurDTO
             {
-                IdUtilisateur = 99,
-                IdConversation = _objetCommun.IdConversation
+                IdVoiture = 99,  // Modification de IdVoiture
+                IdCouleur = _objetCommun.IdCouleur  // IdCouleur reste le même
             };
 
             // When : on appelle PUT
-            var result = await _controller.Put(_objetCommun.IdConversation, dto);
+            var result = await _controller.Put(_objetCommun.IdCouleur, dto);
 
             // Then : la réponse est NoContent et l'objet est mis à jour
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var updated = await _manager.GetByIdAsync(_objetCommun.IdConversation);
-            Assert.AreEqual(dto.IdUtilisateur, updated.IdCompte);
+            var updated = await _manager.GetByIdAsync(_objetCommun.IdCouleur);  // Utilisation de IdCouleur
+            Assert.AreEqual(dto.IdVoiture, updated.IdVoiture);  // Vérification sur IdVoiture
         }
 
         [TestMethod]
         public async Task NotFoundPutTest()
         {
             // Given : un DTO avec un ID inexistant
-            var dto = new APourConversationDTO
+            var dto = new APourCouleurDTO
             {
-                IdUtilisateur = 1,
-                IdConversation = 9999
+                IdVoiture = 1,
+                IdCouleur = 9999
             };
 
             // When : on tente de mettre à jour cet ID
@@ -182,15 +186,15 @@ namespace App.Controllers.Tests
         public async Task BadRequestPutTest()
         {
             // Given : un DTO valide mais ModelState invalide
-            var dto = new APourConversationDTO
+            var dto = new APourCouleurDTO
             {
-                IdUtilisateur = 1,
-                IdConversation = _objetCommun.IdConversation
+                IdVoiture = 1,  // IdVoiture
+                IdCouleur = _objetCommun.IdCouleur  // IdCouleur
             };
-            _controller.ModelState.AddModelError("IdConversation", "Invalid");
+            _controller.ModelState.AddModelError("IdCouleur", "Invalid");
 
             // When : on appelle PUT
-            var result = await _controller.Put(_objetCommun.IdConversation, dto);
+            var result = await _controller.Put(_objetCommun.IdCouleur, dto);
 
             // Then : le contrôleur retourne BadRequest
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
@@ -202,12 +206,12 @@ namespace App.Controllers.Tests
             // Given : un enregistrement existant à supprimer (_objetCommun)
 
             // When : on appelle DELETE
-            var result = await _controller.Delete(_objetCommun.IdConversation);
+            var result = await _controller.Delete(_objetCommun.IdCouleur);
 
             // Then : la réponse est NoContent et l'objet est supprimé
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var deleted = await _manager.GetByIdAsync(_objetCommun.IdConversation);
+            var deleted = await _manager.GetByIdAsync(_objetCommun.IdCouleur);
             Assert.IsNull(deleted);
         }
 
@@ -224,3 +228,4 @@ namespace App.Controllers.Tests
         }
     }
 }
+
