@@ -88,7 +88,6 @@ namespace Api_c_sharp.Models.Repository.Managers
                 query = query.Where(a => Fuzz.PartialRatio(a.Libelle.ToLower(), nom.ToLower()) > 70);
             }
 
-            // Filtre par kilométrage
             if (kmmin > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.Kilometrage >= kmmin);
             if (kmmax > 0)
@@ -113,6 +112,11 @@ namespace Api_c_sharp.Models.Repository.Managers
         public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
         {
             return await dbSet.Where(a => a.Favoris.Any(f => f.IdCompte == compteId)).ToListAsync();
+        }
+        public override async Task<Annonce?> GetByIdAsync(int id)
+        {
+            return await ApplyIncludes()
+                .FirstOrDefaultAsync(a => a.IdAnnonce == id);
         }
     }
 }
