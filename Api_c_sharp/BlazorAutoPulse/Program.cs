@@ -36,6 +36,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IModeleService, ModeleWebService>();
             builder.Services.AddScoped<IServiceConnexion, ConnexionWebService>();
             builder.Services.AddScoped<IPostImageService, PostImageWebService>();
+            builder.Services.AddScoped<IAnnonceDetailService, AnnonceDetailWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
