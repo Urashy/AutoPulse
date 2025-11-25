@@ -177,58 +177,64 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task PutVoitureTest()
         {
-            var voiture = new VoitureCreateDTO()
+            var adresse = new AdresseDTO()
             {
-                IdVoiture = _objetcommun.IdVoiture,
-                IdMarque = 1,
-                IdMotricite = 1,
-                IdCarburant = 1,
-                IdBoiteDeVitesse = 1,
-                IdCategorie = 1,
-                Kilometrage = 15000,
-                Annee = 2021,
-                Puissance = 180,
-                IdModele = 1,
-                NbPlace = 5,
-                NbPorte = 5,
+                Nom = "Domicile",
+                LibelleVille = "Annecy",
+                CodePostal = "74000",
+                Rue = "Route de test",
+                Numero = 12,
+                IdPays = 1,  
+                IdCompte = 1,
             };
 
-            var result = await _controller.Put(_objetcommun.IdVoiture, voiture);
+            var result = await _controller.Put(_objetcommun.IdAdresse, adresse);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var fetchedVoiture = await _manager.GetByIdAsync(_objetcommun.IdVoiture);
-            Assert.AreEqual(voiture.Puissance, fetchedVoiture.Puissance);
+            var fetchedVoiture = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
+            Assert.AreEqual(adresse.Nom, fetchedVoiture.Nom);
         }
 
         [TestMethod]
         public async Task NotFoundPutVoitureTest()
         {
-            var voiture = new VoitureCreateDTO()
+            var adresse = new AdresseDTO()
             {
-                IdVoiture = 0,
-                Kilometrage = 10000
+                IdAdresse = 0,
+                Nom = "Domicile",
+                LibelleVille = "Annecy",
+                CodePostal = "74000",
+                Rue = "Route de test",
+                Numero = 12,
+                IdPays = 1,
+                IdCompte = 1,
             };
 
-            var result = await _controller.Put(0, voiture);
+            var result = await _controller.Put(0, adresse);
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
         public async Task BadRequestPutVoitureTest()
         {
-            // Arrange : voiture avec kilométrage invalide
-            var voiture = new VoitureCreateDTO()
+            var adresse = new AdresseDTO()
             {
-                IdVoiture = _objetcommun.IdVoiture,
-                Kilometrage = -20
+                IdAdresse = 0,
+                Nom = "Domicile",
+                LibelleVille = "Annecy",
+                CodePostal = "74000",
+                Rue = "Route de test",
+                Numero = -12,
+                IdPays = 1,
+                IdCompte = 1,
             };
 
             // Forcer l'erreur de validation dans le test
-            _controller.ModelState.AddModelError("Kilometrage", "Le kilométrage doit être supérieur à 0");
+            _controller.ModelState.AddModelError("Numero", "Le Numero doit être supérieur à 0");
 
             // Act
-            var result = await _controller.Put(_objetcommun.IdVoiture, voiture);
+            var result = await _controller.Put(_objetcommun.IdAdresse, adresse);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
@@ -238,14 +244,14 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task BadRequestPostVoitureTest()
         {
-            var voiture = new VoitureCreateDTO
+            var adresse = new AdresseDTO
             {
-                Kilometrage = 0
+                Nom = null,
             };
 
-            _controller.ModelState.AddModelError("Kilometrage", "Required");
+            _controller.ModelState.AddModelError("Nom", "Required");
 
-            var actionResult = await _controller.Post(voiture);
+            var actionResult = await _controller.Post(adresse);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
