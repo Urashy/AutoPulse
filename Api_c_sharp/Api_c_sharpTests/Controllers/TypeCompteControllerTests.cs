@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new TypeCompteManager(_context);
             _controller = new TypeCompteController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.TypesCompte.RemoveRange(_context.TypesCompte);
             await _context.SaveChangesAsync();
 
             var objet = new TypeCompte()

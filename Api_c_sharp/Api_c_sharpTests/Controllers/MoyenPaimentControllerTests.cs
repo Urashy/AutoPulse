@@ -44,7 +44,7 @@ namespace App.Controllers.Tests
             _manager = new MoyenPaiementManager(_context);
             _controller = new MoyenPaiementController(_manager, _mapper);
 
-            _context.TypesJournal.RemoveRange(_context.TypesJournal);
+            _context.MoyensPaiements.RemoveRange(_context.MoyensPaiements);
             await _context.SaveChangesAsync();
 
             var objet = new MoyenPaiement()

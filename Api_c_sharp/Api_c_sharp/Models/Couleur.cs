@@ -15,6 +15,10 @@ namespace Api_c_sharp.Models
         [Required]
         public string LibelleCouleur { get; set; } = null!;
 
+        [Column("cou_codehexa")]
+        [Required]
+        public string CodeHexaCouleur { get; set; } = null!;
+
         [InverseProperty(nameof(APourCouleur.APourCouleurCouleurNav))]
         public virtual ICollection<APourCouleur> APourCouleurs { get; set; } = new List<APourCouleur>();
     }

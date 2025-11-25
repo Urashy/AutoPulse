@@ -9,7 +9,6 @@
 <section class="search-results-header">
     <div class="container">
         <h1>Résultats de recherche</h1>
-
         <BarreDeRechercheAvecFiltresComposant VM="@VM" IsHomePage="false" />
     </div>
 </section>
@@ -25,14 +24,60 @@
     else if (VM.FilteredAnnonces != null && VM.FilteredAnnonces.Any())
     {
         <div class="results-info">
-            <h2>@VM.FilteredAnnonces.Length résultat(s) trouvé(s)</h2>
+            <h2>@VM.CurrentPageResultCount résultat(s) sur cette page</h2>
+            <p class="pagination-info">@VM.PaginationInfo</p>
         </div>
+
         <div class="cars-grid">
             @foreach (var a in VM.FilteredAnnonces)
             {
                 <AnnonceComposant Annonce="@a" />
             }
         </div>
+
+        @if (VM.ShowPagination)
+        {
+            var paginationData = VM.GetPaginationData();
+
+            <div class="pagination">
+                <button class="pagination-btn"
+                        @onclick="async () => await VM.GoToPreviousPage()"
+                        disabled="@(!paginationData.CanGoToPrevious)">
+                    ← Précédent
+                </button>
+
+                @if (paginationData.ShowFirstPage)
+                {
+                    <button class="pagination-btn" @onclick="async () => await VM.GoToPage(1)">1</button>
+
+                    @if (paginationData.ShowFirstDots)
+                    {
+                        <span class="pagination-dots">...</span>
+                    }
+                }
+
+                @foreach (var pageNumber in paginationData.VisiblePages)
+                {
+                    var isCurrentPage = pageNumber == paginationData.CurrentPage;
+                    <button class="pagination-btn @(isCurrentPage ? "active" : "")"
+                            @onclick="async () => await VM.GoToPage(pageNumber)"
+                            disabled="@isCurrentPage">
+                        @pageNumber
+                    </button>
+                }
+
+                @if (paginationData.ShowLastDots)
+                {
+                    <span class="pagination-dots">...</span>
+                }
+
+                <button class="pagination-btn"
+                        @onclick="async () => await VM.GoToNextPage()"
+                        disabled="@(!paginationData.CanGoToNext)">
+                    Suivant →
+                </button>
+            </div>
+        }
     }
     else
     {
@@ -48,7 +93,6 @@
     {
         await VM.InitializeAsync(StateHasChanged);
 
-        // Récupération des paramètres de l’URL
         var uri = new Uri(Navigation.Uri);
         var query = HttpUtility.ParseQueryString(uri.Query);
 
@@ -59,7 +103,6 @@
         VM.Nom = query["nom"] ?? "";
         VM.Departement = query["departement"] ?? "";
 
-        // Parse des valeurs numériques vers les propriétés *Value
         if (int.TryParse(query["prixmin"], out var prixMinParsed))
             VM.PrixMinValue = prixMinParsed;
 
@@ -72,7 +115,6 @@
         if (int.TryParse(query["kmmax"], out var kmMaxParsed))
             VM.KmMaxValue = kmMaxParsed;
 
-        // Charger les modèles si une marque est sélectionnée
         if (VM.SelectedMarque != "0")
         {
             await VM.OnMarqueChanged(new Microsoft.AspNetCore.Components.ChangeEventArgs
@@ -81,7 +123,6 @@
             });
         }
 
-        // Lancer la recherche
         await VM.EffectuerRecherche();
     }
 }

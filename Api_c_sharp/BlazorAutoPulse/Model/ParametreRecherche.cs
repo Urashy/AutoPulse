@@ -1,4 +1,6 @@
-﻿namespace BlazorAutoPulse.Model
+﻿// File: Api_c_sharp/BlazorAutoPulse/Model/ParametreRecherche.cs
+
+namespace BlazorAutoPulse.Model
 {
     public class ParametreRecherche
     {
@@ -14,6 +16,8 @@
         public int KmMin { get; set; } = 0;
         public int KmMax { get; set; } = 0;
         public string Departement { get; set; } = string.Empty;
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 21;
 
         public string ToQueryString()
         {
@@ -31,6 +35,10 @@
             if (KmMin > 0) parameters.Add($"kmmin={KmMin}");
             if (KmMax > 0) parameters.Add($"kmmax={KmMax}");
             if (!string.IsNullOrEmpty(Departement)) parameters.Add($"departement={Uri.EscapeDataString(Departement)}");
+
+            // Ajout des paramètres de pagination si non par défaut
+            if (PageNumber > 1) parameters.Add($"pageNumber={PageNumber}");
+            if (PageSize != 21) parameters.Add($"pageSize={PageSize}");
 
             return string.Join("&", parameters);
         }

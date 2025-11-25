@@ -16,7 +16,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class carburantController(CarburantManager _manager, IMapper _carburantMapper) : ControllerBase
+public class CarburantController(CarburantManager _manager, IMapper _carburantMapper) : ControllerBase
 {
     /// <summary>
     /// Récupère une carburant à partir de son identifiant.

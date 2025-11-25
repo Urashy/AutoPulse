@@ -68,7 +68,7 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<VoitureUpdateDTO>> Post([FromBody] VoitureCreateDTO dto)
+    public async Task<ActionResult<VoitureDTO>> Post([FromBody] VoitureCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -84,7 +84,7 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// Met à jour une voiture existant.
     /// </summary>
     /// <param name="id">Identifiant unique de la voiture à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="avis"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="VoitureCreateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -94,8 +94,13 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] VoitureDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] VoitureCreateDTO dto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var toUpdate = await _manager.GetByIdAsync(id);
 
         if (toUpdate == null)

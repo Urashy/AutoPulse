@@ -8,7 +8,7 @@ public class VoitureDetailDTO
     public string LibelleMotricite { get; set; }
     public string LibelleCarburant { get; set; }
     public string LibelleBoite { get; set; }
-    public string LibelleCouleur { get; set; }
+    public IEnumerable<string> LibelleCouleur { get; set; }
     public string LibelleCategorie { get; set; }
     public int Kilometrage { get; set; }
     public int Annee { get; set; }

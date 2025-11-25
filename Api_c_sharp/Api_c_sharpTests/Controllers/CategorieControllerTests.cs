@@ -18,13 +18,13 @@ using Api_c_sharp.Controllers;
 namespace App.Controllers.Tests
 {
     [TestClass()]
-    public class EtatSignalementControllerTests
+    public class CategorieControllerTests  
     {
-        private EtatSignalementController _controller;
+        private CategorieController _controller;
         private AutoPulseBdContext _context;
-        private EtatSignalementManager _manager;
+        private CategorieManager _manager;
         private IMapper _mapper;
-        private EtatSignalement _objetcommun;
+        private Categorie _objetcommun;
 
         [TestInitialize]
         public async Task Initialize()
@@ -41,18 +41,18 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
-            _manager = new EtatSignalementManager(_context);
-            _controller = new EtatSignalementController(_manager, _mapper);
+            _manager = new CategorieManager(_context);
+            _controller = new CategorieController(_manager, _mapper);
 
-            _context.EtatSignalements.RemoveRange(_context.EtatSignalements);
+            _context.Categories.RemoveRange(_context.Categories);
             await _context.SaveChangesAsync();
 
-            var objet = new EtatSignalement()
+            var objet = new Categorie()
             {
-                LibelleEtatSignalement = "Test"
+                LibelleCategorie = "Test"
             };
 
-            await _context.EtatSignalements.AddAsync(objet);
+            await _context.Categories.AddAsync(objet);
             await _context.SaveChangesAsync();
 
             _objetcommun = objet;
@@ -62,13 +62,13 @@ namespace App.Controllers.Tests
         public async Task GetByIdTest()
         {
             // Act
-            var result = await _controller.GetById(_objetcommun.IdEtatSignalement);
+            var result = await _controller.GetById(_objetcommun.IdCategorie);
 
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(EtatSignalementDTO));
-            Assert.AreEqual(_objetcommun.LibelleEtatSignalement, result.Value.LibelleEtatSignalement);
+            Assert.IsInstanceOfType(result.Value, typeof(CategorieDTO));
+            Assert.AreEqual(_objetcommun.LibelleCategorie, result.Value.LibelleCategorie);
         }
 
         [TestMethod]
@@ -91,9 +91,9 @@ namespace App.Controllers.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<EtatSignalementDTO>));
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<CategorieDTO>));
             Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.LibelleEtatSignalement == _objetcommun.LibelleEtatSignalement));
+            Assert.IsTrue(result.Value.Any(o => o.LibelleCategorie == _objetcommun.LibelleCategorie));
         }
     }
 }

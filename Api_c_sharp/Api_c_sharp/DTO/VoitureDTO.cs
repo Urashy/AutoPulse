@@ -8,6 +8,7 @@
         public int Annee { get; set; }
         public int Kilometrage { get; set; }
         public string Carburant { get; set; }
-        public string Couleur { get; set; }
+        public IEnumerable<string> LibelleCouleur { get; set; }
+
     }
 }
