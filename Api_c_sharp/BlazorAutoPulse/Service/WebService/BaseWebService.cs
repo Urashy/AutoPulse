@@ -15,11 +15,8 @@ public abstract class BaseWebService<T> : IService<T> where T : class
     protected BaseWebService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        // NE PAS modifier la BaseAddress ici !
-        // Elle est déjà définie dans Program.cs comme https://localhost:7295/api/
     }
 
-    // Méthode helper pour construire l'URL complète
     protected string BuildUrl(string relativeUrl)
     {
         return $"{ApiEndpoint}/{relativeUrl}";

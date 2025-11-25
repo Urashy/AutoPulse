@@ -9,7 +9,6 @@ public class ConnexionWebService : IServiceConnexion
 {
     private readonly HttpClient _httpClient;
 
-    // CHANGEMENT: Injection de dépendance
     public ConnexionWebService(HttpClient httpClient)
     {
         _httpClient = httpClient;
