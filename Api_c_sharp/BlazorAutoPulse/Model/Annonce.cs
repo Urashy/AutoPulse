@@ -2,6 +2,7 @@
 
 public class Annonce
 {
+    public int IdAnnonce { get; set; }
     public string Libelle { get; set; }
     public int IdCompte { get; set; }
     public int IdEtatAnnonce { get; set; }

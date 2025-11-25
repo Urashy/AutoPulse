@@ -1,0 +1,148 @@
+@page "/annonce/{IdAnnonce:int}"
+@using BlazorAutoPulse.ViewModel
+@inject AnnonceDetailViewModel VM
+@inject NavigationManager Navigation
+
+<PageTitle>@(VM.Annonce?.Libelle ?? "Détail de l'annonce") - AutoPulse</PageTitle>
+
+@if (VM.IsLoading)
+{
+    <div class="loading-container">
+        <div class="loader"></div>
+        <p>Chargement des détails...</p>
+    </div>
+}
+else if (VM.Annonce == null)
+{
+    <div class="error-container">
+        <h2>Annonce introuvable</h2>
+        <p>L'annonce que vous recherchez n'existe pas ou a été supprimée.</p>
+        <button @onclick="() => Navigation.NavigateTo('/'.ToString())" class="btn-back">Retour à l'accueil</button>
+    </div>
+}
+else
+{
+    <div class="detail-container">
+        <!-- En-tête avec retour -->
+        <div class="header-nav">
+            <button @onclick="() => Navigation.NavigateTo('/'.ToString())" class="btn-back">← Retour</button>
+        </div>
+
+        <!-- Section images -->
+        <div class="images-section">
+            <div class="main-image">
+                @if (VM.CurrentImageIndex >= 0 && VM.ImageIds.Any())
+                {
+                    <img src="@VM.GetCurrentImage()" alt="@VM.Annonce.Libelle" />
+                }
+                else
+                {
+                    <div class="no-image">Aucune image disponible</div>
+                }
+            </div>
+
+            @if (VM.ImageIds.Count > 1)
+            {
+                <div class="image-navigation">
+                    <button @onclick="VM.PreviousImage" class="nav-btn" disabled="@(!VM.CanGoPrevious)">
+                        ◀
+                    </button>
+                    <div class="image-counter">
+                        @(VM.CurrentImageIndex + 1) / @VM.ImageIds.Count
+                    </div>
+                    <button @onclick="VM.NextImage" class="nav-btn" disabled="@(!VM.CanGoNext)">
+                        ▶
+                    </button>
+                </div>
+
+                <div class="thumbnails">
+                    @for (int i = 0; i < VM.ImageIds.Count; i++)
+                    {
+                        var index = i;
+                        <div class="thumbnail @(index == VM.CurrentImageIndex ? "active" : "")"
+                             @onclick="() => VM.SelectImage(index)">
+                            <img src="@VM.GetImageUrl(VM.ImageIds[index])" alt="Miniature @(index + 1)" />
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Informations principales -->
+        <div class="main-info-section">
+            <div class="price-section">
+                <h1>@VM.Annonce.Libelle</h1>
+                <div class="price">@VM.Annonce.Prix.ToString("N0") €</div>
+            </div>
+
+            <div class="key-specs">
+                <div class="spec-item">
+                    <span class="spec-label">📅 Année</span>
+                    <span class="spec-value">@VM.Annonce.Annee</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">📊 Kilométrage</span>
+                    <span class="spec-value">@VM.Annonce.Kilometrage.ToString() km</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">⛽ Carburant</span>
+                    <span class="spec-value">@VM.Annonce.Carburant</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">📍 Localisation</span>
+                    <span class="spec-value">@VM.Annonce.Ville (@VM.Annonce.CodePostal)</span>
+                </div>
+            </div>
+
+            <!-- Vendeur -->
+            <div class="seller-section">
+                <h3>Vendeur</h3>
+                <div class="seller-info">
+                    <div class="seller-details">
+                        <p class="seller-name">@VM.Annonce.PseudoVendeur</p>
+                        <p class="seller-type">Particulier</p>
+                    </div>
+                    <button class="btn-contact">Contacter le vendeur</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Caractéristiques détaillées -->
+        <div class="details-section">
+            <h2>Caractéristiques détaillées</h2>
+            <div class="specs-grid">
+                <div class="spec-group">
+                    <h3>Général</h3>
+                    <div class="spec-row">
+                        <span>Marque</span>
+                        <span>@VM.Annonce.Marque</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Modèle</span>
+                        <span>@VM.Annonce.Modele</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Année</span>
+                        <span>@VM.Annonce.Annee</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-section">
+            <button class="btn-favorite">❤️ Ajouter aux favoris</button>
+            <button class="btn-share">🔗 Partager</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int IdAnnonce { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(IdAnnonce, StateHasChanged);
+    }
+}

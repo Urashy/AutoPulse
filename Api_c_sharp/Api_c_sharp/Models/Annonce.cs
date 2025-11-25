@@ -42,6 +42,9 @@ public class Annonce
     [Column("ann_pri")]
     public int Prix { get; set; }
 
+    [Column("ann_description")]
+    public string? Description { get; set; }
+
 
     [ForeignKey(nameof(IdEtatAnnonce))]
     [InverseProperty(nameof(EtatAnnonce.Annonces))]
