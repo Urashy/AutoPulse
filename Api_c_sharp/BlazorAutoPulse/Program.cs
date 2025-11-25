@@ -45,6 +45,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<RechercheViewModel>();
             builder.Services.AddScoped<AnnonceComposantViewModel>();
             builder.Services.AddScoped<GetAllViewModel>();
+            builder.Services.AddScoped<AnnonceDetailViewModel>();
+
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
