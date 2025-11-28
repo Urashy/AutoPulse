@@ -53,13 +53,13 @@ namespace Api_c_sharp.Controllers
         /// </list>
         /// </returns>
         [ActionName("Put")]
-        [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] APourCouleurDTO dto)
+        [HttpPut("{idvoiture}/{idcouleur}")]
+        public async Task<ActionResult> Put(int idvoiture,int idcouleur, [FromBody] APourCouleurDTO dto)
         {
-            if (id != dto.IdCouleur)
+            if (!ModelState.IsValid)
                 return BadRequest();
 
-            var toUpdate = await _manager.GetByIdAsync(id);
+            var toUpdate = await _manager.GetAPourCouleursByIDS(idvoiture, idcouleur);
 
             if (toUpdate == null)
                 return NotFound();
@@ -80,10 +80,10 @@ namespace Api_c_sharp.Controllers
         /// </list>
         /// </returns>
         [ActionName("Delete")]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{idvoiture}/{idcouleur}")]
+        public async Task<IActionResult> Delete(int idvoiture,int idcouleur)
         {
-            var entity = await _manager.GetByIdAsync(id);
+            var entity = await _manager.GetAPourCouleursByIDS(idvoiture, idcouleur);
 
             if (entity == null)
                 return NotFound();
@@ -119,6 +119,28 @@ namespace Api_c_sharp.Controllers
         public async Task<ActionResult<APourCouleurDTO>> GetByID(int id)
         {
             var result = await _manager.GetByIdAsync(id);
+
+            if (result is null)
+                return NotFound();
+
+            return _adresseMapper.Map<APourCouleurDTO>(result);
+        }
+
+        /// <summary>
+        /// Récupère une adresse à partir de son identifiant.
+        /// </summary>
+        /// <param name="id">Identifiant unique de l'adresse recherchée.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see cref="APourCouleur"/> si l'adresse existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// </list>
+        /// </returns>
+        [ActionName("GetByIds")]
+        [HttpGet("{idvoiture}/{idcouleur}")]
+        public async Task<ActionResult<APourCouleurDTO>> GetByIDs(int idvoiture, int idcouleur)
+        {
+            var result = await _manager.GetAPourCouleursByIDS(idvoiture,idcouleur);
 
             if (result is null)
                 return NotFound();

@@ -50,13 +50,42 @@ namespace App.Controllers.Tests
             _context.APourCouleurs.RemoveRange(_context.APourCouleurs);
             await _context.SaveChangesAsync();
 
-            // Création d’un objet de test
-            var entry = new APourCouleur
+            _context.Marques.Add(new Marque { IdMarque = 1, LibelleMarque = "TestMarque" });
+            _context.Motricites.Add(new Motricite { IdMotricite = 1, LibelleMotricite = "4x4" });
+            _context.Carburants.Add(new Carburant { IdCarburant = 1, LibelleCarburant = "Essence" });
+            _context.BoitesDeVitesses.Add(new BoiteDeVitesse { IdBoiteDeVitesse = 1, LibelleBoite = "Manuelle" });
+            _context.Categories.Add(new Categorie { IdCategorie = 1, LibelleCategorie = "SUV" });
+            _context.Modeles.Add(new Modele { IdModele = 1, LibelleModele = "Modele Test" });
+
+            Couleur couleur = new Couleur
             {
                 IdCouleur = 1,
-                IdVoiture = 10
+                LibelleCouleur = "Rouge",
+                CodeHexaCouleur = "#FF0000"
             };
 
+            Voiture voiture = new Voiture
+            {
+                IdVoiture = 1,
+                IdModele = 1,
+                IdMarque = 1,
+                IdCategorie = 1,
+                IdCarburant = 1,
+                IdBoiteDeVitesse = 1,
+                IdMotricite = 1,
+                Annee = 2020,
+                Kilometrage = 10000
+            };
+
+            APourCouleur entry = new APourCouleur
+            {
+                IdVoiture = voiture.IdVoiture,
+                IdCouleur = couleur.IdCouleur
+            };
+
+
+            await _context.Couleurs.AddAsync(couleur);
+            await _context.Voitures.AddAsync(voiture);
             await _context.APourCouleurs.AddAsync(entry);
             await _context.SaveChangesAsync();
 
@@ -64,12 +93,12 @@ namespace App.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task GetByIdTest()
+        public async Task GetByIdsTest()
         {
             // Given : un enregistrement existant en base (_objetCommun)
 
             // When : on appelle le contrôleur pour récupérer l'objet par son ID
-            var result = await _controller.GetByID(_objetCommun.IdCouleur);
+            var result = await _controller.GetByIDs(_objetCommun.IdVoiture,_objetCommun.IdCouleur);
 
             // Then : l'objet est retrouvé et correspond aux valeurs attendues
             Assert.IsNotNull(result);
@@ -84,7 +113,7 @@ namespace App.Controllers.Tests
             // Given : un ID inexistant
 
             // When : on demande un objet avec cet ID
-            var result = await _controller.GetByID(9999);  // ID inexistant
+            var result = await _controller.GetByIDs(0,0);  // ID inexistant
 
             // Then : la réponse est NotFound
             Assert.IsNotNull(result.Result);
@@ -151,17 +180,17 @@ namespace App.Controllers.Tests
             // Given : un DTO valide pour mettre à jour un élément existant
             var dto = new APourCouleurDTO
             {
-                IdVoiture = 99,  // Modification de IdVoiture
+                IdVoiture = 1,  // Modification de IdVoiture
                 IdCouleur = _objetCommun.IdCouleur  // IdCouleur reste le même
             };
 
             // When : on appelle PUT
-            var result = await _controller.Put(_objetCommun.IdCouleur, dto);
+            var result = await _controller.Put(_objetCommun.IdVoiture, _objetCommun.IdCouleur, dto);
 
             // Then : la réponse est NoContent et l'objet est mis à jour
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var updated = await _manager.GetByIdAsync(_objetCommun.IdCouleur);  // Utilisation de IdCouleur
+            var updated = await _manager.GetAPourCouleursByIDS(_objetCommun.IdVoiture,_objetCommun.IdCouleur);  // Utilisation de IdCouleur
             Assert.AreEqual(dto.IdVoiture, updated.IdVoiture);  // Vérification sur IdVoiture
         }
 
@@ -176,7 +205,7 @@ namespace App.Controllers.Tests
             };
 
             // When : on tente de mettre à jour cet ID
-            var result = await _controller.Put(9999, dto);
+            var result = await _controller.Put(0,0, dto);
 
             // Then : le contrôleur retourne NotFound
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -194,7 +223,7 @@ namespace App.Controllers.Tests
             _controller.ModelState.AddModelError("IdCouleur", "Invalid");
 
             // When : on appelle PUT
-            var result = await _controller.Put(_objetCommun.IdCouleur, dto);
+            var result = await _controller.Put(_objetCommun.IdVoiture, _objetCommun.IdCouleur, dto);
 
             // Then : le contrôleur retourne BadRequest
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
@@ -206,12 +235,12 @@ namespace App.Controllers.Tests
             // Given : un enregistrement existant à supprimer (_objetCommun)
 
             // When : on appelle DELETE
-            var result = await _controller.Delete(_objetCommun.IdCouleur);
+            var result = await _controller.Delete(_objetCommun.IdVoiture, _objetCommun.IdCouleur);
 
             // Then : la réponse est NoContent et l'objet est supprimé
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var deleted = await _manager.GetByIdAsync(_objetCommun.IdCouleur);
+            var deleted = await _manager.GetAPourCouleursByIDS(_objetCommun.IdVoiture,_objetCommun.IdCouleur);
             Assert.IsNull(deleted);
         }
 
@@ -221,7 +250,7 @@ namespace App.Controllers.Tests
             // Given : un ID inexistant
 
             // When : on appelle DELETE
-            var result = await _controller.Delete(9999);
+            var result = await _controller.Delete(0,0);
 
             // Then : la réponse est NotFound
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));

@@ -11,9 +11,6 @@ public class Commande
     [Column("cmd_id")]
     public int IdCommande { get; set; }
 
-    [Column("fac_id")]
-    public int? IdFacture { get; set; }
-
     [Required]
     [Column("com_id_vendeur")]
     public int IdVendeur { get; set; }

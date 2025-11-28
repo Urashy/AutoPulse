@@ -46,6 +46,7 @@ namespace App.Controllers.Tests
             _context.APourConversations.RemoveRange(_context.APourConversations);
             await _context.SaveChangesAsync();
 
+            
             var compte = new Compte
             {
                 IdCompte = 1,
@@ -76,7 +77,6 @@ namespace App.Controllers.Tests
             await _context.Comptes.AddAsync(compte);
             await _context.Conversations.AddAsync(conversation);
             await _context.APourConversations.AddAsync(entry);
-            await _context.SaveChangesAsync();
             var compte2 = new Compte
             {
                 IdCompte = 2,
@@ -90,7 +90,7 @@ namespace App.Controllers.Tests
                 DateNaissance = DateTime.Now,
             };
             await _context.Comptes.AddAsync(compte2);
-            await _context.SaveChangesAsync();
+
 
 
             var conversation2 = new Conversation
@@ -117,7 +117,7 @@ namespace App.Controllers.Tests
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.AreEqual(_objetCommun.IdConversation, result.Value.IdConversation);
-            Assert.AreEqual(_objetCommun.IdCompte, result.Value.IdUtilisateur);
+            Assert.AreEqual(_objetCommun.IdCompte, result.Value.IdCompte);
         }
 
         [TestMethod]
@@ -159,7 +159,7 @@ namespace App.Controllers.Tests
 
             var dto = new APourConversationDTO
             {
-                IdUtilisateur = 2,
+                IdCompte = 2,
                 IdConversation = 11
             };
 
@@ -173,7 +173,7 @@ namespace App.Controllers.Tests
             var createdEntity = (APourConversation)created.Value;
 
             Assert.AreEqual(dto.IdConversation, createdEntity.IdConversation);
-            Assert.AreEqual(dto.IdUtilisateur, createdEntity.IdCompte);
+            Assert.AreEqual(dto.IdCompte, createdEntity.IdCompte);
         }
 
         [TestMethod]
@@ -196,7 +196,7 @@ namespace App.Controllers.Tests
             // Given : un DTO valide pour mettre à jour un élément existant
             var dto = new APourConversationDTO
             {
-                IdUtilisateur = 99,
+                IdCompte = _objetCommun.IdCompte,
                 IdConversation = _objetCommun.IdConversation
             };
 
@@ -206,8 +206,8 @@ namespace App.Controllers.Tests
             // Then : la réponse est NoContent et l'objet est mis à jour
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var updated = await _manager.GetByIdAsync(_objetCommun.IdConversation);
-            Assert.AreEqual(dto.IdUtilisateur, updated.IdCompte);
+            var updated = await _manager.GetByIdsAsync( _objetCommun.IdCompte, _objetCommun.IdConversation);
+            Assert.AreEqual(dto.IdCompte, updated.IdCompte);
         }
 
         [TestMethod]
@@ -216,7 +216,7 @@ namespace App.Controllers.Tests
             // Given : un DTO avec un ID inexistant
             var dto = new APourConversationDTO
             {
-                IdUtilisateur = 1,
+                IdCompte = 1,
                 IdConversation = 9999
             };
 
@@ -233,7 +233,7 @@ namespace App.Controllers.Tests
             // Given : un DTO valide mais ModelState invalide
             var dto = new APourConversationDTO
             {
-                IdUtilisateur = 1,
+                IdCompte = 1,
                 IdConversation = _objetCommun.IdConversation
             };
             _controller.ModelState.AddModelError("IdConversation", "Invalid");

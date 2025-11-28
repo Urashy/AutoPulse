@@ -26,40 +26,40 @@ public class FactureController(FactureManager _manager, IMapper _mapper) : Contr
     /// <param name="id">Identifiant unique de la facture recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="Facture"/> si la facture existe (200 OK).</description></item>
+    /// <item><description><see cref="FactureDTO"/> si la facture existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune facture ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<Facture>> GetByID(int id)
+    public async Task<ActionResult<FactureDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
 
         if (result is null)
             return NotFound();
 
-        return _mapper.Map<Facture>(result);
+        return _mapper.Map<FactureDTO>(result);
     }
 
     /// <summary>
     /// Récupère la liste de toutes les factures.
     /// </summary>
     /// <returns>
-    /// Une liste de <see cref="Facture"/> (200 OK).
+    /// Une liste de <see cref="FactureDTO"/> (200 OK).
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Facture>>> GetAll()
+    public async Task<ActionResult<IEnumerable<FactureDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
-        return new ActionResult<IEnumerable<Facture>>(_mapper.Map<IEnumerable<Facture>>(list));
+        return new ActionResult<IEnumerable<FactureDTO>>(_mapper.Map<IEnumerable<FactureDTO>>(list));
     }
 
     /// <summary>
     /// Crée une nouvelle facture.
     /// </summary>
-    /// <param name="dto">Objet <see cref="Facture"/> contenant les informations de la facture à créer.</param>
+    /// <param name="dto">Objet <see cref="FactureDTO"/> contenant les informations de la facture à créer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="CreatedAtActionResult"/> avec la facture créée (201).</description></item>

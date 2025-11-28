@@ -2,7 +2,7 @@
 {
     public class APourConversationDTO
     {
-        public int IdUtilisateur { get; set; }
+        public int IdCompte { get; set; }
         public int IdConversation { get; set; }
     }
 }

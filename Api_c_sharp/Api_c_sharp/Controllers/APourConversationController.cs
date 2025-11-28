@@ -60,7 +60,7 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            if (idConversation != dto.IdConversation || idCompte != dto.IdUtilisateur)
+            if (idConversation != dto.IdConversation || idCompte != dto.IdCompte)
                 return BadRequest();
 
             var toUpdate = await _manager.GetByIdsAsync(idCompte, idConversation);
