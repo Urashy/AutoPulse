@@ -42,13 +42,13 @@ namespace BlazorAutoPulse.ViewModel
             imageProfil.File = e.File;
             imageProfil.IdCompte = compte.IdCompte;
             await _postImageService.CreateAsync(imageProfil);
-
+            
             _refreshUI?.Invoke();
         }
         
-        public string GetFirstImage(int id)
+        public string GetImageProfil(int id)
         {
-            return _postImageService.GetFirstImage(id);
+            return _postImageService.GetImageProfil(id);
         }
     }
 }

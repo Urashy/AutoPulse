@@ -46,5 +46,10 @@ namespace BlazorAutoPulse.Service.WebService
         {
             throw new NotImplementedException();
         }
+
+        public string GetImageProfil(int id)
+        {
+            return $"{_httpClient.BaseAddress}{ApiEndpoint}/GetImageByCompte/{id}";
+        }
     }
 }
