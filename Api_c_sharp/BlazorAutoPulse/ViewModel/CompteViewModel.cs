@@ -9,15 +9,18 @@ namespace BlazorAutoPulse.ViewModel
     {
         private readonly ICompteService _compteService;
         private readonly IPostImageService _postImageService;
+        private readonly IImageService _imageService;
         public NavigationManager _nav { get; set; }
 
         public Compte compte;
         private Action? _refreshUI;
+        public int idImage;
 
-        public CompteViewModel(ICompteService compteService,  IPostImageService postImageService)
+        public CompteViewModel(ICompteService compteService,  IPostImageService postImageService,  IImageService imageService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
+            _imageService = imageService;
         }
         
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -41,14 +44,28 @@ namespace BlazorAutoPulse.ViewModel
             ImageUpload imageProfil = new ImageUpload();
             imageProfil.File = e.File;
             imageProfil.IdCompte = compte.IdCompte;
-            await _postImageService.CreateAsync(imageProfil);
+            Image img = await _postImageService.CreateAsync(imageProfil);
+            idImage = img.IdImage;
             
             _refreshUI?.Invoke();
+        }
+
+        public async Task ChangeImageProfil(InputFileChangeEventArgs e)
+        {
+            ImageUpload imageProfil = new ImageUpload();
+            imageProfil.File = e.File;
+            
+            Image img = await _imageService.GetByIdAsync(idImage);
+            imageProfil.IdImage = img.IdImage;
+            imageProfil.IdCompte = compte.IdCompte;
+            imageProfil.IdVoiture = img.IdVoiture;
+            
+            _postImageService.UpdateAsync(imageProfil.IdImage, imageProfil);
         }
         
         public string GetImageProfil(int id)
         {
-            return _postImageService.GetImageProfil(id);
+            return _imageService.GetImageProfil(id);
         }
     }
 }
