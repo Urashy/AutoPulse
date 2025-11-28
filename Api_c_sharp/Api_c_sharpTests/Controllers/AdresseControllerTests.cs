@@ -53,44 +53,40 @@ namespace App.Controllers.Tests
                 Libelle = "France"
             };
 
-            _context.Pays.Add(pays);
-            await _context.SaveChangesAsync(); // important pour récupérer l'IdPays
-
-
-            // 2. Création du compte
+            var typeCompte = new TypeCompte
+            {
+                Libelle = "Utilisateur"
+            };
             var compte = new Compte
             {
                 Pseudo = "testuser",
                 MotDePasse = "Password123!",
                 Nom = "Dupont",
                 Prenom = "Jean",
-                Email = "jean.dupont@test.com",
+                Email = "test@gmail.com",
                 DateCreation = DateTime.Now,
-                DateDerniereConnexion = null,
+                DateDerniereConnexion = DateTime.Now,
                 DateNaissance = new DateTime(2000, 1, 1),
-                IdTypeCompte = 1 // à adapter selon ta table TypeCompte
+                IdTypeCompte = 1
             };
 
-            _context.Comptes.Add(compte);
-            await _context.SaveChangesAsync(); // pour récupérer l'IdCompte
-
-
-            // 3. Création de l'adresse (avec les FKs)
-            var objet = new Adresse
+            var adresse = new Adresse
             {
                 Nom = "Domicile",
                 LibelleVille = "Annecy",
                 CodePostal = "74000",
                 Rue = "Route de test",
                 Numero = 12,
-                IdPays = pays.IdPays,         // clé étrangère vers Pays
-                IdCompte = compte.IdCompte    // clé étrangère vers Compte
+                IdPays = 1,
+                IdCompte = 1
             };
+            _context.TypesCompte.Add(typeCompte);
+            _context.Pays.Add(pays);
+            _context.Comptes.Add(compte);
+            _context.Adresses.Add(adresse);
+            await _context.SaveChangesAsync(); 
 
-            _context.Adresses.Add(objet);
-            await _context.SaveChangesAsync();
-
-            _objetcommun = objet;
+            _objetcommun = adresse;
         }
 
         [TestMethod]
@@ -102,7 +98,7 @@ namespace App.Controllers.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(VoitureDetailDTO));
+            Assert.IsInstanceOfType(result.Value, typeof(AdresseDTO));
             Assert.AreEqual(_objetcommun.Rue, result.Value.Rue);
         }
 
@@ -126,7 +122,7 @@ namespace App.Controllers.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<VoitureDTO>));
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
         }
@@ -136,11 +132,11 @@ namespace App.Controllers.Tests
         {
             var adresse = new AdresseDTO()
             {
-                Nom = "Domicile",
+                Nom = "Travail",
                 LibelleVille = "Annecy",
                 CodePostal = "74000",
                 Rue = "Route de test",
-                Numero = 12,
+                Numero = 15,
                 IdPays = 1,       // clé étrangère vers Pays
                 IdCompte = 1
             }
@@ -179,8 +175,9 @@ namespace App.Controllers.Tests
         {
             var adresse = new AdresseDTO()
             {
+                IdAdresse = _objetcommun.IdAdresse,
                 Nom = "Domicile",
-                LibelleVille = "Annecy",
+                LibelleVille = "Chavanod",
                 CodePostal = "74000",
                 Rue = "Route de test",
                 Numero = 12,
@@ -192,8 +189,8 @@ namespace App.Controllers.Tests
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var fetchedVoiture = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
-            Assert.AreEqual(adresse.Nom, fetchedVoiture.Nom);
+            var adresseput = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
+            Assert.AreEqual(adresse.Nom, adresseput.Nom);
         }
 
         [TestMethod]
@@ -201,7 +198,6 @@ namespace App.Controllers.Tests
         {
             var adresse = new AdresseDTO()
             {
-                IdAdresse = 0,
                 Nom = "Domicile",
                 LibelleVille = "Annecy",
                 CodePostal = "74000",
@@ -220,7 +216,6 @@ namespace App.Controllers.Tests
         {
             var adresse = new AdresseDTO()
             {
-                IdAdresse = 0,
                 Nom = "Domicile",
                 LibelleVille = "Annecy",
                 CodePostal = "74000",
@@ -237,7 +232,7 @@ namespace App.Controllers.Tests
             var result = await _controller.Put(_objetcommun.IdAdresse, adresse);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
 
 

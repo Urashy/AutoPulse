@@ -1,0 +1,34 @@
+@page "/favoris"
+@using BlazorAutoPulse.ViewModel
+@inject NavigationManager Navigation
+@inject CompteViewModel VM
+@inject FavorisViewModel FavorisVM
+
+
+<PageTitle>Mes Favoris - AutoPulse</PageTitle>
+
+<div class="favoris-container">
+    @foreach (var a in FavorisVM.AnnoncesFavoris)
+    {
+        <AnnonceComposant Annonce="@a" />
+    }
+</div>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Initialiser le CompteViewModel pour avoir l'utilisateur connecté
+        await VM.InitializeAsync(StateHasChanged, Navigation);
+
+        // 2. Initialiser le FavorisViewModel pour charger les favoris
+        // Cette ligne manquait !
+        await FavorisVM.InitializeAsync(StateHasChanged, Navigation);
+    }
+
+    private void EditProfile()
+    {
+        // Logique pour modifier le profil utilisateur
+        Navigation.NavigateTo("/edit-profile");
+    }
+}

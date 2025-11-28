@@ -55,7 +55,7 @@ namespace Api_c_sharp.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(int id, [FromBody] AdresseDTO dto)
         {
-            if (ModelState.IsValid!)
+            if (!ModelState.IsValid)
                 return BadRequest();
 
             var toUpdate = await _manager.GetByIdAsync(id);

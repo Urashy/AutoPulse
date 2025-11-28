@@ -50,6 +50,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<GetAllViewModel>();
             builder.Services.AddScoped<AnnonceDetailViewModel>();
             builder.Services.AddScoped<CompteViewModel>();
+            builder.Services.AddScoped<FavorisViewModel>();
 
             builder.Services.AddScoped(sp =>
             {

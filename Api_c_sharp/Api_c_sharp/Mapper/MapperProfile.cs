@@ -52,15 +52,15 @@ public class MapperProfile : Profile
         // MAPPERS ADRESSE
         // ============================================
 
-        CreateMap<Adresse, AdresseDTO>().ReverseMap()
-    .ForMember(dest => dest.CompteAdresseNav, opt => opt.Ignore())
-    .ForMember(dest => dest.PaysAdresseNav, opt => opt.Ignore())
-    .ForMember(dest => dest.Annonces, opt => opt.Ignore());
+        CreateMap<Adresse, AdresseDTO>()
+            .ReverseMap();
+  
+
 
 
 
         // ============================================
-        // MAPPERS ET PAYS
+        // MAPPERS PAYS
         // ============================================
 
         CreateMap<Pays, PaysDTO>().ReverseMap();
@@ -139,6 +139,9 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.IdMiseEnAvant.HasValue))
             .ForMember(dest => dest.LibelleMiseEnAvant, 
                 opt => opt.MapFrom(src => src.MiseEnAvantAnnonceNav != null ? src.MiseEnAvantAnnonceNav.LibelleMiseEnAvant : null))
+            .ForMember(dest => dest.Prix
+            , // <--- AJOUTEZ CETTE LIGNE
+                opt => opt.MapFrom(src => src.Prix))
             // Vendeur
             .ForMember(dest => dest.IdVendeur, 
                 opt => opt.MapFrom(src => src.CompteAnnonceNav.IdCompte))
@@ -171,7 +174,8 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Marque, 
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.MarqueVoitureNavigation.LibelleMarque))
             .ForMember(dest => dest.Modele, 
-                opt => opt.MapFrom(src => src.VoitureAnnonceNav)) // À mapper
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.ModeleVoitureNavigation.LibelleModele))
+
             .ForMember(dest => dest.Categorie, 
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.CategorieVoitureNavigation.LibelleCategorie))
             .ForMember(dest => dest.Couleur, 

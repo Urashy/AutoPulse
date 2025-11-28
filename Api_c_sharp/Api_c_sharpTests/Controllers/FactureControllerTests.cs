@@ -44,17 +44,101 @@ namespace App.Controllers.Tests
             _manager = new FactureManager(_context);
             _controller = new FactureController(_manager, _mapper);
 
-            _context.Voitures.RemoveRange(_context.Voitures);
-            await _context.SaveChangesAsync();
+            _context.Marques.Add(new Marque { IdMarque = 1, LibelleMarque = "TestMarque" });
+            _context.Motricites.Add(new Motricite { IdMotricite = 1, LibelleMotricite = "4x4" });
+            _context.Carburants.Add(new Carburant { IdCarburant = 1, LibelleCarburant = "Essence" });
+            _context.BoitesDeVitesses.Add(new BoiteDeVitesse { IdBoiteDeVitesse = 1, LibelleBoite = "Manuelle" });
+            _context.Categories.Add(new Categorie { IdCategorie = 1, LibelleCategorie = "SUV" });
+            _context.Modeles.Add(new Modele { IdModele = 1, LibelleModele = "Modele Test" });
 
-
-            await _context.SaveChangesAsync();
-
-            var objet = new Facture()
+            MoyenPaiement moyenPaiement = new MoyenPaiement
             {
-                IdCommande = int.Parse(null),
+                IdMoyenPaiement = 1,
+                TypePaiement = "Carte Bancaire"
             };
 
+            TypeCompte typeCompte = new TypeCompte
+            {
+                IdTypeCompte= 1,
+                Libelle = "Acheteur"
+            };
+
+            Compte acheteur = new Compte
+            {
+                IdCompte = 1,
+                Nom = "Doe",
+                Prenom = "John",
+                Email = "john.doe@gmail.com",
+                Pseudo = "johndoe",
+                MotDePasse = "Password123!",
+                DateCreation = DateTime.Now,
+                DateNaissance = new DateTime(1990, 1, 1),
+                DateDerniereConnexion = DateTime.Now,
+                IdTypeCompte =typeCompte.IdTypeCompte
+            };
+
+            Compte vendeur = new Compte
+            {
+                IdCompte = 2,
+                Nom = "Test",
+                Prenom = "John",
+                Email = "john.Test@gmail.com",
+                Pseudo = "testjohn",
+                MotDePasse = "Password123!",
+                DateCreation = DateTime.Now,
+                DateNaissance = new DateTime(1990, 1, 1),
+                DateDerniereConnexion = DateTime.Now,
+                IdTypeCompte = typeCompte.IdTypeCompte
+            };
+
+            Voiture voiture = new Voiture
+            {
+                IdVoiture = 1,
+                IdMarque = 1,
+                IdModele = 1,
+                IdCategorie = 1,
+                IdCarburant = 1,
+                IdBoiteDeVitesse = 1,
+                IdMotricite = 1,
+                Kilometrage = 5000,
+                Annee = 2021,
+                Puissance = 150,
+                MiseEnCirculation = new DateTime(2021, 6, 15)
+            };
+
+            Annonce annnonce = new Annonce
+            {
+                IdAnnonce = 1,
+                Libelle = "Annonce Test",
+                Description = "Description de l'annonce test",
+                Prix = 10000,
+                DatePublication = DateTime.Now,
+                IdCompte = vendeur.IdCompte,
+                IdVoiture = 1,
+            };
+
+            Commande commande = new Commande
+            {
+                IdCommande = 1,
+                Date = DateTime.Now,
+                IdAcheteur = acheteur.IdCompte,
+                IdAnnonce = annnonce.IdAnnonce,
+                IdMoyenPaiement = moyenPaiement.IdMoyenPaiement,
+                IdVendeur = vendeur.IdCompte
+            };
+
+            Facture objet = new Facture()
+            {
+                IdFacture = 1,
+                IdCommande = commande.IdCommande,
+            };
+            await _context.TypesCompte.AddAsync(typeCompte);
+            await _context.MoyensPaiements.AddAsync(moyenPaiement);
+            await _context.Comptes.AddAsync(acheteur);
+            await _context.Comptes.AddAsync(vendeur);
+            await _context.Voitures.AddAsync(voiture);
+            await _context.Annonces.AddAsync(annnonce);
+            await _context.Commandes.AddAsync(commande);
             await _context.Factures.AddAsync(objet);
             await _context.SaveChangesAsync();
 
@@ -140,7 +224,9 @@ namespace App.Controllers.Tests
         {
             var voiture = new FactureDTO()
             {
-                IdCommande = 1,
+                IdFacture = _objetcommun.IdFacture,
+                IdCommande = _objetcommun.IdCommande,
+
             };
 
             var result = await _controller.Put(_objetcommun.IdFacture, voiture);
@@ -179,7 +265,7 @@ namespace App.Controllers.Tests
             var result = await _controller.Put(_objetcommun.IdFacture, voiture);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
 
 
@@ -188,10 +274,11 @@ namespace App.Controllers.Tests
         {
             var voiture = new FactureDTO
             {
-                IdCommande = int.Parse(null),
+                IdFacture = _objetcommun.IdFacture,
+                IdCommande = -20,
             };
 
-            _controller.ModelState.AddModelError("IdCommande", "Required");
+            _controller.ModelState.AddModelError("IdCommande", "Le IdCommande doit être supérieur à 0");
 
             var actionResult = await _controller.Post(voiture);
 
