@@ -11,7 +11,6 @@ public class Annonce
     public int? IdMiseEnAvant { get; set; }
     public DateTime? DatePublication { get; set; }
     public int Prix { get; set; }
-    
     public int? Annee { get; set; }
     public int? Kilometrage { get; set; }
 }

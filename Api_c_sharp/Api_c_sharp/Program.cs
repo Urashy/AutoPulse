@@ -45,6 +45,7 @@ builder.Services.AddScoped<TypeCompteManager>();
 builder.Services.AddScoped<CouleurManager>();
 builder.Services.AddScoped<VoitureManager>();
 builder.Services.AddScoped<APourCouleurManager>();
+builder.Services.AddScoped<FavoriManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());

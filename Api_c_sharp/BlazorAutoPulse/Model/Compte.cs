@@ -2,7 +2,7 @@ namespace BlazorAutoPulse.Model;
 
 public class Compte
 {
-    public int  IdCompte { get; set; }
+    public int IdCompte { get; set; }
     public string Pseudo { get; set; }
     public string MotDePasse { get; set; }
     public string Nom { get; set; }

@@ -8,5 +8,6 @@ namespace BlazorAutoPulse.Service.Interface
         public string GetImage(int id);
         public string GetFirstImage(int id);
         public string GetAllIdImage(int id);
+        public string GetImageProfil(int id);
     }
 }
