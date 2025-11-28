@@ -253,6 +253,21 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         
         return Ok(new {message = "Login OK"});
     }
+    
+    [HttpPost]
+    [Authorize]
+    public IActionResult Logout()
+    {
+        // Efface le cookie JWT HTTP-only
+        Response.Cookies.Delete("access_token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None
+        });
+
+        return Ok(new { message = "Logout OK" });
+    }
 
     /// <summary>
     /// Vérifie si un utilisateur existe dans la base de données en fonction du mot de passe.

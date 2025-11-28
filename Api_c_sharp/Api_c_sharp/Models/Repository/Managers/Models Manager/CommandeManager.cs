@@ -9,6 +9,11 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
         }
 
+        public override async Task<IEnumerable<Commande>> GetAllAsync()
+        {
+            return await dbSet.OrderBy(s => s.Date).ToListAsync();
+        }
+
         public async Task<IEnumerable<Commande>> GetCommandeByCompteId(int compteId)
         {
             return await dbSet.Where(commande => commande.IdAcheteur == compteId).ToListAsync();

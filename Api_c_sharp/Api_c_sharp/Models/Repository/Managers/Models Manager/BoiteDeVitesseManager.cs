@@ -9,5 +9,10 @@ namespace Api_c_sharp.Models.Repository.Managers
         public BoiteDeVitesseManager(AutoPulseBdContext context) : base(context)
         {
         }
+
+        public override async Task<IEnumerable<BoiteDeVitesse>> GetAllAsync()
+        {
+            return await dbSet.OrderBy(s => s.LibelleBoite).ToListAsync();
+        }
     }
 }

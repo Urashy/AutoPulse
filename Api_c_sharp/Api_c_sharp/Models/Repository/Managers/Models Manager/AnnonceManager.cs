@@ -32,9 +32,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public override async Task<IEnumerable<Annonce>> GetAllAsync()
         {
-            return await ApplyIncludes()
-                .OrderByDescending(a => a.IdMiseEnAvant).
-                ToListAsync();
+            return await ApplyIncludes().OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
         }
 
         public override async Task<Annonce?> GetByNameAsync(string name)

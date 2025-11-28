@@ -30,5 +30,10 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
             return await dbSet.FirstOrDefaultAsync(img => img.IdVoiture == idvoiture);
         }
+
+        public async Task<Image> GetImageByCompteID(int idcompte)
+        {
+            return await dbSet.FirstOrDefaultAsync(img => img.IdCompte == idcompte);
+        }
     }
 }

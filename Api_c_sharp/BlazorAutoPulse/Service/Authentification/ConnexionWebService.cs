@@ -27,4 +27,13 @@ public class ConnexionWebService : IServiceConnexion
         response.EnsureSuccessStatusCode();
         return response.StatusCode;
     }
+
+    public async Task<HttpStatusCode> LogOutUser()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "Compte/Logout");
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return response.StatusCode;
+    }
 }

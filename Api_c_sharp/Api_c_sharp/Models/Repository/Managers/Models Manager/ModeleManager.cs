@@ -11,9 +11,14 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
+        public override async Task<IEnumerable<Modele>> GetAllAsync()
+        {
+            return await dbSet.OrderBy(s => s.LibelleModele).ToListAsync();
+        }
+
         public async Task<IEnumerable<Modele>> GetModelesByMarqueIdAsync(int marqueId)
         {
-            return await dbSet.Where(m => m.IdMarque == marqueId).ToListAsync();
+            return await dbSet.Where(m => m.IdMarque == marqueId).OrderBy(s => s.LibelleModele).ToListAsync();
         }
     }
 }
