@@ -7,7 +7,8 @@ namespace BlazorAutoPulse.ViewModel
     public class AnnonceDetailViewModel
     {
         private readonly IAnnonceDetailService _annonceService;
-        private readonly IPostImageService _imageService;
+        private readonly IPostImageService _postImageService;
+        private readonly IImageService _imageService;
         private readonly IFavorisService _favorisService;
         private readonly ICompteService _compteService;
 
@@ -22,14 +23,16 @@ namespace BlazorAutoPulse.ViewModel
 
         public AnnonceDetailViewModel(
             IAnnonceDetailService annonceService,
-            IPostImageService imageService,
+            IPostImageService postImageService,
             IFavorisService favorisService,
-            ICompteService compteService)
+            ICompteService compteService,
+            IImageService imageService)
         {
             _annonceService = annonceService;
-            _imageService = imageService;
+            _postImageService = postImageService;
             _favorisService = favorisService;
             _compteService = compteService;
+            _imageService = imageService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI)

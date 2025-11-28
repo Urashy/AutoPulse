@@ -20,7 +20,6 @@ namespace BlazorAutoPulse
             //----------------------- Service de base
             builder.Services.AddScoped<IService<Marque>, MarqueWebService>();
             builder.Services.AddScoped<IService<Compte>, CompteWebService>();
-            builder.Services.AddScoped<IService<Image>, ImageWebService>();
             builder.Services.AddScoped<IService<Carburant>, CarburantWebService>();
             builder.Services.AddScoped<IService<Categorie>, CategorieWebService>();
             builder.Services.AddScoped<IService<TypeCompte>, TypeCompteWebService>();
@@ -39,6 +38,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IAnnonceDetailService, AnnonceDetailWebService>();
             builder.Services.AddScoped<ICompteService, CompteWebService>();
             builder.Services.AddScoped<IFavorisService, FavoriWebService>();
+            builder.Services.AddScoped<IImageService, ImageWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -50,6 +50,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<GetAllViewModel>();
             builder.Services.AddScoped<AnnonceDetailViewModel>();
             builder.Services.AddScoped<CompteViewModel>();
+            builder.Services.AddScoped<FavorisViewModel>();
 
             builder.Services.AddScoped(sp =>
             {

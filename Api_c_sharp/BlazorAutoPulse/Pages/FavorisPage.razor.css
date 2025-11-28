@@ -1,0 +1,96 @@
+.hero {
+    position: relative;
+    height: 860px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background:
+            radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 50%, rgba(0, 153, 255, 0.1) 0%, transparent 50%);
+}
+
+.hero-content {
+    text-align: center;
+    z-index: 1;
+    max-width: 800px;
+    padding: 0 20px;
+}
+
+.hero h1 {
+    font-size: 56px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #fff, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero p {
+    font-size: 20px;
+    color: #aaa;
+    margin-bottom: 40px;
+}
+
+.search-bar {
+    display: flex;
+    gap: 10px;
+    max-width: 700px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.search-bar input, .search-bar select {
+    flex: 1;
+    padding: 15px 25px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-radius: 30px;
+    outline: none;
+}
+
+.search-bar button {
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    border: none;
+    color: #fff;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.3s;
+}
+
+.search-bar button:hover {
+    transform: scale(1.05);
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 40px;
+}
+
+.section-title {
+    font-size: 42px;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.cars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+}

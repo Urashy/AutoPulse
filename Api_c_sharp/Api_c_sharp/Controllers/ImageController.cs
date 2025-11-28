@@ -57,7 +57,7 @@ namespace Api_c_sharp.Controllers
         // PUT
         [ActionName("Put")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] Image dto)
+        public async Task<ActionResult> Put(int id, [FromBody] ImageUploadDTO dto)
         {
             if (id != dto.IdImage)
                 return BadRequest();
@@ -117,8 +117,8 @@ namespace Api_c_sharp.Controllers
 
             if (imageEntity == null || imageEntity.Fichier == null)
                 return NotFound();
-
-            return File(imageEntity.Fichier, "image/jpeg");
+            
+            return Ok(imageEntity);
         }
     }
 }

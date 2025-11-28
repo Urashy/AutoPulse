@@ -10,7 +10,7 @@
     <div class="sidebar">
         <div class="profile-section">
             <!-- Photo de profil -->
-            <img src="@VM.GetImageProfil(VM.compte.IdCompte)" alt="Photo de Profil" class="profile-photo" />
+            <img src="@VM.GetImageProfil(VM.compte.IdCompte)" idImage="@(VM.idImage != null ? VM.idImage : "")" alt="Photo de Profil" class="profile-photo" />
         </div>
 
         <nav class="navbar">
@@ -59,13 +59,20 @@
             <button @onclick="EditProfile">Modifier le profil</button>
             <button @onclick="ConnexionVM.DeconnexionUtilisateur">Déconnexion</button>
             <div class="form-group">
-                <label>Photos du véhicule (la première sera la photo de couverture)</label>
                 <label for="vehiclePhotos" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
                     <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
                     <p style="color: #aaa;">Cliquez pour ajouter des photos</p>
                     <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
                 </label>
                 <InputFile id="vehiclePhotos" OnChange="@VM.UploadImageProfil" multiple style="display:none"/>
+            </div>
+            <div class="form-group">
+                <label for="vehiclePhotosUpdate" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
+                    <p style="color: #aaa;">Cliquez pour ajouter des photos</p>
+                    <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
+                </label>
+                <InputFile id="vehiclePhotosUpdate" OnChange="@VM.ChangeImageProfil" multiple style="display:none"/>
             </div>
         </div>
     </div>

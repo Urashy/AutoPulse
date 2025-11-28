@@ -95,6 +95,8 @@ public class AvisController(AvisManager _manager, IMapper _mapper) : ControllerB
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] AvisCreateDTO dto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         var toUpdate = await _manager.GetByIdAsync(id);
 
         if (toUpdate == null)
@@ -144,9 +146,6 @@ public class AvisController(AvisManager _manager, IMapper _mapper) : ControllerB
     public async Task<ActionResult<IEnumerable<AvisListDTO>>> GetAllByType(int idcompte)
     {
         var result = await _manager.GetAvisByCompteId(idcompte);
-
-        if (result is null)
-            return NotFound();
 
         return new ActionResult<IEnumerable<AvisListDTO>>(_mapper.Map<IEnumerable<AvisListDTO>>(result));
 
