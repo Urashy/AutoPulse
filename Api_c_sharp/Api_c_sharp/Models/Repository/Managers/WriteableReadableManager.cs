@@ -27,7 +27,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             await context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync()
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             return await dbSet.ToListAsync();
         }
@@ -37,7 +37,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.FindAsync(id);
         }
 
-        public async Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
+        public virtual async Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
         {
             context.Entry(entityToUpdate).CurrentValues.SetValues(entity);
             await context.SaveChangesAsync();

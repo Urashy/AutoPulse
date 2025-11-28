@@ -11,7 +11,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task<IEnumerable<Message>> GetMessagesByConversation(int conversationId)
         {
-            return await dbSet.Where(m => m.IdConversation == conversationId).ToListAsync();
+            return await dbSet.Where(m => m.IdConversation == conversationId).OrderBy(m => m.DateEnvoiMessage).ToListAsync();
         }
     }
 }

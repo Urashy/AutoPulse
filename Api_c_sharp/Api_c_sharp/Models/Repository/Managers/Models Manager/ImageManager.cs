@@ -28,7 +28,13 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task<Image> GetFirstImageByVoitureID(int idvoiture)
         {
-            return await dbSet.FirstOrDefaultAsync(img => img.IdVoiture == idvoiture);
+            var image = dbSet.FirstOrDefaultAsync(img => img.IdVoiture == idvoiture);
+
+            if (image == null)
+            {
+                image = dbSet.FirstOrDefaultAsync(img => img.IdCompte == idvoiture);
+            }
+            return await image;
         }
     }
 }

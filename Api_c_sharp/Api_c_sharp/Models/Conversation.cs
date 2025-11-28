@@ -15,6 +15,10 @@ namespace Api_c_sharp.Models
         [Required]
         public int IdAnnonce { get; set; }
 
+        [Column("con_date_dernier_message")]
+        [Required]
+        public DateTime DateDernierMessage { get; set; } = DateTime.Now;
+
         [ForeignKey(nameof(IdAnnonce))]
         [InverseProperty(nameof(Annonce.Conversations))]
         public virtual Annonce AnnonceConversationNav { get; set; }

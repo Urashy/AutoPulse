@@ -16,14 +16,14 @@ namespace Api_c_sharp.Models.Repository.Managers
             this.dbSet = context.Set<TEntity>();
         }
 
-        public async Task<TEntity> AddAsync(TEntity entity)
+        public virtual async Task<TEntity> AddAsync(TEntity entity)
         {
             await dbSet.AddAsync(entity);
             await context.SaveChangesAsync();
             return entity;
         }
 
-        public async Task DeleteAsync(TEntity entity)
+        public virtual async Task DeleteAsync(TEntity entity)
         {
             dbSet.Remove(entity);
             await context.SaveChangesAsync();
