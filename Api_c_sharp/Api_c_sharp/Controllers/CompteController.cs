@@ -150,7 +150,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] CompteUpdateDTO dto)
     {
-        if (id != dto.Id)
+        if (id != dto.IdCompte)
             return BadRequest();
 
         var toUpdate = await _manager.GetByIdAsync(id);
@@ -158,7 +158,10 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         if (toUpdate == null)
             return NotFound();
 
-        var updatedEntity = _compteMapper.Map<Compte>(dto);
+        Compte updatedEntity = _compteMapper.Map<Compte>(dto);
+        updatedEntity.MotDePasse = toUpdate.MotDePasse;
+        updatedEntity.DateDerniereConnexion = toUpdate.DateDerniereConnexion;
+        updatedEntity.DateCreation = toUpdate.DateCreation;
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
         return NoContent();

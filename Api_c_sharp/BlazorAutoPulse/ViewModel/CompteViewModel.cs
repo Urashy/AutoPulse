@@ -13,10 +13,16 @@ namespace BlazorAutoPulse.ViewModel
         public NavigationManager _nav { get; set; }
 
         public Compte compte;
-        private Action? _refreshUI;
+        public Compte compteEdit;
+        
         private string mimeType = "data:image/jpeg;base64,";
         public string imageSource;
         public int idImage;
+
+        public string activeSection = "annonces";
+        public bool isEditing = false;
+        
+        private Action? _refreshUI;
 
         public CompteViewModel(ICompteService compteService,  IPostImageService postImageService,  IImageService imageService)
         {
@@ -31,18 +37,47 @@ namespace BlazorAutoPulse.ViewModel
             _nav = nav;
             
             compte = new Compte();
+            
             try
             {
                 compte = await _compteService.GetMe();
-                await GetImageProfil(compte.IdCompte);
             }
             catch
             {
                 _nav.NavigateTo("/connexion");
             }
+            
+            await GetImageProfil(compte.IdCompte);
+            
+            compteEdit = new Compte
+            {
+                IdCompte = compte.IdCompte,
+                Pseudo = compte.Pseudo,
+                Nom = compte.Nom,
+                Prenom = compte.Prenom,
+                Email = compte.Email,
+                DateNaissance = compte.DateNaissance,
+                Biographie = compte.Biographie,
+                IdTypeCompte = compte.IdTypeCompte,
+                NumeroSiret = compte.NumeroSiret,
+                RaisonSociale = compte.RaisonSociale,
+                IdImage = idImage,
+            };
+        }
+
+        public async Task UpdateProfileImage(InputFileChangeEventArgs e)
+        {
+            if (imageSource == null)
+            {
+                await UploadImageProfil(e);
+            }
+            else
+            {
+                await ChangeImageProfil(e);
+            }
         }
         
-        public async Task UploadImageProfil(InputFileChangeEventArgs e)
+        private async Task UploadImageProfil(InputFileChangeEventArgs e)
         {
             ImageUpload imageProfil = new ImageUpload();
             imageProfil.File = e.File;
@@ -52,8 +87,9 @@ namespace BlazorAutoPulse.ViewModel
             await GetImageProfil(compte.IdCompte);
         }
 
-        public async Task ChangeImageProfil(InputFileChangeEventArgs e)
+        private async Task ChangeImageProfil(InputFileChangeEventArgs e)
         {
+            Console.WriteLine(e.File.Name);
             ImageUpload imageProfil = new ImageUpload();
             imageProfil.File = e.File;
             
@@ -76,6 +112,30 @@ namespace BlazorAutoPulse.ViewModel
                 imageSource = $"{mimeType}{base64}";
                 _refreshUI?.Invoke();
             }
+        }
+
+        public void SetActiveSection(string section)
+        {
+            activeSection = section;
+        }
+        
+        public void ToggleEdit()
+        {;
+            isEditing = true;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task SaveProfile()
+        {
+            await _compteService.UpdateAsync(compte.IdCompte, compteEdit);
+            compte = await _compteService.GetMe();
+            _refreshUI?.Invoke();
+            isEditing = false;
+        }
+
+        public void CancelEdit()
+        {
+            isEditing = false;
         }
     }
 }

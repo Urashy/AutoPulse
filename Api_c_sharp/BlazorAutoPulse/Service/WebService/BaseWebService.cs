@@ -63,7 +63,7 @@ public abstract class BaseWebService<T> : IService<T> where T : class
         {
             Content = JsonContent.Create(entity)
         };
-
+        
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
     }
