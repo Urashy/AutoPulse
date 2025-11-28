@@ -7,17 +7,43 @@
     <div class="auth-container">
         <div class="auth-box">
             <h2>Connexion</h2>
+
+            @if (!string.IsNullOrEmpty(VM.messageErreur))
+            {
+                <div class="error-message-box">
+                    @VM.messageErreur
+                </div>
+            }
+
             <form>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" placeholder="votre@email.com" @bind="VM.emailUtilisateur" required>
+                    <input type="email"
+                           placeholder="votre@email.com"
+                           @bind="VM.emailUtilisateur"
+                           disabled="@VM.isLoading"
+                           required>
                 </div>
                 <div class="form-group">
                     <label>Mot de passe</label>
-                    <input type="password" placeholder="••••••••" @bind="VM.motDePasseUtilisateur" required>
+                    <input type="password"
+                           placeholder="••••••••"
+                           @bind="VM.motDePasseUtilisateur"
+                           disabled="@VM.isLoading"
+                           required>
                 </div>
-                <button type="button" class="btn-submit" @onclick="VM.ConnexionUtilisateur">
-                    Se connecter
+                <button type="button"
+                        class="btn-submit"
+                        @onclick="VM.ConnexionUtilisateur"
+                        disabled="@VM.isLoading">
+                    @if (VM.isLoading)
+                    {
+                        <span>Connexion en cours...</span>
+                    }
+                    else
+                    {
+                        <span>Se connecter</span>
+                    }
                 </button>
             </form>
             <div class="auth-switch">

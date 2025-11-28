@@ -11,15 +11,17 @@ public class ConnexionViewModel
     
     public string emailUtilisateur { get; set; }
     public string motDePasseUtilisateur { get; set; }
-    private HttpStatusCode httpCode;
-    private string action = "";
+    public string messageErreur { get; set; }
+    public bool isLoading { get; set; }
     
     private Action? _refreshUI;
     private NavigationManager _nav;
 
     public ConnexionViewModel(IServiceConnexion connexionService)
     {
-        _connexionService  = connexionService;
+        _connexionService = connexionService;
+        messageErreur = string.Empty;
+        isLoading = false;
     }
 
     public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -30,50 +32,96 @@ public class ConnexionViewModel
 
     public async Task ConnexionUtilisateur()
     {
-        var req = new LoginRequest()
+        // Validation côté client
+        if (string.IsNullOrWhiteSpace(emailUtilisateur))
         {
-            Email = emailUtilisateur,
-            MotDePasse = motDePasseUtilisateur,
-        };
-        
-        httpCode = await _connexionService.LoginUser(req);
-        action = "Connexion";
-        VerifCode();
+            messageErreur = "Veuillez saisir votre email";
+            _refreshUI?.Invoke();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(motDePasseUtilisateur))
+        {
+            messageErreur = "Veuillez saisir votre mot de passe";
+            _refreshUI?.Invoke();
+            return;
+        }
+
+        isLoading = true;
+        messageErreur = string.Empty;
+        _refreshUI?.Invoke();
+
+        try
+        {
+            var req = new LoginRequest()
+            {
+                Email = emailUtilisateur,
+                MotDePasse = motDePasseUtilisateur,
+            };
+            
+            var httpCode = await _connexionService.LoginUser(req);
+
+            isLoading = false;
+
+            switch (httpCode)
+            {
+                case HttpStatusCode.OK:
+                    // Succès - redirection
+                    await Task.Delay(100);
+                    _nav.NavigateTo("/compte", forceLoad: true);
+                    break;
+
+                case HttpStatusCode.Unauthorized:
+                    messageErreur = "Email ou mot de passe incorrect";
+                    _refreshUI?.Invoke();
+                    break;
+
+                case HttpStatusCode.BadRequest:
+                    messageErreur = "Données invalides";
+                    _refreshUI?.Invoke();
+                    break;
+
+                default:
+                    messageErreur = "Erreur de connexion. Veuillez réessayer.";
+                    _refreshUI?.Invoke();
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            isLoading = false;
+            messageErreur = "Erreur de connexion au serveur";
+            Console.WriteLine($"Erreur ConnexionUtilisateur: {ex.Message}");
+            _refreshUI?.Invoke();
+        }
+    }
+    
+    public void SetNavigation(NavigationManager nav)
+    {
+        _nav = nav;
     }
 
     public async Task DeconnexionUtilisateur()
     {
-        httpCode = await _connexionService.LogOutUser();
-        action = "Deconnexion";
-        VerifCode();
-    }
-
-    private async void VerifCode()
-    {
-        if (httpCode == HttpStatusCode.OK)
+        try
         {
+            await _connexionService.LogOutUser();
             await Task.Delay(100);
-            if (action == "Connexion")
-            {
-                _nav.NavigateTo("compte");
-            }
-            else
-            {
-                _nav.NavigateTo("connexion");
-            }
+            _nav.NavigateTo("/connexion", forceLoad: true);
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("Erreur lors de la connexion de l'utilisateur");
+            Console.WriteLine($"Erreur DeconnexionUtilisateur: {ex.Message}");
+            // Même en cas d'erreur, on redirige vers la page de connexion
+            _nav.NavigateTo("/connexion", forceLoad: true);
         }
-        action = "";
     }
     
     public void Reset()
     {
         emailUtilisateur = string.Empty;
         motDePasseUtilisateur = string.Empty;
-        httpCode = 0;
-        action = "";
+        messageErreur = string.Empty;
+        isLoading = false;
     }
 }

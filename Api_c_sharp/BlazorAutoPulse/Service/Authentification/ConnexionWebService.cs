@@ -16,24 +16,53 @@ public class ConnexionWebService : IServiceConnexion
 
     public async Task<HttpStatusCode> LoginUser(LoginRequest compte)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "Compte/Login")
+        try
         {
-            Content = JsonContent.Create(compte)
-        };
-        
-        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-        var response = await _httpClient.SendAsync(request);
-        
-        response.EnsureSuccessStatusCode();
-        return response.StatusCode;
+            var request = new HttpRequestMessage(HttpMethod.Post, "Compte/Login")
+            {
+                Content = JsonContent.Create(compte)
+            };
+            
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            var response = await _httpClient.SendAsync(request);
+            
+            // Ne pas lancer d'exception si 401 (credentials invalides)
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                return HttpStatusCode.Unauthorized;
+            }
+            
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                return HttpStatusCode.BadRequest;
+            }
+            
+            response.EnsureSuccessStatusCode();
+            return response.StatusCode;
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Erreur LoginUser: {ex.Message}");
+            return HttpStatusCode.InternalServerError;
+        }
     }
 
     public async Task<HttpStatusCode> LogOutUser()
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "Compte/Logout");
-        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-        var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        return response.StatusCode;
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "Compte/Logout");
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            var response = await _httpClient.SendAsync(request);
+            
+            // Même si le logout échoue, on considère que c'est OK côté client
+            return response.IsSuccessStatusCode ? response.StatusCode : HttpStatusCode.OK;
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Erreur LogOutUser: {ex.Message}");
+            // On retourne OK même en cas d'erreur car le cookie sera supprimé côté client
+            return HttpStatusCode.OK;
+        }
     }
 }

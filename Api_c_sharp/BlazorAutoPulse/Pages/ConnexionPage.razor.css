@@ -24,6 +24,29 @@
     -webkit-text-fill-color: transparent;
 }
 
+/* MESSAGE D'ERREUR */
+.error-message-box {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+    padding: 15px;
+    color: #ff6666;
+    margin-bottom: 20px;
+    text-align: center;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* FORM */
 .form-group {
     margin-bottom: 25px;
@@ -51,6 +74,11 @@
     border-color: #00d4ff;
 }
 
+.form-group input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 /* BUTTON */
 .btn-submit {
     width: 100%;
@@ -65,8 +93,14 @@
     transition: transform 0.3s;
 }
 
-.btn-submit:hover {
+.btn-submit:hover:not(:disabled) {
     transform: scale(1.02);
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* SWITCH LINK */
@@ -84,44 +118,4 @@
 
 .auth-switch a:hover {
     text-decoration: underline;
-}
-
-/*---------------------------- A supprimer (pour test de connexion */
-.title {
-    font-size: 24px;
-    margin-bottom: 20px;
-}
-
-.btn {
-    padding: 10px 15px;
-    background: #2d6cdf;
-    color: white;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-}
-
-.btn:hover {
-    background: #1e4ead;
-}
-
-.card {
-    margin-top: 25px;
-    padding: 20px;
-    border-radius: 10px;
-    background: black;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    max-width: 400px;
-}
-
-.card h4 {
-    margin-bottom: 5px;
-}
-
-.token {
-    font-size: 12px;
-    word-break: break-all;
-    background: #eee;
-    padding: 8px;
-    border-radius: 5px;
 }

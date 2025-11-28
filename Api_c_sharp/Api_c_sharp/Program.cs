@@ -90,6 +90,11 @@ builder.Services.AddAuthorization(config =>
     config.AddPolicy(Policies.Authorized, Policies.Logged());
 });
 
+builder.Services.AddControllers().AddJsonOptions(opt =>
+{
+    opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor",
@@ -110,8 +115,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
 app.UseCors("AllowBlazor");
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

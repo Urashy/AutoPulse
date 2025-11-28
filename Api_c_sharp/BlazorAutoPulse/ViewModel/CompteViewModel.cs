@@ -14,6 +14,8 @@ namespace BlazorAutoPulse.ViewModel
 
         public Compte compte;
         private Action? _refreshUI;
+        private string mimeType = "data:image/jpeg;base64,";
+        public string imageSource;
         public int idImage;
 
         public CompteViewModel(ICompteService compteService,  IPostImageService postImageService,  IImageService imageService)
@@ -32,6 +34,7 @@ namespace BlazorAutoPulse.ViewModel
             try
             {
                 compte = await _compteService.GetMe();
+                await GetImageProfil(compte.IdCompte);
             }
             catch
             {
@@ -45,9 +48,8 @@ namespace BlazorAutoPulse.ViewModel
             imageProfil.File = e.File;
             imageProfil.IdCompte = compte.IdCompte;
             Image img = await _postImageService.CreateAsync(imageProfil);
-            idImage = img.IdImage;
             
-            _refreshUI?.Invoke();
+            await GetImageProfil(compte.IdCompte);
         }
 
         public async Task ChangeImageProfil(InputFileChangeEventArgs e)
@@ -55,17 +57,25 @@ namespace BlazorAutoPulse.ViewModel
             ImageUpload imageProfil = new ImageUpload();
             imageProfil.File = e.File;
             
-            Image img = await _imageService.GetByIdAsync(idImage);
-            imageProfil.IdImage = img.IdImage;
+            imageProfil.IdImage = idImage;
             imageProfil.IdCompte = compte.IdCompte;
-            imageProfil.IdVoiture = img.IdVoiture;
+            imageProfil.IdVoiture = null;
             
-            _postImageService.UpdateAsync(imageProfil.IdImage, imageProfil);
+            await _postImageService.UpdateAsync(imageProfil.IdImage, imageProfil);
+            await GetImageProfil(compte.IdCompte);
         }
         
-        public string GetImageProfil(int id)
+        private async Task GetImageProfil(int id)
         {
-            return _imageService.GetImageProfil(id);
+            Image img = await _imageService.GetImageProfil(id);
+            imageSource = "";
+            if (img != null && img.Fichier != null && img.Fichier.Length > 0)
+            {
+                idImage = img.IdImage;
+                var base64 = Convert.ToBase64String(img.Fichier);
+                imageSource = $"{mimeType}{base64}";
+                _refreshUI?.Invoke();
+            }
         }
     }
 }

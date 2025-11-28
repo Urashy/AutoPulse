@@ -1,4 +1,5 @@
-﻿using BlazorAutoPulse.Model;
+﻿using System.Net.Http.Json;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service.WebService
@@ -26,9 +27,17 @@ namespace BlazorAutoPulse.Service.WebService
             throw new NotImplementedException();
         }
 
-        public string GetImageProfil(int id)
+        public async Task<Image> GetImageProfil(int id)
         {
-            return $"{_httpClient.BaseAddress}{ApiEndpoint}/GetImageByCompte/{id}";
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_httpClient.BaseAddress}{ApiEndpoint}/GetImageByCompte/{id}");
+    
+            var response = await SendWithCredentialsAsync(request);
+
+            response.EnsureSuccessStatusCode();
+
+            var image = await response.Content.ReadFromJsonAsync<Image>();
+
+            return image!;
         }
     }
 }

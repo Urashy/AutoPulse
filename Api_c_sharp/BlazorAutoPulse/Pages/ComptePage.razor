@@ -10,7 +10,7 @@
     <div class="sidebar">
         <div class="profile-section">
             <!-- Photo de profil -->
-            <img src="@VM.GetImageProfil(VM.compte.IdCompte)" idImage="@(VM.idImage != null ? VM.idImage : "")" alt="Photo de Profil" class="profile-photo" />
+            <img src="@VM.imageSource" idImage="@(VM.idImage != null ? VM.idImage : "")" alt="Photo de Profil" class="profile-photo" />
         </div>
 
         <nav class="navbar">
@@ -82,6 +82,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        ConnexionVM.SetNavigation(Navigation);
         await VM.InitializeAsync(StateHasChanged, Navigation);
     }
 

@@ -54,6 +54,10 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [HttpGet]
     public IActionResult GetMe()
     {
+        foreach (var c in User.Claims)
+        {
+            Console.WriteLine($"{c.Type} = {c.Value}");
+        }
         var claim = User.FindFirst("idUser")?.Value;
         if (string.IsNullOrEmpty(claim))
             return Unauthorized();
@@ -228,45 +232,80 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         return new ActionResult<IEnumerable<CompteListDTO>>(_compteMapper.Map<IEnumerable<CompteListDTO>>(result));
     }
     
-    //----------------------------------------------
+     //----------------------------------------------
     // LOGIN
     //----------------------------------------------
     [HttpPost]
     [AllowAnonymous]
-    public IActionResult Login([FromBody] LoginRequest login)
+    public async Task<IActionResult> Login([FromBody] LoginRequest login)
     {
-        IActionResult response = Unauthorized();
-        Compte compte = AuthenticateCompte(login);
-        if (compte != null)
+        try
         {
+            // Validation des données d'entrée
+            if (string.IsNullOrWhiteSpace(login.Email) || string.IsNullOrWhiteSpace(login.MotDePasse))
+            {
+                return BadRequest(new { message = "Email et mot de passe requis" });
+            }
+
+            // Authentification
+            Compte compte = await AuthenticateCompte(login);
+            
+            if (compte == null)
+            {
+                return Unauthorized(new { message = "Email ou mot de passe incorrect" });
+            }
+
+            // Génération du token JWT
             var tokenString = GenerateJwtToken(login);
+            
+            // Configuration du cookie
             CookieOptions cookieOptions = new CookieOptions()
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.None,
                 Secure = true,
                 Expires = DateTimeOffset.UtcNow.AddDays(1),
-                Domain = null
+                Domain = null,
+                Path = "/"
             };
+            
             Response.Cookies.Append("access_token", tokenString, cookieOptions);
+            
+            return Ok(new { 
+                message = "Login OK",
+                userId = compte.IdCompte,
+                pseudo = compte.Pseudo
+            });
         }
-        
-        return Ok(new {message = "Login OK"});
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur Login: {ex.Message}");
+            return StatusCode(500, new { message = "Erreur serveur lors de la connexion" });
+        }
     }
     
     [HttpPost]
     [Authorize]
     public IActionResult Logout()
     {
-        // Efface le cookie JWT HTTP-only
-        Response.Cookies.Delete("access_token", new CookieOptions
+        try
         {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None
-        });
+            // Efface le cookie JWT HTTP-only
+            Response.Cookies.Delete("access_token", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+            });
 
-        return Ok(new { message = "Logout OK" });
+            return Ok(new { message = "Logout OK" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur Logout: {ex.Message}");
+            return StatusCode(500, new { message = "Erreur lors de la déconnexion" });
+        }
     }
 
     /// <summary>
@@ -286,9 +325,17 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </summary>
     /// <param name="login">Les informations de connexion de l'utilisateur.</param>
     /// <returns>Le compte utilisateur si l'authentification réussit, sinon null.</returns>
-    private Compte AuthenticateCompte(LoginRequest login)
+    private async Task<Compte> AuthenticateCompte(LoginRequest login)
     {
-        return _manager.AuthenticateCompte(login.Email, ComputeSha256Hash(login.MotDePasse)).Result;
+        try
+        {
+            return await _manager.AuthenticateCompte(login.Email, ComputeSha256Hash(login.MotDePasse));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur AuthenticateCompte: {ex.Message}");
+            return null;
+        }
     }
 
     /// <summary>

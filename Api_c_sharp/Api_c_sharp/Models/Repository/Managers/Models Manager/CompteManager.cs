@@ -10,6 +10,11 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
+        public override async Task<Compte> GetByIdAsync(int id)
+        {
+            return await dbSet.Include(c => c.Images).FirstOrDefaultAsync(c => c.IdCompte == id);
+        }
+
         public override async Task<Compte?> GetByNameAsync(string mail)
         {
             return await dbSet.Where(c => c.Email == mail).FirstOrDefaultAsync();
