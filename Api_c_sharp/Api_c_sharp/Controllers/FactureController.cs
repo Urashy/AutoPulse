@@ -68,7 +68,7 @@ public class FactureController(FactureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<Facture>> Post([FromBody] Facture dto)
+    public async Task<ActionResult<Facture>> Post([FromBody] FactureDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -93,7 +93,7 @@ public class FactureController(FactureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] Facture dto)
+    public async Task<ActionResult> Put(int id, [FromBody] FactureDTO dto)
     {
         if (id != dto.IdFacture)
             return BadRequest();
