@@ -9,7 +9,9 @@ public class AnnonceDetailDTO
     public DateTime DatePublication { get; set; }
     public bool EstMiseEnAvant { get; set; }
     public string LibelleMiseEnAvant { get; set; }
-    
+
+    public int Prix { get; set; }
+
     // Informations vendeur
     public int IdVendeur { get; set; }
     public string PseudoVendeur { get; set; }

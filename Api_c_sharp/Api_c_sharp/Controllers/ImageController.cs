@@ -91,7 +91,7 @@ namespace Api_c_sharp.Controllers
         // GET BY ID
         [ActionName("GetFirstImage")]
         [HttpGet("{voitureId}")]
-        public async Task<ActionResult<IEnumerable<ImageDTO>>> GetImagesByVoitureId(int voitureId)
+        public async Task<ActionResult<ImageDTO>> GetImagesByVoitureId(int voitureId)
         {
             var imageEntity = await _manager.GetFirstImageByVoitureID(voitureId);
 
@@ -107,6 +107,18 @@ namespace Api_c_sharp.Controllers
         {
             var listId = await _manager.GetAllImagesByVoitureId(voitureId);
             return listId == null ? NoContent() : Ok(listId);
+        }
+
+        [ActionName("GetImageByCompte")]
+        [HttpGet("{compteId}")]
+        public async Task<ActionResult<ImageDTO>> GetImageByCompteID(int compteId)
+        {
+            var imageEntity = await _manager.GetImageByCompteID(compteId);
+
+            if (imageEntity == null || imageEntity.Fichier == null)
+                return NotFound();
+
+            return File(imageEntity.Fichier, "image/jpeg");
         }
     }
 }

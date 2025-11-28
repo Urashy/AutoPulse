@@ -9,5 +9,10 @@ namespace Api_c_sharp.Models.Repository.Managers
         public MoyenPaiementManager(AutoPulseBdContext context) : base(context)
         {
         }
+
+        public override async Task<IEnumerable<MoyenPaiement>> GetAllAsync()
+        {
+            return await dbSet.OrderBy(s => s.TypePaiement).ToListAsync();
+        }
     }
 }

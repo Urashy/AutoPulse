@@ -6,4 +6,5 @@ namespace BlazorAutoPulse.Service.Authentification;
 public interface IServiceConnexion
 {
     Task<HttpStatusCode> LoginUser(LoginRequest compte);
+    Task<HttpStatusCode> LogOutUser();
 }

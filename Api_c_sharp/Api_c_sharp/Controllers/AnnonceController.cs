@@ -31,14 +31,14 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<AnnonceDTO>> GetByID(int id)
+    public async Task<ActionResult<AnnonceDetailDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
 
         if (result is null)
             return NotFound();
 
-        return _annonceMapper.Map<AnnonceDTO>(result);
+        return _annonceMapper.Map<AnnonceDetailDTO>(result);
     }
 
     /// <summary>

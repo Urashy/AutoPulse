@@ -9,5 +9,10 @@ namespace Api_c_sharp.Models.Repository.Managers
         public MotriciteManager(AutoPulseBdContext context) : base(context)
         {
         }
+
+        public override async Task<IEnumerable<Motricite>>GetAllAsync()
+        {
+            return await dbSet.OrderBy(s => s.LibelleMotricite).ToListAsync();
+        }
     }
 }

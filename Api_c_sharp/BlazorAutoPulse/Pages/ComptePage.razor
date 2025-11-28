@@ -2,6 +2,7 @@
 @using BlazorAutoPulse.ViewModel
 @inject NavigationManager Navigation
 @inject CompteViewModel VM
+@inject ConnexionViewModel ConnexionVM
 
 <PageTitle>Mon Compte - AutoPulse</PageTitle>
 
@@ -9,7 +10,7 @@
     <div class="sidebar">
         <div class="profile-section">
             <!-- Photo de profil -->
-            <img src="" alt="Photo de Profil" class="profile-photo" />
+            <img src="@VM.GetImageProfil(VM.compte.IdCompte)" alt="Photo de Profil" class="profile-photo" />
         </div>
 
         <nav class="navbar">
@@ -56,6 +57,16 @@
 
         <div class="edit-profile">
             <button @onclick="EditProfile">Modifier le profil</button>
+            <button @onclick="ConnexionVM.DeconnexionUtilisateur">Déconnexion</button>
+            <div class="form-group">
+                <label>Photos du véhicule (la première sera la photo de couverture)</label>
+                <label for="vehiclePhotos" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
+                    <p style="color: #aaa;">Cliquez pour ajouter des photos</p>
+                    <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
+                </label>
+                <InputFile id="vehiclePhotos" OnChange="@VM.UploadImageProfil" multiple style="display:none"/>
+            </div>
         </div>
     </div>
 </div>
@@ -64,7 +75,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await VM.InitializeAsync(StateHasChanged);
+        await VM.InitializeAsync(StateHasChanged, Navigation);
     }
 
     private void EditProfile()

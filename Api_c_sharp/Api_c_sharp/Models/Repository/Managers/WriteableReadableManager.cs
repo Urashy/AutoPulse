@@ -21,23 +21,23 @@ namespace Api_c_sharp.Models.Repository.Managers
             return entity;
         }
 
-        public async Task DeleteAsync(TEntity entity)
+        public virtual async Task DeleteAsync(TEntity entity)
         {
             dbSet.Remove(entity);
             await context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync()
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             return await dbSet.ToListAsync();
         }
 
-        public async Task<TEntity?> GetByIdAsync(int id)
+        public virtual async Task<TEntity?> GetByIdAsync(int id)
         {
             return await dbSet.FindAsync(id);
         }
 
-        public async Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
+        public virtual async Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
         {
             context.Entry(entityToUpdate).CurrentValues.SetValues(entity);
             await context.SaveChangesAsync();

@@ -139,6 +139,9 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.IdMiseEnAvant.HasValue))
             .ForMember(dest => dest.LibelleMiseEnAvant, 
                 opt => opt.MapFrom(src => src.MiseEnAvantAnnonceNav != null ? src.MiseEnAvantAnnonceNav.LibelleMiseEnAvant : null))
+            .ForMember(dest => dest.Prix
+            , // <--- AJOUTEZ CETTE LIGNE
+                opt => opt.MapFrom(src => src.Prix))
             // Vendeur
             .ForMember(dest => dest.IdVendeur, 
                 opt => opt.MapFrom(src => src.CompteAnnonceNav.IdCompte))
@@ -171,7 +174,8 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Marque, 
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.MarqueVoitureNavigation.LibelleMarque))
             .ForMember(dest => dest.Modele, 
-                opt => opt.MapFrom(src => "N/A")) // À mapper
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.ModeleVoitureNavigation.LibelleModele))
+
             .ForMember(dest => dest.Categorie, 
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.CategorieVoitureNavigation.LibelleCategorie))
             .ForMember(dest => dest.Couleur, 
@@ -195,9 +199,9 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.MiseEnCirculation, 
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.MiseEnCirculation))
             .ForMember(dest => dest.NbPlaces, 
-                opt => opt.MapFrom(src => 0)) // À mapper avec Modele
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.NbPlace)) 
             .ForMember(dest => dest.NbPortes, 
-                opt => opt.MapFrom(src => 0)) // À mapper avec Modele
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.NbPorte))
             .ForMember(dest => dest.Images, 
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList()))
             .ForMember(dest => dest.LienModeleBlender, 
@@ -297,9 +301,7 @@ public class MapperProfile : Profile
         // MAPPERS FAVORI
         // ============================================
         
-        CreateMap<Favori, FavoriDTO>()
-            .ForMember(dest => dest.Annonce, 
-                opt => opt.MapFrom(src => src.AnnonceFavoriNav)).ReverseMap();
+        CreateMap<Favori, FavoriDTO>().ReverseMap();
         
         // ============================================
         // MAPPERS CONVERSATION

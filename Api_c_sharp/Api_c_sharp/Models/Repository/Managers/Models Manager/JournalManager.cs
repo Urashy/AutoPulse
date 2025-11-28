@@ -11,7 +11,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public async Task<IEnumerable<Journal>> GetJournalByType(int typeID)
         {
-            return await dbSet.Where(journal => journal.IdTypeJournal == typeID).ToListAsync();
+            return await dbSet.Where(journal => journal.IdTypeJournal == typeID).OrderBy(j => j.DateJournal).ToListAsync();
         }
     }
 }

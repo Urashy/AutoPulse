@@ -13,16 +13,30 @@ namespace Api_c_sharp.Models.Repository.Managers
             return context.Set<Annonce>()
                 .Include(a => a.MiseEnAvantAnnonceNav)
                 .Include(a => a.CompteAnnonceNav)
-                .Include(a => a.EtatAnnonceNavigation) 
+                    .ThenInclude(c => c.TypeCompteCompteNav)
+                .Include(a => a.EtatAnnonceNavigation)
+                .Include(a => a.AdresseAnnonceNav)
+                    .ThenInclude(adr => adr.PaysAdresseNav)
+
                 .Include(a => a.VoitureAnnonceNav)
                     .ThenInclude(v => v.MarqueVoitureNavigation)
                 .Include(a => a.VoitureAnnonceNav)
-                    .ThenInclude(v => v.ModeleVoitureNavigation) 
+                    .ThenInclude(v => v.ModeleVoitureNavigation)
                 .Include(a => a.VoitureAnnonceNav)
                     .ThenInclude(v => v.CarburantVoitureNavigation)
                 .Include(a => a.VoitureAnnonceNav)
-                    .ThenInclude(v => v.Images) 
-                .Include(a => a.AdresseAnnonceNav); 
+                    .ThenInclude(v => v.BoiteVoitureNavigation) 
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.MotriciteVoitureNavigation) 
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.CategorieVoitureNavigation)
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.APourCouleurs)
+                        .ThenInclude(ac => ac.APourCouleurCouleurNav)
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.Images)
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.ModeleBlenderNavigation);
         }
 
         public AnnonceManager(AutoPulseBdContext context) : base(context)
@@ -32,9 +46,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public override async Task<IEnumerable<Annonce>> GetAllAsync()
         {
-            return await ApplyIncludes()
-                .OrderByDescending(a => a.IdMiseEnAvant).
-                ToListAsync();
+            return await ApplyIncludes().OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
         }
 
         public override async Task<Annonce?> GetByNameAsync(string name)
@@ -44,7 +56,9 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId)
         {
-            return  await dbSet.Where(a => a.IdMiseEnAvant == miseAvantId).ToListAsync();
+            return await ApplyIncludes()
+                .Where(a => a.IdMiseEnAvant == miseAvantId)
+                .ToListAsync();
         }
 
 

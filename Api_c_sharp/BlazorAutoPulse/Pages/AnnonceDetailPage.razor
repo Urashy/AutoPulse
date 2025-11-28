@@ -100,7 +100,7 @@ else
                 <div class="seller-info">
                     <div class="seller-details">
                         <p class="seller-name">@VM.Annonce.PseudoVendeur</p>
-                        <p class="seller-type">Particulier</p>
+                        <p class="seller-type">@VM.Annonce.TypeCompteVendeur</p>
                     </div>
                     <button class="btn-contact">Contacter le vendeur</button>
                 </div>
@@ -125,17 +125,71 @@ else
                         <span>Année</span>
                         <span>@VM.Annonce.Annee</span>
                     </div>
+                    <div class="spec-row">
+                        <span>Couleur</span>
+                        <span>@VM.Annonce.Couleur</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Catégorie</span>
+                        <span>@VM.Annonce.Categorie</span>
+                    </div>
+                </div>
+
+                <div class="spec-group">
+                    <h3>Motorisation</h3>
+                    <div class="spec-row">
+                        <span>Puissance</span>
+                        <span>@VM.Annonce.Puissance ch</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Couple</span>
+                        <span>@VM.Annonce.Couple Nm</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Cylindres</span>
+                        <span>@VM.Annonce.NbCylindres</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Boîte de vitesse</span>
+                        <span>@VM.Annonce.BoiteDeVitesse</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Motricité</span>
+                        <span>@VM.Annonce.Motricite</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Actions -->
         <div class="actions-section">
-            <button class="btn-favorite">❤️ Ajouter aux favoris</button>
+            @if (VM.CurrentUserId.HasValue)
+            {
+                <button class="btn-favorite @(VM.IsFavorite ? "active" : "")" @onclick="VM.ToggleFavorite">
+                    @(VM.IsFavorite ? "❤️ Retirer des favoris" : "🤍 Ajouter aux favoris")
+                </button>
+            }
+            else
+            {
+                <button class="btn-favorite" @onclick='() => Navigation.NavigateTo("/connexion")'>
+                    🤍 Connectez-vous pour ajouter aux favoris
+                </button>
+            }
             <button class="btn-share">🔗 Partager</button>
         </div>
     </div>
 }
+
+<style>
+    .btn-favorite.active {
+        background: linear-gradient(135deg, #ff4444, #cc0000);
+        border-color: #ff4444;
+    }
+
+        .btn-favorite.active:hover {
+            background: linear-gradient(135deg, #ff5555, #dd0000);
+        }
+</style>
 
 @code {
     [Parameter]
