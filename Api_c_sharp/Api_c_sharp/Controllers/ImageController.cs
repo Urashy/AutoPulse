@@ -108,5 +108,17 @@ namespace Api_c_sharp.Controllers
             var listId = await _manager.GetAllImagesByVoitureId(voitureId);
             return listId == null ? NoContent() : Ok(listId);
         }
+
+        [ActionName("GetImageByCompte")]
+        [HttpGet("{voitureId}")]
+        public async Task<ActionResult<IEnumerable<ImageDTO>>> GetImageByCompteID(int compteID)
+        {
+            var imageEntity = await _manager.GetImageByCompteID(compteID);
+
+            if (imageEntity == null || imageEntity.Fichier == null)
+                return NotFound();
+
+            return File(imageEntity.Fichier, "image/jpeg");
+        }
     }
 }
