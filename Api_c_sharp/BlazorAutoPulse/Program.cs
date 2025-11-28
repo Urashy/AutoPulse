@@ -38,6 +38,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IPostImageService, PostImageWebService>();
             builder.Services.AddScoped<IAnnonceDetailService, AnnonceDetailWebService>();
             builder.Services.AddScoped<ICompteService, CompteWebService>();
+            builder.Services.AddScoped<IFavorisService, FavoriWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();

@@ -9,22 +9,27 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IAnnonceDetailService _annonceService;
         private readonly IPostImageService _imageService;
         private readonly IFavorisService _favorisService;
+        private readonly ICompteService _compteService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public List<int> ImageIds { get; private set; } = new();
         public int CurrentImageIndex { get; private set; } = 0;
         public bool IsLoading { get; private set; } = true;
+        public bool IsFavorite { get; private set; } = false;
+        public int? CurrentUserId { get; private set; }
 
         private Action? _refreshUI;
 
         public AnnonceDetailViewModel(
             IAnnonceDetailService annonceService,
             IPostImageService imageService,
-            IFavorisService favorisService)
+            IFavorisService favorisService,
+            ICompteService compteService)
         {
             _annonceService = annonceService;
             _imageService = imageService;
-            _favorisService= favorisService;
+            _favorisService = favorisService;
+            _compteService = compteService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI)
@@ -35,14 +40,28 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
+                try
+                {
+                    Compte user = await _compteService.GetMe();
+                    CurrentUserId = user.IdCompte;
+                }
+                catch
+                {
+                    CurrentUserId = null;
+                }
+
                 // Charger l'annonce
                 Annonce = await _annonceService.GetByIdAsync(idAnnonce);
 
                 if (Annonce != null && Annonce.IdVoiture > 0)
                 {
-                    // Charger les IDs des images (à implémenter dans le service)
-                    // Pour l'instant, on utilise juste l'image principale
                     ImageIds = new List<int> { Annonce.IdVoiture };
+
+                    // Vérifier si l'annonce est en favoris
+                    if (CurrentUserId.HasValue)
+                    {
+                        IsFavorite = await _favorisService.IsFavorite(CurrentUserId.Value, idAnnonce);
+                    }
                 }
             }
             catch (Exception ex)
@@ -54,6 +73,25 @@ namespace BlazorAutoPulse.ViewModel
             {
                 IsLoading = false;
                 _refreshUI?.Invoke();
+            }
+        }
+
+        public async Task ToggleFavorite()
+        {
+            if (!CurrentUserId.HasValue || Annonce == null)
+            {
+                Console.WriteLine("Utilisateur non connecté ou annonce invalide");
+                return;
+            }
+
+            try
+            {
+                IsFavorite = await _favorisService.ToggleFavorite(CurrentUserId.Value, Annonce.IdAnnonce);
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'ajout/suppression du favori: {ex.Message}");
             }
         }
 
@@ -100,15 +138,5 @@ namespace BlazorAutoPulse.ViewModel
 
         public bool CanGoNext => CurrentImageIndex < ImageIds.Count - 1;
         public bool CanGoPrevious => CurrentImageIndex > 0;
-
-        public async Task AddFavorite(int idannonce, int idcompte)
-        {
-            Favori fav = new Favori()
-            {
-                IdAnnonce = idannonce,
-                IdCompte = idcompte
-            };
-            await _favorisService.CreateAsync(fav);
-        }
     }
 }
