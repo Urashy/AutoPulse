@@ -18,7 +18,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // 1. Initialiser le CompteViewModel pour avoir l'utilisateur connecté
         await VM.InitializeAsync(StateHasChanged, Navigation);
+
+        // 2. Initialiser le FavorisViewModel pour charger les favoris
+        // Cette ligne manquait !
+        await FavorisVM.InitializeAsync(StateHasChanged, Navigation);
     }
 
     private void EditProfile()

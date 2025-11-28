@@ -128,5 +128,7 @@ namespace Api_c_sharp.Controllers
             var result = await _manager.GetByIdAsync(idCompte, idAnnonce);
             return Ok(result != null);
         }
+
+
     }
 }
