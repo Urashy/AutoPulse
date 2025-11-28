@@ -60,4 +60,8 @@
         Task<IEnumerable<Couleur>> GetCouleursByVoitureId(int voitureId);
     }
 
+    public interface IAPourCouleurRepository
+    {
+        Task<APourCouleur> GetAPourCouleursByIDS(int voitureId, int couleurId);
+    }
 }

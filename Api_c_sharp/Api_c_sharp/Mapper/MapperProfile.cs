@@ -52,15 +52,15 @@ public class MapperProfile : Profile
         // MAPPERS ADRESSE
         // ============================================
 
-        CreateMap<Adresse, AdresseDTO>().ReverseMap()
-    .ForMember(dest => dest.CompteAdresseNav, opt => opt.Ignore())
-    .ForMember(dest => dest.PaysAdresseNav, opt => opt.Ignore())
-    .ForMember(dest => dest.Annonces, opt => opt.Ignore());
+        CreateMap<Adresse, AdresseDTO>()
+            .ReverseMap();
+  
+
 
 
 
         // ============================================
-        // MAPPERS ET PAYS
+        // MAPPERS PAYS
         // ============================================
 
         CreateMap<Pays, PaysDTO>().ReverseMap();

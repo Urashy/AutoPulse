@@ -175,6 +175,7 @@ namespace App.Controllers.Tests
         {
             var adresse = new AdresseDTO()
             {
+                IdAdresse = _objetcommun.IdAdresse,
                 Nom = "Domicile",
                 LibelleVille = "Chavanod",
                 CodePostal = "74000",
