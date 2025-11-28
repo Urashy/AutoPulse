@@ -16,6 +16,7 @@ public class AnnonceDTO
     public int Kilometrage { get; set; }
     public string Carburant { get; set; }
     public decimal? Prix { get; set; } // Si vous avez un prix
+
     
     // Localisation
     public string Ville { get; set; }
