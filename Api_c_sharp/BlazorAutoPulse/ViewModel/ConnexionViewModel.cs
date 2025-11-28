@@ -12,6 +12,7 @@ public class ConnexionViewModel
     public string emailUtilisateur { get; set; }
     public string motDePasseUtilisateur { get; set; }
     private HttpStatusCode httpCode;
+    private string action = "";
     
     private Action? _refreshUI;
     private NavigationManager _nav;
@@ -36,14 +37,43 @@ public class ConnexionViewModel
         };
         
         httpCode = await _connexionService.LoginUser(req);
+        action = "Connexion";
+        VerifCode();
+    }
+
+    public async Task DeconnexionUtilisateur()
+    {
+        httpCode = await _connexionService.LogOutUser();
+        action = "Deconnexion";
+        VerifCode();
+    }
+
+    private async void VerifCode()
+    {
         if (httpCode == HttpStatusCode.OK)
         {
             await Task.Delay(100);
-            _nav.NavigateTo("Compte");
+            if (action == "Connexion")
+            {
+                _nav.NavigateTo("compte");
+            }
+            else
+            {
+                _nav.NavigateTo("connexion");
+            }
         }
         else
         {
             Console.WriteLine("Erreur lors de la connexion de l'utilisateur");
         }
+        action = "";
+    }
+    
+    public void Reset()
+    {
+        emailUtilisateur = string.Empty;
+        motDePasseUtilisateur = string.Empty;
+        httpCode = 0;
+        action = "";
     }
 }

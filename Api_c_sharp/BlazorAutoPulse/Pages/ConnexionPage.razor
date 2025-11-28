@@ -30,6 +30,7 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
+        VM.Reset();
         await VM.InitializeAsync(StateHasChanged, nav);
     }
 }
