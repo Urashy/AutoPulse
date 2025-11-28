@@ -9,14 +9,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
         }
 
-        public async Task<IEnumerable<Signalement>> GetAllAsync()
+        public override async Task<IEnumerable<Signalement>> GetAllAsync()
         {
-            return await dbSet.ToListAsync();
-        }
-
-        public async Task<Signalement?> GetByIdAsync(int id)
-        {
-            return await dbSet.FindAsync(id);
+            return await dbSet.OrderBy(s => s.DateCreationSignalement).ToListAsync();
         }
 
         public async Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId)
