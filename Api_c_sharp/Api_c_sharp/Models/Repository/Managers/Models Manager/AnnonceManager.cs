@@ -44,7 +44,9 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId)
         {
-            return  await dbSet.Where(a => a.IdMiseEnAvant == miseAvantId).ToListAsync();
+            return await ApplyIncludes()
+                .Where(a => a.IdMiseEnAvant == miseAvantId)
+                .ToListAsync();
         }
 
 
