@@ -93,8 +93,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor",
         policy => policy
-            //.WithOrigins("http://localhost:5296")
-            .WithOrigins("https://localhost:7297")
+            .WithOrigins("http://localhost:5296")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
@@ -102,7 +101,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

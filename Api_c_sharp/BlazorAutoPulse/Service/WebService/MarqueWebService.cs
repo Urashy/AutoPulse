@@ -6,7 +6,6 @@ namespace BlazorAutoPulse.Service.WebService
     {
         public MarqueWebService(HttpClient httpClient) : base(httpClient)
         {
-            Console.WriteLine(httpClient.BaseAddress);
         }
 
         protected override string ApiEndpoint => "Marque";

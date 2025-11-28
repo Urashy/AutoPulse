@@ -96,5 +96,10 @@ namespace BlazorAutoPulse.ViewModel
 
         public bool CanGoNext => CurrentImageIndex < ImageIds.Count - 1;
         public bool CanGoPrevious => CurrentImageIndex > 0;
+
+        public void AddFavorite(int idannonce, int idcompte)
+        {
+
+        }
     }
 }

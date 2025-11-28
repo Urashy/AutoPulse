@@ -292,9 +292,8 @@ textarea:disabled {
 }
 
 .color-square {
-    width: 14px;
-    height: 14px;
+    width: 2em;
+    aspect-ratio: 1;
     border-radius: 3px;
-    margin-left: 10px;
     border: 1px solid #ccc;
 }
