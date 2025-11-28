@@ -54,7 +54,7 @@ namespace BlazorAutoPulse
             {
                 return new HttpClient
                 {
-                    BaseAddress = new Uri("https://localhost:7295/api/")
+                    BaseAddress = new Uri("http://localhost:5086/api/")
                 };
             });
 
