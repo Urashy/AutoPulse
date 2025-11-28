@@ -15,7 +15,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class APourConversationController(APourConversationManager _manager, IMapper _adresseMapper) : ControllerBase
+    public class APourConversationController(APourConversationManager _manager, IMapper _aPourCoversationMapper) : ControllerBase
     {
         /// <summary>
         /// Crée une nouvelle adresse.
@@ -34,10 +34,11 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var entity = _adresseMapper.Map<APourConversation>(dto);
+            var entity = _aPourCoversationMapper.Map<APourConversation>(dto);
             await _manager.AddAsync(entity);
 
-            return CreatedAtAction(nameof(GetByID), new { id = entity.IdConversation }, entity);
+            // Retourne bien les deux clés
+            return CreatedAtAction(nameof(GetByID), new { idConversation = entity.IdConversation, idCompte = entity.IdCompte }, entity);
         }
 
         /// <summary>
@@ -53,19 +54,22 @@ namespace Api_c_sharp.Controllers
         /// </list>
         /// </returns>
         [ActionName("Put")]
-        [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] APourConversationDTO dto)
+        [HttpPut("{idConversation}/{idCompte}")]
+        public async Task<ActionResult> Put(int idConversation, int idCompte, [FromBody] APourConversationDTO dto)
         {
-            if (id != dto.IdConversation)
+            if (!ModelState.IsValid)
                 return BadRequest();
 
-            var toUpdate = await _manager.GetByIdAsync(id);
+            if (idConversation != dto.IdConversation || idCompte != dto.IdUtilisateur)
+                return BadRequest();
 
+            var toUpdate = await _manager.GetByIdsAsync(idCompte, idConversation);
             if (toUpdate == null)
                 return NotFound();
 
-            var updatedEntity = _adresseMapper.Map<APourConversation>(dto);
-            await _manager.UpdateAsync(toUpdate, updatedEntity);
+            var updated = _aPourCoversationMapper.Map<APourConversation>(dto);
+
+            await _manager.UpdateAsync(toUpdate, updated);
 
             return NoContent();
         }
@@ -80,10 +84,10 @@ namespace Api_c_sharp.Controllers
         /// </list>
         /// </returns>
         [ActionName("Delete")]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{idConversation}/{idCompte}")]
+        public async Task<IActionResult> Delete(int idConversation, int idCompte)
         {
-            var entity = await _manager.GetByIdAsync(id);
+            var entity = await _manager.GetByIdsAsync(idCompte, idConversation);
 
             if (entity == null)
                 return NotFound();
@@ -102,7 +106,7 @@ namespace Api_c_sharp.Controllers
         public async Task<ActionResult<IEnumerable<APourConversationDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
-            return new ActionResult<IEnumerable<APourConversationDTO>>(_adresseMapper.Map<IEnumerable<APourConversationDTO>>(list));
+            return new ActionResult<IEnumerable<APourConversationDTO>>(_aPourCoversationMapper.Map<IEnumerable<APourConversationDTO>>(list));
         }
         /// <summary>
         /// Récupère une adresse à partir de son identifiant.
@@ -115,15 +119,15 @@ namespace Api_c_sharp.Controllers
         /// </list>
         /// </returns>
         [ActionName("GetById")]
-        [HttpGet("{id}")]
-        public async Task<ActionResult<APourConversationDTO>> GetByID(int id)
+        [HttpGet("{idConversation}/{idCompte}")]
+        public async Task<ActionResult<APourConversationDTO>> GetByID(int idConversation, int idCompte)
         {
-            var result = await _manager.GetByIdAsync(id);
+            var result = await _manager.GetByIdsAsync(idCompte, idConversation);
 
-            if (result is null)
+            if (result == null)
                 return NotFound();
 
-            return _adresseMapper.Map<APourConversationDTO>(result);
+            return _aPourCoversationMapper.Map<APourConversationDTO>(result);
         }
     }
 }

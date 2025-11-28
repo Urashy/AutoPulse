@@ -13,7 +13,7 @@ namespace Api_c_sharp.Models
         public int IdCompte { get; set; }
 
         [Column("com_pseudo")]
-        [Required]
+        [Required]  
         public string Pseudo { get; set; } = null!;
 
         [Column("com_mdp")]
