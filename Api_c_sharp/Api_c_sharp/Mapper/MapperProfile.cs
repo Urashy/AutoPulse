@@ -171,7 +171,8 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Marque, 
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.MarqueVoitureNavigation.LibelleMarque))
             .ForMember(dest => dest.Modele, 
-                opt => opt.MapFrom(src => src.VoitureAnnonceNav)) // À mapper
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.ModeleVoitureNavigation.LibelleModele))
+
             .ForMember(dest => dest.Categorie, 
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.CategorieVoitureNavigation.LibelleCategorie))
             .ForMember(dest => dest.Couleur, 
