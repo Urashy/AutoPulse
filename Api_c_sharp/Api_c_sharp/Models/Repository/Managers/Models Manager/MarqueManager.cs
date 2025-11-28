@@ -9,5 +9,12 @@ namespace Api_c_sharp.Models.Repository.Managers
         public MarqueManager(AutoPulseBdContext context) : base(context)
         {
         }
+        
+        public override async Task<IEnumerable<Marque>> GetAllAsync()
+        {
+            return await dbSet
+                .OrderBy(m => m.LibelleMarque)
+                .ToListAsync();
+        }
     }
 }

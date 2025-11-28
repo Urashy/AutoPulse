@@ -21,7 +21,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return entity;
         }
 
-        public async Task DeleteAsync(TEntity entity)
+        public virtual async Task DeleteAsync(TEntity entity)
         {
             dbSet.Remove(entity);
             await context.SaveChangesAsync();
@@ -32,7 +32,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.ToListAsync();
         }
 
-        public async Task<TEntity?> GetByIdAsync(int id)
+        public virtual async Task<TEntity?> GetByIdAsync(int id)
         {
             return await dbSet.FindAsync(id);
         }
