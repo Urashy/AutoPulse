@@ -1,5 +1,6 @@
 ﻿using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
+using System.Threading.Tasks;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -7,6 +8,7 @@ namespace BlazorAutoPulse.ViewModel
     {
         private readonly IAnnonceDetailService _annonceService;
         private readonly IPostImageService _imageService;
+        private readonly IFavorisService _favorisService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public List<int> ImageIds { get; private set; } = new();
@@ -17,10 +19,12 @@ namespace BlazorAutoPulse.ViewModel
 
         public AnnonceDetailViewModel(
             IAnnonceDetailService annonceService,
-            IPostImageService imageService)
+            IPostImageService imageService,
+            IFavorisService favorisService)
         {
             _annonceService = annonceService;
             _imageService = imageService;
+            _favorisService= favorisService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI)
@@ -97,9 +101,14 @@ namespace BlazorAutoPulse.ViewModel
         public bool CanGoNext => CurrentImageIndex < ImageIds.Count - 1;
         public bool CanGoPrevious => CurrentImageIndex > 0;
 
-        public void AddFavorite(int idannonce, int idcompte)
+        public async Task AddFavorite(int idannonce, int idcompte)
         {
-
+            Favori fav = new Favori()
+            {
+                IdAnnonce = idannonce,
+                IdCompte = idcompte
+            };
+            await _favorisService.CreateAsync(fav);
         }
     }
 }
