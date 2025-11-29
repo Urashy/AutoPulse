@@ -215,7 +215,7 @@ public class MapperProfile : Profile
         // MAPPERS COMPTE
         // ============================================
         
-        CreateMap<Compte, CompteListDTO>()
+        CreateMap<Compte, CompteGetDTO>()
             .ForMember(dest => dest.TypeCompte, 
                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.DateInscription, 

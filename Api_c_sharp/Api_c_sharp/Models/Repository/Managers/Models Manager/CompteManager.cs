@@ -30,9 +30,9 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.Where(c => c.IdTypeCompte == type).ToListAsync();
         }
 
-        public async Task<Compte> VerifMotDePasse(string hash)
+        public async Task<Compte> VerifMotDePasse(string email, string hash)
         {
-            return await dbSet.SingleOrDefaultAsync(x => x.MotDePasse == hash);
+            return await dbSet.SingleOrDefaultAsync(x => x.Email == email && x.MotDePasse == hash);
         }
 
         public async Task<Compte> AuthenticateCompte(string email, string hash)

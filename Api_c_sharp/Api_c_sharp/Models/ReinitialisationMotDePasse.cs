@@ -11,6 +11,10 @@ public class ReinitialisationMotDePasse
     [Column("rei_id")]
     public int IdReinitialisationMdp { get; set; }
     
+    [Column("com_id")]
+    [Required]
+    public int IdCompte { get; set; }
+    
     [Column("com_email")]
     [Required]
     public string Email { get; set; } = null!;

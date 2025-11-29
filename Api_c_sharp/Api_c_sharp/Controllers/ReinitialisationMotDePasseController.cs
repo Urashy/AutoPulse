@@ -96,6 +96,7 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
         ReinitialisationMotDePasse reinitMdp = new ReinitialisationMotDePasse()
         {
             IdReinitialisationMdp = 0,
+            IdCompte = dto.IdCompte,
             Email = dto.Email,
             Token = resetToken,
             Expiration = expiration,
