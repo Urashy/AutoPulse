@@ -130,5 +130,15 @@ namespace Api_c_sharp.Controllers
         }
 
 
+        /// <summary>
+        /// Récupère tous les favoris d'un compte.
+        /// </summary>
+        [ActionName("GetByCompteId")]
+        [HttpGet("{idCompte}")]
+        public async Task<ActionResult<IEnumerable<FavoriDTO>>> GetByCompteId(int idCompte)
+        {
+            var favoris = await _manager.GetByCompteIdAsync(idCompte);
+            return Ok(_mapper.Map<IEnumerable<FavoriDTO>>(favoris));
+        }
     }
 }

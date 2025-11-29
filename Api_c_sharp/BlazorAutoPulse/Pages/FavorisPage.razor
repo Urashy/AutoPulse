@@ -4,31 +4,47 @@
 @inject CompteViewModel VM
 @inject FavorisViewModel FavorisVM
 
-
 <PageTitle>Mes Favoris - AutoPulse</PageTitle>
 
-<div class="favoris-container">
-    @foreach (var a in FavorisVM.AnnoncesFavoris)
-    {
-        <AnnonceComposant Annonce="@a" />
-    }
-</div>
+@if (isLoading)
+{
+    <div class="loading-container">
+        <div class="loader"></div>
+        <p>Chargement de vos favoris...</p>
+    </div>
+}
+else if (!FavorisVM.AnnoncesFavoris.Any())
+{
+    <div class="no-favoris">
+        <h2>Aucun favori</h2>
+        <p>Vous n'avez pas encore ajouté d'annonces à vos favoris.</p>
+        <a href="/" class="btn-primary">Parcourir les annonces</a>
+    </div>
+}
+else
+{
+    <div class="favoris-container">
+        @foreach (var a in FavorisVM.AnnoncesFavoris)
+        {
+            <AnnonceComposant Annonce="@a" />
+        }
+    </div>
+}
 
 @code {
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        // 1. Initialiser le CompteViewModel pour avoir l'utilisateur connecté
-        await VM.InitializeAsync(StateHasChanged, Navigation);
-
-        // 2. Initialiser le FavorisViewModel pour charger les favoris
-        // Cette ligne manquait !
-        await FavorisVM.InitializeAsync(StateHasChanged, Navigation);
-    }
-
-    private void EditProfile()
-    {
-        // Logique pour modifier le profil utilisateur
-        Navigation.NavigateTo("/edit-profile");
+        try
+        {
+            await VM.InitializeAsync(StateHasChanged, Navigation);
+            await FavorisVM.InitializeAsync(StateHasChanged, Navigation);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 }

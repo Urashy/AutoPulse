@@ -22,14 +22,37 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
         {
-            var me = await _compteService.GetMe();
-            Favoris = await _favorisService.GetMesFavoris(me.IdCompte);
-
-            foreach (var favori in Favoris)
+            try
             {
-                var annonce = await _annonceService.GetByIdAsync(favori.IdAnnonce);
-                AnnoncesFavoris.Add(annonce);
-                Console.WriteLine(annonce.Libelle);
+                var me = await _compteService.GetMe();
+                Favoris = await _favorisService.GetMesFavoris(me.IdCompte);
+
+                // Charger toutes les annonces en une seule fois
+                var annonceIds = Favoris.Select(f => f.IdAnnonce).ToList();
+
+                foreach (var id in annonceIds)
+                {
+                    try
+                    {
+                        var annonce = await _annonceService.GetByIdAsync(id);
+                        if (annonce != null)
+                        {
+                            AnnoncesFavoris.Add(annonce);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erreur chargement annonce {id}: {ex.Message}");
+                    }
+                }
+
+                refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur InitializeAsync: {ex.Message}");
+                // Rediriger vers connexion si non authentifié
+                nav.NavigateTo("/connexion");
             }
         }
     }
