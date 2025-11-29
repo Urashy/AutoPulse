@@ -6,6 +6,7 @@ using BlazorAutoPulse.Service.WebService;
 using BlazorAutoPulse.ViewModel;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using ReinitialisationMdp = BlazorAutoPulse.Model.ReinitialisationMdp;
 
 namespace BlazorAutoPulse
 {
@@ -39,6 +40,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ICompteService, CompteWebService>();
             builder.Services.AddScoped<IFavorisService, FavoriWebService>();
             builder.Services.AddScoped<IImageService, ImageWebService>();
+            builder.Services.AddScoped<IReinitialiseMdp, ReinitialisationMdpWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -51,6 +53,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<AnnonceDetailViewModel>();
             builder.Services.AddScoped<CompteViewModel>();
             builder.Services.AddScoped<FavorisViewModel>();
+            builder.Services.AddScoped<OubliMdpViewModel>();
 
             builder.Services.AddScoped(sp =>
             {

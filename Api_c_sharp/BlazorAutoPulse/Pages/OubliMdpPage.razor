@@ -1,0 +1,126 @@
+@page "/oublimdp"
+@using BlazorAutoPulse.ViewModel
+@inject OubliMdpViewModel VM
+@inject NavigationManager nav
+
+<PageTitle>Mot de passe oublié - AutoPulse</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-box">
+        @if (!VM.envoiDemande)
+        {
+            <!-- Étape 1 : Demande de réinitialisation -->
+            <h2>Mot de passe oublié</h2>
+            <p class="subtitle">Entrez votre adresse email pour recevoir un code de réinitialisation</p>
+
+            @if (!string.IsNullOrEmpty(VM.messageErreur))
+            {
+                <div class="error-message-box">
+                    @VM.messageErreur
+                </div>
+            }
+
+            <form>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email"
+                           placeholder="votre@email.com"
+                           @bind="VM.ReinitialisationMdp.Email"
+                           disabled="@VM.isLoading"
+                           required>
+                </div>
+
+                <button type="button"
+                        class="btn-submit"
+                        @onclick="VM.EnvoyerCodeReinitialisation"
+                        disabled="@VM.isLoading">
+                    @if (VM.isLoading)
+                    {
+                        <span>Envoi en cours...</span>
+                    }
+                    else
+                    {
+                        <span>Envoyer le code</span>
+                    }
+                </button>
+            </form>
+
+            <div class="auth-switch">
+                Vous vous souvenez de votre mot de passe ? <a href="connexion">Se connecter</a>
+            </div>
+        }
+        else
+        {
+            <!-- Étape 2 : Saisie du code -->
+            <h2>Vérification du code</h2>
+            <div class="info-message-box">
+                <p>📧 Un code de vérification a été envoyé à :</p>
+                <p class="email-highlight">@VM.ReinitialisationMdp.Email</p>
+                <p class="expiry-notice">⏱️ Ce code est valide pendant <strong>15 minutes</strong></p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(VM.messageErreur))
+            {
+                <div class="error-message-box">
+                    @VM.messageErreur
+                </div>
+            }
+
+            <form>
+                <div class="form-group">
+                    <label>Code de vérification</label>
+                    <input type="text"
+                           placeholder="Entrez le code reçu par email"
+                           @bind="VM.ReinitialisationMdp.Code"
+                           disabled="@VM.isLoading"
+                           class="code-input"
+                           required>
+                </div>
+
+                <button type="button"
+                        class="btn-submit"
+                        @onclick="VM.ValiderCode"
+                        disabled="@VM.isLoading">
+                    @if (VM.isLoading)
+                    {
+                        <span>Vérification...</span>
+                    }
+                    else
+                    {
+                        <span>Valider le code</span>
+                    }
+                </button>
+            </form>
+
+            <!-- Compteur avant renvoi -->
+            <div class="resend-section">
+                @if (VM.tempsRestant > 0)
+                {
+                    <p class="resend-timer">
+                        Renvoyer un code dans <strong>@VM.tempsRestant</strong> seconde@(VM.tempsRestant > 1 ? "s" : "")
+                    </p>
+                }
+                else
+                {
+                    <button type="button"
+                            class="btn-resend"
+                            @onclick="VM.RenvoyerCode"
+                            disabled="@VM.isLoading">
+                        🔄 Renvoyer le code
+                    </button>
+                }
+            </div>
+
+            <div class="auth-switch">
+                <a href="connexion">← Retour à la connexion</a>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged, nav);
+    }
+}

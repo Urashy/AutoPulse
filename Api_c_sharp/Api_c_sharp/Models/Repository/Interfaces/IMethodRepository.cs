@@ -64,4 +64,9 @@
     {
         Task<APourCouleur> GetAPourCouleursByIDS(int voitureId, int couleurId);
     }
+
+    public interface IReinitialisationMotDePasse
+    {
+        Task<ReinitialisationMotDePasse> VerificationCode(string email, string code);
+    }
 }

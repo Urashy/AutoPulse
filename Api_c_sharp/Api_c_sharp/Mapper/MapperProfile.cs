@@ -357,5 +357,11 @@ public class MapperProfile : Profile
         
         CreateMap<Image, ImageUploadDTO>()
             .ReverseMap();
+        
+        // ============================================
+        // MAPPERS REINITIALISATION MDP
+        // ============================================
+        CreateMap<ReinitialisationMotDePasse, ReinitialiseMdpDTO>()
+            .ReverseMap();
     }
 }

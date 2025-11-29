@@ -17,14 +17,22 @@
 
 .auth-box h2 {
     font-size: 36px;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
     text-align: center;
     background: linear-gradient(135deg, #fff, #00d4ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-/* MESSAGE D'ERREUR */
+.subtitle {
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+/* MESSAGES */
 .error-message-box {
     background: rgba(255, 68, 68, 0.1);
     border: 1px solid #ff4444;
@@ -34,6 +42,38 @@
     margin-bottom: 20px;
     text-align: center;
     animation: slideDown 0.3s ease-out;
+}
+
+.info-message-box {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid #00d4ff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    animation: slideDown 0.3s ease-out;
+}
+
+.info-message-box p {
+    color: #aaa;
+    margin: 8px 0;
+    text-align: center;
+}
+
+.email-highlight {
+    color: #00d4ff !important;
+    font-weight: bold;
+    font-size: 18px;
+    margin: 12px 0 !important;
+}
+
+.expiry-notice {
+    color: #ff9f43 !important;
+    font-size: 14px;
+    margin-top: 12px !important;
+}
+
+.expiry-notice strong {
+    color: #ffb366;
 }
 
 @keyframes slideDown {
@@ -79,7 +119,14 @@
     cursor: not-allowed;
 }
 
-/* BUTTON */
+.code-input {
+    text-align: center;
+    font-size: 24px !important;
+    letter-spacing: 8px;
+    font-weight: bold;
+}
+
+/* BUTTONS */
 .btn-submit {
     width: 100%;
     padding: 15px;
@@ -91,6 +138,7 @@
     font-weight: bold;
     cursor: pointer;
     transition: transform 0.3s;
+    margin-bottom: 20px;
 }
 
 .btn-submit:hover:not(:disabled) {
@@ -103,12 +151,49 @@
     transform: none;
 }
 
+/* RESEND SECTION */
+.resend-section {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+}
+
+.resend-timer {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.resend-timer strong {
+    color: #00d4ff;
+    font-size: 16px;
+}
+
+.btn-resend {
+    padding: 12px 25px;
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid #00d4ff;
+    color: #00d4ff;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-resend:hover:not(:disabled) {
+    background: rgba(0, 212, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-resend:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 /* SWITCH LINK */
 .auth-switch {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
     text-align: center;
     margin-top: 20px;
     color: #aaa;
@@ -122,4 +207,24 @@
 
 .auth-switch a:hover {
     text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 20px;
+    }
+
+    .auth-box {
+        padding: 30px 20px;
+    }
+
+    .auth-box h2 {
+        font-size: 28px;
+    }
+
+    .code-input {
+        font-size: 20px !important;
+        letter-spacing: 5px;
+    }
 }
