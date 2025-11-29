@@ -6,6 +6,80 @@
 
 <PageTitle>Mon Compte - AutoPulse</PageTitle>
 
+<!-- Modal changement de mot de passe -->
+@if (VM.showPasswordModal)
+{
+    <div class="modal-overlay" @onclick="VM.ClosePasswordModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>Changer le mot de passe</h3>
+                <button class="modal-close" @onclick="VM.ClosePasswordModal">✕</button>
+            </div>
+
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(VM.passwordError))
+                {
+                    <div class="error-message-box">
+                        @VM.passwordError
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(VM.passwordSuccess))
+                {
+                    <div class="success-message-box">
+                        ✓ @VM.passwordSuccess
+                    </div>
+                }
+
+                <form>
+                    <div class="form-group @(!VM.currentPasswordValid ? "has-error" : "")">
+                        <label>Mot de passe actuel</label>
+                        <input type="password"
+                               placeholder="••••••••"
+                               @bind="VM.currentPassword"
+                               disabled="@VM.isChangingPassword"
+                               required>
+                    </div>
+
+                    <div class="form-group @(!VM.newPasswordValid ? "has-error" : "")">
+                        <label>Nouveau mot de passe</label>
+                        <input type="password"
+                               placeholder="••••••••"
+                               @bind="VM.newPassword"
+                               disabled="@VM.isChangingPassword"
+                               required>
+                    </div>
+
+                    <div class="form-group @(!VM.newPasswordValid ? "has-error" : "")">
+                        <label>Confirmer le nouveau mot de passe</label>
+                        <input type="password"
+                               placeholder="••••••••"
+                               @bind="VM.confirmNewPassword"
+                               disabled="@VM.isChangingPassword"
+                               required>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" @onclick="VM.ClosePasswordModal" disabled="@VM.isChangingPassword">
+                    Annuler
+                </button>
+                <button class="btn-primary" @onclick="VM.ChangePassword" disabled="@VM.isChangingPassword">
+                    @if (VM.isChangingPassword)
+                    {
+                        <span>Modification...</span>
+                    }
+                    else
+                    {
+                        <span>Valider</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <div class="compte-container">
     <!-- Section haute - Profil et informations -->
     <div class="profile-header">
@@ -78,6 +152,7 @@
                 @if (!VM.isEditing)
                 {
                     <button class="btn-primary" @onclick="VM.ToggleEdit">Modifier le profil</button>
+                    <button class="btn-password" @onclick="VM.OpenPasswordModal">🔒 Changer le mot de passe</button>
                 }
                 else
                 {

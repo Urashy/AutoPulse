@@ -65,4 +65,15 @@ public class ConnexionWebService : IServiceConnexion
             return HttpStatusCode.OK;
         }
     }
+    
+    public async Task<GoogleLoginResponse> GoogleLogin()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "Compte/GoogleLogin");
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        var response = await _httpClient.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<GoogleLoginResponse>();
+    }
 }

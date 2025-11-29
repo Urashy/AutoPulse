@@ -117,6 +117,38 @@ public class ConnexionViewModel
         }
     }
     
+    public async Task ConnecterAvecGoogle()
+    {
+        try
+        {
+            isLoading = true;
+            messageErreur = string.Empty;
+            _refreshUI?.Invoke();
+
+            // Appel à l'API pour obtenir l'URL de redirection Google
+            var response = await _connexionService.GoogleLogin();
+
+            if (response != null && !string.IsNullOrEmpty(response.Url))
+            {
+                // Redirige vers Google (forceLoad = true pour charger la page externe)
+                _nav.NavigateTo(response.Url, forceLoad: true);
+            }
+            else
+            {
+                messageErreur = "Erreur lors de la génération de l'URL Google";
+                isLoading = false;
+                _refreshUI?.Invoke();
+            }
+        }
+        catch (Exception ex)
+        {
+            messageErreur = "Erreur lors de la connexion avec Google";
+            isLoading = false;
+            Console.WriteLine($"Erreur ConnecterAvecGoogle: {ex.Message}");
+            _refreshUI?.Invoke();
+        }
+    }
+    
     public void Reset()
     {
         emailUtilisateur = string.Empty;

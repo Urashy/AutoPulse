@@ -13,11 +13,168 @@
 .btn-photo:hover {
     background: rgba(0, 212, 255, 0.1);
     transform: translateY(-2px);
-}.compte-container {
-     min-height: 100vh;
-     padding: 40px;
-     background: #0a0a0a;
- }
+}
+
+.compte-container {
+    min-height: 100vh;
+    padding: 40px;
+    background: #0a0a0a;
+}
+
+/* ========== MODAL ========== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    border: 1px solid #333;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 1px solid #333;
+}
+
+.modal-header h3 {
+    font-size: 24px;
+    margin: 0;
+    background: linear-gradient(135deg, #fff, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    border-radius: 5px;
+}
+
+.modal-close:hover {
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 15px;
+    padding: 20px 30px;
+    border-top: 1px solid #333;
+    justify-content: flex-end;
+}
+
+/* Messages dans la modal */
+.error-message-box {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+    padding: 15px;
+    color: #ff6666;
+    margin-bottom: 20px;
+    text-align: center;
+    animation: slideDown 0.3s ease-out;
+}
+
+.success-message-box {
+    background: rgba(0, 255, 68, 0.1);
+    border: 1px solid #00ff44;
+    border-radius: 8px;
+    padding: 15px;
+    color: #66ff88;
+    margin-bottom: 20px;
+    text-align: center;
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Form dans la modal */
+.modal-body .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-body .form-group label {
+    display: block;
+    margin-bottom: 10px;
+    color: #aaa;
+    font-size: 14px;
+}
+
+.modal-body .form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: border 0.3s;
+}
+
+.modal-body .form-group input:focus {
+    border-color: #00d4ff;
+}
+
+.modal-body .form-group input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.modal-body .form-group.has-error input {
+    border-color: #ff4444 !important;
+    box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2);
+}
 
 /* ========== SECTION HAUTE - PROFIL ========== */
 .profile-header {
@@ -171,9 +328,14 @@
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(0, 212, 255, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .btn-secondary {
@@ -188,16 +350,21 @@
     transition: all 0.3s;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.1);
     border-color: #00d4ff;
 }
 
-.btn-photo {
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-password {
     padding: 15px 30px;
-    background: transparent;
-    border: 2px solid #00d4ff;
-    color: #00d4ff;
+    background: rgba(255, 165, 0, 0.1);
+    border: 1px solid #ffa500;
+    color: #ffa500;
     border-radius: 10px;
     font-size: 16px;
     font-weight: bold;
@@ -205,8 +372,8 @@
     transition: all 0.3s;
 }
 
-.btn-photo:hover {
-    background: rgba(0, 212, 255, 0.1);
+.btn-password:hover {
+    background: rgba(255, 165, 0, 0.2);
     transform: translateY(-2px);
 }
 
@@ -353,6 +520,16 @@
 
     .profile-actions button {
         width: 100%;
+    }
+
+    .modal-content {
+        width: 95%;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 20px;
     }
 }
 

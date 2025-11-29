@@ -121,3 +121,54 @@
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
+
+/* ✨ NOUVEAU : BOUTON GOOGLE */
+.btn-google {
+    width: 100%;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #dadce0;
+    color: #3c4043;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.btn-google:hover:not(:disabled) {
+    background: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-google img {
+    width: 20px;
+    height: 20px;
+}
+
+/* ✨ NOUVEAU : SÉPARATEUR */
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0 30px 0;
+    color: #666;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #333;
+}
+
+.separator span {
+    padding: 0 15px;
+    font-size: 14px;
+    font-weight: bold;
+}

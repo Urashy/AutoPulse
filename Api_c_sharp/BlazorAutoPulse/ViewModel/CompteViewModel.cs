@@ -113,13 +113,28 @@ namespace BlazorAutoPulse.ViewModel
         
         private async Task GetImageProfil(int id)
         {
-            Image img = await _imageService.GetImageProfil(id);
-            imageSource = "";
-            if (img != null && img.Fichier != null && img.Fichier.Length > 0)
+            try
             {
-                idImage = img.IdImage;
-                var base64 = Convert.ToBase64String(img.Fichier);
-                imageSource = $"{mimeType}{base64}";
+                Image? img = await _imageService.GetImageProfil(id);
+
+                imageSource = "";
+                if (img != null && img.Fichier != null && img.Fichier.Length > 0)
+                {
+                    idImage = img.IdImage;
+                    var base64 = Convert.ToBase64String(img.Fichier);
+                    imageSource = $"{mimeType}{base64}";
+                }
+                else
+                {
+                    imageSource = "images/placeholder.png";
+                }
+
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'affichage de l'image : {ex.Message}");
+                imageSource = "images/default-profile.png";
                 _refreshUI?.Invoke();
             }
         }

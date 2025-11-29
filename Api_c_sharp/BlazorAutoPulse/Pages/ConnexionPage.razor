@@ -15,6 +15,7 @@
                 </div>
             }
 
+            <!-- Formulaire classique -->
             <form>
                 <div class="form-group">
                     <label>Email</label>
@@ -46,6 +47,21 @@
                     }
                 </button>
             </form>
+
+            <!-- ✨ NOUVEAU : Séparateur -->
+            <div class="separator">
+                <span>OU</span>
+            </div>
+
+            <!-- ✨ NOUVEAU : Bouton Google -->
+            <button type="button"
+                    class="btn-google"
+                    @onclick="VM.ConnecterAvecGoogle"
+                    disabled="@VM.isLoading">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" />
+                <span>Continuer avec Google</span>
+            </button>
+
             <div class="auth-switch">
                 <div>Pas encore de compte ? <a href="creationcompte">S'inscrire</a></div>
                 <a href="oublimdp">Mot de passe oublié?</a>
