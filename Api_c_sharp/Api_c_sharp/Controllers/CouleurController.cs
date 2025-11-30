@@ -52,15 +52,15 @@ namespace Api_c_sharp.Controllers
         /// <summary>
         /// Récupère la liste de couleurs par rapport a un id voiture.
         /// </summary>
-        /// <param name="voitureid">Identifiant unique de la voiture recherchée.</param>
+        /// <param name="voitureId">Identifiant unique de la voiture recherchée.</param>
         /// <returns>
         /// Une liste de <see cref="CouleurDTO"/> (200 OK).
         /// </returns>
-        [HttpGet]
         [ActionName("GetCouleursByVoitureID")]
-        public async Task<ActionResult<IEnumerable<CouleurDTO>>> GetCouleursByVoitureID(int voitureid)
+        [HttpGet("{voitureId}")]
+        public async Task<ActionResult<IEnumerable<CouleurDTO>>> GetCouleursByVoitureID(int voitureId)
         {
-            var list = await _manager.GetCouleursByVoitureId(voitureid);
+            var list = await _manager.GetCouleursByVoitureId(voitureId);
             return new ActionResult<IEnumerable<CouleurDTO>>(_couleurMapper.Map<IEnumerable<CouleurDTO>>(list));
         }
     }

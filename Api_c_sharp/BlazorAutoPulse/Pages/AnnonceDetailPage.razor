@@ -40,7 +40,7 @@ else
                 <div class="color-selector">
                     <h3>Couleur de carrosserie</h3>
                     <div class="color-options">
-                        @foreach (var color in VM.availableColors)
+                        @foreach (var color in VM.couleurDisponible)
                         {
                             <div class="color-option @(VM.selectedColor == color.CodeHexaCouleur ? "selected" : "")"
                                  style="background-color: @color.CodeHexaCouleur"
@@ -224,6 +224,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        VM.Reset();
         await VM.InitializeAsync(IdAnnonce, StateHasChanged, JSRuntime);
     }
 

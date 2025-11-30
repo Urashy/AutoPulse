@@ -169,6 +169,11 @@ window.car3DViewer = {
                                     // Activer le smooth shading
                                     mat.flatShading = false;
 
+                                    // Détecter et configurer les matériaux de vitre
+                                    if (this.isGlassMaterial(mat, node)) {
+                                        this.configureGlassMaterial(mat);
+                                    }
+
                                     if (mat.name === 'TwiXeR_W223') {
                                         this.paintableMaterials.push(mat);
                                     }
@@ -176,6 +181,11 @@ window.car3DViewer = {
                             } else {
                                 // Activer le smooth shading
                                 node.material.flatShading = false;
+
+                                // Détecter et configurer les matériaux de vitre
+                                if (this.isGlassMaterial(node.material, node)) {
+                                    this.configureGlassMaterial(node.material);
+                                }
 
                                 if (node.material.name === 'TwiXeR_W223') {
                                     this.paintableMaterials.push(node.material);
@@ -313,6 +323,58 @@ window.car3DViewer = {
 
     getAnimationNames: function() {
         return this.animations.map(anim => anim.name);
+    },
+
+    isGlassMaterial: function(material, node) {
+        if (!material) return false;
+
+        const name = (material.name || '').toLowerCase();
+        const nodeName = (node.name || '').toLowerCase();
+
+        // Détecter si c'est un matériau de vitre par son nom
+        const glassKeywords = ['glass', 'vitre', 'window', 'windshield',
+            'pare-brise', 'fenetre', 'fenêtre', 'transparent'];
+
+        return glassKeywords.some(keyword =>
+            name.includes(keyword) || nodeName.includes(keyword)
+        );
+    },
+
+    configureGlassMaterial: function(material) {
+        // Activer la transparence
+        material.transparent = true;
+        material.opacity = 0.3; // Ajustez entre 0.1 (très transparent) et 0.5 (moins transparent)
+
+        // Propriétés pour un verre réaliste
+        if (material.metalness !== undefined) {
+            material.metalness = 0.1;
+        }
+        if (material.roughness !== undefined) {
+            material.roughness = 0.1; // Très lisse pour refléter
+        }
+
+        // Teinte légère pour le verre
+        if (!material.color) {
+            material.color = new THREE.Color(0x88ccff); // Bleu très clair
+        } else {
+            // Si le matériau est blanc, le remplacer par une teinte bleutée
+            if (material.color.getHex() === 0xffffff) {
+                material.color.setHex(0x88ccff);
+            }
+        }
+
+        // Activer les propriétés de transmission si disponible (pour Three.js r128+)
+        if (material.transmission !== undefined) {
+            material.transmission = 0.9; // Transmission de lumière
+        }
+
+        // Double-sided pour voir à travers depuis l'intérieur
+        material.side = THREE.DoubleSide;
+
+        // Forcer la mise à jour
+        material.needsUpdate = true;
+
+        console.log('Matériau de vitre configuré:', material.name);
     },
 
     animate: function() {

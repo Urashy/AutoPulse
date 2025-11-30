@@ -12,6 +12,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IImageService _imageService;
         private readonly IFavorisService _favorisService;
         private readonly ICompteService _compteService;
+        private readonly ICouleurService _couleurService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public List<int> ImageIds { get; private set; } = new();
@@ -23,20 +24,8 @@ namespace BlazorAutoPulse.ViewModel
         // Propriétés pour le visualiseur 3D
         public bool show3DViewer { get; private set; } = false;
         public bool isLoading3D { get; private set; } = false;
-        public string selectedColor { get; private set; } = "#ff0000";
-        
-        public List<Couleur> availableColors { get; } = new()
-        {
-            new Couleur { LibelleCouleur = "Rouge", CodeHexaCouleur = "#ff0000" },
-            new Couleur { LibelleCouleur = "Bleu", CodeHexaCouleur = "#0066ff" },
-            new Couleur { LibelleCouleur = "Noir", CodeHexaCouleur = "#1a1a1a" },
-            new Couleur { LibelleCouleur = "Blanc", CodeHexaCouleur = "#ffffff" },
-            new Couleur { LibelleCouleur = "Gris", CodeHexaCouleur = "#808080" },
-            new Couleur { LibelleCouleur = "Argent", CodeHexaCouleur = "#c0c0c0" },
-            new Couleur { LibelleCouleur = "Jaune", CodeHexaCouleur = "#ffdd00" },
-            new Couleur { LibelleCouleur = "Vert", CodeHexaCouleur = "#00aa44" },
-            new Couleur { LibelleCouleur = "Orange", CodeHexaCouleur = "#ff6600" }
-        };
+        public List<Couleur> couleurDisponible { get; set; }
+        public string selectedColor { get; private set; }
 
         private Action? _refreshUI;
         private IJSRuntime? _jsRuntime;
@@ -46,13 +35,15 @@ namespace BlazorAutoPulse.ViewModel
             IPostImageService postImageService,
             IFavorisService favorisService,
             ICompteService compteService,
-            IImageService imageService)
+            IImageService imageService,
+            ICouleurService couleurService)
         {
             _annonceService = annonceService;
             _postImageService = postImageService;
             _favorisService = favorisService;
             _compteService = compteService;
             _imageService = imageService;
+            _couleurService = couleurService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime)
@@ -76,6 +67,9 @@ namespace BlazorAutoPulse.ViewModel
 
                 // Charger l'annonce
                 Annonce = await _annonceService.GetByIdAsync(idAnnonce);
+                
+                couleurDisponible = await _couleurService.GetCouleursByVoitureId(Annonce.IdVoiture);
+                selectedColor = couleurDisponible?.FirstOrDefault()?.CodeHexaCouleur;
 
                 if (Annonce != null && Annonce.IdVoiture > 0)
                 {
@@ -266,6 +260,15 @@ namespace BlazorAutoPulse.ViewModel
                 }
                 catch { }
             }
+        }
+
+        public void Reset()
+        {
+            CurrentImageIndex  = 0;
+            IsLoading  = true;
+            IsFavorite  = false;
+            show3DViewer  = false;
+            isLoading3D  = false;
         }
     }
 }
