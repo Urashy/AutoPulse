@@ -228,7 +228,7 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.Adresses.Select(a => a.CompteAdresseNav)))
             .ForMember(
                 opt => opt.idImage,
-                cfg => cfg.MapFrom(src => src.Images.First().IdImage))
+                cfg => cfg.MapFrom(src => src.Images.FirstOrDefault().IdImage))
             .ReverseMap();
         
         CreateMap<Compte, CompteProfilPublicDTO>()

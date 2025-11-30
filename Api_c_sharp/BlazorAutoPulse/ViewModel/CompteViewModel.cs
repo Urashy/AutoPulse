@@ -77,7 +77,7 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task UpdateProfileImage(InputFileChangeEventArgs e)
         {
-            if (imageSource == null)
+            if (idImage == 0)
             {
                 await UploadImageProfil(e);
             }
@@ -126,7 +126,7 @@ namespace BlazorAutoPulse.ViewModel
                 }
                 else
                 {
-                    imageSource = "images/placeholder.png";
+                    imageSource = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
                 }
 
                 _refreshUI?.Invoke();

@@ -89,7 +89,7 @@
 
                 <label for="photoProfil" class="photo-upload-overlay">
                     <div class="upload-icon">📸</div>
-                    <p class="upload-text">Cliquez pour @(string.IsNullOrEmpty(VM.imageSource) ? "ajouter" : "modifier")</p>
+                    <p class="upload-text">Cliquez pour @(VM.idImage==0 ? "ajouter" : "modifier")</p>
                     <p class="upload-hint">JPG, PNG</p>
                 </label>
                 <InputFile id="photoProfil" OnChange="@VM.UpdateProfileImage" style="display:none"/>
@@ -120,6 +120,10 @@
                         <span class="info-label">Email</span>
                         <span class="info-value">@VM.compte.Email</span>
                     </div>
+                    <div class="info-item">
+                        <span class="info-label">Biographie</span>
+                        <span class="info-value">@VM.compte.Biographie</span>
+                    </div>
                 </div>
             }
             else
@@ -134,8 +138,8 @@
                         <input type="text" @bind="VM.compteEdit.Prenom" class="info-input" />
                     </div>
                     <div class="info-item">
-                        <label class="info-label">Date de naissance</label>
-                        <input type="date" @bind="VM.compteEdit.DateNaissance" class="info-input" />
+                        <span class="info-label">Date de naissance</span>
+                        <span class="info-value">@VM.compte.DateNaissance.ToString("dd/MM/yyyy")</span>
                     </div>
                     <div class="info-item">
                         <label class="info-label">Pseudo</label>
@@ -144,6 +148,10 @@
                     <div class="info-item">
                         <label class="info-label">Email</label>
                         <input type="email" @bind="VM.compteEdit.Email" class="info-input" />
+                    </div>
+                    <div class="info-item">
+                        <label class="info-label">Biographie</label>
+                        <input type="email" @bind="VM.compteEdit.Biographie" class="info-input" />
                     </div>
                 </div>
             }

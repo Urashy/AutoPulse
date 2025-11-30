@@ -375,7 +375,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             });
             
             // 6. Rediriger vers le front
-            return Redirect("http://localhost:5296/compte");
+            return Redirect("http://localhost:5296/complete-profile");
         }
         catch (Exception ex)
         {
@@ -449,7 +449,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
             DateNaissance = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc),
 
-            IdTypeCompte = 2
+            IdTypeCompte = 1
         };
 
         return await _manager.AddAsync(newCompte);
