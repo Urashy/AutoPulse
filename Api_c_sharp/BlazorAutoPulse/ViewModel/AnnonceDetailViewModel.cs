@@ -1,5 +1,6 @@
 ﻿using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
+using Microsoft.JSInterop;
 using System.Threading.Tasks;
 
 namespace BlazorAutoPulse.ViewModel
@@ -19,7 +20,26 @@ namespace BlazorAutoPulse.ViewModel
         public bool IsFavorite { get; private set; } = false;
         public int? CurrentUserId { get; private set; }
 
+        // Propriétés pour le visualiseur 3D
+        public bool show3DViewer { get; private set; } = false;
+        public bool isLoading3D { get; private set; } = false;
+        public string selectedColor { get; private set; } = "#ff0000";
+        
+        public List<Couleur> availableColors { get; } = new()
+        {
+            new Couleur { LibelleCouleur = "Rouge", CodeHexaCouleur = "#ff0000" },
+            new Couleur { LibelleCouleur = "Bleu", CodeHexaCouleur = "#0066ff" },
+            new Couleur { LibelleCouleur = "Noir", CodeHexaCouleur = "#1a1a1a" },
+            new Couleur { LibelleCouleur = "Blanc", CodeHexaCouleur = "#ffffff" },
+            new Couleur { LibelleCouleur = "Gris", CodeHexaCouleur = "#808080" },
+            new Couleur { LibelleCouleur = "Argent", CodeHexaCouleur = "#c0c0c0" },
+            new Couleur { LibelleCouleur = "Jaune", CodeHexaCouleur = "#ffdd00" },
+            new Couleur { LibelleCouleur = "Vert", CodeHexaCouleur = "#00aa44" },
+            new Couleur { LibelleCouleur = "Orange", CodeHexaCouleur = "#ff6600" }
+        };
+
         private Action? _refreshUI;
+        private IJSRuntime? _jsRuntime;
 
         public AnnonceDetailViewModel(
             IAnnonceDetailService annonceService,
@@ -35,9 +55,10 @@ namespace BlazorAutoPulse.ViewModel
             _imageService = imageService;
         }
 
-        public async Task InitializeAsync(int idAnnonce, Action refreshUI)
+        public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime)
         {
             _refreshUI = refreshUI;
+            _jsRuntime = jsRuntime;
             IsLoading = true;
             _refreshUI?.Invoke();
 
@@ -98,6 +119,7 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
+        // Méthodes pour les images
         public string GetCurrentImage()
         {
             if (CurrentImageIndex >= 0 && CurrentImageIndex < ImageIds.Count)
@@ -141,5 +163,109 @@ namespace BlazorAutoPulse.ViewModel
 
         public bool CanGoNext => CurrentImageIndex < ImageIds.Count - 1;
         public bool CanGoPrevious => CurrentImageIndex > 0;
+
+        // Méthodes pour le visualiseur 3D
+        public async Task ToggleViewer3D()
+        {
+            show3DViewer = !show3DViewer;
+            
+            if (show3DViewer)
+            {
+                isLoading3D = true;
+                _refreshUI?.Invoke();
+                
+                // Attendre que le DOM soit mis à jour
+                await Task.Delay(300);
+                
+                // Initialiser directement
+                await Initialize3DViewer();
+            }
+            else
+            {
+                _refreshUI?.Invoke();
+            }
+        }
+
+        public async Task Initialize3DViewer()
+        {
+            if (_jsRuntime == null || Annonce == null)
+            {
+                Console.WriteLine("JSRuntime ou Annonce est null");
+                return;
+            }
+
+            try
+            {
+                Console.WriteLine("Début de l'initialisation du visualiseur 3D");
+                
+                // Vérifier que le conteneur existe
+                var containerExists = await _jsRuntime.InvokeAsync<bool>("eval", 
+                    "document.getElementById('car3DViewer') !== null");
+                
+                Console.WriteLine($"Le conteneur existe: {containerExists}");
+                
+                if (!containerExists)
+                {
+                    Console.WriteLine("Le conteneur n'existe pas encore, on réessaie dans 500ms...");
+                    await Task.Delay(500);
+                    
+                    // Deuxième tentative
+                    containerExists = await _jsRuntime.InvokeAsync<bool>("eval", 
+                        "document.getElementById('car3DViewer') !== null");
+                    
+                    if (!containerExists)
+                    {
+                        Console.WriteLine("Le conteneur n'existe toujours pas !");
+                        isLoading3D = false;
+                        _refreshUI?.Invoke();
+                        return;
+                    }
+                }
+
+                Console.WriteLine($"Chargement du modèle: {Annonce.LienModeleBlender}");
+                
+                await _jsRuntime.InvokeVoidAsync("car3DViewer.init", "car3DViewer", Annonce.LienModeleBlender);
+                
+                Console.WriteLine("Visualiseur 3D initialisé avec succès");
+                isLoading3D = false;
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du chargement du visualiseur 3D: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                isLoading3D = false;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        public async Task ChangeCouleur(string hexColor)
+        {
+            selectedColor = hexColor;
+            
+            if (show3DViewer && _jsRuntime != null)
+            {
+                try
+                {
+                    await _jsRuntime.InvokeVoidAsync("car3DViewer.changeColor", hexColor);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors du changement de couleur: {ex.Message}");
+                }
+            }
+        }
+
+        public async Task DisposeAsync()
+        {
+            if (_jsRuntime != null)
+            {
+                try
+                {
+                    await _jsRuntime.InvokeVoidAsync("car3DViewer.dispose");
+                }
+                catch { }
+            }
+        }
     }
 }
