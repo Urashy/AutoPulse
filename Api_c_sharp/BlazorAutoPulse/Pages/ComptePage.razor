@@ -6,6 +6,73 @@
 
 <PageTitle>Mon Compte - AutoPulse</PageTitle>
 
+<!-- Modal suppression de compte -->
+@if (VM.modalSuppression)
+{
+    <div class="modal-overlay" @onclick="VM.CloseSuppressionModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>⚠️ Suppression du compte</h3>
+                <button class="modal-close" @onclick="VM.CloseSuppressionModal">✕</button>
+            </div>
+
+            <div class="modal-body">
+                @if (!VM.confirmationSuppression)
+                {
+                    <!-- Étape 1 : Saisie du mot de confirmation -->
+                    <div class="warning-box">
+                        <p class="warning-text">
+                            Pour confirmer la suppression de votre compte, veuillez entrer le mot <strong>@VM.compte.Pseudo</strong> ci-dessous.
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="text"
+                               placeholder="SUPPRIMER"
+                               @bind="VM.confirmationTexte"
+                               class="info-input">
+                    </div>
+                    <button class="btn-danger-full" @onclick="VM.ContinuerSuppression">
+                        Continuer
+                    </button>
+                }
+                else
+                {
+                    if (!VM.suppressionReussi)
+                    {
+                        <!-- Étape 2 : Confirmation finale -->
+                        <div class="danger-box">
+                            <div class="danger-icon">🛑</div>
+                            <h4>Attention : Cette action est définitive !</h4>
+                            <p class="final-warning">
+                                Cette action ne peut pas être annulée. Êtes-vous absolument certain(e) de vouloir continuer ?
+                            </p>
+                            <button class="btn-secondary" @onclick="VM.CloseSuppressionModal">
+                                Annuler
+                            </button>
+                            <button class="btn-danger-full" @onclick="VM.ConfirmDeleteAccount">
+                                Confirmer la suppression
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="success-box">
+                            <h4>✓Compte supprimé avec succès</h4>
+                            <p class="success-message">
+                                Votre compte a été définitivement supprimé.
+                            </p>
+                            <p class="redirect-message">
+                                Vous allez être redirigé vers la page d'accueil dans <strong>1</strong> secondes)
+                            </p>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Modal changement de mot de passe -->
 @if (VM.showPasswordModal)
 {
@@ -161,6 +228,7 @@
                 {
                     <button class="btn-primary" @onclick="VM.ToggleEdit">Modifier le profil</button>
                     <button class="btn-password" @onclick="VM.OpenPasswordModal">🔒 Changer le mot de passe</button>
+                    <button class="btn-delete-account" @onclick="VM.OpenSuppressionModal">🗑️ Supprimer mon compte</button>
                 }
                 else
                 {

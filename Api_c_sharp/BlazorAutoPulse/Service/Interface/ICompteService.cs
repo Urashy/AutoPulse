@@ -8,4 +8,5 @@ public interface ICompteService: IService<Compte>
     Task<Compte> GetMe();
     Task<bool> VerifUser(ChangementMdp changementMdp);
     Task<bool> ChangementMdp(ChangementMdp changementMdp);
+    Task<bool> Anonymisation(int idCompte);
 }

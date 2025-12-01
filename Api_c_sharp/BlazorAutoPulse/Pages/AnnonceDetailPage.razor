@@ -37,17 +37,19 @@ else
         @if (VM.show3DViewer)
         {
             <div class="viewer-3d-section">
-                <div class="color-selector">
-                    <h3>Couleur de carrosserie</h3>
-                    <div class="color-options">
-                        @foreach (var color in VM.couleurDisponible)
-                        {
-                            <div class="color-option @(VM.selectedColor == color.CodeHexaCouleur ? "selected" : "")"
-                                 style="background-color: @color.CodeHexaCouleur"
-                                 @onclick="() => VM.ChangeCouleur(color.CodeHexaCouleur)"
-                                 title="@color.LibelleCouleur">
-                            </div>
-                        }
+                <div class="controls-panel">
+                    <div class="color-selector">
+                        <h3>🎨 Couleur</h3>
+                        <div class="color-options">
+                            @foreach (var color in VM.availableColors)
+                            {
+                                <div class="color-option @(VM.selectedColor == color.CodeHexaCouleur ? "selected" : "")"
+                                     style="background-color: @color.CodeHexaCouleur"
+                                     @onclick="() => VM.ChangeCouleur(color.CodeHexaCouleur)"
+                                     title="@color.LibelleCouleur">
+                                </div>
+                            }
+                        </div>
                     </div>
                 </div>
 
@@ -60,12 +62,23 @@ else
                             <p>Chargement du modèle 3D...</p>
                         </div>
                     }
+                    else if (VM.is3DReady && !VM.isLoading3D)
+                    {
+                        <div class="viewer-3d-badge">
+                            ✅ Modèle 3D prêt
+                        </div>
+                    }
                 </div>
             </div>
         }
         else
         {
-            <!-- Section images (code existant) -->
+            <!-- Conteneur caché pour le préchargement -->
+            <div style="position: absolute; left: -9999px; width: 800px; height: 600px; visibility: hidden;">
+                <div id="car3DViewer" class="viewer-3d"></div>
+            </div>
+
+            <!-- Section images -->
             <div class="images-section">
                 <div class="main-image">
                     @if (VM.CurrentImageIndex >= 0 && VM.ImageIds.Any())
@@ -228,14 +241,8 @@ else
         await VM.InitializeAsync(IdAnnonce, StateHasChanged, JSRuntime);
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await Task.CompletedTask;
-    }
-
     public async ValueTask DisposeAsync()
     {
-        VM.DisposeAsync();
+        await VM.DisposeAsync();
     }
-
 }

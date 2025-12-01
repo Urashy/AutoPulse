@@ -43,4 +43,12 @@ public class Commande
     [ForeignKey(nameof(IdAnnonce))]
     [InverseProperty(nameof(Annonce.Commandes))]
     public virtual Annonce CommandeAnnonceNav { get; set; }
+
+    [ForeignKey(nameof(IdAcheteur))]
+    [InverseProperty(nameof(Compte.CommandeAcheteur))]
+    public virtual Compte AcheteurCommande {  get; set; }
+
+    [ForeignKey(nameof(IdVendeur))]
+    [InverseProperty(nameof(Compte.CommandeVendeur))]
+    public virtual Compte VendeurCommande { get; set; }
 }
