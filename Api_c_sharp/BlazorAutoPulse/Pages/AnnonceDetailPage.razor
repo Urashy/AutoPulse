@@ -217,7 +217,7 @@ else
             @if (VM.CurrentUserId.HasValue)
             {
                 <button class="btn-favorite @(VM.IsFavorite ? "active" : "")" @onclick="VM.ToggleFavorite">
-                    @(VM.IsFavorite ? "❤️ Retirer des favoris" : "🤍 Ajouter aux favoris")
+                    @(VM.IsFavorite ? "❤ Retirer des favoris" : "🤍 Ajouter aux favoris")
                 </button>
             }
             else
