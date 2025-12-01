@@ -127,7 +127,6 @@ window.car3DViewer = {
 
                 // Stocker les animations
                 if (gltf.animations && gltf.animations.length > 0) {
-                    console.log('Animations trouvées:', gltf.animations.length);
                     this.animations = gltf.animations;
                     this.mixer = new THREE.AnimationMixer(this.carModel);
 
@@ -403,28 +402,76 @@ window.car3DViewer = {
     },
 
     dispose: function() {
+        this.cleanup();
+    },
+
+    cleanup: function() {
+        // Annuler le chargement en cours
+        this.currentLoader = null;
+
+        // Arrêter l'animation
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
+            this.animationId = null;
         }
+
+        // Arrêter toutes les animations du mixer
         if (this.mixer) {
             this.mixer.stopAllAction();
+            this.mixer = null;
         }
+
+        // Nettoyer le modèle de la scène
+        if (this.carModel && this.scene) {
+            this.scene.remove(this.carModel);
+            this.carModel.traverse((node) => {
+                if (node.geometry) {
+                    node.geometry.dispose();
+                }
+                if (node.material) {
+                    if (Array.isArray(node.material)) {
+                        node.material.forEach(mat => mat.dispose());
+                    } else {
+                        node.material.dispose();
+                    }
+                }
+            });
+            this.carModel = null;
+        }
+
+        // Nettoyer le renderer
         if (this.renderer) {
             this.renderer.dispose();
             if (this.renderer.domElement && this.renderer.domElement.parentNode) {
                 this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
             }
+            this.renderer = null;
         }
+
+        // Nettoyer les contrôles
         if (this.controls) {
             this.controls.dispose();
+            this.controls = null;
         }
+
+        // Supprimer le listener de resize
         if (this.resizeHandler) {
             window.removeEventListener('resize', this.resizeHandler);
+            this.resizeHandler = null;
         }
+
+        // Nettoyer la scène
+        if (this.scene) {
+            while (this.scene.children.length > 0) {
+                this.scene.remove(this.scene.children[0]);
+            }
+            this.scene = null;
+        }
+
+        // Réinitialiser les autres propriétés
+        this.camera = null;
         this.paintableMaterials = [];
-        this.carModel = null;
         this.animations = [];
         this.currentAnimations = {};
-        this.mixer = null;
     }
 };

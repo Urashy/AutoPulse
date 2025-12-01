@@ -353,7 +353,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             GoogleUserInfo userInfo = await GetGoogleUserInfo(tokenResponse.AccessToken);
             
             // 3. Créer ou récupérer le compte
-            Compte compte = await GetOrCreateCompte(userInfo);
+            (bool, Compte) compteCreate = await GetOrCreateCompte(userInfo);
+            bool existing = compteCreate.Item1;
+            Compte compte = compteCreate.Item2;
             
             // 4. Générer ton JWT
             LoginRequest loginRequest = new LoginRequest()
@@ -375,6 +377,10 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             });
             
             // 6. Rediriger vers le front
+            if (existing)
+            {
+                return Redirect("http://localhost:5296/compte");
+            }
             return Redirect("http://localhost:5296/complete-profile");
         }
         catch (Exception ex)
@@ -417,7 +423,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         return JsonSerializer.Deserialize<GoogleUserInfo>(json);
     }
 
-    private async Task<Compte> GetOrCreateCompte(GoogleUserInfo userInfo)
+    private async Task<(bool, Compte)> GetOrCreateCompte(GoogleUserInfo userInfo)
     {
         // Cherche si un compte existe déjà avec cet email
         var existingCompte = await _manager.GetByNameAsync(userInfo.Email);
@@ -430,7 +436,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 existingCompte.GoogleId = userInfo.Id;
                 await _manager.UpdateAsync(existingCompte, existingCompte);
             }
-            return existingCompte;
+            return (true, existingCompte);
         }
 
         // Créer un nouveau compte
@@ -451,8 +457,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
             IdTypeCompte = 1
         };
-
-        return await _manager.AddAsync(newCompte);
+        await _manager.AddAsync(newCompte);
+        return (false, newCompte);
     }
 #endregion
 

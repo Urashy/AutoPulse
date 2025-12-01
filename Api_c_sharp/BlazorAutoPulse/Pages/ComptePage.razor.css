@@ -552,3 +552,335 @@
         font-size: 16px;
     }
 }
+
+/* Bouton de suppression de compte */
+.btn-delete-account {
+    padding: 15px 30px;
+    background: rgba(139, 0, 0, 0.1);
+    border: 1px solid #8b0000;
+    color: #ff6b6b;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-delete-account:hover {
+    background: rgba(139, 0, 0, 0.2);
+    border-color: #ff4444;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(139, 0, 0, 0.3);
+}
+
+/* Box d'avertissement */
+.warning-box {
+    background: rgba(255, 165, 0, 0.1);
+    border: 1px solid #ffa500;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.warning-text {
+    color: #ffb84d;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.warning-text strong {
+    color: #ffa500;
+    font-weight: 700;
+}
+
+/* Box de danger (confirmation finale) */
+.danger-box {
+    background: linear-gradient(135deg, rgba(139, 0, 0, 0.15), rgba(139, 0, 0, 0.05));
+    border: 2px solid #8b0000;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+}
+
+.danger-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.danger-box h4 {
+    color: #ff6b6b;
+    font-size: 24px;
+    margin: 0 0 20px 0;
+    font-weight: 700;
+}
+
+.danger-box p {
+    color: #ffb3b3;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 15px 0;
+}
+
+.danger-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.danger-list li {
+    color: #ff9999;
+    font-size: 15px;
+    padding: 8px 0;
+    padding-left: 30px;
+    position: relative;
+}
+
+.danger-list li:before {
+    content: "✗";
+    position: absolute;
+    left: 0;
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.final-warning {
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    color: #ff8888;
+    font-weight: 600;
+}
+
+/* Bouton de suppression plein */
+.btn-danger-full {
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #8b0000, #ff4444);
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-danger-full:hover {
+    background: linear-gradient(135deg, #a00000, #ff5555);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(139, 0, 0, 0.4);
+}
+
+.btn-danger-full:active {
+    transform: translateY(0);
+}
+
+/* Ajustements pour le form-group dans la modal de suppression */
+.modal-body .form-group label strong {
+    color: #ffa500;
+}
+
+/* Bouton de suppression de compte */
+.btn-delete-account {
+    padding: 15px 30px;
+    background: rgba(139, 0, 0, 0.1);
+    border: 1px solid #8b0000;
+    color: #ff6b6b;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-delete-account:hover {
+    background: rgba(139, 0, 0, 0.2);
+    border-color: #ff4444;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(139, 0, 0, 0.3);
+}
+
+/* Box d'avertissement */
+.warning-box {
+    background: rgba(255, 165, 0, 0.1);
+    border: 1px solid #ffa500;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.warning-text {
+    color: #ffb84d;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.warning-text strong {
+    color: #ffa500;
+    font-weight: 700;
+}
+
+/* Box de danger (confirmation finale) */
+.danger-box {
+    background: linear-gradient(135deg, rgba(139, 0, 0, 0.15), rgba(139, 0, 0, 0.05));
+    border: 2px solid #8b0000;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+}
+
+.danger-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.danger-box h4 {
+    color: #ff6b6b;
+    font-size: 24px;
+    margin: 0 0 20px 0;
+    font-weight: 700;
+}
+
+.danger-box p {
+    color: #ffb3b3;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 15px 0;
+}
+
+.danger-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.danger-list li {
+    color: #ff9999;
+    font-size: 15px;
+    padding: 8px 0;
+    padding-left: 30px;
+    position: relative;
+}
+
+.danger-list li:before {
+    content: "✗";
+    position: absolute;
+    left: 0;
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.final-warning {
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    color: #ff8888;
+    font-weight: 600;
+}
+
+/* Bouton de suppression plein */
+.btn-danger-full {
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #8b0000, #ff4444);
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-danger-full:hover {
+    background: linear-gradient(135deg, #a00000, #ff5555);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(139, 0, 0, 0.4);
+}
+
+.btn-danger-full:active {
+    transform: translateY(0);
+}
+
+/* Ajustements pour le form-group dans la modal de suppression */
+.modal-body .form-group label strong {
+    color: #ffa500;
+}
+
+/* Box de succès */
+.success-box {
+    background: linear-gradient(135deg, rgba(0, 255, 68, 0.15), rgba(0, 255, 68, 0.05));
+    border: 2px solid #00ff44;
+    border-radius: 15px;
+    padding: 40px 30px;
+    text-align: center;
+}
+
+@keyframes successPulse {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-box h4 {
+    color: #66ff88;
+    font-size: 24px;
+    margin: 0 0 15px 0;
+    font-weight: 700;
+}
+
+.success-message {
+    color: #99ffaa;
+    font-size: 16px;
+    margin: 10px 0 20px 0;
+}
+
+.redirect-message {
+    background: rgba(0, 255, 68, 0.1);
+    border: 1px solid #00ff44;
+    border-radius: 8px;
+    padding: 15px;
+    color: #ccffdd;
+    font-size: 15px;
+    margin-top: 20px;
+}
+
+.redirect-message strong {
+    color: #00ff44;
+    font-size: 18px;
+    font-weight: 700;
+}
