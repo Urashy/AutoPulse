@@ -3,24 +3,39 @@
 @inject AnnonceComposantViewModel VM
 @inject NavigationManager Navigation
 
-<div class="car-card">
+<div class="car-card" @onclick="NavigateToDetail">
     <div class="car-image">
-        @if (@Annonce.DatePublication >= DateTime.Now.AddMonths(-1))
+        @if (@VM.Annonce.DatePublication >= DateTime.Now.AddMonths(-1))
         {
             <div class="car-badge">RÉCENT</div>
         }
-        <img src="@VM.GetFirstImage(Annonce.IdVoiture)" />
+
+        <div class="favorite-icon @(VM.IsFavorite ? "favorite-active" : "")"
+             @onclick="ToggleFavorite"
+             @onclick:stopPropagation="true">
+            @if (VM.IsFavorite)
+            {
+                <i class="fas fa-heart"></i>
+            }
+            else
+            {
+                <i class="far fa-heart"></i>
+            }
+        </div>
+
+        <img src="@VM.GetFirstImage(VM.Annonce.IdVoiture)" />
     </div>
     <div class="car-info">
-        <h3 class="car-title">@Annonce.Libelle</h3>
+        <h3 class="car-title">@VM.Annonce.Libelle</h3>
         <div class="car-specs">
-            <span>📅 @Annonce.Annee</span>
+
+            <span>📅 @VM.Annonce.Annee</span>
         </div>
         <div class="car-specs">
-            <span>📊 @Annonce.Kilometrage km</span>
+            <span>📊 @VM.Annonce.Kilometrage km</span>
         </div>
-        <div class="car-price">@Annonce.Prix.ToString("N0") €</div>
-        <button class="car-btn" @onclick="NavigateToDetail">Voir Détails</button>
+        <div class="car-price">@VM.Annonce.Prix.ToString("N0") €</div>
+        <button class="car-btn" @onclick="NavigateToDetail" @onclick:stopPropagation="true">Voir Détails</button>
     </div>
 </div>
 
@@ -28,8 +43,19 @@
     [Parameter]
     public Annonce Annonce { get; set; }
 
+    protected override async Task OnInitializedAsync()
+    {
+        VM.Annonce = Annonce;
+        await VM.LoadFavoriteStatus();
+    }
+
+    private async Task ToggleFavorite()
+    {
+        await VM.ToggleFavoriteStatus();
+    }
+
     private void NavigateToDetail()
     {
-        Navigation.NavigateTo($"/annonce/{Annonce.IdAnnonce}");
+        Navigation.NavigateTo($"/annonce/{VM.Annonce.IdAnnonce}");
     }
 }
