@@ -1,63 +1,90 @@
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
-using System.Threading.Tasks;
 
 namespace BlazorAutoPulse.ViewModel
 {
     public class AnnonceComposantViewModel
     {
         private readonly IFavorisService _favorisService;
-        private Annonce _annonce;
-        private bool _isFavorite;
+        private readonly ICompteService _compteService;
+        private readonly IImageService _imageService;
 
-        // [ATTENTION]: Placeholder pour l'ID du compte. 
-        // En production, cette valeur devrait être récupérée via un service d'authentification ou le CascadingParameter.
-        private const int CurrentCompteId = 1;
+        public Annonce Annonce { get; set; }
+        public bool IsFavorite { get; private set; }
+        private int? CurrentUserId { get; set; }
+        private Action? _refreshUI;
 
-        public AnnonceComposantViewModel(IFavorisService favorisService)
+        public AnnonceComposantViewModel(
+            IFavorisService favorisService,
+            ICompteService compteService,
+            IImageService imageService)
         {
             _favorisService = favorisService;
+            _compteService = compteService;
+            _imageService = imageService;
         }
 
-        // La propriété Annonce est définie par le composant. Son setter déclenche le chargement de l'état.
-        public Annonce Annonce
+        public async Task InitializeAsync(Annonce annonce, Action refreshUI)
         {
-            get => _annonce;
-            set
+            Annonce = annonce;
+            _refreshUI = refreshUI;
+
+            try
             {
-                _annonce = value;
-                // Le composant appellera LoadFavoriteStatus() dans OnInitialized pour le chargement initial.
+                var compte = await _compteService.GetMe();
+                CurrentUserId = compte?.IdCompte;
+
+                if (CurrentUserId.HasValue && Annonce != null)
+                {
+                    await LoadFavoriteStatus();
+                }
             }
-        }
-
-        // Propriété d'état observable pour le composant
-        public bool IsFavorite
-        {
-            get => _isFavorite;
-            set => _isFavorite = value;
-        }
-
-        public string GetFirstImage(int idVoiture)
-        {
-            
-            return $"/api/Image/first/{idVoiture}";
+            catch
+            {
+                CurrentUserId = null;
+                IsFavorite = false;
+            }
         }
 
         public async Task LoadFavoriteStatus()
         {
-            if (CurrentCompteId > 0 && Annonce != null && Annonce.IdAnnonce > 0)
+            if (CurrentUserId.HasValue && Annonce != null)
             {
-                IsFavorite = await _favorisService.IsFavorite(CurrentCompteId, Annonce.IdAnnonce);
+                try
+                {
+                    IsFavorite = await _favorisService.IsFavorite(CurrentUserId.Value, Annonce.IdAnnonce);
+                    _refreshUI?.Invoke();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors du chargement du statut favori: {ex.Message}");
+                    IsFavorite = false;
+                }
             }
         }
 
         public async Task ToggleFavoriteStatus()
         {
-            if (CurrentCompteId > 0 && Annonce != null && Annonce.IdAnnonce > 0)
+            if (!CurrentUserId.HasValue || Annonce == null)
             {
-                // La méthode ToggleFavorite du service gère l'ajout/suppression et retourne le nouvel état
-                IsFavorite = await _favorisService.ToggleFavorite(CurrentCompteId, Annonce.IdAnnonce);
+                Console.WriteLine("Utilisateur non connecté ou annonce invalide");
+                return;
             }
+
+            try
+            {
+                IsFavorite = await _favorisService.ToggleFavorite(CurrentUserId.Value, Annonce.IdAnnonce);
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du toggle favori: {ex.Message}");
+            }
+        }
+
+        public string GetFirstImage(int idVoiture)
+        {
+            return _imageService.GetFirstImage(idVoiture);
         }
     }
 }
