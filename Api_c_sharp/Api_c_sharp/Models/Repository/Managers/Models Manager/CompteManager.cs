@@ -35,5 +35,62 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.SingleOrDefaultAsync(x => x.Email.ToUpper() == email.ToUpper() && 
                                                   x.MotDePasse == hash);
         }
+
+        public async Task UpdateAnonymise(int idcompte)
+        {
+
+            Compte compte = await dbSet
+                .Include(c => c.CommandeAcheteur)
+                .Include(c => c.Annonces)
+                .Include(c => c.SignalementsFaits)
+                .Include(c => c.SignalementsRecus)
+                .Include(c => c.CommandeVendeur)
+                .Include(c => c.AvisJugees)
+                .Include(c => c.AvisJugeur)
+                .FirstOrDefaultAsync(c => c.IdCompte == idcompte);
+            Compte comptedebase = compte;
+
+
+
+            bool aDesActivites = comptedebase.CommandeAcheteur.Any() ||
+                                 comptedebase.Annonces.Any() ||
+                                 comptedebase.SignalementsFaits.Any() ||
+                                 comptedebase.SignalementsRecus.Any() ||
+                                 comptedebase.CommandeVendeur.Any() ||
+                                 comptedebase.AvisJugees.Any() ||
+                                 comptedebase.AvisJugeur.Any();
+
+            if (!aDesActivites)
+            {
+
+                List<Adresse> adressesASupprimer = context.Adresses.Where(a => a.IdCompte == compte.IdCompte).ToList();
+                if (adressesASupprimer.Any()) context.Adresses.RemoveRange(adressesASupprimer);
+
+                List<Favori> favorisASupprimer = context.Favoris.Where(f => f.IdCompte == compte.IdCompte).ToList();
+                if (favorisASupprimer.Any()) context.Favoris.RemoveRange(favorisASupprimer);
+
+                List<Journal> logsASupprimer = context.Journaux.Where(l => l.IdCompte == compte.IdCompte).ToList();
+                if (logsASupprimer.Any()) context.Journaux.RemoveRange(logsASupprimer);
+
+                dbSet.Remove(compte);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+
+                compte.MotDePasse = "XXXXXXXXX"; 
+                compte.Nom = "ANONYME";
+                compte.Prenom = "Utilisateur";
+
+                compte.Email = $"anonyme_{compte.IdCompte}_{Guid.NewGuid().ToString().Substring(0, 8)}@deleted.com";
+                compte.Pseudo = $"anonyme_{compte.IdCompte}_{Guid.NewGuid().ToString().Substring(0, 3)}";
+                compte.DateNaissance = new DateTime(1900, 1, 1);
+                compte.IdTypeCompte = 4;
+                compte.Biographie = null;
+                context.Entry(comptedebase).CurrentValues.SetValues(compte);
+                await context.SaveChangesAsync();
+
+            }
+        }
     }
 }
