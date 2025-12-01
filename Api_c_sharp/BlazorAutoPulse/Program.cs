@@ -48,7 +48,6 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<CreationCompteViewModel>();
             builder.Services.AddScoped<VenteViewModel>();
             builder.Services.AddScoped<RechercheViewModel>();
-            builder.Services.AddScoped<AnnonceComposantViewModel>();
             builder.Services.AddScoped<GetAllViewModel>();
             builder.Services.AddScoped<AnnonceDetailViewModel>();
             builder.Services.AddScoped<CompteViewModel>();
@@ -57,6 +56,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<CompleteProfileViewModel>();
             builder.Services.AddScoped<MainLayoutViewModel>();
 
+            builder.Services.AddTransient<AnnonceComposantViewModel>();
 
             builder.Services.AddScoped(sp =>
             {
