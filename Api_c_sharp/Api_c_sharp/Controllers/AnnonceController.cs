@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.DTO;
+using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
 using AutoMapper;

@@ -1,4 +1,4 @@
-namespace BlazorAutoPulse.Model;
+namespace AutoPulse.Shared.DTO;
 
 public class ChangementMdpDTO
 {

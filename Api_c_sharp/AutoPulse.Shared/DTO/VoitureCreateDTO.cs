@@ -1,4 +1,4 @@
-namespace Api_c_sharp.DTO;
+namespace AutoPulse.Shared.DTO;
 
 public class VoitureCreateDTO
 {

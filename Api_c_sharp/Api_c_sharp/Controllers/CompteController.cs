@@ -1,6 +1,6 @@
 using System.Text;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.DTO;
+using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
 using System.Security.Cryptography;
@@ -13,7 +13,7 @@ using Api_c_sharp.Models.Authentification;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
-using BlazorAutoPulse.Model;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
 using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
 
