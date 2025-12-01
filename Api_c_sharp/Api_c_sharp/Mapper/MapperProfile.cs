@@ -281,7 +281,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.PseudoVendeur, 
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav.CompteAnnonceNav.Pseudo))
             .ForMember(dest => dest.PseudoAcheteur, 
-                opt => opt.MapFrom(src => "N/A")) // À mapper avec la relation acheteur
+                opt => opt.MapFrom(src => src.AcheteurCommande.Pseudo)) // À mapper avec la relation acheteur
             .ForMember(dest => dest.LibelleAnnonce, 
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav.Libelle))
             .ForMember(dest => dest.MoyenPaiement, 

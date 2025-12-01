@@ -42,25 +42,55 @@ namespace App.Controllers.Tests
             _context.Commandes.RemoveRange(_context.Commandes);
             await _context.SaveChangesAsync();
 
+
+
+
             // ----- ENTITÉS -----
+
+            var tyepeCompte = new TypeCompte()
+            {
+                IdTypeCompte = 1,
+                Libelle = "Standard"
+            };
+            await _context.TypesCompte.AddAsync(tyepeCompte);
+
+
             var annonce = new Annonce()
             {
                 IdAnnonce = 1,
                 Libelle = "Super produit",
-                CompteAnnonceNav = new Compte
-                {
-                    Pseudo = "john",
-                    MotDePasse = "hashedpassword",
-                    Nom = "Doe",
-                    Prenom = "John",
-                    Email = "john@doe.com",
-                    DateCreation = DateTime.UtcNow,
-                    DateDerniereConnexion = DateTime.UtcNow,
-                    DateNaissance = new DateTime(1990, 1, 1),
-                    IdTypeCompte = 1 // doit exister en base !
-                }
+                IdCompte = 1
             };
 
+            var vendeur = new Compte
+            {
+                IdCompte = 1,
+                Pseudo = "john",
+                MotDePasse = "hashedpassword",
+                Nom = "Doe",
+                Prenom = "John",
+                Email = "john@doe.com",
+                DateCreation = DateTime.UtcNow,
+                DateDerniereConnexion = DateTime.UtcNow,
+                DateNaissance = new DateTime(1990, 1, 1),
+                IdTypeCompte = 1
+            };
+            await _context.Comptes.AddAsync(vendeur);
+
+            var acheteur = new Compte
+            {
+                IdCompte = 2,
+                Pseudo = "johny",
+                MotDePasse = "hashedpassword",
+                Nom = "Doe",
+                Prenom = "John",
+                Email = "johny@doe.com",
+                DateCreation = DateTime.UtcNow,
+                DateDerniereConnexion = DateTime.UtcNow,
+                DateNaissance = new DateTime(1990, 1, 1),
+                IdTypeCompte = 1
+            };
+            await _context.Comptes.AddAsync(acheteur);
             var moyenPaiement = new MoyenPaiement()
             {
                 IdMoyenPaiement = 1,
@@ -142,11 +172,11 @@ namespace App.Controllers.Tests
             // Given : Un DTO valide
             var dto = new CommandeDTO()
             {
-                IdCommande = 0,
+                IdCommande = 2,
                 Date = DateTime.UtcNow,
-                PseudoAcheteur = "AcheteurX",
-                PseudoVendeur = "VendeurX",
-                LibelleAnnonce = "Produit X",
+                PseudoAcheteur = "john",
+                PseudoVendeur = "johny",
+                LibelleAnnonce = "Super produit",
                 MoyenPaiement = "Carte"
             };
 
