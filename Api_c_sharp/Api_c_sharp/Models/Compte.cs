@@ -102,7 +102,7 @@ namespace Api_c_sharp.Models
         [InverseProperty(nameof(Commande.AcheteurCommande))]
         public virtual ICollection<Commande> CommandeAcheteur { get; set; } = new List<Commande>();
 
-        [InverseProperty(nameof(Commande.AcheteurCommande))]
+        [InverseProperty(nameof(Commande.VendeurCommande))]
         public virtual ICollection<Commande> CommandeVendeur { get; set; } = new List<Commande>();
 
         [InverseProperty(nameof(Message.MessageCompteNav))]
