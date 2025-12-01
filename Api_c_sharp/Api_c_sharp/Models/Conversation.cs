@@ -29,5 +29,6 @@ namespace Api_c_sharp.Models
         [InverseProperty(nameof(Message.ConversationMessageNav))]
         public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 
+
     }
 }

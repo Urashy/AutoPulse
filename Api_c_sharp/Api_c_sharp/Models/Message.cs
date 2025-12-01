@@ -22,6 +22,13 @@ namespace Api_c_sharp.Models
         [Required]
         public int IdConversation { get; set; }
 
+        [Column("com_id")]
+        [Required]
+        public int IdCompte { get; set; }
+
+        [ForeignKey(nameof(IdCompte))]
+        [InverseProperty(nameof(Compte.Messages))]
+        public virtual Compte MessageCompteNav { get; set; }
 
         [ForeignKey(nameof(IdConversation))]
         [InverseProperty(nameof(Conversation.Messages))]
