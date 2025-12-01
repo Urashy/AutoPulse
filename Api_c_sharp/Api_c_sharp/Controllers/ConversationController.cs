@@ -132,24 +132,4 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
         return NoContent();
     }
 
-    /// <summary>
-    /// Récupère des conversation à partir de son type.
-    /// </summary>
-    /// <param name="idtype">Identifiant unique du type recherchée.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="ConversationListDTO"/> si l'conversation existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun conversation ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
-    [ActionName("GetAllByType")]
-    [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetAllByType(int idcompte)
-    {
-        var result = await _manager.GetByIdAsync(idcompte);
-        return new ActionResult<IEnumerable<ConversationListDTO>>(_mapper.Map<IEnumerable<ConversationListDTO>>(result));
-
-    }
-
-
 }

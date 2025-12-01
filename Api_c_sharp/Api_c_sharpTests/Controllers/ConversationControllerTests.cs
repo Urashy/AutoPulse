@@ -154,20 +154,6 @@ namespace App.Controllers.Tests
 
 
         [TestMethod]
-        public async Task GetAllByTypeTest()
-        {
-            // Act
-            var result = await _controller.GetAllByType(1);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<ConversationListDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.IdConversation == _objetcommun.IdConversation));
-        }
-
-        [TestMethod]
         public async Task PostVoitureTest_Entity()
         {
             var voiture = new ConversationCreateDTO

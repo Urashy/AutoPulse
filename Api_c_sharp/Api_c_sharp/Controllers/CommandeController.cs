@@ -59,7 +59,7 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper) : Con
     /// <summary>
     /// Crée une nouvelle commande.
     /// </summary>
-    /// <param name="dto">Objet <see cref="CommandeDTO"/> contenant les informations de la commande à créer.</param>
+    /// <param name="dto">Objet <see cref="CommandeCreateDTO"/> contenant les informations de la commande à créer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="CreatedAtActionResult"/> avec la commande créée (201).</description></item>
@@ -68,7 +68,7 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper) : Con
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<Commande>> Post([FromBody] CommandeDTO dto)
+    public async Task<ActionResult<Commande>> Post([FromBody] CommandeCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -83,7 +83,7 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper) : Con
     /// Met à jour une commande existante.
     /// </summary>
     /// <param name="id">Identifiant unique de la commande à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="CommandeDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="CommandeCreateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -93,9 +93,9 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper) : Con
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] CommandeDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] CommandeCreateDTO dto)
     {
-        if (id != dto.IdCommande)
+        if (!ModelState.IsValid)
             return BadRequest();
 
         var toUpdate = await _manager.GetByIdAsync(id);

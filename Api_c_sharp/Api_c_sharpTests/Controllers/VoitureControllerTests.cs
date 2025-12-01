@@ -44,9 +44,6 @@ namespace App.Controllers.Tests
             _manager = new VoitureManager(_context);
             _controller = new VoitureController(_manager, _mapper);
 
-            _context.Voitures.RemoveRange(_context.Voitures);
-            await _context.SaveChangesAsync();
-
             _context.Marques.Add(new Marque { IdMarque = 1, LibelleMarque = "TestMarque" });
             _context.Motricites.Add(new Motricite { IdMotricite = 1, LibelleMotricite = "4x4" });
             _context.Carburants.Add(new Carburant { IdCarburant = 1, LibelleCarburant = "Essence" });

@@ -1,19 +1,37 @@
-﻿@inherits LayoutComponentBase
+﻿@using BlazorAutoPulse.ViewModel
+@inherits LayoutComponentBase
+@inject MainLayoutViewModel VM
+@inject NavigationManager Navigation
+
 <header>
     <nav>
         <NavLink href="/">
             <span class="logo"> AutoPulse </span>
         </NavLink>
         <ul class="nav-links">
-            <NavLink href="">
-                <span> Accueil </span>
-            </NavLink>
             <NavLink href="vente">
                 <span> Vendre </span>
             </NavLink>
-            <NavLink href="connexion">
-                <span class="btn-login"> Connexion </span>
+            <NavLink href="favoris">
+                <span> ❤ </span>
             </NavLink>
+
+            @if (VM.IsConnected)
+            {
+                <li class="profile-menu" @onclick="VM.NavigateToProfile">
+                    <img src="@VM.ImageSource" alt="Profil" class="profile-picture" />
+                </li>
+            }
+            else
+            {
+                <NavLink href="connexion">
+                    <span class="btn-login"> Connexion </span>
+                </NavLink>
+                <NavLink href="creationcompte">
+                    <span class="btn-signup"> Inscription </span>
+                </NavLink>
+            }
+
             <NavLink href="admin">
                 <span class="btn-login"> Mode Admin </span>
             </NavLink>
@@ -31,3 +49,10 @@
     <p>&copy; 2025 AutoPulse - Tous droits réservés</p>
     <p>📍 Chambéry, France | 📞 04 XX XX XX XX | ✉️ contact@AutoPulse.fr</p>
 </footer>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged, Navigation);
+    }
+}

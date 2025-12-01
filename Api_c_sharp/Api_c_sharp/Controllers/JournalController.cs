@@ -95,7 +95,7 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] JournalDTO dto)
     {
-        if (id != dto.IdJournal)
+        if (ModelState.IsValid == false)
             return BadRequest();
 
         var toUpdate = await _manager.GetByIdAsync(id);

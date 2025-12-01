@@ -56,6 +56,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<FavorisViewModel>();
             builder.Services.AddScoped<OubliMdpViewModel>();
             builder.Services.AddScoped<CompleteProfileViewModel>();
+            builder.Services.AddScoped<MainLayoutViewModel>();
+
 
             builder.Services.AddScoped(sp =>
             {
