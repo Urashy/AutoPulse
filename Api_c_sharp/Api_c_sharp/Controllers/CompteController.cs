@@ -202,10 +202,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [HttpGet]
     public IActionResult GetMe()
     {
-        foreach (var c in User.Claims)
-        {
-            Console.WriteLine($"{c.Type} = {c.Value}");
-        }
         var claim = User.FindFirst("idUser")?.Value;
         if (string.IsNullOrEmpty(claim))
             return Unauthorized();
