@@ -1,4 +1,4 @@
-﻿using Api_c_sharp.DTO;
+﻿using AutoPulse.Shared.DTO;
 using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;

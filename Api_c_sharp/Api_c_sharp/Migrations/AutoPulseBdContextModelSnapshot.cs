@@ -295,10 +295,6 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("cmd_id_annonce");
 
-                    b.Property<int?>("IdFacture")
-                        .HasColumnType("integer")
-                        .HasColumnName("fac_id");
-
                     b.Property<int>("IdMoyenPaiement")
                         .HasColumnType("integer")
                         .HasColumnName("cmd_moyen_paiement");
@@ -329,6 +325,10 @@ namespace Api_c_sharp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCompte"));
 
+                    b.Property<string>("AuthProvider")
+                        .HasColumnType("text")
+                        .HasColumnName("com_auth_provider");
+
                     b.Property<string>("Biographie")
                         .HasColumnType("text")
                         .HasColumnName("com_biographie");
@@ -349,6 +349,10 @@ namespace Api_c_sharp.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("com_email");
+
+                    b.Property<string>("GoogleId")
+                        .HasColumnType("text")
+                        .HasColumnName("com_google_id");
 
                     b.Property<int>("IdTypeCompte")
                         .HasColumnType("integer")
@@ -404,6 +408,10 @@ namespace Api_c_sharp.Migrations
                         .HasColumnName("con_id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdConversation"));
+
+                    b.Property<DateTime>("DateDernierMessage")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("con_date_dernier_message");
 
                     b.Property<int>("IdAnnonce")
                         .HasColumnType("integer")
@@ -754,6 +762,42 @@ namespace Api_c_sharp.Migrations
                     b.HasKey("IdPays");
 
                     b.ToTable("t_e_pays_pay", "public");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.ReinitialisationMotDePasse", b =>
+                {
+                    b.Property<int>("IdReinitialisationMdp")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("rei_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdReinitialisationMdp"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("com_email");
+
+                    b.Property<DateTime>("Expiration")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("rei_expiration");
+
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("rei_token");
+
+                    b.Property<bool>("Utilise")
+                        .HasColumnType("boolean")
+                        .HasColumnName("rei_utilise");
+
+                    b.HasKey("IdReinitialisationMdp");
+
+                    b.ToTable("t_e_reinitialisationmotdepasse_rei", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Signalement", b =>

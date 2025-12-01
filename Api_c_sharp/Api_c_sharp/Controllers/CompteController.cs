@@ -1,6 +1,6 @@
 using System.Text;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.DTO;
+using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
 using System.Security.Cryptography;
@@ -13,7 +13,7 @@ using Api_c_sharp.Models.Authentification;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
-using BlazorAutoPulse.Model;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
 using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
 
@@ -148,6 +148,30 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         return NoContent();
     }
 
+    /// <summary>
+    /// Met à jour une compte existante.
+    /// </summary>
+    /// <param name="id">Identifiant unique du compte à mettre à jour.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("PutAnonymise")]
+    [HttpPut("{id}")]
+    public async Task<ActionResult> PutAnonymise(int id)
+    {
+        Compte compte = await _manager.GetByIdAsync(id);
+
+        if (compte == null)
+            return NotFound();
+
+        await _manager.UpdateAnonymise(id);
+
+        return NoContent();
+    }
     /// <summary>
     /// Supprime une compte existante.
     /// </summary>
@@ -353,7 +377,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             GoogleUserInfo userInfo = await GetGoogleUserInfo(tokenResponse.AccessToken);
             
             // 3. Créer ou récupérer le compte
-            Compte compte = await GetOrCreateCompte(userInfo);
+            (bool, Compte) compteCreate = await GetOrCreateCompte(userInfo);
+            bool existing = compteCreate.Item1;
+            Compte compte = compteCreate.Item2;
             
             // 4. Générer ton JWT
             LoginRequest loginRequest = new LoginRequest()
@@ -375,6 +401,10 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             });
             
             // 6. Rediriger vers le front
+            if (existing)
+            {
+                return Redirect("http://localhost:5296/compte");
+            }
             return Redirect("http://localhost:5296/complete-profile");
         }
         catch (Exception ex)
@@ -417,7 +447,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         return JsonSerializer.Deserialize<GoogleUserInfo>(json);
     }
 
-    private async Task<Compte> GetOrCreateCompte(GoogleUserInfo userInfo)
+    private async Task<(bool, Compte)> GetOrCreateCompte(GoogleUserInfo userInfo)
     {
         // Cherche si un compte existe déjà avec cet email
         var existingCompte = await _manager.GetByNameAsync(userInfo.Email);
@@ -430,7 +460,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 existingCompte.GoogleId = userInfo.Id;
                 await _manager.UpdateAsync(existingCompte, existingCompte);
             }
-            return existingCompte;
+            return (true, existingCompte);
         }
 
         // Créer un nouveau compte
@@ -451,8 +481,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
             IdTypeCompte = 1
         };
-
-        return await _manager.AddAsync(newCompte);
+        await _manager.AddAsync(newCompte);
+        return (false, newCompte);
     }
 #endregion
 

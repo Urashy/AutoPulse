@@ -31,6 +31,11 @@ namespace BlazorAutoPulse.ViewModel
         public bool isChangingPassword = false;
         public bool currentPasswordValid = true;
         public bool newPasswordValid = true;
+
+        public bool modalSuppression = false;
+        public bool confirmationSuppression = false;
+        public string confirmationTexte = "";
+        public bool suppressionReussi =  false;
         
         private Action? _refreshUI;
 
@@ -278,6 +283,35 @@ namespace BlazorAutoPulse.ViewModel
                 _refreshUI?.Invoke();
 
                 Console.WriteLine($"Erreur lors du changement de mot de passe: {ex.Message}");
+            }
+        }
+
+        public void OpenSuppressionModal()
+        {
+            modalSuppression = true;
+            _refreshUI?.Invoke();
+        }
+
+        public void CloseSuppressionModal()
+        {
+            modalSuppression = false;
+            confirmationSuppression = false;
+            confirmationTexte = "";
+            _refreshUI?.Invoke();
+        }
+
+        public void ContinuerSuppression()
+        {
+            confirmationSuppression = true;
+            _refreshUI?.Invoke();
+        }
+
+        public void ConfirmDeleteAccount()
+        {
+            if (compte.Pseudo == confirmationTexte)
+            {
+                _compteService.Anonymisation(compte.IdCompte);
+                suppressionReussi = true;
             }
         }
     }

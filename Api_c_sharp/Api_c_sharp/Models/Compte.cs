@@ -99,5 +99,11 @@ namespace Api_c_sharp.Models
         [InverseProperty(nameof(Image.CompteImageNav))]
         public virtual ICollection<Image> Images { get; set; } = new List<Image>();
 
+        [InverseProperty(nameof(Commande.AcheteurCommande))]
+        public virtual ICollection<Commande> CommandeAcheteur { get; set; } = new List<Commande>();
+
+        [InverseProperty(nameof(Commande.AcheteurCommande))]
+        public virtual ICollection<Commande> CommandeVendeur { get; set; } = new List<Commande>();
+
     }
 }

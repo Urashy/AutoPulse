@@ -19,6 +19,7 @@
         Task<IEnumerable<Compte>> GetCompteByIdAnnonceFavori(int annonceId);
         Task<Compte> VerifMotDePasse(string email, string hash);
         Task<Compte> AuthenticateCompte(string email, string hash);
+        Task UpdateAnonymise(int idcompte);
     }
 
     public interface IMessageRepository
