@@ -27,7 +27,7 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     /// <item><description><see cref="NotFoundResult"/> si aucun modele ne correspond (404).</description></item>
     /// </list>
     /// </returns>
-    [ActionName("GetAll")]
+    [ActionName("GetById")]
     [HttpGet("{id}")]
     public async Task<ActionResult<ModeleDTO>> Get(int id)
     {

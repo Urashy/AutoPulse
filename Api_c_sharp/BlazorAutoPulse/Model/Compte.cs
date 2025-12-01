@@ -13,4 +13,5 @@ public class Compte
     public int IdTypeCompte { get; set; }
     public string? NumeroSiret { get; set; }
     public string? RaisonSociale { get; set; }
+    public int IdImage { get; set; }
 }

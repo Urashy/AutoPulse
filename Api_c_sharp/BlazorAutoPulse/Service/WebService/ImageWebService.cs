@@ -1,4 +1,5 @@
-﻿using BlazorAutoPulse.Model;
+﻿using System.Net.Http.Json;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service.WebService
@@ -26,9 +27,37 @@ namespace BlazorAutoPulse.Service.WebService
             throw new NotImplementedException();
         }
 
-        public string GetImageProfil(int id)
+        public async Task<Image?> GetImageProfil(int id)
         {
-            return $"{_httpClient.BaseAddress}{ApiEndpoint}/GetImageByCompte/{id}";
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, $"{_httpClient.BaseAddress}{ApiEndpoint}/GetImageByCompte/{id}");
+
+                var response = await SendWithCredentialsAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var image = await response.Content.ReadFromJsonAsync<Image>();
+                    return image;
+                }
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    Console.WriteLine($"Image pour le compte {id} non trouvée.");
+                    return null;
+                }
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    Console.WriteLine($"Utilisateur non autorisé pour récupérer l'image du compte {id}.");
+                    return null;
+                }
+                Console.WriteLine($"Erreur HTTP {response.StatusCode} lors de la récupération de l'image du compte {id}.");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception lors de la récupération de l'image du compte {id} : {ex.Message}");
+                return null;
+            }
         }
     }
 }

@@ -6,73 +6,203 @@
 
 <PageTitle>Mon Compte - AutoPulse</PageTitle>
 
-<div class="account-container">
-    <div class="sidebar">
-        <div class="profile-section">
-            <!-- Photo de profil -->
-            <img src="@VM.GetImageProfil(VM.compte.IdCompte)" idImage="@(VM.idImage != null ? VM.idImage : "")" alt="Photo de Profil" class="profile-photo" />
+<!-- Modal changement de mot de passe -->
+@if (VM.showPasswordModal)
+{
+    <div class="modal-overlay" @onclick="VM.ClosePasswordModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>Changer le mot de passe</h3>
+                <button class="modal-close" @onclick="VM.ClosePasswordModal">✕</button>
+            </div>
+
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(VM.passwordError))
+                {
+                    <div class="error-message-box">
+                        @VM.passwordError
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(VM.passwordSuccess))
+                {
+                    <div class="success-message-box">
+                        ✓ @VM.passwordSuccess
+                    </div>
+                }
+
+                <form>
+                    <div class="form-group @(!VM.currentPasswordValid ? "has-error" : "")">
+                        <label>Mot de passe actuel</label>
+                        <input type="password"
+                               placeholder="••••••••"
+                               @bind="VM.currentPassword"
+                               disabled="@VM.isChangingPassword"
+                               required>
+                    </div>
+
+                    <div class="form-group @(!VM.newPasswordValid ? "has-error" : "")">
+                        <label>Nouveau mot de passe</label>
+                        <input type="password"
+                               placeholder="••••••••"
+                               @bind="VM.newPassword"
+                               disabled="@VM.isChangingPassword"
+                               required>
+                    </div>
+
+                    <div class="form-group @(!VM.newPasswordValid ? "has-error" : "")">
+                        <label>Confirmer le nouveau mot de passe</label>
+                        <input type="password"
+                               placeholder="••••••••"
+                               @bind="VM.confirmNewPassword"
+                               disabled="@VM.isChangingPassword"
+                               required>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" @onclick="VM.ClosePasswordModal" disabled="@VM.isChangingPassword">
+                    Annuler
+                </button>
+                <button class="btn-primary" @onclick="VM.ChangePassword" disabled="@VM.isChangingPassword">
+                    @if (VM.isChangingPassword)
+                    {
+                        <span>Modification...</span>
+                    }
+                    else
+                    {
+                        <span>Valider</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="compte-container">
+    <!-- Section haute - Profil et informations -->
+    <div class="profile-header">
+        <div class="profile-left">
+            <div class="profile-photo-wrapper">
+                <img src="@VM.imageSource" alt="Photo de Profil" class="profile-photo" />
+
+                <label for="photoProfil" class="photo-upload-overlay">
+                    <div class="upload-icon">📸</div>
+                    <p class="upload-text">Cliquez pour @(VM.idImage==0 ? "ajouter" : "modifier")</p>
+                    <p class="upload-hint">JPG, PNG</p>
+                </label>
+                <InputFile id="photoProfil" OnChange="@VM.UpdateProfileImage" style="display:none"/>
+            </div>
         </div>
 
-        <nav class="navbar">
-            <ul>
-                <li><a href="/annonces">Annonces</a></li>
-                <li><a href="/avis">Avis</a></li>
-                <li><a href="/adresses">Adresses</a></li>
-                <li><a href="/favoris">Favoris</a></li>
-                <li><a href="/commandes">Commandes</a></li>
-            </ul>
-        </nav>
+        <div class="profile-info">
+            @if (!VM.isEditing)
+            {
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Nom</span>
+                        <span class="info-value">@VM.compte.Nom</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Prénom</span>
+                        <span class="info-value">@VM.compte.Prenom</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Date de naissance</span>
+                        <span class="info-value">@VM.compte.DateNaissance.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Pseudo</span>
+                        <span class="info-value">@VM.compte.Pseudo</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email</span>
+                        <span class="info-value">@VM.compte.Email</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Biographie</span>
+                        <span class="info-value">@VM.compte.Biographie</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label class="info-label">Nom</label>
+                        <input type="text" @bind="VM.compteEdit.Nom" class="info-input" />
+                    </div>
+                    <div class="info-item">
+                        <label class="info-label">Prénom</label>
+                        <input type="text" @bind="VM.compteEdit.Prenom" class="info-input" />
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Date de naissance</span>
+                        <span class="info-value">@VM.compte.DateNaissance.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="info-item">
+                        <label class="info-label">Pseudo</label>
+                        <input type="text" @bind="VM.compteEdit.Pseudo" class="info-input" />
+                    </div>
+                    <div class="info-item">
+                        <label class="info-label">Email</label>
+                        <input type="email" @bind="VM.compteEdit.Email" class="info-input" />
+                    </div>
+                    <div class="info-item">
+                        <label class="info-label">Biographie</label>
+                        <input type="email" @bind="VM.compteEdit.Biographie" class="info-input" />
+                    </div>
+                </div>
+            }
+
+            <div class="profile-actions">
+                @if (!VM.isEditing)
+                {
+                    <button class="btn-primary" @onclick="VM.ToggleEdit">Modifier le profil</button>
+                    <button class="btn-password" @onclick="VM.OpenPasswordModal">🔒 Changer le mot de passe</button>
+                }
+                else
+                {
+                    <button class="btn-primary" @onclick="VM.SaveProfile">Enregistrer</button>
+                    <button class="btn-secondary" @onclick="VM.CancelEdit">Annuler</button>
+                }
+
+                <button class="btn-danger" @onclick="ConnexionVM.DeconnexionUtilisateur">Déconnexion</button>
+            </div>
+        </div>
     </div>
 
-    <div class="account-details">
-        <h2>Informations de Compte</h2>
+    <!-- Section basse - Navigation et contenu -->
+    <div class="account-content">
+        <nav class="account-navbar">
+            <button class="nav-item @(VM.activeSection == "annonces" ? "active" : "")"
+                    @onclick="@(() => VM.SetActiveSection("annonces"))">
+                Annonces
+            </button>
+            <button class="nav-item @(VM.activeSection == "avis" ? "active" : "")"
+                    @onclick="@(() => VM.SetActiveSection("avis"))">
+                Avis
+            </button>
+            <button class="nav-item @(VM.activeSection == "adresses" ? "active" : "")"
+                    @onclick="@(() => VM.SetActiveSection("adresses"))">
+                Adresses
+            </button>
+            <button class="nav-item @(VM.activeSection == "favoris" ? "active" : "")"
+                    @onclick="@(() => VM.SetActiveSection("favoris"))">
+                Favoris
+            </button>
+            <button class="nav-item @(VM.activeSection == "commandes" ? "active" : "")"
+                    @onclick="@(() => VM.SetActiveSection("commandes"))">
+                Commandes
+            </button>
+        </nav>
 
-        <!-- Informations personnelles -->
-        <div class="info-item">
-            <strong>Nom:</strong> @VM.compte.Nom
-        </div>
-        <div class="info-item">
-            <strong>Prénom:</strong> @VM.compte.Prenom
-        </div>
-        <div class="info-item">
-            <strong>Date de naissance:</strong> @VM.compte.DateNaissance
-        </div>
-        <div class="info-item">
-            <strong>Pseudo:</strong> @VM.compte.Pseudo
-        </div>
-        <div class="info-item">
-            <strong>Email:</strong> @VM.compte.Email
-        </div>
-
-        <!-- Informations pour vendeur pro -->
-        @* @if (VM. == "Vendeur Pro")
-        {
-            <div class="info-item">
-                <strong>Numéro SIRET:</strong> @VM. 
-            </div>
-            <div class="info-item">
-                <strong>Raison Sociale:</strong> @VM.
-            </div>
-        } *@
-
-        <div class="edit-profile">
-            <button @onclick="EditProfile">Modifier le profil</button>
-            <button @onclick="ConnexionVM.DeconnexionUtilisateur">Déconnexion</button>
-            <div class="form-group">
-                <label for="vehiclePhotos" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
-                    <p style="color: #aaa;">Cliquez pour ajouter des photos</p>
-                    <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
-                </label>
-                <InputFile id="vehiclePhotos" OnChange="@VM.UploadImageProfil" multiple style="display:none"/>
-            </div>
-            <div class="form-group">
-                <label for="vehiclePhotosUpdate" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
-                    <p style="color: #aaa;">Cliquez pour ajouter des photos</p>
-                    <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
-                </label>
-                <InputFile id="vehiclePhotosUpdate" OnChange="@VM.ChangeImageProfil" multiple style="display:none"/>
+        <div class="content-section">
+            <!-- Ici seront injectés les différents composants selon la section active -->
+            <div class="section-placeholder">
+                <h3>Section: @VM.activeSection</h3>
+                <p>Le contenu du composant @VM.activeSection sera affiché ici.</p>
             </div>
         </div>
     </div>
@@ -82,12 +212,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        ConnexionVM.SetNavigation(Navigation);
         await VM.InitializeAsync(StateHasChanged, Navigation);
-    }
-
-    private void EditProfile()
-    {
-        // Logique pour modifier le profil utilisateur
-        Navigation.NavigateTo("/edit-profile");
     }
 }

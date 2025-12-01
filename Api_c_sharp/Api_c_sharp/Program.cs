@@ -46,6 +46,7 @@ builder.Services.AddScoped<CouleurManager>();
 builder.Services.AddScoped<VoitureManager>();
 builder.Services.AddScoped<APourCouleurManager>();
 builder.Services.AddScoped<FavoriManager>();
+builder.Services.AddScoped<ReinitialisationMotDePasseManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
@@ -90,6 +91,11 @@ builder.Services.AddAuthorization(config =>
     config.AddPolicy(Policies.Authorized, Policies.Logged());
 });
 
+builder.Services.AddControllers().AddJsonOptions(opt =>
+{
+    opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor",
@@ -110,8 +116,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
 app.UseCors("AllowBlazor");
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

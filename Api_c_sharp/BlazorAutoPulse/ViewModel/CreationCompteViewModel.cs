@@ -9,6 +9,7 @@ namespace BlazorAutoPulse.ViewModel;
 public class CreationCompteViewModel
 {
     private readonly IService<Compte> _compteService;
+    private readonly IServiceConnexion _connexionService;
 
     public bool pro = false;
     
@@ -23,9 +24,10 @@ public class CreationCompteViewModel
     public bool showPopUp { get; set; }
     public int seconds { get; set; }
 
-    public CreationCompteViewModel(IService<Compte> compteService)
+    public CreationCompteViewModel(IService<Compte> compteService, IServiceConnexion connexionService)
     {
         _compteService  = compteService;
+        _connexionService = connexionService;
         compte = new Compte();
         compte.DateNaissance = new DateTime(2000, 1, 1);
         memeMotDePasse = true;
@@ -71,6 +73,30 @@ public class CreationCompteViewModel
         catch (HttpRequestException ex)
         {
             Console.WriteLine("Erreur lors de la création : " + ex.Message);
+        }
+    }
+    
+    public async Task ConnecterAvecGoogle()
+    {
+        try
+        {
+            var response = await _connexionService.GoogleLogin();
+
+            if (response != null && !string.IsNullOrEmpty(response.Url))
+            {
+                _nav.NavigateTo(response.Url, forceLoad: true);
+            }
+            else
+            {
+                messageErreur = "Erreur lors de la génération de l'URL Google";
+                _refreshUI?.Invoke();
+            }
+        }
+        catch (Exception ex)
+        {
+            messageErreur = "Erreur lors de la connexion avec Google";
+            Console.WriteLine($"Erreur ConnecterAvecGoogle: {ex.Message}");
+            _refreshUI?.Invoke();
         }
     }
 

@@ -1,0 +1,122 @@
+@page "/complete-profile"
+@using BlazorAutoPulse.ViewModel
+@inject CompleteProfileViewModel VM
+@inject NavigationManager Navigation
+
+<PageTitle>Compléter votre profil - AutoPulse</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-box">
+        <h2>Complétez votre profil</h2>
+        <p class="subtitle">Quelques informations supplémentaires pour finaliser votre inscription</p>
+
+        @if (!string.IsNullOrEmpty(VM.messageErreur))
+        {
+            <div class="error-message-box">
+                @VM.messageErreur
+            </div>
+        }
+
+        <form>
+            <!-- Date de naissance -->
+            <div class="form-group @(VM.HasError("datenaissance") ? "has-error" : "")">
+                <label>Date de naissance *</label>
+                <input type="date" 
+                       @bind="VM.dateNaissance" 
+                       disabled="@VM.isLoading"
+                       required>
+                @if (VM.HasError("datenaissance"))
+                {
+                    <span class="error-message">@VM.GetError("datenaissance")</span>
+                }
+            </div>
+
+            <!-- Biographie -->
+            <div class="form-group">
+                <label>Biographie (optionnelle)</label>
+                <textarea placeholder="Parlez-nous de vous..." 
+                          @bind="VM.biographie"
+                          disabled="@VM.isLoading"
+                          rows="4"></textarea>
+                <span class="field-hint">Cette information apparaîtra sur votre profil public</span>
+            </div>
+
+            <!-- Compte professionnel -->
+            <div class="form-group checkbox-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" 
+                           id="is-pro-checkbox"
+                           @bind="VM.isProfessionnel"
+                           disabled="@VM.isLoading">
+                    <label for="is-pro-checkbox" class="checkbox-label">
+                        Je suis un professionnel
+                    </label>
+                </div>
+            </div>
+
+            @if (VM.isProfessionnel)
+            {
+                <!-- Numéro SIRET -->
+                <div class="form-group @(VM.HasError("siret") ? "has-error" : "")">
+                    <label>Numéro SIRET *</label>
+                    <input type="text" 
+                           placeholder="123 456 789 00010"
+                           @bind="VM.numeroSiret"
+                           maxlength="14"
+                           disabled="@VM.isLoading"
+                           required>
+                    @if (VM.HasError("siret"))
+                    {
+                        <span class="error-message">@VM.GetError("siret")</span>
+                    }
+                    <span class="field-hint">14 chiffres sans espaces</span>
+                </div>
+
+                <!-- Raison sociale -->
+                <div class="form-group @(VM.HasError("raisonsociale") ? "has-error" : "")">
+                    <label>Raison sociale *</label>
+                    <input type="text" 
+                           placeholder="Nom de votre entreprise"
+                           @bind="VM.raisonSociale"
+                           disabled="@VM.isLoading"
+                           required>
+                    @if (VM.HasError("raisonsociale"))
+                    {
+                        <span class="error-message">@VM.GetError("raisonsociale")</span>
+                    }
+                </div>
+            }
+
+            <!-- Boutons d'action -->
+            <div class="action-buttons">
+                <button type="button"
+                        class="btn-submit"
+                        @onclick="VM.CompleteProfile"
+                        disabled="@VM.isLoading">
+                    @if (VM.isLoading)
+                    {
+                        <span>Enregistrement...</span>
+                    }
+                    else
+                    {
+                        <span>Finaliser mon profil</span>
+                    }
+                </button>
+                
+                <button type="button"
+                        class="btn-skip"
+                        @onclick="VM.SkipForNow"
+                        disabled="@VM.isLoading">
+                    Compléter plus tard
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged, Navigation);
+    }
+}

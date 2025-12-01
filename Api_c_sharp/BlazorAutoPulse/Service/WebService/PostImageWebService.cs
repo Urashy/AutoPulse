@@ -32,7 +32,7 @@ namespace BlazorAutoPulse.Service.WebService
             return await response.Content.ReadFromJsonAsync<Image>();
         }
         
-        public async Task<Image> UpdateAsync(int id, ImageUpload entity)
+        public async Task UpdateAsync(int id, ImageUpload entity)
         {
             using var content = new MultipartFormDataContent();
 
@@ -56,7 +56,7 @@ namespace BlazorAutoPulse.Service.WebService
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             
-            return await response.Content.ReadFromJsonAsync<Image>();
+            return;
         }
     }
 }

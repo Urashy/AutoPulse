@@ -58,6 +58,12 @@ namespace Api_c_sharp.Models
 
         [Column("cpr_raison_sociale")]
         public string? RaisonSociale { get; set; }
+        
+        [Column("com_google_id")]
+        public string? GoogleId { get; set; }
+
+        [Column("com_auth_provider")]
+        public string? AuthProvider { get; set; }
 
         [ForeignKey("IdCompte")]
         [InverseProperty(nameof(TypeCompte.Comptes))]
