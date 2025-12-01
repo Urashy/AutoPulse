@@ -10,6 +10,11 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
+        public override async Task<Compte> GetByIdAsync(int id)
+        {
+            return await dbSet.Include(c => c.Images).FirstOrDefaultAsync(c => c.IdCompte == id);
+        }
+
         public override async Task<Compte?> GetByNameAsync(string mail)
         {
             return await dbSet.Where(c => c.Email == mail).FirstOrDefaultAsync();
@@ -25,9 +30,9 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.Where(c => c.IdTypeCompte == type).ToListAsync();
         }
 
-        public async Task<Compte> VerifMotDePasse(string hash)
+        public async Task<Compte> VerifMotDePasse(string email, string hash)
         {
-            return await dbSet.SingleOrDefaultAsync(x => x.MotDePasse == hash);
+            return await dbSet.SingleOrDefaultAsync(x => x.Email == email && x.MotDePasse == hash);
         }
 
         public async Task<Compte> AuthenticateCompte(string email, string hash)

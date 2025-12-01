@@ -15,5 +15,5 @@ public class CompteDetailDTO
     public string NumeroSiret { get; set; }
     public string RaisonSociale { get; set; }
     public List<AdresseDTO> Adresses { get; set; } = new List<AdresseDTO>();
-    public string ImageProfil { get; set; }
+    public int idImage { get; set; }
 }

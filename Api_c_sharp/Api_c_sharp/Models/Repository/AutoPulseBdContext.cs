@@ -44,6 +44,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<TypeJournal> TypesJournal { get; set; }
         public DbSet<TypeSignalement> TypesSignalement { get; set; }
         public DbSet<Voiture> Voitures { get; set; }
+        public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -61,6 +62,9 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------Adresse-----------------------------
             modelBuilder.Entity<Adresse>()
                 .HasKey(a => a.IdAdresse); 
+            
+            modelBuilder.Entity<ReinitialisationMotDePasse>()
+                .HasKey(r => r.IdReinitialisationMdp); 
 
             modelBuilder.Entity<Adresse>()
                 .HasOne(a => a.PaysAdresseNav)

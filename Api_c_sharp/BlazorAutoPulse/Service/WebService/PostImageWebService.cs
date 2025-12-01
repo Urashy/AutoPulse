@@ -25,31 +25,38 @@ namespace BlazorAutoPulse.Service.WebService
             content.Add(new StringContent(entity.IdImage.ToString()), "IdImage");
             content.Add(new StringContent(entity.IdVoiture?.ToString() ?? ""), "IdVoiture");
             content.Add(new StringContent(entity.IdCompte?.ToString() ?? ""), "IdCompte");
-
+    
             var response = await _httpClient.PostAsync(BuildUrl("Post"), content);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<Image>();
         }
-
-        public string GetImage(int id)
+        
+        public async Task UpdateAsync(int id, ImageUpload entity)
         {
-            return $"{_httpClient.BaseAddress}{ApiEndpoint}/GetById/{id}";
-        }
+            using var content = new MultipartFormDataContent();
 
-        public string GetFirstImage(int id)
-        {
-            return $"{_httpClient.BaseAddress}{ApiEndpoint}/GetFirstImage/{id}";
-        }
+            // Ajouter le fichier si présent
+            if (entity.File != null)
+            {
+                content.Add(new StreamContent(entity.File.OpenReadStream()), "File", entity.File.Name);
+            }
 
-        public string GetAllIdImage(int id)
-        {
-            throw new NotImplementedException();
-        }
+            // Ajouter les champs simples
+            content.Add(new StringContent(entity.IdImage.ToString()), "IdImage");
+            content.Add(new StringContent(entity.IdVoiture?.ToString() ?? ""), "IdVoiture");
+            content.Add(new StringContent(entity.IdCompte?.ToString() ?? ""), "IdCompte");
 
-        public string GetImageProfil(int id)
-        {
-            return $"{_httpClient.BaseAddress}{ApiEndpoint}/GetImageByCompte/{id}";
+            // Appel PUT vers Put/{id}
+            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
+            {
+                Content = content
+            };
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            
+            return;
         }
     }
 }

@@ -34,7 +34,7 @@ public abstract class BaseWebService<T> : IService<T> where T : class
 
     public virtual async Task<T> GetByIdAsync(int id)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(id.ToString()));
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetById/{id.ToString()}"));
         var response = await SendWithCredentialsAsync(request);
 
         response.EnsureSuccessStatusCode();
@@ -63,7 +63,7 @@ public abstract class BaseWebService<T> : IService<T> where T : class
         {
             Content = JsonContent.Create(entity)
         };
-
+        
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
     }

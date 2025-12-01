@@ -19,8 +19,7 @@ namespace Api_c_sharp.Controllers
             if (imageEntity == null || imageEntity.Fichier == null)
                 return NotFound();
 
-            // Tu peux adapter le type MIME selon le fichier
-            return File(imageEntity.Fichier, "image/jpeg"); 
+            return File(imageEntity.Fichier, "image/jpeg");
         }
 
         // GET ALL
@@ -41,7 +40,7 @@ namespace Api_c_sharp.Controllers
             await dto.File.CopyToAsync(ms);
             byte[] bytes = ms.ToArray();
 
-            var imageDto = new ImageDTO
+            ImageDTO imageDto = new ImageDTO
             {
                 IdImage = dto.IdImage,
                 IdVoiture = dto.IdVoiture,
@@ -57,7 +56,7 @@ namespace Api_c_sharp.Controllers
         // PUT
         [ActionName("Put")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] Image dto)
+        public async Task<ActionResult> Put(int id, [FromForm] ImageUploadDTO dto)
         {
             if (id != dto.IdImage)
                 return BadRequest();
@@ -66,8 +65,20 @@ namespace Api_c_sharp.Controllers
 
             if (existing == null)
                 return NotFound();
+            
+            using var ms = new MemoryStream();
+            await dto.File.CopyToAsync(ms);
+            byte[] bytes = ms.ToArray();
 
-            var updatedEntity = _mapper.Map<Image>(dto);
+            ImageDTO imageDto = new ImageDTO
+            {
+                IdImage = dto.IdImage,
+                IdVoiture = dto.IdVoiture,
+                IdCompte = dto.IdCompte,
+                Fichier = bytes
+            };
+            
+            var updatedEntity = _mapper.Map<Image>(imageDto);
             await _manager.UpdateAsync(existing, updatedEntity);
 
             return NoContent();
@@ -98,7 +109,7 @@ namespace Api_c_sharp.Controllers
             if (imageEntity == null || imageEntity.Fichier == null)
                 return NotFound();
 
-            return File(imageEntity.Fichier, "image/jpeg");
+            return File(imageEntity.Fichier, "image/jpeg"); 
         }
 
         [ActionName("GetAllImagesByVoitureId")]
@@ -117,8 +128,9 @@ namespace Api_c_sharp.Controllers
 
             if (imageEntity == null || imageEntity.Fichier == null)
                 return NotFound();
-
-            return File(imageEntity.Fichier, "image/jpeg");
+            
+            ImageDTO imageDto = _mapper.Map<ImageDTO>(imageEntity);
+            return Ok(imageDto);
         }
     }
 }

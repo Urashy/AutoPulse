@@ -6,6 +6,7 @@ using BlazorAutoPulse.Service.WebService;
 using BlazorAutoPulse.ViewModel;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using ReinitialisationMdp = BlazorAutoPulse.Model.ReinitialisationMdp;
 
 namespace BlazorAutoPulse
 {
@@ -20,13 +21,11 @@ namespace BlazorAutoPulse
             //----------------------- Service de base
             builder.Services.AddScoped<IService<Marque>, MarqueWebService>();
             builder.Services.AddScoped<IService<Compte>, CompteWebService>();
-            builder.Services.AddScoped<IService<Image>, ImageWebService>();
             builder.Services.AddScoped<IService<Carburant>, CarburantWebService>();
             builder.Services.AddScoped<IService<Categorie>, CategorieWebService>();
             builder.Services.AddScoped<IService<TypeCompte>, TypeCompteWebService>();
             builder.Services.AddScoped<IService<BoiteDeVitesse>, BoiteVitesseWebService>();
             builder.Services.AddScoped<IService<Motricite>, MotriciteWebService>();
-            builder.Services.AddScoped<IService<Couleur>, CouleurWebService>();
             builder.Services.AddScoped<IService<Voiture>, VoitureWebService>();
             builder.Services.AddScoped<IService<Adresse>, AdresseWebService>();
             builder.Services.AddScoped<IService<APourCouleur>, APourCouleurWebService>();
@@ -39,6 +38,9 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IAnnonceDetailService, AnnonceDetailWebService>();
             builder.Services.AddScoped<ICompteService, CompteWebService>();
             builder.Services.AddScoped<IFavorisService, FavoriWebService>();
+            builder.Services.AddScoped<IImageService, ImageWebService>();
+            builder.Services.AddScoped<IReinitialiseMdp, ReinitialisationMdpWebService>();
+            builder.Services.AddScoped<ICouleurService, CouleurWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -51,6 +53,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<AnnonceDetailViewModel>();
             builder.Services.AddScoped<CompteViewModel>();
             builder.Services.AddScoped<FavorisViewModel>();
+            builder.Services.AddScoped<OubliMdpViewModel>();
+            builder.Services.AddScoped<CompleteProfileViewModel>();
 
             builder.Services.AddScoped(sp =>
             {

@@ -17,7 +17,8 @@ namespace BlazorAutoPulse.Service.WebService
             var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetByCompteId/{IdCompte}"));
             var response = await SendWithCredentialsAsync(request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<Favori>>();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<Favori>>()
+                   ?? Enumerable.Empty<Favori>();
         }
 
         public async Task<bool> IsFavorite(int idCompte, int idAnnonce)

@@ -17,7 +17,7 @@
     {
         Task<IEnumerable<Compte>> GetComptesByTypes(int  type);
         Task<IEnumerable<Compte>> GetCompteByIdAnnonceFavori(int annonceId);
-        Task<Compte> VerifMotDePasse(string hash);
+        Task<Compte> VerifMotDePasse(string email, string hash);
         Task<Compte> AuthenticateCompte(string email, string hash);
     }
 
@@ -63,5 +63,10 @@
     public interface IAPourCouleurRepository
     {
         Task<APourCouleur> GetAPourCouleursByIDS(int voitureId, int couleurId);
+    }
+
+    public interface IReinitialisationMotDePasse
+    {
+        Task<ReinitialisationMotDePasse> VerificationCode(string email, string code);
     }
 }

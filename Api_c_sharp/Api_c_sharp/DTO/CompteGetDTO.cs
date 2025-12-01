@@ -1,6 +1,6 @@
 namespace Api_c_sharp.DTO;
 
-public class CompteListDTO
+public class CompteGetDTO
 {
     public int IdCompte { get; set; }
     public string Pseudo { get; set; }

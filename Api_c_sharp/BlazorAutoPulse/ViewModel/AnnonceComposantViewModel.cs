@@ -4,20 +4,20 @@ namespace BlazorAutoPulse.ViewModel;
 
 public class AnnonceComposantViewModel
 {
-    private readonly IPostImageService _postImageService;
+    private readonly IImageService _imageService;
 
-    public AnnonceComposantViewModel(IPostImageService postImageService)
+    public AnnonceComposantViewModel(IImageService imageService)
     {
-        _postImageService = postImageService;
+        _imageService = imageService;
     }
     
     public string GetImage(int id)
     {
-        return _postImageService.GetImage(id);
+        return _imageService.GetImage(id);
     }
 
     public string GetFirstImage(int id)
     {
-        return _postImageService.GetFirstImage(id);
+        return _imageService.GetFirstImage(id);
     }
 }

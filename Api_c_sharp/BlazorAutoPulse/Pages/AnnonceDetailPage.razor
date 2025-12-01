@@ -2,6 +2,8 @@
 @using BlazorAutoPulse.ViewModel
 @inject AnnonceDetailViewModel VM
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
 
 <PageTitle>@(VM.Annonce?.Libelle ?? "Détail de l'annonce") - AutoPulse</PageTitle>
 
@@ -26,49 +28,85 @@ else
         <!-- En-tête avec retour -->
         <div class="header-nav">
             <button @onclick="() => Navigation.NavigateTo('/'.ToString())" class="btn-back">← Retour</button>
+            <button @onclick="VM.ToggleViewer3D" class="btn-3d">
+                @(VM.show3DViewer ? "🖼️ Voir les photos" : "🎨 Visualiseur 3D")
+            </button>
         </div>
 
-        <!-- Section images -->
-        <div class="images-section">
-            <div class="main-image">
-                @if (VM.CurrentImageIndex >= 0 && VM.ImageIds.Any())
-                {
-                    <img src="@VM.GetCurrentImage()" alt="@VM.Annonce.Libelle" />
-                }
-                else
-                {
-                    <div class="no-image">Aucune image disponible</div>
-                }
-            </div>
-
-            @if (VM.ImageIds.Count > 1)
-            {
-                <div class="image-navigation">
-                    <button @onclick="VM.PreviousImage" class="nav-btn" disabled="@(!VM.CanGoPrevious)">
-                        ◀
-                    </button>
-                    <div class="image-counter">
-                        @(VM.CurrentImageIndex + 1) / @VM.ImageIds.Count
+        <!-- Visualiseur 3D (optionnel) -->
+        @if (VM.show3DViewer)
+        {
+            <div class="viewer-3d-section">
+                <div class="color-selector">
+                    <h3>Couleur de carrosserie</h3>
+                    <div class="color-options">
+                        @foreach (var color in VM.couleurDisponible)
+                        {
+                            <div class="color-option @(VM.selectedColor == color.CodeHexaCouleur ? "selected" : "")"
+                                 style="background-color: @color.CodeHexaCouleur"
+                                 @onclick="() => VM.ChangeCouleur(color.CodeHexaCouleur)"
+                                 title="@color.LibelleCouleur">
+                            </div>
+                        }
                     </div>
-                    <button @onclick="VM.NextImage" class="nav-btn" disabled="@(!VM.CanGoNext)">
-                        ▶
-                    </button>
                 </div>
 
-                <div class="thumbnails">
-                    @for (int i = 0; i < VM.ImageIds.Count; i++)
+                <div class="viewer-3d-container">
+                    <div id="car3DViewer" class="viewer-3d"></div>
+                    @if (VM.isLoading3D)
                     {
-                        var index = i;
-                        <div class="thumbnail @(index == VM.CurrentImageIndex ? "active" : "")"
-                             @onclick="() => VM.SelectImage(index)">
-                            <img src="@VM.GetImageUrl(VM.ImageIds[index])" alt="Miniature @(index + 1)" />
+                        <div class="viewer-3d-loading">
+                            <div class="loader"></div>
+                            <p>Chargement du modèle 3D...</p>
                         </div>
                     }
                 </div>
-            }
-        </div>
+            </div>
+        }
+        else
+        {
+            <!-- Section images (code existant) -->
+            <div class="images-section">
+                <div class="main-image">
+                    @if (VM.CurrentImageIndex >= 0 && VM.ImageIds.Any())
+                    {
+                        <img src="@VM.GetCurrentImage()" alt="@VM.Annonce.Libelle" />
+                    }
+                    else
+                    {
+                        <div class="no-image">Aucune image disponible</div>
+                    }
+                </div>
 
-        <!-- Informations principales -->
+                @if (VM.ImageIds.Count > 1)
+                {
+                    <div class="image-navigation">
+                        <button @onclick="VM.PreviousImage" class="nav-btn" disabled="@(!VM.CanGoPrevious)">
+                            ◀
+                        </button>
+                        <div class="image-counter">
+                            @(VM.CurrentImageIndex + 1) / @VM.ImageIds.Count
+                        </div>
+                        <button @onclick="VM.NextImage" class="nav-btn" disabled="@(!VM.CanGoNext)">
+                            ▶
+                        </button>
+                    </div>
+
+                    <div class="thumbnails">
+                        @for (int i = 0; i < VM.ImageIds.Count; i++)
+                        {
+                            var index = i;
+                            <div class="thumbnail @(index == VM.CurrentImageIndex ? "active" : "")"
+                                 @onclick="() => VM.SelectImage(index)">
+                                <img src="@VM.GetImageUrl(VM.ImageIds[index])" alt="Miniature @(index + 1)" />
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Reste du code existant (informations principales, caractéristiques, etc.) -->
         <div class="main-info-section">
             <div class="price-section">
                 <h1>@VM.Annonce.Libelle</h1>
@@ -180,23 +218,24 @@ else
     </div>
 }
 
-<style>
-    .btn-favorite.active {
-        background: linear-gradient(135deg, #ff4444, #cc0000);
-        border-color: #ff4444;
-    }
-
-        .btn-favorite.active:hover {
-            background: linear-gradient(135deg, #ff5555, #dd0000);
-        }
-</style>
-
 @code {
     [Parameter]
     public int IdAnnonce { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await VM.InitializeAsync(IdAnnonce, StateHasChanged);
+        VM.Reset();
+        await VM.InitializeAsync(IdAnnonce, StateHasChanged, JSRuntime);
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        VM.DisposeAsync();
+    }
+
 }

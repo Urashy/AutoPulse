@@ -93,8 +93,11 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] ConversationDetailDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] ConversationCreateDTO dto)
     {
+        if(!ModelState.IsValid)
+            return BadRequest();
+
         var toUpdate = await _manager.GetByIdAsync(id);
 
         if (toUpdate == null)
@@ -144,10 +147,6 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetAllByType(int idcompte)
     {
         var result = await _manager.GetByIdAsync(idcompte);
-
-        if (result is null)
-            return NotFound();
-
         return new ActionResult<IEnumerable<ConversationListDTO>>(_mapper.Map<IEnumerable<ConversationListDTO>>(result));
 
     }

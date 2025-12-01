@@ -215,7 +215,7 @@ public class MapperProfile : Profile
         // MAPPERS COMPTE
         // ============================================
         
-        CreateMap<Compte, CompteListDTO>()
+        CreateMap<Compte, CompteGetDTO>()
             .ForMember(dest => dest.TypeCompte, 
                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.DateInscription, 
@@ -226,10 +226,10 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.Adresses, 
                 opt => opt.MapFrom(src => src.Adresses.Select(a => a.CompteAdresseNav)))
-            .ForMember(dest => dest.ImageProfil, 
-                opt => opt.MapFrom(src => src.Images.Any() 
-                    ? Convert.ToBase64String(src.Images.First().Fichier) 
-                    : null)).ReverseMap();
+            .ForMember(
+                opt => opt.idImage,
+                cfg => cfg.MapFrom(src => src.Images.FirstOrDefault().IdImage))
+            .ReverseMap();
         
         CreateMap<Compte, CompteProfilPublicDTO>()
             .ForMember(dest => dest.DateInscription, 
@@ -353,6 +353,15 @@ public class MapperProfile : Profile
         // MAPPERS IMAGE
         // ============================================
         CreateMap<Image, ImageDTO>()
+            .ReverseMap();
+        
+        CreateMap<Image, ImageUploadDTO>()
+            .ReverseMap();
+        
+        // ============================================
+        // MAPPERS REINITIALISATION MDP
+        // ============================================
+        CreateMap<ReinitialisationMotDePasse, ReinitialiseMdpDTO>()
             .ReverseMap();
     }
 }
