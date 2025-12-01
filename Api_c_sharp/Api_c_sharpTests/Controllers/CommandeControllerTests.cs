@@ -170,18 +170,18 @@ namespace App.Controllers.Tests
         public async Task PostCommandeTest()
         {
             // Given : Un DTO valide
-            var dto = new CommandeDTO()
+            CommandeCreateDTO commandeCreateDTO = new CommandeCreateDTO
             {
                 IdCommande = 2,
-                Date = DateTime.UtcNow,
-                PseudoAcheteur = "john",
-                PseudoVendeur = "johny",
-                LibelleAnnonce = "Super produit",
-                MoyenPaiement = "Carte"
+                IdVendeur = _commandeCommun.IdVendeur,
+                IdAcheteur = _commandeCommun.IdAcheteur,
+                IdAnnonce = _commandeCommun.IdAnnonce,
+                IdMoyenPaiement = _commandeCommun.IdMoyenPaiement,
+                Date = DateTime.UtcNow
             };
 
             // When : On appelle Post
-            var result = await _controller.Post(dto);
+            var result = await _controller.Post(commandeCreateDTO);
 
             // Then : La commande doit être créée (201)
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
@@ -190,8 +190,8 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task BadRequestPostCommandeTest()
         {
-            // Given : Un DTO invalide
-            var dto = new CommandeDTO();
+            CommandeCreateDTO dto = new CommandeCreateDTO();
+    
             _controller.ModelState.AddModelError("Erreur", "Required");
 
             // When : On appelle Post
@@ -208,14 +208,14 @@ namespace App.Controllers.Tests
         public async Task PutCommandeTest()
         {
             // Given : Un DTO valide avec un ID correspondant
-            var dto = new CommandeDTO()
+            CommandeCreateDTO dto = new CommandeCreateDTO
             {
                 IdCommande = _commandeCommun.IdCommande,
-                Date = DateTime.UtcNow,
-                PseudoAcheteur = "TestA",
-                PseudoVendeur = "TestV",
-                LibelleAnnonce = "Modifié",
-                MoyenPaiement = "Carte"
+                IdVendeur = _commandeCommun.IdVendeur,
+                IdAcheteur = _commandeCommun.IdAcheteur,
+                IdAnnonce = _commandeCommun.IdAnnonce,
+                IdMoyenPaiement = _commandeCommun.IdMoyenPaiement,
+                Date = DateTime.UtcNow
             };
 
             // When : On appelle Put
@@ -228,21 +228,25 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task PutBadRequestTest()
         {
-            // Given : un mismatch ID
-            var dto = new CommandeDTO { IdCommande = 999 };
+            // Given : un DTO dont la validation doit échouer
+            var dto = new CommandeCreateDTO { IdCommande = 999 };
 
-            // When : On appelle Put avec un autre ID
+            // On force une erreur de validation pour déclencher BadRequest()
+            _controller.ModelState.AddModelError("Test", "Invalid Model");
+
+            // When
             var result = await _controller.Put(1, dto);
 
-            // Then : 400 BadRequest
+            // Then
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+
 
         [TestMethod]
         public async Task PutNotFoundTest()
         {
             // Given : Une commande inexistante
-            var dto = new CommandeDTO() { IdCommande = 10 };
+            var dto = new CommandeCreateDTO() { IdCommande = 10 };
 
             // When : On appelle Put
             var result = await _controller.Put(10, dto);
