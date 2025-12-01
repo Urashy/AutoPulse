@@ -130,7 +130,7 @@ namespace App.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task PostVoitureTest_Entity()
+        public async Task PostJournalTest_Entity()
         {
             JournalDTO adresse = new JournalDTO
             {
@@ -151,17 +151,17 @@ namespace App.Controllers.Tests
 
 
         [TestMethod]
-        public async Task DeleteVoitureTest()
+        public async Task DeleteJournalTest()
         {
             var result = await _controller.Delete(_objetcommun.IdJournal);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedVoiture = await _manager.GetByIdAsync(_objetcommun.IdJournal);
-            Assert.IsNull(deletedVoiture);
+            var deletedJournal = await _manager.GetByIdAsync(_objetcommun.IdJournal);
+            Assert.IsNull(deletedJournal);
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteVoitureTest()
+        public async Task NotFoundDeleteJournalTest()
         {
             var result = await _controller.Delete(0);
 
@@ -169,7 +169,7 @@ namespace App.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task PutVoitureTest()
+        public async Task PutJournalTest()
         {
             JournalDTO journal = new JournalDTO()
             {
@@ -190,7 +190,7 @@ namespace App.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundPutVoitureTest()
+        public async Task NotFoundPutJournalTest()
         {
             JournalDTO journal = new JournalDTO()
             {
@@ -205,7 +205,7 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
-        public async Task BadRequestPutVoitureTest()
+        public async Task BadRequestPutJournalTest()
         {
             JournalDTO journal = new JournalDTO()
             {
@@ -227,7 +227,7 @@ namespace App.Controllers.Tests
 
 
         [TestMethod]
-        public async Task BadRequestPostVoitureTest()
+        public async Task BadRequestPostJournalTest()
         {
             JournalDTO journal = new JournalDTO()
             {

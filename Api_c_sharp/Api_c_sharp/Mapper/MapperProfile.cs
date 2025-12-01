@@ -272,20 +272,20 @@ public class MapperProfile : Profile
         CreateMap<AvisCreateDTO, Avis>()
             .ForMember(dest => dest.DateAvis, 
                 opt => opt.MapFrom(src => DateTime.UtcNow)).ReverseMap();
-        
+
         // ============================================
         // MAPPERS COMMANDE
         // ============================================
-        
+
         CreateMap<Commande, CommandeDTO>()
-            .ForMember(dest => dest.PseudoVendeur, 
+            .ForMember(dest => dest.PseudoVendeur,
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav.CompteAnnonceNav.Pseudo))
-            .ForMember(dest => dest.PseudoAcheteur, 
-                opt => opt.MapFrom(src => src.AcheteurCommande.Pseudo)) // À mapper avec la relation acheteur
-            .ForMember(dest => dest.LibelleAnnonce, 
+            .ForMember(dest => dest.PseudoAcheteur,
+                opt => opt.MapFrom(src => src.AcheteurCommande.Pseudo)) 
+            .ForMember(dest => dest.LibelleAnnonce,
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav.Libelle))
-            .ForMember(dest => dest.MoyenPaiement, 
-                opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav.TypePaiement)).ReverseMap();
+            .ForMember(dest => dest.MoyenPaiement,
+                opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav.TypePaiement));
         
         CreateMap<Commande, CommandeDetailDTO>()
             .ForMember(dest => dest.MoyenPaiement, 
@@ -293,14 +293,16 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.PseudoVendeur, 
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav.CompteAnnonceNav.Pseudo))
             .ForMember(dest => dest.PseudoAcheteur, 
-                opt => opt.MapFrom(src => "N/A")) // À mapper
+                opt => opt.MapFrom(src => src.AcheteurCommande.Pseudo)) 
             .ForMember(dest => dest.Annonce, 
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav)).ReverseMap();
-        
+
+        CreateMap<CommandeCreateDTO, Commande>();
+
         // ============================================
         // MAPPERS FAVORI
         // ============================================
-        
+
         CreateMap<Favori, FavoriDTO>().ReverseMap();
         
         // ============================================
