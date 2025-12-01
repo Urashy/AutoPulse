@@ -16,13 +16,20 @@
 else if (!FavorisVM.AnnoncesFavoris.Any())
 {
     <div class="no-favoris">
+        <div class="empty-icon">💔</div>
         <h2>Aucun favori</h2>
         <p>Vous n'avez pas encore ajouté d'annonces à vos favoris.</p>
+        <p class="hint">Cliquez sur le cœur 🤍 sur une annonce pour l'ajouter à vos favoris !</p>
         <a href="/" class="btn-primary">Parcourir les annonces</a>
     </div>
 }
 else
 {
+    <div class="favoris-header">
+        <h1>Mes Favoris</h1>
+        <p class="favoris-count">@FavorisVM.AnnoncesFavoris.Count annonce@(FavorisVM.AnnoncesFavoris.Count > 1 ? "s" : "")</p>
+    </div>
+
     <div class="favoris-container">
         @foreach (var a in FavorisVM.AnnoncesFavoris)
         {
