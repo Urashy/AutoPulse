@@ -142,9 +142,9 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper) : Con
     /// <item><description><see cref="NotFoundResult"/> si aucune commande ne correspond (404).</description></item>
     /// </list>
     /// </returns>
-    [ActionName("GetAllByType")]
+    [ActionName("GetCommandeByCompteID")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<CommandeDTO>>> GetAllByType(int idCompte)
+    public async Task<ActionResult<IEnumerable<CommandeDTO>>> GetCommandeByCompteID(int idCompte)
     {
         var result = await _manager.GetCommandeByCompteId(idCompte);
 

@@ -1,11 +1,12 @@
-using System.Security.Claims;
-using Api_c_sharp.Models.Repository.Interfaces;
-using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
+using AutoMapper;
+using AutoPulse.Shared.DTO;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace App.Controllers;
 
@@ -47,13 +48,13 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// <param name="str">Nom de l'annonce recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="AnnonceDTO"/> si l'annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="AnnonceDetailDTO"/> si l'annonce existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetByString")]
     [HttpGet("{str}")]
-    public async Task<ActionResult<AnnonceDTO>> GetByString(string str)
+    public async Task<ActionResult<AnnonceDetailDTO>> GetByString(string str)
     {
         var result = await _manager.GetByNameAsync(str);
 
@@ -62,7 +63,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             return NotFound();
         }
 
-        return _annonceMapper.Map<AnnonceDTO>(result);
+        return _annonceMapper.Map<AnnonceDetailDTO>(result);
     }
 
     /// <summary>
@@ -117,9 +118,9 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] AnnonceDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] AnnonceCreateUpdateDTO dto)
     {
-        if (id != dto.IdAnnonce)
+        if (!ModelState.IsValid)
             return BadRequest();
 
         var toUpdate = await _manager.GetByIdAsync(id);
@@ -169,15 +170,14 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// </returns>
     [ActionName("GetByIdMiseEnAvant")]
     [HttpGet("{idmiseenavant}")]
-    public async Task<ActionResult<List<AnnonceDTO>>> GetByIdMiseEnAvant(int idmiseenavant)
+    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByIdMiseEnAvant(int idmiseenavant)
     {
         var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant);
 
         if (result == null || !result.Any())
             return NotFound();
 
-        var dtos = _annonceMapper.Map<List<AnnonceDTO>>(result);
-        return Ok(dtos);
+        return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
     }
 
     /// <summary>
@@ -218,7 +218,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 21)
     {
-        var result = await _manager.GetFilteredAnnonces(
+        IEnumerable<Annonce> result = await _manager.GetFilteredAnnonces(
             id ?? 0,
             idcarburant ?? 0,
             idmarque ?? 0,
@@ -234,7 +234,11 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             pageNumber,
             pageSize
         );
-        return Ok(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
+
+        if (result == null || !result.Any())
+            return NotFound();
+
+        return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
     }
 
     /// <summary>
@@ -249,13 +253,13 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// </returns>
     [ActionName("GetByCompteFavoris")]
     [HttpGet("{idmiseenavant}")]
-    public async Task<ActionResult<AnnonceDTO>> GetByCompteFavoris(int compteid)
+    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByCompteFavoris(int compteid)
     {
         var result = await _manager.GetAnnoncesByCompteFavoris(compteid);
 
-        if (result is null)
+        if (result == null || !result.Any())
             return NotFound();
 
-        return _annonceMapper.Map<AnnonceDTO>(result);
+        return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
     }
 }

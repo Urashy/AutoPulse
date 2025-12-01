@@ -295,7 +295,7 @@ namespace App.Controllers.Tests
             var idAcheteur = _commandeCommun.IdAcheteur;
 
             // When : On appelle GetAllByType
-            var result = await _controller.GetAllByType(idAcheteur);
+            var result = await _controller.GetCommandeByCompteID(idAcheteur);
 
             // Then : La liste doit contenir des commandes
             Assert.IsNotNull(result.Value);
