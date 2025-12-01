@@ -59,7 +59,7 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper)
     /// <summary>
     /// Crée une nouveau signalements.
     /// </summary>
-    /// <param name="dto">Objet <see cref="signalementDTO"/> contenant les informations de la signalement à créer.</param>
+    /// <param name="dto">Objet <see cref="SignalementCreateDTO"/> contenant les informations de la signalement à créer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="CreatedAtActionResult"/> avec la signalement créée (201).</description></item>
@@ -68,7 +68,7 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<SignalementDTO>> Post([FromBody] SignalementDTO dto)
+    public async Task<ActionResult<SignalementCreateDTO>> Post([FromBody] SignalementCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -83,7 +83,7 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper)
     /// Met à jour un signalements existant.
     /// </summary>
     /// <param name="id">Identifiant unique de la signalement à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="SignalementDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="SignalementCreateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -93,7 +93,7 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] SignalementDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] SignalementCreateDTO dto)
     {
         if (id != dto.IdSignalement)
             return BadRequest();
