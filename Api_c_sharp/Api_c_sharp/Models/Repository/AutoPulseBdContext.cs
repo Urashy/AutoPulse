@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Api_c_sharp.Models;
+using Api_c_sharp.Models.Entity;
 
 namespace Api_c_sharp.Models.Repository
 {

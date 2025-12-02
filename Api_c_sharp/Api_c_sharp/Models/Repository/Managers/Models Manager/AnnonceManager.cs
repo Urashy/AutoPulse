@@ -1,4 +1,5 @@
-﻿using Api_c_sharp.Models.Repository.Interfaces;
+﻿using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
 using FuzzySharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -131,6 +132,13 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
             return await ApplyIncludes()
                 .FirstOrDefaultAsync(a => a.IdAnnonce == id);
+        }
+
+        public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId)
+        {
+            return await ApplyIncludes()
+                .Where(a => a.IdCompte == compteId)
+                .ToListAsync();
         }
     }
 }

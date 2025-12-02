@@ -1,6 +1,5 @@
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Api_c_sharp.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers;
 
@@ -19,7 +19,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class MessageController(MessageManager _manager, IMapper _messagemapper, IHubContext<MessageHub> _hubContext) : ControllerBase
+public class MessageController(MessageManager _manager, IMapper _messagemapper, IHubContext<MessageHub> _hubContext = null ) : ControllerBase
 {
     /// <summary>
     /// Récupère un message à partir de son identifiant.
@@ -76,13 +76,16 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
 
         var entity = _messagemapper.Map<Message>(dto);
         await _manager.AddAsync(entity);
-        
-        await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
-            .SendAsync("ReceiveMessage", 
-                entity.IdConversation, 
-                entity.IdCompte, 
-                entity.ContenuMessage, 
+
+        if (_hubContext != null)
+        {
+            await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
+            .SendAsync("ReceiveMessage",
+                entity.IdConversation,
+                entity.IdCompte,
+                entity.ContenuMessage,
                 entity.DateEnvoiMessage);
+        }
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdMessage }, entity);
     }

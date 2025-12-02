@@ -1,5 +1,5 @@
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
@@ -261,5 +261,23 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
+    }
+
+    /// <summary>
+    /// Récupère la liste de toutes les adresses pour un compte donnée.
+    /// </summary>
+    /// <returns>
+    /// Une liste de <see cref="AnnonceDTO"/> (200 OK).
+    /// </returns>
+    [ActionName("GetAnnoncesByCompteId")]
+    [HttpGet("{idcompte}")]
+    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetAnnoncesByCompteID(int idcompte)
+    {
+        var list = await _manager.GetAnnoncesByCompteID(idcompte);
+
+        if (list is null || !list.Any())
+            return NotFound();
+
+        return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(list));
     }
 }

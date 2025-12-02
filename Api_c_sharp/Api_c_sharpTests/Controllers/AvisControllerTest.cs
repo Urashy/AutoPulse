@@ -1,6 +1,5 @@
 ﻿using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using App.Controllers;
@@ -12,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Api_c_sharp.Models.Entity;
 
 
 namespace App.Controllers.Tests

@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
@@ -84,7 +85,7 @@ namespace App.Controllers.Tests
             _context.Pays.Add(pays);
             _context.Comptes.Add(compte);
             _context.Adresses.Add(adresse);
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
 
             _objetcommun = adresse;
         }
@@ -181,7 +182,7 @@ namespace App.Controllers.Tests
                 CodePostal = "74000",
                 Rue = "Route de test",
                 Numero = 12,
-                IdPays = 1,  
+                IdPays = 1,
                 IdCompte = 1,
             };
 
@@ -251,5 +252,29 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
 
+        [TestMethod]
+        public async Task GetAdresseByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetAdressesByCompteID(_objetcommun.IdCompte);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAdresseByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetAdressesByCompteID(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
+            Assert.IsFalse(result.Value.Any());
+        }
     }
 }

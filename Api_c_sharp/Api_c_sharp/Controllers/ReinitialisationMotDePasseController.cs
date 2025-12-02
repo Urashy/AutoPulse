@@ -1,13 +1,13 @@
 using Api_c_sharp.Models.Repository.Interfaces;
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using MailKit.Net.Smtp;
 using MimeKit;
+using Api_c_sharp.Models.Entity;
 
 namespace Api_c_sharp.Controllers;
 
