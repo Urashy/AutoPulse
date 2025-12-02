@@ -256,10 +256,6 @@
                     @onclick="@(() => VM.SetActiveSection("adresses"))">
                 Adresses
             </button>
-            <button class="nav-item @(VM.activeSection == "favoris" ? "active" : "")"
-                    @onclick="@(() => VM.SetActiveSection("favoris"))">
-                Favoris
-            </button>
             <button class="nav-item @(VM.activeSection == "commandes" ? "active" : "")"
                     @onclick="@(() => VM.SetActiveSection("commandes"))">
                 Commandes
@@ -268,10 +264,15 @@
 
         <div class="content-section">
             <!-- Ici seront injectés les différents composants selon la section active -->
-            <div class="section-placeholder">
-                <h3>Section: @VM.activeSection</h3>
-                <p>Le contenu du composant @VM.activeSection sera affiché ici.</p>
-            </div>
+            @if(VM.activeSection == "annonces")
+            {
+                <div class="cars-grid">
+                    @foreach (var a in VM.allAnnonces)
+                    {
+                        <AnnonceComposant Annonce="@a" />
+                    }
+                </div>
+            }
         </div>
     </div>
 </div>

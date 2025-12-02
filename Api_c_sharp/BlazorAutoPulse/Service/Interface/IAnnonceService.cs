@@ -6,10 +6,11 @@ namespace BlazorAutoPulse.Service.Interface
     {
         Task<IEnumerable<Annonce>> GetByIdMiseEnAvant(int id);
         Task<IEnumerable<Annonce>> GetFilteredAnnoncesAsync(ParametreRecherche searchParams);
+
+        Task<IEnumerable<Annonce>> AnnonceParIdCompte(int id);
     }
 
-    public interface IAnnonceDetailService : IService<AnnonceDetailDTO>
+    public interface IAnnonceDetailService: IService<AnnonceDetailDTO> 
     {
     }
-
 }

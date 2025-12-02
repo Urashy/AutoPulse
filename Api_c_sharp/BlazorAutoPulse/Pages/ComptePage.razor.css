@@ -884,3 +884,9 @@
     font-size: 18px;
     font-weight: 700;
 }
+
+.cars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}

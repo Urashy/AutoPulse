@@ -10,6 +10,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly ICompteService _compteService;
         private readonly IPostImageService _postImageService;
         private readonly IImageService _imageService;
+        private readonly IAnnonceService _annonceService;
+        private readonly IAdresseService _adresseService;
         public NavigationManager _nav { get; set; }
 
         public Compte compte;
@@ -36,14 +38,20 @@ namespace BlazorAutoPulse.ViewModel
         public bool confirmationSuppression = false;
         public string confirmationTexte = "";
         public bool suppressionReussi =  false;
-        
+
+        public IEnumerable<Annonce> allAnnonces;
+
+        public IEnumerable<Adresse> allAdresses;
+
         private Action? _refreshUI;
 
-        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService)
+        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService, IAnnonceService annonceService, IAdresseService adresseService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
             _imageService = imageService;
+            _annonceService = annonceService;
+            _adresseService = adresseService;
         }
         
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -78,6 +86,10 @@ namespace BlazorAutoPulse.ViewModel
                 RaisonSociale = compte.RaisonSociale,
                 IdImage = idImage,
             };
+
+            allAnnonces = await _annonceService.AnnonceParIdCompte(compte.IdCompte);
+
+            allAdresses = await _adresseService.AdresseParIdCompte(compte.IdCompte);
         }
 
         public async Task UpdateProfileImage(InputFileChangeEventArgs e)
