@@ -174,8 +174,6 @@ namespace BlazorAutoPulse.ViewModel
 
                 FilteredAnnonces = results;
 
-                // Détecter s'il y a potentiellement plus de pages
-                // Si on reçoit exactement ItemsPerPage résultats, il y a peut-être une page suivante
                 HasMorePages = results.Length == ItemsPerPage;
             }
             catch (Exception ex)
