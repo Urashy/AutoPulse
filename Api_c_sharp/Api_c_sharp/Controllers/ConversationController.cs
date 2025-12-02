@@ -138,7 +138,7 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     /// <returns>
     /// Une liste de <see cref="Conversation"/> (200 OK).
     /// </returns>
-    [ActionName("GetAll")]
+    [ActionName("GetConversationsByCompteID")]
     [HttpGet("{idcompte}")]
     public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetConversationsByCompteID(int idcompte)
     {
