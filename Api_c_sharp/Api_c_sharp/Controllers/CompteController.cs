@@ -131,7 +131,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] CompteUpdateDTO dto)
     {
-        if (id != dto.IdCompte)
+        if (!ModelState.IsValid)
             return BadRequest();
 
         var toUpdate = await _manager.GetByIdAsync(id);

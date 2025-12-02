@@ -7,7 +7,6 @@ namespace Api_c_sharp.Models.Entity;
 public class Favori
 {
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("com_id")]
     public int IdCompte { get; set; }
     
