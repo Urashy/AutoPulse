@@ -132,4 +132,22 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
         return NoContent();
     }
 
+    /// <summary>
+    /// Récupère la liste de toutes les conversationsen fonctions d'un compte.
+    /// </summary>
+    /// <returns>
+    /// Une liste de <see cref="Conversation"/> (200 OK).
+    /// </returns>
+    [ActionName("GetConversationsByCompteID")]
+    [HttpGet("{idcompte}")]
+    public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetConversationsByCompteID(int idcompte)
+    {
+        var list = await _manager.GetConversationsByCompteID(idcompte);
+
+
+        if (list is null || !list.Any())
+            return NotFound();
+        return new ActionResult<IEnumerable<ConversationListDTO>>(_mapper.Map<IEnumerable<ConversationListDTO>>(list));
+    }
+
 }
