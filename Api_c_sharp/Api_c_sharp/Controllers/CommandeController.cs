@@ -146,9 +146,9 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper) : Con
     [HttpGet("{id}")]
     public async Task<ActionResult<IEnumerable<CommandeDTO>>> GetCommandeByCompteID(int idCompte)
     {
-        var result = await _manager.GetCommandeByCompteId(idCompte);
+        var result = await _manager.GetCommandesByCompteId(idCompte);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<CommandeDTO>>(_mapper.Map<IEnumerable<CommandeDTO>>(result));

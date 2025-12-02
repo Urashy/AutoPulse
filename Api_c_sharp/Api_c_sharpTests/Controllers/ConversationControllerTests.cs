@@ -59,7 +59,7 @@ namespace App.Controllers.Tests
 
             Compte vendeur = new Compte
             {
-                IdCompte = 2,
+                IdCompte = 1,
                 Nom = "Test",
                 Prenom = "John",
                 Email = "john.Test@gmail.com",
@@ -104,11 +104,18 @@ namespace App.Controllers.Tests
                 IdAnnonce = annnonce.IdAnnonce,
             };
 
+            APourConversation compteConversation = new APourConversation
+            {
+                IdCompte = vendeur.IdCompte,
+                IdConversation = conversation.IdConversation
+            };
+
             await _context.TypesCompte.AddAsync(typeCompte);
             await _context.Comptes.AddAsync(vendeur);
             await _context.Voitures.AddAsync(voiture);
             await _context.Annonces.AddAsync(annnonce);
             await _context.Conversations.AddAsync(conversation);
+            await _context.APourConversations.AddAsync(compteConversation);
             await _context.SaveChangesAsync();
 
             _objetcommun = conversation;
@@ -263,5 +270,28 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
 
+
+        [TestMethod]
+        public async Task GetConversationByCompteIDTest()
+        {
+            var result = await _controller.GetConversationsByCompteID(1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<ConversationListDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.IdConversation == _objetcommun.IdConversation));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetConversationByCompteIDTest()
+        {
+            // Acts
+            var result = await _controller.GetConversationsByCompteID(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
     }
 }
