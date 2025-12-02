@@ -1,0 +1,102 @@
+@page "/conversations"
+@using BlazorAutoPulse.ViewModel
+@inject ConversationsViewModel VM
+
+<PageTitle>Mes Conversations - AutoPulse</PageTitle>
+
+<div class="conversations-container">
+    <div class="conversations-sidebar">
+        <h2>💬 Conversations</h2>
+
+        @if (VM.IsLoading)
+        {
+            <div class="loading">Chargement...</div>
+        }
+        else if (!VM.Conversations.Any())
+        {
+            <div class="empty-state">
+                <p>Aucune conversation</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var conv in VM.Conversations)
+            {
+                <div class="conversation-item @(VM.SelectedConversation?.IdConversation == conv.IdConversation ? "active" : "")"
+                     @onclick="() => VM.SelectConversation(conv)">
+                    <div class="conversation-avatar">👤</div>
+                    <div class="conversation-info">
+                        <h4>@conv.IdAnnonce</h4>
+                        <p class="last-message">Dernier message...</p>
+                        @*<span class="time">@conv.DateDernierMessage.ToString("HH:mm")</span>*@
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="conversation-content">
+        @if (VM.SelectedConversation == null)
+        {
+            <div class="empty-conversation">
+                <h3>Sélectionnez une conversation</h3>
+                <p>Choisissez une conversation pour voir les messages</p>
+            </div>
+        }
+        else
+        {
+            <div class="conversation-header">
+                <h3>Conversation #@VM.SelectedConversation.IdConversation</h3>
+            </div>
+
+            <div class="messages-container" @ref="VM.MessagesContainer">
+                @foreach (var msg in VM.Messages)
+                {
+                    <div class="message @(msg.IdCompte == VM.CurrentUserId ? "sent" : "received")">
+                        <div class="message-bubble">
+                            <p>@msg.ContenuMessage</p>
+                            <span class="message-time">@msg.DateEnvoiMessage.ToString("HH:mm")</span>
+                        </div>
+                    </div>
+                }
+
+                @if (VM.IsTyping)
+                {
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                }
+            </div>
+
+            <div class="message-input-container">
+                <input type="text"
+                       placeholder="Tapez votre message..."
+                       @bind="VM.NewMessage"
+                       @bind:event="oninput"
+                       @onkeyup="VM.HandleTyping"
+                       @onkeydown="VM.HandleKeyPress"
+                       class="message-input" />
+
+                <button @onclick="VM.SendMessage"
+                        class="send-btn"
+                        disabled="@string.IsNullOrWhiteSpace(VM.NewMessage)">
+                    ➤
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        VM.OnRefresh += StateHasChanged;
+        await VM.InitializeAsync();
+    }
+
+    public void Dispose()
+    {
+        VM.OnRefresh -= StateHasChanged;
+    }
+}

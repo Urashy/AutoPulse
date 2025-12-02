@@ -1,3 +1,4 @@
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Authentification;
@@ -29,6 +30,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IService<Voiture>, VoitureWebService>();
             builder.Services.AddScoped<IService<Adresse>, AdresseWebService>();
             builder.Services.AddScoped<IService<APourCouleur>, APourCouleurWebService>();
+            builder.Services.AddScoped<IService<ConversationDetailDTO>, ConversationWebService>();
+            builder.Services.AddScoped<IService<MessageDTO>, MessageWebService>();
 
             //----------------------- Service avec interface spécifique
             builder.Services.AddScoped<IAnnonceService, AnnonceWebService>();
@@ -56,6 +59,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<FavorisViewModel>();
             builder.Services.AddScoped<OubliMdpViewModel>();
             builder.Services.AddScoped<CompleteProfileViewModel>();
+            builder.Services.AddScoped<ConversationsViewModel>();
             builder.Services.AddScoped<MainLayoutViewModel>();
 
 
