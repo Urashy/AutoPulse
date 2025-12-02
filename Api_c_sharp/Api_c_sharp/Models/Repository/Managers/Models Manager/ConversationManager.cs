@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
-    public class ConversationManager : WriteableReadableManager<Conversation>
+    public class ConversationManager : WriteableReadableManager<Conversation>, IConversationRepository
     {
         public ConversationManager(AutoPulseBdContext context) : base(context)
         {
@@ -12,6 +12,11 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public override async Task<IEnumerable<Conversation>> GetAllAsync()
         {
             return await dbSet.OrderBy(s => s.DateDernierMessage).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId)
+        {
+            return await dbSet.Where(c => c.ApourConversations.Any(ac => ac.IdCompte == compteId)).ToListAsync();
         }
     }
 }

@@ -46,7 +46,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         
     public interface ICommandeRepository
     {
-        Task<IEnumerable<Commande>> GetCommandeByCompteId(int compteId);
+        Task<IEnumerable<Commande>> GetCommandesByCompteId(int compteId);
     }
 
     public interface IImageRepository
@@ -83,4 +83,8 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<IEnumerable<TypeCompte>> GetTypeComptesPourChercher();
     }
 
+    public interface IConversationRepository
+    {
+        Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId);
+    }
 }
