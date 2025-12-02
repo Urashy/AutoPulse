@@ -217,6 +217,27 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_avis_avi", "public");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Bloque", b =>
+                {
+                    b.Property<int>("IdBloque")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<int>("IdBloquant")
+                        .HasColumnType("integer")
+                        .HasColumnName("blo_id");
+
+                    b.Property<DateTime>("DateBloque")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("blo_date");
+
+                    b.HasKey("IdBloque", "IdBloquant");
+
+                    b.HasIndex("IdBloquant");
+
+                    b.ToTable("t_e_bloque_blo", "public");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.BoiteDeVitesse", b =>
                 {
                     b.Property<int>("IdBoiteDeVitesse")
@@ -509,7 +530,6 @@ namespace Api_c_sharp.Migrations
                         .HasColumnName("ann_id");
 
                     b.Property<int>("IdCompte")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasColumnName("com_id");
 
@@ -1127,6 +1147,25 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("CompteJugeurNav");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Bloque", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteBloquantNav")
+                        .WithMany("ComptesBloquants")
+                        .HasForeignKey("IdBloquant")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteBloqueNav")
+                        .WithMany("ComptesBloqueurs")
+                        .HasForeignKey("IdBloque")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompteBloquantNav");
+
+                    b.Navigation("CompteBloqueNav");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Commande", b =>
                 {
                     b.HasOne("Api_c_sharp.Models.Entity.Compte", "AcheteurCommande")
@@ -1421,6 +1460,10 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("CommandeAcheteur");
 
                     b.Navigation("CommandeVendeur");
+
+                    b.Navigation("ComptesBloquants");
+
+                    b.Navigation("ComptesBloqueurs");
 
                     b.Navigation("Favoris");
 
