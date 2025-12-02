@@ -1,5 +1,6 @@
 ﻿using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;

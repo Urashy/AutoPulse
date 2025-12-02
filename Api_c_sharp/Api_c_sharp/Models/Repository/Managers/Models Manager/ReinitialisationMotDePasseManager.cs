@@ -1,3 +1,4 @@
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

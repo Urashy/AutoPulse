@@ -1,4 +1,6 @@
-﻿namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
+﻿using Api_c_sharp.Models.Entity;
+
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class APourConversationManager : WriteableReadableManager<APourConversation>
     {

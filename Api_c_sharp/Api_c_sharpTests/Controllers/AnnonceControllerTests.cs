@@ -1,5 +1,4 @@
 ﻿using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
@@ -15,11 +14,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api_c_sharp.Controllers;
 using Google.Apis.Util;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
     [TestClass()]
-    public class AnnocnControllerTests
+    public class AnnonceControllerTests
     {
         private AnnonceController _controller;
         private AutoPulseBdContext _context;
@@ -412,6 +412,52 @@ namespace App.Controllers.Tests
         {
             // Act
             var result = await _controller.GetFiltered(departement: "99999", idcarburant: 99, idmarque: 99, idmodele: 99, prixmin: 999999, prixmax: 999999, idtypevoiture: 99, idtypevendeur: 99, nom: "Inexistant", kmmin: 999999, kmmax: 999999, pageNumber: 1, pageSize: 10);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetByFiltersNoPaginationTest()
+        {
+            // Act
+            var result = await _controller.GetFiltered(departement: "12345", idcarburant: 1, idmarque: 1, idmodele: 1, prixmin: 10000, prixmax: 30000, idtypevoiture: 1, idtypevendeur: 1, nom: "Annonce", kmmin: 5000, kmmax: 15000, pageNumber: 0, pageSize: 0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByFiltersNoPaginationTest()
+        {
+            // Act
+            var result = await _controller.GetFiltered(departement: "99999", idcarburant: 99, idmarque: 99, idmodele: 99, prixmin: 999999, prixmax: 999999, idtypevoiture: 99, idtypevendeur: 99, nom: "Inexistant", kmmin: 999999, kmmax: 999999, pageNumber: 0, pageSize: 0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetAnnonceByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetAnnoncesByCompteID(_objetcommun.IdCompte);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAnnonceByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetAnnoncesByCompteID(0);
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
