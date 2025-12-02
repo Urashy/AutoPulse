@@ -397,8 +397,22 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task GetByFiltersTest()
         {
+            ParametreRecherche parametreRecherche = new ParametreRecherche()
+            {
+                Departement = "12345",
+                IdCarburant = 1,
+                IdMarque = 1,
+                IdModele = 1,
+                PrixMin = 10000,
+                PrixMax = 30000,
+                IdTypeVoiture = 1,
+                IdTypeVendeur = 1,
+                Nom = "Annonce",
+                KmMin = 5000,
+                KmMax = 15000
+            };
             // Act
-            var result = await _controller.GetFiltered(departement: "12345", idcarburant: 1, idmarque: 1, idmodele: 1, prixmin: 10000, prixmax: 30000, idtypevoiture: 1, idtypevendeur: 1, nom: "Annonce", kmmin: 5000, kmmax: 15000, pageNumber: 1, pageSize: 10);
+            var result = await _controller.GetFiltered(parametreRecherche);
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -410,8 +424,22 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task NotFoundGetByFiltersTest()
         {
+            ParametreRecherche parametreRecherche = new ParametreRecherche()
+            {
+                Departement = "99999",
+                IdCarburant = 99,
+                IdMarque = 99,
+                IdModele = 99,
+                PrixMin = 999999,
+                PrixMax = 999999,
+                IdTypeVoiture = 99,
+                IdTypeVendeur = 99,
+                Nom = "Inexistant",
+                KmMin = 999999,
+                KmMax = 999999
+            };
             // Act
-            var result = await _controller.GetFiltered(departement: "99999", idcarburant: 99, idmarque: 99, idmodele: 99, prixmin: 999999, prixmax: 999999, idtypevoiture: 99, idtypevendeur: 99, nom: "Inexistant", kmmin: 999999, kmmax: 999999, pageNumber: 1, pageSize: 10);
+            var result = await _controller.GetFiltered(parametreRecherche); ;
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -420,9 +448,22 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task GetByFiltersNoPaginationTest()
         {
+            ParametreRecherche parametreRecherche = new ParametreRecherche()
+            {
+                Departement = "12345",
+                IdCarburant = 1,
+                IdMarque = 1,
+                IdModele = 1,
+                PrixMin = 10000,
+                PrixMax = 30000,
+                IdTypeVoiture = 1,
+                IdTypeVendeur = 1,
+                Nom = "Annonce",
+                KmMin = 5000,
+                KmMax = 15000
+            };
             // Act
-            var result = await _controller.GetFiltered(departement: "12345", idcarburant: 1, idmarque: 1, idmodele: 1, prixmin: 10000, prixmax: 30000, idtypevoiture: 1, idtypevendeur: 1, nom: "Annonce", kmmin: 5000, kmmax: 15000, pageNumber: 0, pageSize: 0);
-            // Assert
+            var result = await _controller.GetFiltered(parametreRecherche);
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
@@ -433,8 +474,22 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task NotFoundGetByFiltersNoPaginationTest()
         {
+            ParametreRecherche parametreRecherche = new ParametreRecherche()
+            {
+                Departement = "99999",
+                IdCarburant = 99,
+                IdMarque = 99,
+                IdModele = 99,
+                PrixMin = 999999,
+                PrixMax = 999999,
+                IdTypeVoiture = 99,
+                IdTypeVendeur = 99,
+                Nom = "Inexistant",
+                KmMin = 999999,
+                KmMax = 999999
+            };
             // Act
-            var result = await _controller.GetFiltered(departement: "99999", idcarburant: 99, idmarque: 99, idmodele: 99, prixmin: 999999, prixmax: 999999, idtypevoiture: 99, idtypevendeur: 99, nom: "Inexistant", kmmin: 999999, kmmax: 999999, pageNumber: 0, pageSize: 0);
+            var result = await _controller.GetFiltered(parametreRecherche);
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));

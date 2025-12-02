@@ -305,7 +305,7 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task IsFavoriteTest()
         {
-            var result = await _controller.IsFavorite(1, 1);
+            var result = await _controller.IsFavorite(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
             Assert.IsNotNull(result);
             Assert.IsTrue(result.Value);
         }
