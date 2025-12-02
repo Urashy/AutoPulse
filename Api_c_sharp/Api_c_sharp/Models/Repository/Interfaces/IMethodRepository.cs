@@ -69,4 +69,10 @@
     {
         Task<ReinitialisationMotDePasse> VerificationCode(string email, string code);
     }
+
+    public interface IAdresseRepository
+    {
+        Task<IEnumerable<Adresse>> GetAdresseByCompteID(int compteId);
+    }
+
 }

@@ -132,7 +132,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper) : ControllerB
     }
 
     /// <summary>
-    /// Récupère des avis à partir de son type.
+    /// Récupère des avis à partir d'un compte.
     /// </summary>
     /// <param name="idtype">Identifiant unique du type recherchée.</param>
     /// <returns>
