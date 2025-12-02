@@ -208,13 +208,11 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
-        // -------------------------------------------------------------
-        // GET ALL BY TYPE (get avis by idCompte)
-        // -------------------------------------------------------------
+
         [TestMethod]
-        public async Task GetAllByTypeTest()
+        public async Task GetAllByCompte()
         {
-            var result = await _controller.GetAllByType(_objetCommun.IdJugee);
+            var result = await _controller.GetAvisByCompteID(_objetCommun.IdJugee);
 
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);

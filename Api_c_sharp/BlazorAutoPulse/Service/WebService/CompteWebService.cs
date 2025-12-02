@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 
@@ -49,24 +50,62 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
         }
     }
 
-    public async Task<bool> ChangementMdp(ChangementMdp changementMdp)
+    // ✅ NOUVELLE MÉTHODE avec gestion d'erreur améliorée
+    public async Task<ServiceResult<bool>> ChangementMdp(ChangementMdp changementMdp)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("ModifMdp"))
+        try
         {
-            Content = JsonContent.Create(changementMdp)
-        };
-        
-        var response = await SendWithCredentialsAsync(request);
+            var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("ModifMdp"))
+            {
+                Content = JsonContent.Create(changementMdp)
+            };
+            
+            var response = await SendWithCredentialsAsync(request);
 
-        if (response.IsSuccessStatusCode)
-        {
-            return true;
+            if (response.IsSuccessStatusCode)
+            {
+                return ServiceResult<bool>.SuccessResult(true);
+            }
+            
+            // Gestion des erreurs de validation (400)
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                
+                try
+                {
+                    var validationError = JsonSerializer.Deserialize<ValidationErrorResponse>(
+                        errorContent, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+
+                    // Construire un message d'erreur lisible
+                    if (validationError?.Errors != null && validationError.Errors.Any())
+                    {
+                        var errorMessages = validationError.Errors
+                            .SelectMany(e => e.Value)
+                            .ToList();
+                        
+                        return ServiceResult<bool>.ErrorResult(
+                            string.Join("\n", errorMessages),
+                            validationError.Errors
+                        );
+                    }
+                }
+                catch (JsonException)
+                {
+                    // Si le JSON n'est pas au format attendu
+                    return ServiceResult<bool>.ErrorResult("Erreur de validation : " + errorContent);
+                }
+            }
+
+            // Autres erreurs HTTP
+            return ServiceResult<bool>.ErrorResult($"Erreur {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
         }
-        else
+        catch (Exception ex)
         {
-            var error = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Erreur Post : {error}");
-            return false;
+            Console.WriteLine($"Exception ChangementMdp : {ex.Message}");
+            return ServiceResult<bool>.ErrorResult("Une erreur s'est produite lors du changement de mot de passe");
         }
     }
 

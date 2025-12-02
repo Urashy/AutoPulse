@@ -2,7 +2,6 @@
 {
     public interface IModeleRepository
     {
-        //methode filtre par marque
         Task<IEnumerable<Modele>> GetModelesByMarqueIdAsync(int marqueId);
     }
 
@@ -70,4 +69,10 @@
     {
         Task<ReinitialisationMotDePasse> VerificationCode(string email, string code);
     }
+
+    public interface IAdresseRepository
+    {
+        Task<IEnumerable<Adresse>> GetAdresseByCompteID(int compteId);
+    }
+
 }

@@ -79,7 +79,7 @@ namespace App.Controllers.Tests
         public async Task GetByIdTest()
         {
             // Act
-            var result = await _controller.GetByID(_objetcommun.IdBoiteDeVitesse);
+            var result = await _controller.GetByID(_objetcommun.IdVoiture);
 
             // Assert
             Assert.IsNotNull(result);

@@ -1,4 +1,5 @@
 using System.Text;
+using Api_c_sharp.Hubs;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
 using Api_c_sharp.Models.Authentification;
@@ -46,6 +47,8 @@ builder.Services.AddScoped<CouleurManager>();
 builder.Services.AddScoped<VoitureManager>();
 builder.Services.AddScoped<APourCouleurManager>();
 builder.Services.AddScoped<FavoriManager>();
+builder.Services.AddScoped<ConversationManager>();
+builder.Services.AddScoped<MessageManager>();
 builder.Services.AddScoped<ReinitialisationMotDePasseManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
@@ -106,6 +109,8 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -115,6 +120,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapHub<MessageHub>("/messagehub");
 
 app.UseCors("AllowBlazor");
 app.UseAuthentication();

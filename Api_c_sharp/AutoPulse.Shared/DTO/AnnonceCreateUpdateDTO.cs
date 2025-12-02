@@ -2,6 +2,7 @@ namespace AutoPulse.Shared.DTO;
 
 public class AnnonceCreateUpdateDTO
 {
+    public int IdAnnonce { get; set; }
     public string Libelle { get; set; }
     public int IdCompte { get; set; }
     public int IdEtatAnnonce { get; set; }
@@ -10,4 +11,5 @@ public class AnnonceCreateUpdateDTO
     public int IdMiseEnAvant { get; set; }
     public DateTime DatePublication { get; set; }
     public int Prix { get; set; }
+    public string Description { get; set; }
 }

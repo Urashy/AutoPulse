@@ -124,5 +124,24 @@ namespace Api_c_sharp.Controllers
 
             return _adresseMapper.Map<AdresseDTO>(result);
         }
+
+
+        /// <summary>
+        /// Récupère la liste de toutes les adresses pour un compte donnée.
+        /// </summary>
+        /// <returns>
+        /// Une liste de <see cref="AdresseDTO"/> (200 OK).
+        /// </returns>
+        [ActionName("GetAdressesByCompteID")]
+        [HttpGet("{idcompte}")]
+        public async Task<ActionResult<IEnumerable<AdresseDTO>>> GetAdressesByCompteID(int idcompte)
+        {
+            var list = await _manager.GetAdresseByCompteID(idcompte);
+
+            if (list is null)
+                return NotFound();
+
+            return new ActionResult<IEnumerable<AdresseDTO>>(_adresseMapper.Map<IEnumerable<AdresseDTO>>(list));
+        }
     }
 }
