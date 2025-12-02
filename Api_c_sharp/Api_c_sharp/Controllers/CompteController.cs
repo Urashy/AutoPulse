@@ -58,13 +58,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <param name="str">Nom de la compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteDTO"/> si la compte existe (200 OK).</description></item>
+    /// <item><description><see cref="CompteDetailDTO"/> si la compte existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetByString")]
     [HttpGet("{str}")]
-    public async Task<ActionResult<CompteGetDTO>> GetByString(string str)
+    public async Task<ActionResult<CompteDetailDTO>> GetByString(string str)
     {
         var result = await _manager.GetByNameAsync(str);
 
@@ -73,7 +73,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return NotFound();
         }
 
-        return _compteMapper.Map<CompteGetDTO>(result);
+        return _compteMapper.Map<CompteDetailDTO>(result);
     }
 
     /// <summary>
@@ -104,6 +104,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [HttpPost]
     public async Task<ActionResult<Compte>> Post([FromBody] CompteCreateDTO dto)
     {
+        if(!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         var entity = _compteMapper.Map<Compte>(dto);
         entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);
@@ -231,7 +233,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     {
         var result = await _manager.GetComptesByTypes(type);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<CompteGetDTO>>(_compteMapper.Map<IEnumerable<CompteGetDTO>>(result));
@@ -253,7 +255,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     {
         var result = await _manager.GetCompteByIdAnnonceFavori(idannonce);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<CompteGetDTO>>(_compteMapper.Map<IEnumerable<CompteGetDTO>>(result));
@@ -315,7 +317,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     
     [HttpPost]
     [Authorize]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
         try
         {
@@ -524,7 +526,16 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     public bool VerifUser([FromBody] ChangementMdpDTO dto)
     {
         string hash = ComputeSha256Hash(dto.MotDePasse);
-        return _manager.VerifMotDePasse(dto.Email, hash) != null;
+        var result =  _manager.VerifMotDePasse(dto.Email, hash) != null;
+
+        if (result != null)
+        {
+            return true;
+        }
+        else         
+        {
+            return false;
+        }
     }
 #endregion
     
