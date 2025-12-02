@@ -11,26 +11,10 @@ using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers;
 
-/// <summary>
-/// Contrôleur REST permettant de gérer les messages.
-/// Les méthodes exposent ou consomment des DTO afin
-/// d’assurer la séparation entre le modèle de domaine
-/// et la couche API.
-/// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
 public class MessageController(MessageManager _manager, IMapper _messagemapper, IHubContext<MessageHub> _hubContext = null ) : ControllerBase
 {
-    /// <summary>
-    /// Récupère un message à partir de son identifiant.
-    /// </summary>
-    /// <param name="id">Identifiant unique de la message recherchée.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="MessageDTO"/> si la message existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
     public async Task<ActionResult<MessageDTO>> GetByID(int id)
@@ -43,12 +27,6 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
         return _messagemapper.Map<MessageDTO>(result);
     }
 
-    /// <summary>
-    /// Récupère la liste de toutes les messages.
-    /// </summary>
-    /// <returns>
-    /// Une liste de <see cref="MessageDTO"/> (200 OK).
-    /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<MessageDTO>>> GetAll()
@@ -58,50 +36,35 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
     }
 
     /// <summary>
-    /// Crée une nouveau message.
+    /// Crée un nouveau message et notifie TOUS les participants via SignalR
     /// </summary>
-    /// <param name="dto">Objet <see cref="messageDTO"/> contenant les informations de la message à créer.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec la message créée (201).</description></item>
-    /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<MessageDTO>> Post([FromBody] MessageDTO dto)
+    public async Task<ActionResult<MessageCreateDTO>> Post([FromBody] MessageCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         var entity = _messagemapper.Map<Message>(dto);
+        entity.DateEnvoiMessage = DateTime.UtcNow;
+        
+        // 1. Sauvegarder le message en DB
         await _manager.AddAsync(entity);
 
+        // 2. Notifier TOUS les participants de la conversation via SignalR
         if (_hubContext != null)
         {
             await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
-            .SendAsync("ReceiveMessage",
-                entity.IdConversation,
-                entity.IdCompte,
-                entity.ContenuMessage,
-                entity.DateEnvoiMessage);
+                .SendAsync("ReceiveMessage",
+                    entity.IdConversation,
+                    entity.IdCompte,
+                    entity.ContenuMessage,
+                    entity.DateEnvoiMessage);
         }
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdMessage }, entity);
     }
 
-    /// <summary>
-    /// Met à jour un message existant.
-    /// </summary>
-    /// <param name="id">Identifiant unique de la message à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="messageDTO"/> contenant les nouvelles valeurs.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] MessageDTO dto)
@@ -120,16 +83,6 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
         return NoContent();
     }
 
-    /// <summary>
-    /// Supprime un message existante.
-    /// </summary>
-    /// <param name="id">Identifiant unique de la message à supprimer.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
@@ -143,18 +96,8 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
         return NoContent();
     }
 
-    /// <summary>
-    /// Récupère une liste de message à partir d'une conversation.
-    /// </summary>
-    /// <param name="id">Identifiant unique de la message recherchée.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="MessageDTO"/> si la message existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("GetAllByConversation")]
-    [HttpGet("{id}")]
+    [HttpGet("{idconversation}")]
     public async Task<ActionResult<IEnumerable<MessageDTO>>> GetByConversation(int idconversation)
     {
         var result = await _manager.GetMessagesByConversation(idconversation);
@@ -163,8 +106,5 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
             return NotFound();
 
         return new ActionResult<IEnumerable<MessageDTO>>(_messagemapper.Map<IEnumerable<MessageDTO>>(result));
-
     }
-
-
 }

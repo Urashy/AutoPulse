@@ -91,7 +91,6 @@
     public async ValueTask DisposeAsync()
     {
         SVM.OnMessageReceived -= OnNewMessage;
-        SVM.OnNotificationReceived -= OnNotification;
         await SVM.StopAsync();
     }
 }

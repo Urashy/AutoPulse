@@ -47,22 +47,23 @@ public class ConversationsViewModel
         _signalR.OnUserTyping += HandleUserTyping;
     }
 
-    // -------------------------------------------------
-    // INITIALISATION
-    // -------------------------------------------------
     public async Task InitializeAsync()
     {
         try
         {
+            await _signalR.StartAsync();
+
             compte = await _compteService.GetMe();
             CurrentUserId = compte.IdCompte;
 
-            Conversations = (await _conversationService.GetConversationsByCompteID(CurrentUserId)).ToList();
+            Conversations = (await _conversationService.GetConversationsByCompteID(compte.IdCompte)).ToList();
 
             foreach (var conv in Conversations)
+            {
                 await _signalR.JoinConversation(conv.IdConversation);
+            }
         }
-        catch
+        catch (Exception ex)
         {
             _navigation.NavigateTo("/connexion");
         }
@@ -72,69 +73,72 @@ public class ConversationsViewModel
             _refreshUI?.Invoke();
         }
     }
-
-    // -------------------------------------------------
-    // SELECTION D'UNE CONVERSATION
-    // -------------------------------------------------
+    
     public async Task SelectConversation(ConversationDetailDTO conv)
     {
         SelectedConversation = conv;
 
+        // Charger les messages existants
         Messages = (await _messageService.GetAllAsync())
             .Where(m => m.IdConversation == conv.IdConversation)
             .OrderBy(m => m.DateEnvoiMessage)
             .ToList();
-
+        
         await _signalR.MarkAsRead(conv.IdConversation, CurrentUserId);
 
         _refreshUI?.Invoke();
     }
-
-    // -------------------------------------------------
-    // ENVOI MESSAGE
-    // -------------------------------------------------
     public async Task SendMessage()
     {
         if (SelectedConversation == null || string.IsNullOrWhiteSpace(NewMessage))
             return;
 
-        await _signalR.SendMessage(
-            SelectedConversation.IdConversation,
-            CurrentUserId,
-            NewMessage.Trim());
-
-        await _messageService.CreateAsync(new MessageDTO
-        {
-            IdConversation = SelectedConversation.IdConversation,
-            IdCompte = CurrentUserId,
-            ContenuMessage = NewMessage.Trim(),
-            DateEnvoiMessage = DateTime.UtcNow,
-            PseudoCompte = compte.Pseudo,
-        });
-
+        var messageContent = NewMessage.Trim();
         NewMessage = "";
+
+        try
+        {
+            await _messageService.CreateAsync(new MessageDTO
+            {
+                IdConversation = SelectedConversation.IdConversation,
+                IdCompte = CurrentUserId,
+                ContenuMessage = messageContent,
+            });
+        }
+        catch (Exception ex)
+        {
+            NewMessage = messageContent;
+        }
+
         _refreshUI?.Invoke();
     }
-
-    // -------------------------------------------------
-    // SIGNALR EVENTS
-    // -------------------------------------------------
     private void HandleMessageReceived(int conversationId, int senderId, string message, DateTime date)
     {
         if (SelectedConversation?.IdConversation != conversationId)
+        {
             return;
+        }
 
-        Messages.Add(new MessageDTO
+        var newMsg = new MessageDTO
         {
             IdConversation = conversationId,
             IdCompte = senderId,
             ContenuMessage = message,
             DateEnvoiMessage = date
-        });
+        };
 
-        _refreshUI?.Invoke();
+        var exists = Messages.Any(m => 
+            m.IdCompte == senderId && 
+            m.ContenuMessage == message && 
+            Math.Abs((m.DateEnvoiMessage - date).TotalSeconds) < 2);
+
+        if (!exists)
+        {
+            Messages.Add(newMsg);
+            
+            _refreshUI?.Invoke();
+        }
     }
-
     private void HandleUserTyping(int conversationId, int userId, string userName)
     {
         if (SelectedConversation?.IdConversation != conversationId || userId == CurrentUserId)
@@ -149,10 +153,6 @@ public class ConversationsViewModel
             _refreshUI?.Invoke();
         });
     }
-
-    // -------------------------------------------------
-    // TYPING
-    // -------------------------------------------------
     public async Task HandleTyping(KeyboardEventArgs e)
     {
         if (SelectedConversation == null)
@@ -169,7 +169,7 @@ public class ConversationsViewModel
         if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(NewMessage))
             await SendMessage();
     }
-
+    
     public void Dispose()
     {
         _signalR.OnMessageReceived -= HandleMessageReceived;

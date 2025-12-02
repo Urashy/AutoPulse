@@ -328,10 +328,8 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.ApourConversations.Select(a => a.APourConversationCompteNav))).ReverseMap();
         
         CreateMap<Message, MessageDTO>()
-            .ForMember(dest => dest.IdCompte, 
-                opt => opt.MapFrom(src => 0)) // À compléter selon votre logique
             .ForMember(dest => dest.PseudoCompte, 
-                opt => opt.MapFrom(src => "N/A")).ReverseMap(); // À compléter
+                opt => opt.MapFrom(src => src.MessageCompteNav.Pseudo)).ReverseMap();
         
         CreateMap<MessageCreateDTO, Message>().ReverseMap();
         
