@@ -11,6 +11,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IModeleService _modeleService;
         private readonly IService<Carburant> _carburantService;
         private readonly IService<Categorie> _categorieService;
+        private readonly ITypeCompteService _typecompteService;
 
         private Action? _refreshUI;
 
@@ -19,6 +20,8 @@ namespace BlazorAutoPulse.ViewModel
         public string SelectedModele { get; set; } = "";
         public string SelectedCarburant { get; set; } = "0";
         public string SelectedCategorie { get; set; } = "0";
+
+        public string SelectedType { get; set; } = "0";
         public string Nom { get; set; } = "";
         public string Departement { get; set; } = "";
         public bool IsLoading { get; set; } = true;
@@ -58,6 +61,7 @@ namespace BlazorAutoPulse.ViewModel
         public Carburant[] AllCarburants { get; private set; } = Array.Empty<Carburant>();
         public Categorie[] AllCategories { get; private set; } = Array.Empty<Categorie>();
 
+        public TypeCompte[] AllTypeComptes { get; private set; } = Array.Empty<TypeCompte>();
         // Propriétés calculées pour la pagination
         public string PaginationInfo => $"Page {CurrentPage} - {CurrentPageResultCount} résultat(s)";
         public bool CanGoToPreviousPage => CurrentPage > 1;
@@ -70,13 +74,15 @@ namespace BlazorAutoPulse.ViewModel
             IService<Marque> marqueService,
             IModeleService modeleService,
             IService<Carburant> carburantService,
-            IService<Categorie> categorieService)
+            IService<Categorie> categorieService,
+            ITypeCompteService typecompteService)
         {
             _annonceService = annonceService;
             _marqueService = marqueService;
             _modeleService = modeleService;
             _carburantService = carburantService;
             _categorieService = categorieService;
+            _typecompteService = typecompteService;
         }
 
         public async Task InitializeAsync(Action refreshUI)
@@ -91,6 +97,8 @@ namespace BlazorAutoPulse.ViewModel
                 FilteredModeles = AllModeles;
                 AllCarburants = (await _carburantService.GetAllAsync()).ToArray();
                 AllCategories = (await _categorieService.GetAllAsync()).ToArray();
+                AllTypeComptes = (await _typecompteService.GetTypeComptesPourChercher()).ToArray();
+
             }
             finally
             {
@@ -333,6 +341,14 @@ namespace BlazorAutoPulse.ViewModel
             var categorie = AllCategories.FirstOrDefault(c => c.IdCategorie.ToString() == idCategorie);
             return categorie?.LibelleCategorie ?? "";
         }
+
+        public string GetTypeCompteLibelle(string idTypeCompte)
+        {
+            if (AllTypeComptes == null || string.IsNullOrEmpty(idTypeCompte)) return "";
+            var typecompte = AllTypeComptes.FirstOrDefault(c => c.IdTypeCompte.ToString() == idTypeCompte);
+            return typecompte?.Libelle ?? "";
+        }
+
 
         public bool HasActiveFilters()
         {
