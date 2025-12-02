@@ -1,4 +1,5 @@
 using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +10,7 @@ namespace BlazorAutoPulse.ViewModel;
 public class ConversationsViewModel
 {
     private readonly ISignalRService _signalR;
-    private readonly IService<ConversationDetailDTO> _conversationService;
+    private readonly IConversationService _conversationService;
     private readonly IService<MessageDTO> _messageService;
     private readonly ICompteService _compteService;
     private readonly NavigationManager _navigation;
@@ -17,6 +18,7 @@ public class ConversationsViewModel
     public List<ConversationDetailDTO> Conversations { get; private set; } = new();
     public List<MessageDTO> Messages { get; private set; } = new();
     public ConversationDetailDTO? SelectedConversation { get; private set; }
+    private Compte compte;
     
     public string NewMessage { get; set; } = "";
     public int CurrentUserId { get; private set; }
@@ -30,7 +32,7 @@ public class ConversationsViewModel
 
     public ConversationsViewModel(
         ISignalRService signalR,
-        IService<ConversationDetailDTO> convService,
+        IConversationService convService,
         IService<MessageDTO> msgService,
         ICompteService compteService,
         NavigationManager nav)
@@ -52,10 +54,10 @@ public class ConversationsViewModel
     {
         try
         {
-            var me = await _compteService.GetMe();
-            CurrentUserId = me.IdCompte;
+            compte = await _compteService.GetMe();
+            CurrentUserId = compte.IdCompte;
 
-            Conversations = (await _conversationService.GetAllAsync()).ToList();
+            Conversations = (await _conversationService.GetConversationsByCompteID(CurrentUserId)).ToList();
 
             foreach (var conv in Conversations)
                 await _signalR.JoinConversation(conv.IdConversation);
@@ -106,7 +108,8 @@ public class ConversationsViewModel
             IdConversation = SelectedConversation.IdConversation,
             IdCompte = CurrentUserId,
             ContenuMessage = NewMessage.Trim(),
-            DateEnvoiMessage = DateTime.UtcNow
+            DateEnvoiMessage = DateTime.UtcNow,
+            PseudoCompte = compte.Pseudo,
         });
 
         NewMessage = "";
