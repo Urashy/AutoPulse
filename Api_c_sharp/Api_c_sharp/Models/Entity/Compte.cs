@@ -108,5 +108,11 @@ namespace Api_c_sharp.Models.Entity
         [InverseProperty(nameof(Message.MessageCompteNav))]
         public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 
+        [InverseProperty(nameof(Bloque.CompteBloquantNav))]
+        public virtual ICollection<Bloque> ComptesBloquants { get; set; } = new List<Bloque>();
+
+        [InverseProperty(nameof(Bloque.CompteBloqueNav))]
+        public virtual ICollection<Bloque> ComptesBloqueurs { get; set; } = new List<Bloque>();
+
     }
 }
