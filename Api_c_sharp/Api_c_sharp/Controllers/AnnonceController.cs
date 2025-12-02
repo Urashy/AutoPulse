@@ -203,36 +203,16 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     [ActionName("GetFiltered")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetFiltered(
-        [FromQuery] int? id = null,
-        [FromQuery] int? idcarburant = null,
-        [FromQuery] int? idmarque = null,
-        [FromQuery] int? idmodele = null,
-        [FromQuery] int? prixmin = null,
-        [FromQuery] int? prixmax = null,
-        [FromQuery] int? idtypevoiture = null,
-        [FromQuery] int? idtypevendeur = null,
-        [FromQuery] string? nom = null,
-        [FromQuery] int? kmmin = null,
-        [FromQuery] int? kmmax = null,
-        [FromQuery] string? departement = null,
+        [FromQuery] ParametreRecherche param = null,
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 21)
+        [FromQuery] int pageSize = 21,
+        [FromQuery] int prixorderby = 0)
     {
         IEnumerable<Annonce> result = await _manager.GetFilteredAnnonces(
-            id ?? 0,
-            idcarburant ?? 0,
-            idmarque ?? 0,
-            idmodele ?? 0,
-            prixmin ?? 0,
-            prixmax ?? 0,
-            idtypevoiture ?? 0,
-            idtypevendeur ?? 0,
-            nom ?? string.Empty,
-            kmmin ?? 0,
-            kmmax ?? 0,
-            departement ?? string.Empty,
+            param,
             pageNumber,
-            pageSize
+            pageSize,
+            prixorderby
         );
 
         if (result == null || !result.Any())

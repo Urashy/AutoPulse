@@ -46,13 +46,6 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Voiture> Voitures { get; set; }
         public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseNpgsql("Server=localhost;port=5432;Database=SAEAutoPulse;uid=postgres;password=postgres;");
-            }
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

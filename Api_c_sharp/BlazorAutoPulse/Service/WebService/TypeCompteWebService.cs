@@ -1,9 +1,10 @@
 ﻿using BlazorAutoPulse.Model;
 using System.Net.Http.Json;
+using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service.WebService
 {
-    public class TypeCompteWebService : BaseWebService<TypeCompte>
+    public class TypeCompteWebService : BaseWebService<TypeCompte>, ITypeCompteService
     {
         public TypeCompteWebService(HttpClient httpClient) : base(httpClient)
         {

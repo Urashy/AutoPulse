@@ -12,7 +12,7 @@ public class HomeViewModel
     private readonly IModeleService _modeleService;
     private readonly IService<Carburant> _carburantService;
     private readonly IService<Categorie> _categorieService;
-    private readonly IService<TypeCompte> _typeCompteService;
+    private readonly ITypeCompteService _typeCompteService;
 
     // Paramètres de recherche
     public ParametreRecherche SearchParams { get; set; } = new();
@@ -35,7 +35,7 @@ public class HomeViewModel
         IModeleService modeleService,
         IService<Carburant> carburantService,
         IService<Categorie> categorieService,
-        IService<TypeCompte> typeCompteService)
+        ITypeCompteService typeCompteService)
     {
         _annonceService = annonceService;
         _marqueService = marqueService;
