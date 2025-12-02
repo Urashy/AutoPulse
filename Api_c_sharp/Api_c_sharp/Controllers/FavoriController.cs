@@ -148,7 +148,7 @@ namespace Api_c_sharp.Controllers
         public async Task<ActionResult<bool>> IsFavorite([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
            var result = await _manager.ExistsAsync(idCompte, idAnnonce);
-           return Ok(result);
+           return result;
         }
 
         /// <summary>
