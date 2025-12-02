@@ -2,7 +2,6 @@ using System.Text;
 using Api_c_sharp.Models.Repository.Interfaces;
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using System.Security.Cryptography;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +15,7 @@ using System.Text.Json;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
 using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers;
 

@@ -1,7 +1,6 @@
 ﻿using Api_c_sharp.Controllers;
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
@@ -15,11 +14,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.AspNetCore.SignalR;
+using Api_c_sharp.Hubs;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
     [TestClass()]
-    public class messageControllerTests
+    public class MessageControllerTests
     {
         private MessageController _controller;
         private AutoPulseBdContext _context;
@@ -67,19 +69,6 @@ namespace App.Controllers.Tests
                 DateDerniereConnexion = DateTime.Now
             };
 
-            Compte compte2 = new Compte()
-            {
-                Email = "john2@gmail.com",
-                MotDePasse = "Password123!",
-                Nom = "Doe2",
-                Prenom = "John2",
-                DateNaissance = new DateTime(1992, 1, 1),
-                IdTypeCompte = typecompte.IdTypeCompte,
-                Pseudo = "john_doe2",
-                DateCreation = DateTime.Now,
-                DateDerniereConnexion = DateTime.Now
-            };
-
             Annonce annonce = new Annonce()
             {
                 Libelle = "Annonce de test",
@@ -106,25 +95,11 @@ namespace App.Controllers.Tests
                 IdCompte = 1
             };
 
-            APourConversation apourConversation = new APourConversation()
-            {
-                IdConversation = 1,
-                IdCompte = 1
-            };
-            APourConversation apourConversation2 = new APourConversation()
-            {
-                IdConversation = 1,
-                IdCompte = 2
-            };
-
             _context.TypesCompte.Add(typecompte);
             _context.Comptes.Add(compte);
-            _context.Comptes.Add(compte2);
             _context.Annonces.Add(annonce);
             _context.Conversations.Add(conversation);
             _context.Messages.Add(message);
-            _context.APourConversations.Add(apourConversation);
-            _context.APourConversations.Add(apourConversation2);
             await _context.SaveChangesAsync(); 
 
             _objetcommun = message;
@@ -139,7 +114,7 @@ namespace App.Controllers.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(AdresseDTO));
+            Assert.IsInstanceOfType(result.Value, typeof(MessageDTO));
             Assert.AreEqual(_objetcommun.ContenuMessage, result.Value.ContenuMessage);
         }
 
@@ -159,52 +134,46 @@ namespace App.Controllers.Tests
         {
             // Act
             var result = await _controller.GetAll();
-
+           
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<MessageDTO>));
             Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
+            Assert.IsTrue(result.Value.Any(o => o.ContenuMessage == _objetcommun.ContenuMessage));
         }
 
         [TestMethod]
-        public async Task PostVoitureTest_Entity()
+        public async Task PostMessageTest_Entity()
         {
-            var adresse = new AdresseDTO()
+            MessageDTO message = new MessageDTO()
             {
-                Nom = "Travail",
-                LibelleVille = "Annecy",
-                CodePostal = "74000",
-                Rue = "Route de test",
-                Numero = 15,
-                IdPays = 1,       // clé étrangère vers Pays
-                IdCompte = 1
-            }
-            ;
+                IdCompte = 1,
+                ContenuMessage = _objetcommun.ContenuMessage,
+                DateEnvoiMessage = DateTime.Now,
+            };
 
-            var actionResult = await _controller.Post(adresse);
+            var actionResult = await _controller.Post(message);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
-            var createdVoiture = (Adresse)created.Value;
-            Assert.AreEqual(adresse.Rue, createdVoiture.Rue);
+            var createdmessage = (Message)created.Value;
+            Assert.AreEqual(message.ContenuMessage, createdmessage.ContenuMessage);
         }
 
-
         [TestMethod]
-        public async Task DeleteVoitureTest()
+        public async Task DeleteMessageTest()
         {
-            var result = await _controller.Delete(_objetcommun.IdAdresse);
+            var result = await _controller.Delete(_objetcommun.IdMessage);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedVoiture = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
-            Assert.IsNull(deletedVoiture);
+            var deletedMessage = await _manager.GetByIdAsync(_objetcommun.IdMessage);
+            Assert.IsNull(deletedMessage);
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteVoitureTest()
+        public async Task NotFoundDeleteMessageTest()
         {
             var result = await _controller.Delete(0);
 
@@ -212,65 +181,53 @@ namespace App.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task PutVoitureTest()
+        public async Task PutMessageTest()
         {
-            var adresse = new AdresseDTO()
+            MessageDTO message = new MessageDTO()
             {
-                IdAdresse = _objetcommun.IdAdresse,
-                Nom = "Domicile",
-                LibelleVille = "Chavanod",
-                CodePostal = "74000",
-                Rue = "Route de test",
-                Numero = 12,
-                IdPays = 1,  
+                IdMessage = _objetcommun.IdMessage,
                 IdCompte = 1,
+                ContenuMessage = _objetcommun.ContenuMessage,
+                DateEnvoiMessage = DateTime.Now,
             };
 
-            var result = await _controller.Put(_objetcommun.IdAdresse, adresse);
+            var result = await _controller.Put(_objetcommun.IdMessage, message);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var adresseput = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
-            Assert.AreEqual(adresse.Nom, adresseput.Nom);
+            Message messageput = await _manager.GetByIdAsync(_objetcommun.IdMessage);
+            Assert.AreEqual(message.ContenuMessage, messageput.ContenuMessage);
         }
 
         [TestMethod]
-        public async Task NotFoundPutVoitureTest()
+        public async Task NotFoundPutMessageTest()
         {
-            var adresse = new AdresseDTO()
+            MessageDTO message = new MessageDTO()
             {
-                Nom = "Domicile",
-                LibelleVille = "Annecy",
-                CodePostal = "74000",
-                Rue = "Route de test",
-                Numero = 12,
-                IdPays = 1,
                 IdCompte = 1,
+                ContenuMessage = _objetcommun.ContenuMessage,
+                DateEnvoiMessage = DateTime.Now,
             };
 
-            var result = await _controller.Put(0, adresse);
+            var result = await _controller.Put(0, message);
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
-        public async Task BadRequestPutVoitureTest()
+        public async Task BadRequestPutMessageTest()
         {
-            var adresse = new AdresseDTO()
+            MessageDTO message = new MessageDTO()
             {
-                Nom = "Domicile",
-                LibelleVille = "Annecy",
-                CodePostal = "74000",
-                Rue = "Route de test",
-                Numero = -12,
-                IdPays = 1,
                 IdCompte = 1,
+                ContenuMessage = null,
+                DateEnvoiMessage = DateTime.Now,
             };
 
             // Forcer l'erreur de validation dans le test
-            _controller.ModelState.AddModelError("Numero", "Le Numero doit être supérieur à 0");
+            _controller.ModelState.AddModelError("Contenu", "Required");
 
             // Act
-            var result = await _controller.Put(_objetcommun.IdAdresse, adresse);
+            var result = await _controller.Put(_objetcommun.IdMessage, message);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
@@ -278,16 +235,18 @@ namespace App.Controllers.Tests
 
 
         [TestMethod]
-        public async Task BadRequestPostVoitureTest()
+        public async Task BadRequestPostMessageTest()
         {
-            var adresse = new AdresseDTO
+            MessageDTO message = new MessageDTO()
             {
-                Nom = null,
+                IdCompte = 1,
+                ContenuMessage = _objetcommun.ContenuMessage,
+                DateEnvoiMessage = DateTime.Now,
             };
 
-            _controller.ModelState.AddModelError("Nom", "Required");
+            _controller.ModelState.AddModelError("ContenuMessage", "Required");
 
-            var actionResult = await _controller.Post(adresse);
+            var actionResult = await _controller.Post(message);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }

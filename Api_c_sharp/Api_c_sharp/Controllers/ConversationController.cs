@@ -1,12 +1,12 @@
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers;
 
@@ -130,6 +130,24 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
 
         await _manager.DeleteAsync(entity);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Récupère la liste de toutes les conversationsen fonctions d'un compte.
+    /// </summary>
+    /// <returns>
+    /// Une liste de <see cref="Conversation"/> (200 OK).
+    /// </returns>
+    [ActionName("GetAll")]
+    [HttpGet("{idcompte}")]
+    public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetConversationsByCompteID(int idcompte)
+    {
+        var list = await _manager.GetConversationsByCompteID(idcompte);
+
+
+        if (list is null || !list.Any())
+            return NotFound();
+        return new ActionResult<IEnumerable<ConversationListDTO>>(_mapper.Map<IEnumerable<ConversationListDTO>>(list));
     }
 
 }

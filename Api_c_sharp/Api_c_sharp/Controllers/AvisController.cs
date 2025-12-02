@@ -1,12 +1,12 @@
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers;
 
@@ -132,7 +132,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper) : ControllerB
     }
 
     /// <summary>
-    /// Récupère des avis à partir de son type.
+    /// Récupère des avis à partir d'un compte.
     /// </summary>
     /// <param name="idtype">Identifiant unique du type recherchée.</param>
     /// <returns>

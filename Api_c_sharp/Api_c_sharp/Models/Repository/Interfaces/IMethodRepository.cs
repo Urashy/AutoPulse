@@ -1,4 +1,6 @@
-﻿namespace Api_c_sharp.Models.Repository.Interfaces
+﻿using Api_c_sharp.Models.Entity;
+
+namespace Api_c_sharp.Models.Repository.Interfaces
 {
     public interface IModeleRepository
     {
@@ -10,6 +12,7 @@
         Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId);
         Task<IEnumerable<Annonce>> GetFilteredAnnonces(int id, int idcarburant, int idmarque, int idmodele, int prixmin, int prixmax, int idtypevoiture, int idtypevendeur, string nom, int kmmin, int kmmax, string departement, int pageNumber, int pageSize);
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId);
+        Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId);
     }
 
     public interface ICompteRepository
@@ -43,7 +46,7 @@
         
     public interface ICommandeRepository
     {
-        Task<IEnumerable<Commande>> GetCommandeByCompteId(int compteId);
+        Task<IEnumerable<Commande>> GetCommandesByCompteId(int compteId);
     }
 
     public interface IImageRepository
@@ -68,5 +71,20 @@
     public interface IReinitialisationMotDePasse
     {
         Task<ReinitialisationMotDePasse> VerificationCode(string email, string code);
+    }
+
+    public interface IAdresseRepository
+    {
+        Task<IEnumerable<Adresse>> GetAdresseByCompteID(int compteId);
+    }
+
+    public interface ITypeCompteRepository
+    {
+        Task<IEnumerable<TypeCompte>> GetTypeComptesPourChercher();
+    }
+
+    public interface IConversationRepository
+    {
+        Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId);
     }
 }

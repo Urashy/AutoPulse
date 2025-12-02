@@ -7,6 +7,7 @@ using App.Controllers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
