@@ -198,6 +198,7 @@ namespace BlazorAutoPulse.ViewModel
                 IdCarburant = SelectedCarburant != "0" ? int.Parse(SelectedCarburant) : 0,
                 IdMarque = SelectedMarque != "0" ? int.Parse(SelectedMarque) : 0,
                 IdModele = !string.IsNullOrEmpty(SelectedModele) ? int.Parse(SelectedModele) : 0,
+                IdTypeVendeur = SelectedType != "0" ? int.Parse(SelectedType) : 0,
                 PrixMin = PrixMinValue,
                 PrixMax = PrixMaxValue < 200000 ? PrixMaxValue : 0,
                 IdTypeVoiture = SelectedCategorie != "0" ? int.Parse(SelectedCategorie) : 0,
@@ -301,6 +302,7 @@ namespace BlazorAutoPulse.ViewModel
             SelectedModele = "";
             SelectedCarburant = "0";
             SelectedCategorie = "0";
+            SelectedType = "0";
             PrixMinValue = 0;
             PrixMaxValue = 200000;
             KmMinValue = 0;
