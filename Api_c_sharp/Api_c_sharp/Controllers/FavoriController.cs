@@ -1,8 +1,9 @@
-﻿using AutoPulse.Shared.DTO;
+﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
-using Api_c_sharp.Models.Entity;
+using System.Collections.Generic;
 
 namespace Api_c_sharp.Controllers
 {
@@ -14,17 +15,8 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class FavoriController : ControllerBase
+    public class FavoriController(FavoriManager _manager, IMapper _mapper) : ControllerBase
     {
-        private readonly FavoriManager _manager;
-        private readonly IMapper _mapper;
-
-        public FavoriController(FavoriManager manager, IMapper mapper)
-        {
-            _manager = manager;
-            _mapper = mapper;
-        }
-
         /// <summary>
         /// Récupère tous les favoris.
         /// </summary>
@@ -90,6 +82,36 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
+        /// Met à jour un favori existant.
+        /// </summary>
+        /// <param name="id">Identifiant unique du favori à mettre à jour.</param>
+        /// <param name="dto">Objet <see cref="FavoriDTO"/> contenant les nouvelles valeurs.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+        /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune commande ne correspond (404).</description></item>
+        /// </list>
+        /// </returns>
+        [ActionName("Put")]
+        [HttpPut("{id}")]
+        public async Task<ActionResult> Put(int idcompte,int idannonce, [FromBody] FavoriDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var toUpdate = await _manager.GetByIdAsync(idcompte, idannonce);
+
+            if (toUpdate == null)
+                return NotFound();
+
+            var updatedEntity = _mapper.Map<Favori>(dto);
+            await _manager.UpdateAsync(toUpdate, updatedEntity);
+
+            return NoContent();
+        }
+
+        /// <summary>
         /// Supprime un favori.
         /// </summary>
         /// <param name="idCompte">Identifiant unique du compte.</param>
@@ -125,9 +147,31 @@ namespace Api_c_sharp.Controllers
         [HttpGet]
         public async Task<ActionResult<bool>> IsFavorite([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
-            var result = await _manager.GetByIdAsync(idCompte, idAnnonce);
-            return Ok(result != null);
+           var result = await _manager.ExistsAsync(idCompte, idAnnonce);
+           return Ok(result);
         }
+
+        /// <summary>
+        /// Vérifie si une annonce est en favori pour un compte.
+        /// </summary>
+        /// <param name="idCompte">Identifiant unique du compte.</param>
+        /// <param name="idAnnonce">Identifiant unique de l'annonce.</param>
+        /// <returns>
+        /// <see cref="bool"/> indiquant si l'annonce est en favori (200 OK).
+        /// </returns>
+        [ActionName("GetByIDS")]
+        [HttpGet]
+        public async Task<ActionResult<FavoriDTO>> GetByIDS([FromQuery] int idCompte, [FromQuery] int idAnnonce)
+        {
+            var result = await _manager.GetByIdAsync(idCompte, idAnnonce);
+
+
+            if (result == null)
+                return NotFound();
+
+            return _mapper.Map<FavoriDTO>(result);
+        }
+
 
 
         /// <summary>
