@@ -89,8 +89,9 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-        
-        var resetToken = Guid.NewGuid().ToString();
+
+        Random rand = new Random();
+        var resetToken = rand.Next(0, 9999999).ToString();
         var expiration = DateTime.UtcNow.AddMinutes(15);
 
         ReinitialisationMotDePasse reinitMdp = new ReinitialisationMotDePasse()

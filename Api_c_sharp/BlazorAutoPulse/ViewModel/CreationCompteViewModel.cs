@@ -43,36 +43,70 @@ public class CreationCompteViewModel
 
     public async Task CreateCompteAsync()
     {
-        memeMotDePasse = true;
-        
-        compte.IdTypeCompte = (pro) ? 1 : 2;
+        // Reset message d'erreur
+        messageErreur = null;
+
+        // Validation côté client
+        if (string.IsNullOrWhiteSpace(compte.Pseudo))
+        {
+            messageErreur = "Le pseudo est requis";
+            _refreshUI?.Invoke();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(compte.Email))
+        {
+            messageErreur = "L'email est requis";
+            _refreshUI?.Invoke();
+            return;
+        }
+
+        if (compte.MotDePasse != motDePasse)
+        {
+            messageErreur = "Les mots de passe ne correspondent pas";
+            memeMotDePasse = false;
+            _refreshUI?.Invoke();
+            return;
+        }
+
         try
         {
-            if (compte.MotDePasse != motDePasse)
+            // ✅ Utiliser la nouvelle méthode avec gestion d'erreur
+            var result = await _compteService.PostWithErrorHandlingAsync(compte);
+
+            if (result.Success)
             {
-                memeMotDePasse = false;
-                messageErreur = "MotDePasse différent";
+                // Succès - afficher popup et rediriger
+                showPopUp = true;
+                _refreshUI?.Invoke();
+                
+                await Task.Delay(3000);
+                _nav?.NavigateTo("/connexion");
             }
-            
-            _refreshUI?.Invoke();
-            if (!memeMotDePasse)
+            else
             {
-                return;
-            }
-            
-            var createdCompte = await _compteService.CreateAsync(compte);
-            showPopUp = true;
-            while (seconds > 0)
-            {
-                await Task.Delay(1000);
-                seconds--;
+                // ✅ Afficher l'erreur retournée par le backend
+                messageErreur = result.ErrorMessage;
+                
+                // Log pour debug
+                Console.WriteLine($"Erreur création compte: {result.ErrorMessage}");
+                
+                if (result.ValidationErrors != null)
+                {
+                    foreach (var error in result.ValidationErrors)
+                    {
+                        Console.WriteLine($"  {error.Key}: {string.Join(", ", error.Value)}");
+                    }
+                }
+                
                 _refreshUI?.Invoke();
             }
-            _nav.NavigateTo("/connexion");
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
-            Console.WriteLine("Erreur lors de la création : " + ex.Message);
+            messageErreur = "Une erreur inattendue s'est produite lors de la création du compte";
+            Console.WriteLine($"Exception CreateCompteAsync: {ex.Message}");
+            _refreshUI?.Invoke();
         }
     }
     

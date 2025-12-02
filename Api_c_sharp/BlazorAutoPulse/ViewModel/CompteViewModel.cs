@@ -184,107 +184,117 @@ namespace BlazorAutoPulse.ViewModel
         public void ClosePasswordModal()
         {
             showPasswordModal = false;
-            currentPassword = "";
-            newPassword = "";
-            confirmNewPassword = "";
-            passwordError = "";
-            passwordSuccess = "";
-            _refreshUI?.Invoke();
-        }
-
-        public async Task ChangePassword()
-        {
-            passwordError = "";
-            passwordSuccess = "";
+            passwordError = null;
+            passwordSuccess = null;
+            currentPassword = null;
+            newPassword = null;
+            confirmNewPassword = null;
             currentPasswordValid = true;
             newPasswordValid = true;
-
-            if (string.IsNullOrWhiteSpace(currentPassword))
-            {
-                passwordError = "Veuillez entrer votre mot de passe actuel.";
-                currentPasswordValid = false;
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(newPassword))
-            {
-                passwordError = "Veuillez entrer un nouveau mot de passe.";
-                newPasswordValid = false;
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(confirmNewPassword))
-            {
-                passwordError = "Veuillez confirmer votre nouveau mot de passe.";
-                newPasswordValid = false;
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            if (newPassword != confirmNewPassword)
-            {
-                passwordError = "Les nouveaux mots de passe ne correspondent pas.";
-                newPasswordValid = false;
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            if (newPassword.Length < 8)
-            {
-                passwordError = "Le nouveau mot de passe doit contenir au moins 8 caractères.";
-                newPasswordValid = false;
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            isChangingPassword = true;
             _refreshUI?.Invoke();
+        } 
+        
+    public async Task ChangePassword()
+    {
+        // Reset des messages
+        passwordError = null;
+        passwordSuccess = null;
+        currentPasswordValid = true;
+        newPasswordValid = true;
+        
+        // Validation côté client basique
+        if (string.IsNullOrWhiteSpace(currentPassword))
+        {
+            passwordError = "Le mot de passe actuel est requis";
+            currentPasswordValid = false;
+            return;
+        }
 
-            try
+        if (string.IsNullOrWhiteSpace(newPassword))
+        {
+            passwordError = "Le nouveau mot de passe est requis";
+            newPasswordValid = false;
+            return;
+        }
+
+        if (newPassword != confirmNewPassword)
+        {
+            passwordError = "Les mots de passe ne correspondent pas";
+            newPasswordValid = false;
+            return;
+        }
+
+        isChangingPassword = true;
+        _refreshUI?.Invoke();
+
+        try
+        {
+            // 1. Vérifier le mot de passe actuel
+            var verifResult = await _compteService.VerifUser(new ChangementMdp
             {
-                ChangementMdp verif = new ChangementMdp
-                {
-                    Email = compte.Email,
-                    MotDePasse = newPassword
-                };
-                bool mdpCorrect = await _compteService.VerifUser(verif);
+                Email = compte.Email,
+                MotDePasse = currentPassword
+            });
 
-                if (!mdpCorrect)
-                {
-                    passwordError = "Le mot de passe actuel est incorrect.";
-                    currentPasswordValid = false;
-                    isChangingPassword = false;
-                    _refreshUI?.Invoke();
-                    return;
-                }
+            if (!verifResult)
+            {
+                passwordError = "Le mot de passe actuel est incorrect";
+                currentPasswordValid = false;
+                return;
+            }
 
-                ChangementMdp nouveauMdp = new ChangementMdp
-                {
-                    IdCompte = compte.IdCompte,
-                    MotDePasse = newPassword
-                };
+            // 2. Changer le mot de passe
+            var changementMdp = new ChangementMdp
+            {
+                IdCompte = compte.IdCompte,
+                Email = compte.Email,
+                MotDePasse = newPassword
+            };
 
-                _compteService.ChangementMdp(nouveauMdp);
+            var result = await _compteService.ChangementMdp(changementMdp);
 
-                passwordSuccess = "Mot de passe modifié avec succès !";
-                currentPasswordValid = true;
-                _refreshUI?.Invoke();
+            if (result.Success)
+            {
+                passwordSuccess = "Mot de passe modifié avec succès";
+                
+                // Reset des champs
+                currentPassword = null;
+                newPassword = null;
+                confirmNewPassword = null;
 
-                await Task.Delay(1000);
+                // Fermer le modal après 2 secondes
+                await Task.Delay(2000);
                 ClosePasswordModal();
             }
-            catch (Exception ex)
+            else
             {
-                passwordError = "Une erreur est survenue lors du changement du mot de passe.";
-                currentPasswordValid = false;
-                isChangingPassword = false;
-                _refreshUI?.Invoke();
-
-                Console.WriteLine($"Erreur lors du changement de mot de passe: {ex.Message}");
+                // ✅ Afficher l'erreur retournée par le backend
+                passwordError = result.ErrorMessage;
+                newPasswordValid = false;
+                
+                // Log pour debug
+                Console.WriteLine($"Erreur de changement de mot de passe: {result.ErrorMessage}");
+                
+                if (result.ValidationErrors != null)
+                {
+                    foreach (var error in result.ValidationErrors)
+                    {
+                        Console.WriteLine($"  {error.Key}: {string.Join(", ", error.Value)}");
+                    }
+                }
             }
         }
+        catch (Exception ex)
+        {
+            passwordError = "Une erreur inattendue s'est produite";
+            Console.WriteLine($"Exception ChangePassword: {ex.Message}");
+        }
+        finally
+        {
+            isChangingPassword = false;
+            _refreshUI?.Invoke();
+        }
+    }
 
         public void OpenSuppressionModal()
         {

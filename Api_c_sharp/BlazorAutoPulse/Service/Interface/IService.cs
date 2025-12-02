@@ -7,4 +7,5 @@ public interface IService<T> where T : class
     Task<T> CreateAsync(T entity);
     Task UpdateAsync(int id, T entity);
     Task DeleteAsync(int id);
+    public Task<ServiceResult<T>> PostWithErrorHandlingAsync(T entity, string action = "Post");
 }
