@@ -141,9 +141,9 @@ public class AvisController(AvisManager _manager, IMapper _mapper) : ControllerB
     /// <item><description><see cref="NotFoundResult"/> si aucun avis ne correspond (404).</description></item>
     /// </list>
     /// </returns>
-    [ActionName("GetAllByType")]
+    [ActionName("GetAvisByCompteID")]
     [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<AvisListDTO>>> GetAllByType(int idcompte)
+    public async Task<ActionResult<IEnumerable<AvisListDTO>>> GetAvisByCompteID(int idcompte)
     {
         var result = await _manager.GetAvisByCompteId(idcompte);
 

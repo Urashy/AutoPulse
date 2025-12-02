@@ -1,23 +1,27 @@
-﻿using AutoPulse.Shared.DTO;
-using Api_c_sharp.Mapper;
+﻿using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using App.Controllers;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace App.Controllers.Tests
 {
     [TestClass]
-    public class CommandeControllerTests
+    public class SignalementControllerTests
     {
-        private CommandeController _controller;
+        private SignalementController _controller;
         private AutoPulseBdContext _context;
-        private CommandeManager _manager;
+        private SignalementManager _manager;
         private IMapper _mapper;
-        private Commande _commandeCommun;
+        private Signalement _signalementCommun;
 
         [TestInitialize]
         public async Task Initialize()
@@ -35,11 +39,11 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
-            _manager = new CommandeManager(_context);
-            _controller = new CommandeController(_manager, _mapper);
+            _manager = new SignalementManager(_context);
+            _controller = new SignalementController(_manager, _mapper);
 
             // Reset DB
-            _context.Commandes.RemoveRange(_context.Commandes);
+            _context.Signalements.RemoveRange(_context.Signalements);
             await _context.SaveChangesAsync();
 
 
@@ -47,72 +51,67 @@ namespace App.Controllers.Tests
 
             // ----- ENTITÉS -----
 
-            var tyepeCompte = new TypeCompte()
+            var etat = new EtatSignalement()
             {
-                IdTypeCompte = 1,
-                Libelle = "Standard"
-            };
-            await _context.TypesCompte.AddAsync(tyepeCompte);
-
-
-            var annonce = new Annonce()
-            {
-                IdAnnonce = 1,
-                Libelle = "Super produit",
-                IdCompte = 1
+                IdEtatSignalement = 1,
+                LibelleEtatSignalement = "Ouvert"
             };
 
-            var vendeur = new Compte
+            var type = new TypeSignalement()
+            {
+                IdTypeSignalement = 1,
+                LibelleTypeSignalement = "Spam"
+            };
+
+            var compteSignalant = new Compte()
             {
                 IdCompte = 1,
-                Pseudo = "john",
-                MotDePasse = "hashedpassword",
+                Pseudo = "alice",
+                MotDePasse = "pw",
                 Nom = "Doe",
-                Prenom = "John",
-                Email = "john@doe.com",
+                Prenom = "Alice",
+                Email = "alice@test.com",
                 DateCreation = DateTime.UtcNow,
                 DateDerniereConnexion = DateTime.UtcNow,
                 DateNaissance = new DateTime(1990, 1, 1),
                 IdTypeCompte = 1
             };
-            await _context.Comptes.AddAsync(vendeur);
 
-            var acheteur = new Compte
+            var compteSignale = new Compte()
             {
                 IdCompte = 2,
-                Pseudo = "johny",
-                MotDePasse = "hashedpassword",
-                Nom = "Doe",
-                Prenom = "John",
-                Email = "johny@doe.com",
+                Pseudo = "bob",
+                MotDePasse = "pw",
+                Nom = "Smith",
+                Prenom = "Bob",
+                Email = "bob@test.com",
                 DateCreation = DateTime.UtcNow,
                 DateDerniereConnexion = DateTime.UtcNow,
                 DateNaissance = new DateTime(1990, 1, 1),
                 IdTypeCompte = 1
             };
-            await _context.Comptes.AddAsync(acheteur);
-            var moyenPaiement = new MoyenPaiement()
+
+            await _context.EtatSignalements.AddAsync(etat);
+            await _context.TypesSignalement.AddAsync(type);
+            await _context.Comptes.AddAsync(compteSignalant);
+            await _context.Comptes.AddAsync(compteSignale);
+
+            // --------------------------
+            // Signalement commun
+            // --------------------------
+
+            _signalementCommun = new Signalement()
             {
-                IdMoyenPaiement = 1,
-                TypePaiement = "Carte"
+                IdSignalement = 1,
+                DescriptionSignalement = "Comportement suspect",
+                IdCompteSignalant = 1,
+                IdCompteSignale = 2,
+                IdEtatSignalement = 1,
+                IdTypeSignalement = 1,
+                DateCreationSignalement = DateTime.UtcNow
             };
 
-            await _context.Annonces.AddAsync(annonce);
-            await _context.MoyensPaiements.AddAsync(moyenPaiement);
-
-            _commandeCommun = new Commande()
-            {
-                IdCommande = 1,
-                IdAnnonce = 1,
-                IdAcheteur = 50,
-                IdVendeur = 11,
-                IdMoyenPaiement = 1,
-                CommandeAnnonceNav = annonce,
-                CommandeMoyenPaiementNav = moyenPaiement,
-                Date = DateTime.UtcNow
-            };
-
-            await _context.Commandes.AddAsync(_commandeCommun);
+            await _context.Signalements.AddAsync(_signalementCommun);
             await _context.SaveChangesAsync();
         }
 
@@ -122,16 +121,16 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task GetByIdTest()
         {
-            // Given : Une commande existante
-            var id = _commandeCommun.IdCommande;
+            // Given : Une Signalement existante
+            var id = _signalementCommun.IdSignalement;
 
             // When : On appelle GetById
             var result = await _controller.GetByID(id);
 
             // Then : Le résultat doit être un DTO valide
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(CommandeDetailDTO));
-            Assert.AreEqual(id, result.Value.IdCommande);
+            Assert.IsInstanceOfType(result.Value, typeof(SignalementDTO));
+            Assert.AreEqual(id, result.Value.IdSignalement);
         }
 
         [TestMethod]
@@ -153,7 +152,7 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task GetAllTest()
         {
-            // Given : Une base contenant au moins une commande
+            // Given : Une base contenant au moins une signalement
 
             // When : On appelle GetAll
             var result = await _controller.GetAll();
@@ -167,31 +166,29 @@ namespace App.Controllers.Tests
         // POST
         // -------------------------------------------------------------
         [TestMethod]
-        public async Task PostCommandeTest()
+        public async Task PostSignalementTest()
         {
             // Given : Un DTO valide
-            CommandeCreateDTO commandeCreateDTO = new CommandeCreateDTO
+            SignalementCreateDTO signalementCreateDTO = new SignalementCreateDTO
             {
-                IdCommande = 2,
-                IdVendeur = _commandeCommun.IdVendeur,
-                IdAcheteur = _commandeCommun.IdAcheteur,
-                IdAnnonce = _commandeCommun.IdAnnonce,
-                IdMoyenPaiement = _commandeCommun.IdMoyenPaiement,
-                Date = DateTime.UtcNow
+                DescriptionSignalement = "Il a fait un truc pas bien",
+                IdCompteSignale = _signalementCommun.IdCompteSignale,
+                IdCompteSignalant = _signalementCommun.IdCompteSignalant,
+                IdTypeSignalement = _signalementCommun.IdTypeSignalement
             };
 
             // When : On appelle Post
-            var result = await _controller.Post(commandeCreateDTO);
+            var result = await _controller.Post(signalementCreateDTO);
 
-            // Then : La commande doit être créée (201)
+            // Then : La signalement doit être créée (201)
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
         }
 
         [TestMethod]
-        public async Task BadRequestPostCommandeTest()
+        public async Task BadRequestPostSignalementTest()
         {
-            CommandeCreateDTO dto = new CommandeCreateDTO();
-    
+            SignalementCreateDTO dto = new SignalementCreateDTO();
+
             _controller.ModelState.AddModelError("Erreur", "Required");
 
             // When : On appelle Post
@@ -205,21 +202,20 @@ namespace App.Controllers.Tests
         // PUT
         // -------------------------------------------------------------
         [TestMethod]
-        public async Task PutCommandeTest()
+        public async Task PutSignalementTest()
         {
             // Given : Un DTO valide avec un ID correspondant
-            CommandeCreateDTO dto = new CommandeCreateDTO
+            SignalementCreateDTO dto = new SignalementCreateDTO
             {
-                IdCommande = _commandeCommun.IdCommande,
-                IdVendeur = _commandeCommun.IdVendeur,
-                IdAcheteur = _commandeCommun.IdAcheteur,
-                IdAnnonce = _commandeCommun.IdAnnonce,
-                IdMoyenPaiement = _commandeCommun.IdMoyenPaiement,
-                Date = DateTime.UtcNow
+                IdSignalement = _signalementCommun.IdSignalement,
+                DescriptionSignalement = "Il a fait un truc pas bien",
+                IdCompteSignale = _signalementCommun.IdCompteSignale,
+                IdCompteSignalant = _signalementCommun.IdCompteSignalant,
+                IdTypeSignalement = _signalementCommun.IdTypeSignalement
             };
 
             // When : On appelle Put
-            var result = await _controller.Put(_commandeCommun.IdCommande, dto);
+            var result = await _controller.Put(_signalementCommun.IdSignalement, dto);
 
             // Then : La mise à jour doit renvoyer 204
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
@@ -229,7 +225,7 @@ namespace App.Controllers.Tests
         public async Task PutBadRequestTest()
         {
             // Given : un DTO dont la validation doit échouer
-            var dto = new CommandeCreateDTO { IdCommande = 999 };
+            var dto = new SignalementCreateDTO { IdSignalement = 999 };
 
             // On force une erreur de validation pour déclencher BadRequest()
             _controller.ModelState.AddModelError("Test", "Invalid Model");
@@ -245,8 +241,8 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task PutNotFoundTest()
         {
-            // Given : Une commande inexistante
-            var dto = new CommandeCreateDTO() { IdCommande = 10 };
+            // Given : Une signalement inexistante
+            var dto = new SignalementCreateDTO() { IdSignalement = 10 };
 
             // When : On appelle Put
             var result = await _controller.Put(10, dto);
@@ -259,21 +255,21 @@ namespace App.Controllers.Tests
         // DELETE
         // -------------------------------------------------------------
         [TestMethod]
-        public async Task DeleteCommandeTest()
+        public async Task DeleteSignalementTest()
         {
-            // Given : Une commande existante
-            var id = _commandeCommun.IdCommande;
+            // Given : Une signalement existante
+            var id = _signalementCommun.IdSignalement;
 
             // When : On appelle Delete
             var result = await _controller.Delete(id);
 
-            // Then : La commande doit être supprimée
+            // Then : La signalement doit être supprimée
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             Assert.IsNull(await _manager.GetByIdAsync(id));
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteCommandeTest()
+        public async Task NotFoundDeleteSignalementTest()
         {
             // Given : Un ID inexistant
             var id = 0;
@@ -291,13 +287,13 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task GetAllByTypeTest()
         {
-            // Given : Un acheteur ayant une commande
-            var idAcheteur = _commandeCommun.IdAcheteur;
+            // Given : Un acheteur ayant une signalement
+            var idEtat = _signalementCommun.IdEtatSignalement;
 
             // When : On appelle GetAllByType
-            var result = await _controller.GetCommandeByCompteID(idAcheteur);
+            var result = await _controller.GetAllByEtatSignalement(idEtat);
 
-            // Then : La liste doit contenir des commandes
+            // Then : La liste doit contenir des signalements
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
         }

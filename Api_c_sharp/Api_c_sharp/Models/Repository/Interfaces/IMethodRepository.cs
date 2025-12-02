@@ -2,7 +2,6 @@
 {
     public interface IModeleRepository
     {
-        //methode filtre par marque
         Task<IEnumerable<Modele>> GetModelesByMarqueIdAsync(int marqueId);
     }
 

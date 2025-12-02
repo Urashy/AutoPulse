@@ -24,10 +24,10 @@ namespace BlazorAutoPulse.ViewModel
         {
             try
             {
+                AnnoncesFavoris.Clear();
                 var me = await _compteService.GetMe();
                 Favoris = await _favorisService.GetMesFavoris(me.IdCompte);
 
-                // Charger toutes les annonces en une seule fois
                 var annonceIds = Favoris.Select(f => f.IdAnnonce).ToList();
 
                 foreach (var id in annonceIds)
@@ -51,7 +51,6 @@ namespace BlazorAutoPulse.ViewModel
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur InitializeAsync: {ex.Message}");
-                // Rediriger vers connexion si non authentifié
                 nav.NavigateTo("/connexion");
             }
         }
