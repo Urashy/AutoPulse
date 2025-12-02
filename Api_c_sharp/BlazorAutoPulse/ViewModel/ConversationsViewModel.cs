@@ -26,7 +26,7 @@ public class ConversationsViewModel
     public ElementReference MessagesContainer;
     private System.Threading.Timer? _typingTimer;
 
-    public event Action? OnRefresh;
+    public event Action? _refreshUI;
 
     public ConversationsViewModel(
         ISignalRService signalR,
@@ -67,7 +67,7 @@ public class ConversationsViewModel
         finally
         {
             IsLoading = false;
-            OnRefresh?.Invoke();
+            _refreshUI?.Invoke();
         }
     }
 
@@ -85,7 +85,7 @@ public class ConversationsViewModel
 
         await _signalR.MarkAsRead(conv.IdConversation, CurrentUserId);
 
-        OnRefresh?.Invoke();
+        _refreshUI?.Invoke();
     }
 
     // -------------------------------------------------
@@ -110,7 +110,7 @@ public class ConversationsViewModel
         });
 
         NewMessage = "";
-        OnRefresh?.Invoke();
+        _refreshUI?.Invoke();
     }
 
     // -------------------------------------------------
@@ -129,7 +129,7 @@ public class ConversationsViewModel
             DateEnvoiMessage = date
         });
 
-        OnRefresh?.Invoke();
+        _refreshUI?.Invoke();
     }
 
     private void HandleUserTyping(int conversationId, int userId, string userName)
@@ -138,12 +138,12 @@ public class ConversationsViewModel
             return;
 
         IsTyping = true;
-        OnRefresh?.Invoke();
+        _refreshUI?.Invoke();
 
         Task.Delay(3000).ContinueWith(_ =>
         {
             IsTyping = false;
-            OnRefresh?.Invoke();
+            _refreshUI?.Invoke();
         });
     }
 
