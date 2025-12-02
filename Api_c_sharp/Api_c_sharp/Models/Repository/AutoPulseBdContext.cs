@@ -18,6 +18,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<APourConversation> APourConversations { get; set; }
         public DbSet<APourCouleur> APourCouleurs { get; set; }
         public DbSet<Avis> Avis { get; set; }
+        public DbSet<Bloque> Bloques { get; set; }
         public DbSet<BoiteDeVitesse> BoitesDeVitesses { get; set; }
         public DbSet<Carburant> Carburants { get; set; }
         public DbSet<Categorie> Categories { get; set; }
@@ -46,13 +47,6 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Voiture> Voitures { get; set; }
         public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseNpgsql("Server=localhost;port=5432;Database=SAEAutoPulse;uid=postgres;password=postgres;");
-            }
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -147,6 +141,10 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(a => a.CommandeAvisNav)
                 .WithMany(c => c.AvisListe)
                 .HasForeignKey(a => a.IdCommande);
+
+            //-----------------------------Bloque-----------------------------
+            modelBuilder.Entity<Bloque>()
+                .HasKey(e => new { e.IdBloque, e.IdBloquant });
 
             //-----------------------------BoiteDeVitesse-----------------------------
             modelBuilder.Entity<BoiteDeVitesse>()

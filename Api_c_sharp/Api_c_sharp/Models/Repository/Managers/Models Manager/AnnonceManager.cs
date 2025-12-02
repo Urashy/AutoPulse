@@ -1,9 +1,11 @@
 ﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
+using AutoPulse.Shared.DTO;
 using FuzzySharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Api_c_sharp.Models.Repository.Managers
 {
@@ -62,66 +64,72 @@ namespace Api_c_sharp.Models.Repository.Managers
                 .ToListAsync();
         }
 
-
-        public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(int id, int idcarburant, int idmarque, int idmodele, int prixmin, int prixmax, int idtypevoiture, int idtypevendeur, string nom, int kmmin, int kmmax, string departement, int pageNumber, int pageSize)
+        public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderprix)
         {
             var query = ApplyIncludes();
 
             // Filtre par département
-            if (!string.IsNullOrEmpty(departement))
-                query = query.Where(a => a.AdresseAnnonceNav.CodePostal == departement);
+            if (!string.IsNullOrEmpty(param.Departement))
+                query = query.Where(a => a.AdresseAnnonceNav.CodePostal == param.Departement);
 
             // Filtre par carburant
-            if (idcarburant > 0)
-                query = query.Where(a => a.VoitureAnnonceNav.IdCarburant == idcarburant);
+            if (param.IdCarburant > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.IdCarburant == param.IdCarburant);
 
             // Filtre par marque
-            if (idmarque > 0)
-                query = query.Where(a => a.VoitureAnnonceNav.IdMarque == idmarque);
+            if (param.IdMarque > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.IdMarque == param.IdMarque);
 
             // Filtre par modèle
-            if (idmodele > 0)
-                query = query.Where(a => a.VoitureAnnonceNav.IdModele == idmodele);
+            if (param.IdModele > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.IdModele == param.IdModele);
 
             // Filtre par prix
-            if (prixmin > 0)
-                query = query.Where(a => a.Prix >= prixmin);
-            if (prixmax > 0)
-                query = query.Where(a => a.Prix <= prixmax);
+            if (param.PrixMin > 0)
+                query = query.Where(a => a.Prix >= param.PrixMin);
+            if (param.PrixMax > 0)
+                query = query.Where(a => a.Prix <= param.PrixMax);
 
             // Filtre par type de voiture
-            if (idtypevoiture > 0)
-                query = query.Where(a => a.VoitureAnnonceNav.IdCategorie == idtypevoiture);
+            if (param.IdTypeVoiture > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.IdCategorie == param.IdTypeVoiture);
 
             // Filtre par type de vendeur
-            if (idtypevendeur > 0)
-                query = query.Where(a => a.CompteAnnonceNav.IdTypeCompte == idtypevendeur);
+            if (param.IdTypeVendeur > 0)
+                query = query.Where(a => a.CompteAnnonceNav.IdTypeCompte == param.IdTypeVendeur);
 
             // Filtre par nom
-            if (!string.IsNullOrEmpty(nom))
+            if (!string.IsNullOrEmpty(param.Nom))
             {
-                query = query.Where(a => Fuzz.PartialRatio(a.Libelle.ToLower(), nom.ToLower()) > 70);
+                query = query.Where(a => Fuzz.PartialRatio(a.Libelle.ToLower(), param.Nom.ToLower()) > 70);
             }
 
-            if (kmmin > 0)
-                query = query.Where(a => a.VoitureAnnonceNav.Kilometrage >= kmmin);
-            if (kmmax > 0)
-                query = query.Where(a => a.VoitureAnnonceNav.Kilometrage <= kmmax);
+            if (param.KmMin > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.Kilometrage >= param.KmMin);
+            if (param.KmMax > 0)
+                query = query.Where(a => a.VoitureAnnonceNav.Kilometrage <= param.KmMax);
 
-            // Ajout du tri par défaut avant pagination
-            query = query
-                .OrderByDescending(a => a.IdMiseEnAvant)
-                .ThenByDescending(a => a.DatePublication);
+            // Tri avec priorité : Mise en avant > Prix > Date
+            IOrderedQueryable<Annonce> orderedQuery = query.OrderByDescending(a => a.IdMiseEnAvant);
+
+            // Tri par prix selon le paramètre orderprix
+            if (orderprix == 1) // Croissant
+                orderedQuery = orderedQuery.ThenBy(a => a.Prix);
+            else if (orderprix == 2) // Décroissant
+                orderedQuery = orderedQuery.ThenByDescending(a => a.Prix);
+
+            // Tri final par date de publication
+            orderedQuery = orderedQuery.ThenByDescending(a => a.DatePublication);
 
             // Logique de pagination
             if (pageNumber > 0 && pageSize > 0)
             {
-                query = query
+                orderedQuery = (IOrderedQueryable<Annonce>)orderedQuery
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize);
             }
 
-            return await query.ToListAsync();
+            return await orderedQuery.ToListAsync();
         }
 
         public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
