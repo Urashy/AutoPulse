@@ -18,6 +18,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using Api_c_sharp.Models.Entity;
 using Microsoft.Extensions.Configuration;
 using Api_c_sharp.Models.Authentification;
+using Api_c_sharp.Models.Repository.Interfaces;
 
 namespace App.Controllers.Tests
 {
@@ -29,6 +30,7 @@ namespace App.Controllers.Tests
         private CompteManager _manager;
         private IMapper _mapper;
         private Compte _objetcommun;
+        private IJournalService _journalService;
         IConfiguration config = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .Build();
@@ -49,7 +51,7 @@ namespace App.Controllers.Tests
             _mapper = mapperconfig.CreateMapper();
 
             _manager = new CompteManager(_context);
-            _controller = new CompteController(_manager, _mapper, config);
+            _controller = new CompteController(_manager, _mapper, config, _journalService);
 
             _context.Comptes.RemoveRange(_context.Comptes);
             await _context.SaveChangesAsync();
@@ -66,6 +68,21 @@ namespace App.Controllers.Tests
                 IdTypeCompte = 1,
                 Libelle = "Standard"
             };
+            _context.TypesJournal.AddRange(
+            new TypeJournal { IdTypeJournaux = 1, LibelleTypeJournaux = "Connexion" },
+            new TypeJournal { IdTypeJournaux = 2, LibelleTypeJournaux = "Déconnexion" },
+            new TypeJournal { IdTypeJournaux = 3, LibelleTypeJournaux = "Création de compte" },
+            new TypeJournal { IdTypeJournaux = 4, LibelleTypeJournaux = "Modification de profil" },
+            new TypeJournal { IdTypeJournaux = 5, LibelleTypeJournaux = "Publication d'annonce" },
+            new TypeJournal { IdTypeJournaux = 6, LibelleTypeJournaux = "Modification d'annonce" },
+            new TypeJournal { IdTypeJournaux = 7, LibelleTypeJournaux = "Suppression d'annonce" },
+            new TypeJournal { IdTypeJournaux = 8, LibelleTypeJournaux = "Achat" },
+            new TypeJournal { IdTypeJournaux = 9, LibelleTypeJournaux = "Signalement" },
+            new TypeJournal { IdTypeJournaux = 10, LibelleTypeJournaux = "Dépôt avis" },
+            new TypeJournal { IdTypeJournaux = 11, LibelleTypeJournaux = "Mise en favoris" },
+            new TypeJournal { IdTypeJournaux = 12, LibelleTypeJournaux = "Envoyer un message/offre" },
+            new TypeJournal { IdTypeJournaux = 13, LibelleTypeJournaux = "Génération de facture" },
+            new TypeJournal { IdTypeJournaux = 14, LibelleTypeJournaux = "Utilisateur bloque un autre utilisateur" });
 
             TypeSignalement typeSignalement = new TypeSignalement
             {
