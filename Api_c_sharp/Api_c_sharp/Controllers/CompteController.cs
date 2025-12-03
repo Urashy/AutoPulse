@@ -16,6 +16,7 @@ using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
 using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
 using Api_c_sharp.Models.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace App.Controllers;
 
@@ -258,6 +259,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
         return new ActionResult<IEnumerable<CompteGetDTO>>(_compteMapper.Map<IEnumerable<CompteGetDTO>>(result));
     }
+
+
 #endregion
 
 #region Authentification Classique
@@ -303,7 +306,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return Ok(new { 
                 message = "Login OK",
                 userId = compte.IdCompte,
-                pseudo = compte.Pseudo
+                pseudo = compte.Pseudo,
+                role = compte.IdTypeCompte
             });
         }
         catch (Exception ex)
@@ -563,6 +567,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             new Claim("role", "Authorized"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("idUser", compte.IdCompte.ToString()),
+
         };
         
         var token = new JwtSecurityToken(

@@ -14,5 +14,14 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
             return await dbSet.Where(tc => tc.Cherchable == true).ToListAsync();
         }
+        public async Task<int> GetTypeCompteByIdCompte(int idCompte)
+        {
+            var compte = await dbSet
+                .Where(c => c.IdCompte == idCompte)
+                .Select(c => c.IdTypeCompte)
+                .FirstOrDefaultAsync();
+
+            return compte;
+        }
     }
 }
