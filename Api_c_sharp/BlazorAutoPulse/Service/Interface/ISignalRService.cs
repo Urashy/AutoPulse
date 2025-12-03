@@ -1,20 +1,19 @@
-namespace BlazorAutoPulse.Service.Interface;
-public interface ISignalRService : IAsyncDisposable
+using Microsoft.AspNetCore.SignalR.Client;
+
+namespace BlazorAutoPulse.Service.WebService;
+
+public interface ISignalRService
 {
-    event Action<int, int, string, DateTime>? OnMessageReceived;
-    event Action<string>? OnNotificationReceived;
-    event Action<int, int, string>? OnUserTyping;
-    event Action<int, int>? OnMessagesRead;
-
-    bool IsConnected { get; }
-
     Task StartAsync();
     Task StopAsync();
-
     Task JoinConversation(int conversationId);
     Task LeaveConversation(int conversationId);
-
     Task SendMessage(int conversationId, int senderId, string message);
     Task NotifyTyping(int conversationId, int userId, string userName);
     Task MarkAsRead(int conversationId, int userId);
+    
+    // Événements pour notifier le ViewModel
+    event Action<int, int, string, DateTime>? OnMessageReceived;
+    event Action<int, int, string>? OnUserTyping;
+    event Action<int, int>? OnMessagesRead;
 }

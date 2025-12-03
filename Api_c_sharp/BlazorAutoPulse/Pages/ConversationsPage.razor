@@ -28,7 +28,6 @@
                     <div class="conversation-info">
                         <h4>@conv.IdAnnonce</h4>
                         <p class="last-message">Dernier message...</p>
-                        @*<span class="time">@conv.DateDernierMessage.ToString("HH:mm")</span>*@
                     </div>
                 </div>
             }
@@ -55,7 +54,7 @@
                     <div class="message @(msg.IdCompte == VM.CurrentUserId ? "sent" : "received")">
                         <div class="message-bubble">
                             <p>@msg.ContenuMessage</p>
-                            <span class="message-time">@msg.DateEnvoiMessage.ToString("HH:mm")</span>
+                            <span class="message-time">@msg.DateEnvoiMessage.ToLocalTime().ToString("HH:mm")</span>
                         </div>
                     </div>
                 }
