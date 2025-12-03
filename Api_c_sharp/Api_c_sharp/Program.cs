@@ -106,7 +106,8 @@ builder.Services.AddCors(options =>
             .WithOrigins("http://localhost:5296")
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials());
+            .AllowCredentials()
+            .SetIsOriginAllowed(_ => true));
 });
 
 builder.Services.AddSignalR();
@@ -123,6 +124,7 @@ app.UseHttpsRedirection();
 
 app.MapHub<MessageHub>("/messagehub");
 
+app.UseRouting();
 app.UseCors("AllowBlazor");
 app.UseAuthentication();
 app.UseAuthorization();

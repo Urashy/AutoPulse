@@ -18,7 +18,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) : ControllerBase
+public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, IJournalService _journalService) : ControllerBase
 {
     /// <summary>
     /// Récupère une annoncs à partir de son identifiant.
@@ -99,6 +99,11 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
         
         var entity = _annonceMapper.Map<Annonce>(dto);
         entity.DatePublication = DateTime.SpecifyKind(dto.DatePublication, DateTimeKind.Utc);
+        await _journalService.LogPublicationAnnonceAsync(
+           entity.IdCompte,
+           entity.IdAnnonce,
+           entity.Libelle
+        );
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdAnnonce }, entity);
@@ -129,6 +134,11 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             return NotFound();
 
         var updatedEntity = _annonceMapper.Map<Annonce>(dto);
+        await _journalService.LogModificationAnnonceAsync(
+            toUpdate.IdCompte,
+            id,
+            toUpdate.Libelle
+        );
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
         return NoContent();
@@ -154,6 +164,13 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             return NotFound();
 
         await _manager.DeleteAsync(entity);
+
+        await _journalService.LogSuppressionAnnonceAsync(
+            entity.IdCompte,
+            id,
+            entity.Libelle
+        );
+
         return NoContent();
     }
 

@@ -28,7 +28,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config) : ControllerBase
+public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config, IJournalService _journalService) : ControllerBase
 {
 #region CRUD Classique
     /// <summary>
@@ -59,13 +59,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <param name="str">Nom de la compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteDTO"/> si la compte existe (200 OK).</description></item>
+    /// <item><description><see cref="CompteDetailDTO"/> si la compte existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetByString")]
     [HttpGet("{str}")]
-    public async Task<ActionResult<CompteGetDTO>> GetByString(string str)
+    public async Task<ActionResult<CompteDetailDTO>> GetByString(string str)
     {
         var result = await _manager.GetByNameAsync(str);
 
@@ -74,7 +74,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return NotFound();
         }
 
-        return _compteMapper.Map<CompteGetDTO>(result);
+        return _compteMapper.Map<CompteDetailDTO>(result);
     }
 
     /// <summary>
@@ -105,12 +105,16 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [HttpPost]
     public async Task<ActionResult<Compte>> Post([FromBody] CompteCreateDTO dto)
     {
+        if(!ModelState.IsValid)
+            return BadRequest(ModelState);
+
 
         var entity = _compteMapper.Map<Compte>(dto);
         entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);
         entity.DateNaissance = DateTime.SpecifyKind(entity.DateNaissance, DateTimeKind.Utc);
         entity.DateCreation = DateTime.UtcNow;
         entity.DateDerniereConnexion = DateTime.UtcNow;
+        await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
@@ -144,6 +148,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         updatedEntity.MotDePasse = toUpdate.MotDePasse;
         updatedEntity.DateDerniereConnexion = toUpdate.DateDerniereConnexion;
         updatedEntity.DateCreation = toUpdate.DateCreation;
+        await _journalService.LogModificationProfilAsync(id);
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
         return NoContent();
@@ -232,7 +237,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     {
         var result = await _manager.GetComptesByTypes(type);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<CompteGetDTO>>(_compteMapper.Map<IEnumerable<CompteGetDTO>>(result));
@@ -254,7 +259,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     {
         var result = await _manager.GetCompteByIdAnnonceFavori(idannonce);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<CompteGetDTO>>(_compteMapper.Map<IEnumerable<CompteGetDTO>>(result));
@@ -300,9 +305,11 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 Domain = null,
                 Path = "/"
             };
+            await _journalService.LogConnexionAsync(compte.IdCompte);
             
             Response.Cookies.Append("access_token", tokenString, cookieOptions);
-            
+
+
             return Ok(new { 
                 message = "Login OK",
                 userId = compte.IdCompte,
@@ -319,10 +326,11 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     
     [HttpPost]
     [Authorize]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
         try
         {
+            await _journalService.LogDeconnexionAsync(int.Parse(User.FindFirst("userId")?.Value));
             // Efface le cookie JWT HTTP-only
             Response.Cookies.Delete("access_token", new CookieOptions
             {
@@ -528,7 +536,16 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     public bool VerifUser([FromBody] ChangementMdpDTO dto)
     {
         string hash = ComputeSha256Hash(dto.MotDePasse);
-        return _manager.VerifMotDePasse(dto.Email, hash) != null;
+        var result =  _manager.VerifMotDePasse(dto.Email, hash) != null;
+
+        if (result != null)
+        {
+            return true;
+        }
+        else         
+        {
+            return false;
+        }
     }
 #endregion
     

@@ -9,10 +9,12 @@ namespace Api_c_sharp.Models.Repository.Managers
         public MessageManager(AutoPulseBdContext context) : base(context)
         {
         }
+        
+        
 
         public async Task<IEnumerable<Message>> GetMessagesByConversation(int conversationId)
         {
-            return await dbSet.Where(m => m.IdConversation == conversationId).OrderBy(m => m.DateEnvoiMessage).ToListAsync();
+            return await dbSet.Include(m=> m.MessageCompteNav).Where(m => m.IdConversation == conversationId).OrderBy(m => m.DateEnvoiMessage).ToListAsync();
         }
     }
 }

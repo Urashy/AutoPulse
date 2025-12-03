@@ -62,6 +62,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<MainLayoutViewModel>();
 
             builder.Services.AddTransient<AnnonceComposantViewModel>();
+            
+            builder.Services.AddSingleton<ISignalRService, SignalRWebService>();
 
             builder.Services.AddScoped(sp =>
             {
