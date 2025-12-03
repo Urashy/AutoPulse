@@ -24,11 +24,11 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
         Task LogSuppressionAnnonceAsync(int idCompte, int idAnnonce, string titreAnnonce);
 
-        Task LogAchatAsync(int idCompte, int idCommande, int idAnnonce, string titreAnnonce);
+        Task LogAchatAsync(int idCompteAcheteur,int idCompteVendeur, int idCommande, int idAnnonce, int idMoyenPaiement);
 
-        Task LogSignalementAsync(int idCompteSignalant, int idCompteSignale, int idSignalement);
+        Task LogSignalementAsync(int idCompteSignalant, int idCompteSignale, int idSignalement,int idTypeSignalement, string description);
 
-        Task LogDepotAvisAsync(int idCompteJugeur, int idCompteJuge, int idAvis, int note);
+        Task LogDepotAvisAsync(int idCompteJugeur, int idCompteJuge, int idAvis, int note, string description);
 
         Task LogMiseFavorisAsync(int idCompte, int idAnnonce, string titreAnnonce);
 

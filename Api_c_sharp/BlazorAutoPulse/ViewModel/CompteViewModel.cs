@@ -11,6 +11,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly ICompteService _compteService;
         private readonly IPostImageService _postImageService;
         private readonly IImageService _imageService;
+        private readonly IAnnonceService _annonceService;
+        private readonly IAdresseService _addressService;
         public NavigationManager _nav { get; set; }
 
         public CompteDetailDTO compte;
@@ -40,11 +42,13 @@ namespace BlazorAutoPulse.ViewModel
         
         private Action? _refreshUI;
 
-        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService)
+        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService, IAnnonceService annonceService, IAdresseService adresseService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
             _imageService = imageService;
+            _annonceService = annonceService;
+            _addressService = adresseService;
         }
         
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
