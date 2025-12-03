@@ -318,7 +318,7 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault().ContenuMessage))
             .ForMember(dest => dest.DateDernierMessage, 
                 opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault().DateEnvoiMessage))
-            .ForMember(dest => dest.ParticipantsPseudos, 
+            .ForMember(dest => dest.ParticipantPseudo, 
                 opt => opt.MapFrom(src => src.ApourConversations.Select(a => a.APourConversationCompteNav.Pseudo).ToList())).ReverseMap();
         
         CreateMap<Conversation, ConversationDetailDTO>()
