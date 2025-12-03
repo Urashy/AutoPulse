@@ -2,6 +2,7 @@
 using BlazorAutoPulse.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using AutoPulse.Shared.DTO;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -12,7 +13,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IImageService _imageService;
         public NavigationManager _nav { get; set; }
 
-        public Compte compte;
+        public CompteDetailDTO compte;
         public Compte compteEdit;
         
         private string mimeType = "data:image/jpeg;base64,";
@@ -51,11 +52,10 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI = refreshUI;
             _nav = nav;
             
-            compte = new Compte();
-            
+
             try
             {
-                compte = await _compteService.GetMe();
+                var compteDetail = await _compteService.GetMe();
             }
             catch
             {
@@ -158,6 +158,7 @@ namespace BlazorAutoPulse.ViewModel
         public async Task SaveProfile()
         {
             await _compteService.UpdateAsync(compte.IdCompte, compteEdit);
+
             compte = await _compteService.GetMe();
             _refreshUI?.Invoke();
             isEditing = false;

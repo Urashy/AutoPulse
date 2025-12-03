@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 
@@ -21,12 +22,12 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
         return await response.Content.ReadFromJsonAsync<Compte>();
     }
 
-    public async Task<Compte> GetMe()
+    public async Task<CompteDetailDTO> GetMe()
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl("GetMe"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<Compte>();
+        return await response.Content.ReadFromJsonAsync<CompteDetailDTO>();
     }
 
     public async Task<int?> GetTypeCompteByCompteId(int idCompte)

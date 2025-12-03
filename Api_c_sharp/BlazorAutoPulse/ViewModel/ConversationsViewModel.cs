@@ -53,10 +53,11 @@ public class ConversationsViewModel
         {
             await _signalR.StartAsync();
 
-            compte = await _compteService.GetMe();
-            CurrentUserId = compte.IdCompte;
+            var compteDetail = await _compteService.GetMe();
 
-            Conversations = (await _conversationService.GetConversationsByCompteID(compte.IdCompte)).ToList();
+            CurrentUserId = compteDetail.IdCompte;
+
+            Conversations = (await _conversationService.GetConversationsByCompteID(compteDetail.IdCompte)).ToList();
 
             foreach (var conv in Conversations)
             {
