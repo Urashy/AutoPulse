@@ -66,19 +66,5 @@ namespace Api_c_sharp.Controllers
             return new ActionResult<IEnumerable<TypeCompteDTO>>(_typeCompteMapper.Map<IEnumerable<TypeCompteDTO>>(list));
         }
 
-
-        /// <summary>
-        /// Récupère le type de compte d'un compte a partir de son id.
-        /// </summary>
-        /// <returns>
-        /// Un id de <see cref="TypeCompteDTO"/> (200 OK).
-        /// </returns>
-        [HttpGet]
-        [ActionName("GetTypeCompteByIdCompte")]
-        public async Task<ActionResult<int>> GetTypeCompteByIdCompte()
-        {
-            
-        }
-
     }
 }
