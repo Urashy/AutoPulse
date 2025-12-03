@@ -1,18 +1,20 @@
 ﻿using Api_c_sharp.Controllers;
-using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
@@ -24,6 +26,7 @@ namespace App.Controllers.Tests
         private FavoriManager _manager;
         private IMapper _mapper;
         private Favori _objetcommun;
+        private IJournalService _journalService;
 
         [TestInitialize]
         public async Task Initialize()
@@ -40,8 +43,9 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
+            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new FavoriManager(_context);
-            _controller = new FavoriController(_manager, _mapper);
+            _controller = new FavoriController(_manager, _mapper, _journalService);
 
             // Nettoyage
             _context.APourConversations.RemoveRange(_context.APourConversations);

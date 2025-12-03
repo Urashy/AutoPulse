@@ -1,17 +1,19 @@
-﻿using AutoPulse.Shared.DTO;
-using Api_c_sharp.Mapper;
+﻿using Api_c_sharp.Mapper;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using App.Controllers;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Api_c_sharp.Models.Entity;
 
 
 namespace App.Controllers.Tests
@@ -24,6 +26,7 @@ namespace App.Controllers.Tests
         private AvisManager _manager;
         private IMapper _mapper;
         private Avis _objetCommun;
+        private IJournalService _journalService;
 
         [TestInitialize]
         public async Task Initialize()
@@ -40,8 +43,9 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
+            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new AvisManager(_context);
-            _controller = new AvisController(_manager, _mapper);
+            _controller = new AvisController(_manager, _mapper,_journalService);
 
             // Nettoyage
             _context.Avis.RemoveRange(_context.Avis);

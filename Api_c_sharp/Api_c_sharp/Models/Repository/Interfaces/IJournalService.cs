@@ -30,12 +30,14 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
         Task LogDepotAvisAsync(int idCompteJugeur, int idCompteJuge, int idAvis, int note, string description);
 
-        Task LogMiseFavorisAsync(int idCompte, int idAnnonce, string titreAnnonce);
+        Task LogMiseFavorisAsync(int idCompte, int idAnnonce);
 
-        Task LogEnvoiMessageAsync(int idCompte, int idConversation, int? idAnnonce = null);
+        Task LogEnvoiMessageAsync(int idCompte, int idConversation, string messagecontenu, int? idAnnonce = null);
 
         Task LogGenerationFactureAsync(int idCompte, int idFacture, int idCommande);
 
         Task LogBlocageUtilisateurAsync(int idCompteBloquer, int idCompteBloque);
+
+        Task<IEnumerable<Journal>> GetJournalByType(int typeID);
     }
 }

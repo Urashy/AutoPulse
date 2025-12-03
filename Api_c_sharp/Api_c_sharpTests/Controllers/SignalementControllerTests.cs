@@ -2,11 +2,13 @@
 using Api_c_sharp.Models;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +25,7 @@ namespace App.Controllers.Tests
         private SignalementManager _manager;
         private IMapper _mapper;
         private Signalement _signalementCommun;
+        private IJournalService _journalService;
 
         [TestInitialize]
         public async Task Initialize()
@@ -40,8 +43,9 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
+            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new SignalementManager(_context);
-            _controller = new SignalementController(_manager, _mapper);
+            _controller = new SignalementController(_manager, _mapper, _journalService);
 
             // Reset DB
             _context.Signalements.RemoveRange(_context.Signalements);
@@ -288,15 +292,21 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task GetAllByTypeTest()
         {
-            // Given : Un acheteur ayant une signalement
-            var idEtat = _signalementCommun.IdEtatSignalement;
+            
+            var result = await _controller.GetAllByEtatSignalement(_signalementCommun.IdEtatSignalement);
 
-            // When : On appelle GetAllByType
-            var result = await _controller.GetAllByEtatSignalement(idEtat);
-
-            // Then : La liste doit contenir des signalements
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAllbyEtatSignalementTest()
+        {
+
+            var result = await _controller.GetAllByEtatSignalement(0);
+
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

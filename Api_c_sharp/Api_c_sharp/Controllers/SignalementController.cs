@@ -144,12 +144,12 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper,
     /// </list>
     /// </returns>
     [ActionName("GetAllByEtatSignalement")]
-    [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAllByEtatSignalement(int idconversation)
+    [HttpGet("{idetatsignalement}")]
+    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAllByEtatSignalement(int idetatsignalement)
     {
-        var result = await _manager.GetSignalementsByEtat(idconversation);
+        var result = await _manager.GetSignalementsByEtat(idetatsignalement);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<SignalementDTO>>(_mapper.Map<IEnumerable<SignalementDTO>>(result));
