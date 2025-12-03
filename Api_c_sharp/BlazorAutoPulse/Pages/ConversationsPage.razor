@@ -25,10 +25,10 @@
                 <div class="conversation-item @(VM.SelectedConversation?.IdConversation == conv.IdConversation ? "active" : "")"
                      @onclick="() => VM.SelectConversation(conv)">
                     <div class="conversation-avatar">
-                        @if (VM.ImageSources.ContainsKey(conv.IdImageParticipant) &&
-                             !string.IsNullOrEmpty(VM.ImageSources[conv.IdImageParticipant]))
+                        @if (VM.ImageSources.ContainsKey(conv.IdParticipant) &&
+                             !string.IsNullOrEmpty(VM.ImageSources[conv.IdParticipant]))
                         {
-                            <img src="@VM.ImageSources[conv.IdImageParticipant]"
+                            <img src="@VM.ImageSources[conv.IdParticipant]"
                                  alt="Profile"
                                  class="avatar-img" />
                         }

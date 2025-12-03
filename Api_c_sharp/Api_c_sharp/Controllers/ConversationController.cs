@@ -159,10 +159,13 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
                     .FirstOrDefault(apc => apc.IdCompte != idcompte);
             
                 conversationDTO.ParticipantPseudo = autreParticipant?.APourConversationCompteNav?.Pseudo ?? "Utilisateur inconnu";
-                conversationDTO.IdImageParticipant = autreParticipant?.APourConversationCompteNav?.Images.First().IdImage ?? 0;
+
+                conversationDTO.IdParticipant = autreParticipant?
+                    .APourConversationCompteNav?
+                    .IdCompte ?? 0;
             }
         }
 
-        return Ok(result);
+        return new ActionResult<IEnumerable<ConversationListDTO>>(result);
     }
 }

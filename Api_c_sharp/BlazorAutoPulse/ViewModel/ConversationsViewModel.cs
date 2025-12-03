@@ -73,8 +73,9 @@ public class ConversationsViewModel
             foreach (var conv in Conversations)
             {
                 await _signalR.JoinConversation(conv.IdConversation);
-                await GetImageProfil(conv.IdImageParticipant);
+                await GetImageProfil(conv.IdParticipant);
             }
+            _refreshUI?.Invoke();
         }
         catch (Exception ex)
         {
@@ -195,7 +196,7 @@ public class ConversationsViewModel
     {
         try
         {
-            Image? img = await _imageService.GetByIdAsync(idCompte);
+            Image? img = await _imageService.GetImageProfil(idCompte);
 
             string imageSource = "";
             if (img != null && img.Fichier != null && img.Fichier.Length > 0)
@@ -215,7 +216,7 @@ public class ConversationsViewModel
         catch (Exception ex)
         {
             Console.WriteLine($"Erreur lors de l'affichage de l'image : {ex.Message}");
-            ImageSources[idCompte] = "images/default-profile.png";
+            ImageSources[idCompte] = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
             _refreshUI?.Invoke();
         }
     }

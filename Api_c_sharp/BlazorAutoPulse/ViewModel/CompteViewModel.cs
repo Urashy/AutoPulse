@@ -52,10 +52,9 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI = refreshUI;
             _nav = nav;
             
-
             try
             {
-                var compteDetail = await _compteService.GetMe();
+                compte = await _compteService.GetMe();
             }
             catch
             {
@@ -74,8 +73,8 @@ namespace BlazorAutoPulse.ViewModel
                 DateNaissance = compte.DateNaissance,
                 Biographie = compte.Biographie,
                 IdTypeCompte = compte.IdTypeCompte,
-                NumeroSiret = compte.NumeroSiret,
-                RaisonSociale = compte.RaisonSociale,
+                NumeroSiret = compte.NumeroSiret ?? "",
+                RaisonSociale = compte.RaisonSociale ?? "",
                 IdImage = idImage,
             };
         }
@@ -139,7 +138,7 @@ namespace BlazorAutoPulse.ViewModel
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de l'affichage de l'image : {ex.Message}");
-                imageSource = "images/default-profile.png";
+                imageSource = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
                 _refreshUI?.Invoke();
             }
         }

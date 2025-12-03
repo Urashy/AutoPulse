@@ -19,7 +19,6 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet
                 .Include(c => c.ApourConversations)
                 .ThenInclude(apc => apc.APourConversationCompteNav)
-                .ThenInclude(c => c.Images)
                 .Include(c => c.Messages)
                 .Include(c => c.AnnonceConversationNav)
                 .Where(c => c.ApourConversations.Any(ac => ac.IdCompte == compteId))
