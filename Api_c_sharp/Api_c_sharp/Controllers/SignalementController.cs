@@ -18,7 +18,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class SignalementController(SignalementManager _manager, IMapper _mapper) : ControllerBase
+public class SignalementController(SignalementManager _manager, IMapper _mapper, IJournalService _journalService) : ControllerBase
 {
     /// <summary>
     /// Récupère un signalement à partir de son identifiant.
@@ -74,6 +74,7 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper)
             return BadRequest(ModelState);
 
         var entity = _mapper.Map<Signalement>(dto);
+        await _journalService.LogSignalementAsync(dto.IdCompteSignalant,dto.IdCompteSignale,dto.IdSignalement,dto.IdTypeSignalement,dto.DescriptionSignalement);
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdSignalement }, entity);

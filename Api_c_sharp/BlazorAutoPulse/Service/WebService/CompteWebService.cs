@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 
@@ -21,12 +22,41 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
         return await response.Content.ReadFromJsonAsync<Compte>();
     }
 
-    public async Task<Compte> GetMe()
+    public async Task<CompteDetailDTO> GetMe()
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl("GetMe"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<Compte>();
+        return await response.Content.ReadFromJsonAsync<CompteDetailDTO>();
+    }
+
+    public async Task<int?> GetTypeCompteByCompteId(int idCompte)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetTypeCompteByCompteId/{idCompte}"));
+            var response = await SendWithCredentialsAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<int>();
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                Console.WriteLine($"Compte avec l'ID {idCompte} introuvable");
+                return null;
+            }
+
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erreur GetTypeCompteByCompteId : {error}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception GetTypeCompteByCompteId : {ex.Message}");
+            return null;
+        }
     }
 
     public async Task<bool> VerifUser(ChangementMdp changementMdp)

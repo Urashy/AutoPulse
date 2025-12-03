@@ -1,20 +1,22 @@
-﻿using Api_c_sharp.Mapper;
+﻿using Api_c_sharp.Controllers;
+using Api_c_sharp.Mapper;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using AutoPulse.Shared.DTO;
 using App.Controllers;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
+using Google.Apis.Util;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Api_c_sharp.Controllers;
-using Google.Apis.Util;
-using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
@@ -26,6 +28,7 @@ namespace App.Controllers.Tests
         private AnnonceManager _manager;
         private IMapper _mapper;
         private Annonce _objetcommun;
+        private IJournalService _journalService;
 
         [TestInitialize]
         public async Task Initialize()
@@ -42,8 +45,9 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
+            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new AnnonceManager(_context);
-            _controller = new AnnonceController(_manager, _mapper);
+            _controller = new AnnonceController(_manager, _mapper, _journalService);
 
             _context.Annonces.RemoveRange(_context.Annonces);
             await _context.SaveChangesAsync();
@@ -62,6 +66,21 @@ namespace App.Controllers.Tests
                 IdTypeCompte = 1,
                 Libelle = "Particulier"
             };
+            _context.TypesJournal.AddRange(
+            new TypeJournal { IdTypeJournaux = 1, LibelleTypeJournaux = "Connexion" },
+            new TypeJournal { IdTypeJournaux = 2, LibelleTypeJournaux = "Déconnexion" },
+            new TypeJournal { IdTypeJournaux = 3, LibelleTypeJournaux = "Création de compte" },
+            new TypeJournal { IdTypeJournaux = 4, LibelleTypeJournaux = "Modification de profil" },
+            new TypeJournal { IdTypeJournaux = 5, LibelleTypeJournaux = "Publication d'annonce" },
+            new TypeJournal { IdTypeJournaux = 6, LibelleTypeJournaux = "Modification d'annonce" },
+            new TypeJournal { IdTypeJournaux = 7, LibelleTypeJournaux = "Suppression d'annonce" },
+            new TypeJournal { IdTypeJournaux = 8, LibelleTypeJournaux = "Achat" },
+            new TypeJournal { IdTypeJournaux = 9, LibelleTypeJournaux = "Signalement" },
+            new TypeJournal { IdTypeJournaux = 10, LibelleTypeJournaux = "Dépôt avis" },
+            new TypeJournal { IdTypeJournaux = 11, LibelleTypeJournaux = "Mise en favoris" },
+            new TypeJournal { IdTypeJournaux = 12, LibelleTypeJournaux = "Envoyer un message/offre" },
+            new TypeJournal { IdTypeJournaux = 13, LibelleTypeJournaux = "Génération de facture" },
+            new TypeJournal { IdTypeJournaux = 14, LibelleTypeJournaux = "Utilisateur bloque un autre utilisateur" });
 
             Compte compte = new Compte()
             {

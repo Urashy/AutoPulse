@@ -1,7 +1,9 @@
-﻿using BlazorAutoPulse.Model;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.JSInterop;
 using System.Threading.Tasks;
+using AnnonceDetailDTO = BlazorAutoPulse.Model.AnnonceDetailDTO;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -68,7 +70,7 @@ namespace BlazorAutoPulse.ViewModel
             {
                 try
                 {
-                    Compte user = await _compteService.GetMe();
+                    CompteDetailDTO user = await _compteService.GetMe();
                     CurrentUserId = user.IdCompte;
                 }
                 catch

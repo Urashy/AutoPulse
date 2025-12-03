@@ -13,7 +13,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public override async Task<Compte> GetByIdAsync(int id)
         {
-            return await dbSet.Include(c => c.Images).FirstOrDefaultAsync(c => c.IdCompte == id);
+            return await dbSet.Include(c => c.Images).Include(c => c.TypeCompteCompteNav).FirstOrDefaultAsync(c => c.IdCompte == id);
         }
 
         public override async Task<Compte?> GetByNameAsync(string mail)
@@ -97,6 +97,15 @@ namespace Api_c_sharp.Models.Repository.Managers
                 await context.SaveChangesAsync();
 
             }
+        }
+        public async Task<int?> GetTypeCompteByCompteId(int compteId)
+        {
+            var compte = await dbSet
+                .Where(c => c.IdCompte == compteId)
+                .Select(c => c.IdTypeCompte)
+                .FirstOrDefaultAsync();
+
+            return compte == 0 ? null : compte;
         }
     }
 }
