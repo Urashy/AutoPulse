@@ -240,7 +240,6 @@ namespace App.Controllers.Tests
             {
                 IdCompte = 1,
                 ContenuMessage = _objetcommun.ContenuMessage,
-
             };
 
             _controller.ModelState.AddModelError("ContenuMessage", "Required");

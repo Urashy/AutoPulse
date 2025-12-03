@@ -16,7 +16,15 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public async Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId)
         {
-            return await dbSet.Where(c => c.ApourConversations.Any(ac => ac.IdCompte == compteId)).ToListAsync();
+            return await dbSet
+                .Include(c => c.ApourConversations)
+                .ThenInclude(apc => apc.APourConversationCompteNav)
+                .ThenInclude(c => c.Images)
+                .Include(c => c.Messages)
+                .Include(c => c.AnnonceConversationNav)
+                .Where(c => c.ApourConversations.Any(ac => ac.IdCompte == compteId))
+                .OrderByDescending(c => c.DateDernierMessage)
+                .ToListAsync();
         }
     }
 }
