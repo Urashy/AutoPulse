@@ -227,7 +227,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Adresses, 
                 opt => opt.MapFrom(src => src.Adresses.Select(a => a.CompteAdresseNav)))
             .ForMember(dest => dest.TypeCompte,
-                cfg => cfg.MapFrom(src => src.TypeCompteCompteNav.Libelle))
+                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(
                 opt => opt.idImage,
                 cfg => cfg.MapFrom(src => src.Images.FirstOrDefault().IdImage))
@@ -318,7 +318,8 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault().ContenuMessage))
             .ForMember(dest => dest.DateDernierMessage, 
                 opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault().DateEnvoiMessage))
-            .ReverseMap();
+            .ForMember(dest => dest.ParticipantsPseudos, 
+                opt => opt.MapFrom(src => src.ApourConversations.Select(a => a.APourConversationCompteNav.Pseudo).ToList())).ReverseMap();
         
         CreateMap<Conversation, ConversationDetailDTO>()
             .ForMember(dest => dest.LibelleAnnonce, 

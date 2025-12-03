@@ -65,5 +65,6 @@ namespace Api_c_sharp.Controllers
             IEnumerable<TypeCompte> list = await _manager.GetTypeComptesPourChercher();
             return new ActionResult<IEnumerable<TypeCompteDTO>>(_typeCompteMapper.Map<IEnumerable<TypeCompteDTO>>(list));
         }
+
     }
 }

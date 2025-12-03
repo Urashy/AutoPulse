@@ -16,6 +16,7 @@ using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
 using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
 using Api_c_sharp.Models.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace App.Controllers;
 
@@ -27,7 +28,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config) : ControllerBase
+public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config, IJournalService _journalService) : ControllerBase
 {
 #region CRUD Classique
     /// <summary>
@@ -107,11 +108,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         if(!ModelState.IsValid)
             return BadRequest(ModelState);
 
+
         var entity = _compteMapper.Map<Compte>(dto);
         entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);
         entity.DateNaissance = DateTime.SpecifyKind(entity.DateNaissance, DateTimeKind.Utc);
         entity.DateCreation = DateTime.UtcNow;
         entity.DateDerniereConnexion = DateTime.UtcNow;
+        await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
@@ -145,6 +148,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         updatedEntity.MotDePasse = toUpdate.MotDePasse;
         updatedEntity.DateDerniereConnexion = toUpdate.DateDerniereConnexion;
         updatedEntity.DateCreation = toUpdate.DateCreation;
+        await _journalService.LogModificationProfilAsync(id);
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
         return NoContent();
@@ -196,13 +200,35 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         await _manager.DeleteAsync(entity);
         return NoContent();
     }
-#endregion 
 
-#region Autre methode
+
+    /// <summary>
+    /// Récupère l'ID du type de compte à partir de l'ID du compte.
+    /// </summary>
+    /// <param name="idCompte">Identifiant unique du compte.</param>
+    /// <returns>
+    /// <item><description>L'ID du type de compte si le compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
+    /// </returns>
+    [HttpGet("GetTypeCompteByCompteId/{idCompte}")]
+    public async Task<ActionResult<int>> GetTypeCompteByCompteId(int idCompte)
+    {
+        var compte = await _manager.GetByIdAsync(idCompte);
+
+        if (compte is null)
+            return NotFound();
+
+        return compte.IdTypeCompte;
+    }
+
+
+    #endregion
+
+    #region Autre methode
     [ActionName("GetMe")]
     [Authorize]
     [HttpGet]
-    public IActionResult GetMe()
+    public async Task<ActionResult<CompteDetailDTO>> GetMe()
     {
         var claim = User.FindFirst("idUser")?.Value;
         if (string.IsNullOrEmpty(claim))
@@ -213,8 +239,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
         if (user == null)
             return NotFound();
-
-        return Ok(user);
+        
+        CompteDetailDTO dto = _compteMapper.Map<CompteDetailDTO>(user);
+        return Ok(dto);
     }
     
     /// <summary>
@@ -260,6 +287,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
         return new ActionResult<IEnumerable<CompteGetDTO>>(_compteMapper.Map<IEnumerable<CompteGetDTO>>(result));
     }
+
+
 #endregion
 
 #region Authentification Classique
@@ -299,13 +328,16 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 Domain = null,
                 Path = "/"
             };
+            await _journalService.LogConnexionAsync(compte.IdCompte);
             
             Response.Cookies.Append("access_token", tokenString, cookieOptions);
-            
+
+
             return Ok(new { 
                 message = "Login OK",
                 userId = compte.IdCompte,
-                pseudo = compte.Pseudo
+                pseudo = compte.Pseudo,
+                role = compte.IdTypeCompte
             });
         }
         catch (Exception ex)
@@ -321,6 +353,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     {
         try
         {
+            await _journalService.LogDeconnexionAsync(int.Parse(User.FindFirst("userId")?.Value));
             // Efface le cookie JWT HTTP-only
             Response.Cookies.Delete("access_token", new CookieOptions
             {
@@ -574,6 +607,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             new Claim("role", "Authorized"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("idUser", compte.IdCompte.ToString()),
+
         };
         
         var token = new JwtSecurityToken(
