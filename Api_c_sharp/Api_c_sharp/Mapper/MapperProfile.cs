@@ -226,6 +226,8 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.Adresses, 
                 opt => opt.MapFrom(src => src.Adresses.Select(a => a.CompteAdresseNav)))
+            .ForMember(dest => dest.TypeCompte,
+                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(
                 opt => opt.idImage,
                 cfg => cfg.MapFrom(src => src.Images.FirstOrDefault().IdImage))

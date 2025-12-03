@@ -1,4 +1,5 @@
-﻿using BlazorAutoPulse.Service;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 
@@ -33,11 +34,12 @@ namespace BlazorAutoPulse.ViewModel
         {
             try
             {
-                var compte = await _compteService.GetMe();
+                CompteDetailDTO compte = await _compteService.GetMe();
                 IsConnected = compte != null;
 
                 if (IsConnected)
                 {
+                    IsAdmin = compte.TypeCompte == "Administrateur";
                     await LoadProfileImage(compte.IdCompte);
                 }
             }
