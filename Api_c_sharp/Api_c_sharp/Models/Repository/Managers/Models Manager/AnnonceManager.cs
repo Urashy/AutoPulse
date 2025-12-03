@@ -49,18 +49,18 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public override async Task<IEnumerable<Annonce>> GetAllAsync()
         {
-            return await ApplyIncludes().OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
+            return await ApplyIncludes().Where(a => a.IdEtatAnnonce == 1).OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
         }
 
         public override async Task<Annonce?> GetByNameAsync(string name)
         {
-            return await ApplyIncludes().FirstOrDefaultAsync(a => a.Libelle == name);
+            return await ApplyIncludes().Where(a => a.IdEtatAnnonce == 1).FirstOrDefaultAsync(a => a.Libelle == name);
         }
 
         public async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId)
         {
             return await ApplyIncludes()
-                .Where(a => a.IdMiseEnAvant == miseAvantId)
+                .Where(a => a.IdMiseEnAvant == miseAvantId && a.IdEtatAnnonce == 1)
                 .ToListAsync();
         }
 
@@ -147,6 +147,17 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await ApplyIncludes()
                 .Where(a => a.IdCompte == compteId)
                 .ToListAsync();
+        }
+
+        public override async Task DeleteAsync(Annonce entity)
+        {
+            Commande commandes = await context.Commandes
+                .FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
+
+            if (commandes != null)
+                throw new InvalidOperationException("Impossible de supprimer une annonce deja commander.");
+            else
+                await base.DeleteAsync(entity);
         }
     }
 }
