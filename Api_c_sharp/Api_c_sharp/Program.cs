@@ -50,6 +50,7 @@ builder.Services.AddScoped<FavoriManager>();
 builder.Services.AddScoped<ConversationManager>();
 builder.Services.AddScoped<MessageManager>();
 builder.Services.AddScoped<ReinitialisationMotDePasseManager>();
+builder.Services.AddScoped<IJournalService, JournalManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
