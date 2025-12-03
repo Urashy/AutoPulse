@@ -164,7 +164,11 @@
         </div>
 
         <div class="profile-info">
-            @if (!VM.isEditing)
+            @if (VM?.compte == null)
+            {
+                <p>Chargement...</p>
+            }
+            else if (!VM.isEditing)
             {
                 <div class="info-grid">
                     <div class="info-item">
@@ -198,11 +202,11 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <label class="info-label">Nom</label>
-                        <input type="text" @bind="VM.compteEdit.Nom" class="info-input" />
+                        <input type="text" @bind="VM.compteEdit.Nom" class="info-input"/>
                     </div>
                     <div class="info-item">
                         <label class="info-label">Prénom</label>
-                        <input type="text" @bind="VM.compteEdit.Prenom" class="info-input" />
+                        <input type="text" @bind="VM.compteEdit.Prenom" class="info-input"/>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Date de naissance</span>
@@ -210,15 +214,15 @@
                     </div>
                     <div class="info-item">
                         <label class="info-label">Pseudo</label>
-                        <input type="text" @bind="VM.compteEdit.Pseudo" class="info-input" />
+                        <input type="text" @bind="VM.compteEdit.Pseudo" class="info-input"/>
                     </div>
                     <div class="info-item">
                         <label class="info-label">Email</label>
-                        <input type="email" @bind="VM.compteEdit.Email" class="info-input" />
+                        <input type="email" @bind="VM.compteEdit.Email" class="info-input"/>
                     </div>
                     <div class="info-item">
                         <label class="info-label">Biographie</label>
-                        <input type="email" @bind="VM.compteEdit.Biographie" class="info-input" />
+                        <input type="email" @bind="VM.compteEdit.Biographie" class="info-input"/>
                     </div>
                 </div>
             }
