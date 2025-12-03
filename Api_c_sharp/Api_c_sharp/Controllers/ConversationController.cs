@@ -142,12 +142,27 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     [HttpGet("{idcompte}")]
     public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetConversationsByCompteID(int idcompte)
     {
-        var list = await _manager.GetConversationsByCompteID(idcompte);
+        var conversations = await _manager.GetConversationsByCompteID(idcompte);
 
-
-        if (list is null || !list.Any())
+        if (conversations is null || !conversations.Any())
             return NotFound();
-        return new ActionResult<IEnumerable<ConversationListDTO>>(_mapper.Map<IEnumerable<ConversationListDTO>>(list));
-    }
 
+        var result = _mapper.Map<IEnumerable<ConversationListDTO>>(conversations).ToList();
+
+        foreach (var conversationDTO in result)
+        {
+            var conversation = conversations.FirstOrDefault(c => c.IdConversation == conversationDTO.IdConversation);
+        
+            if (conversation != null)
+            {
+                var autreParticipant = conversation.ApourConversations
+                    .FirstOrDefault(apc => apc.IdCompte != idcompte);
+            
+                conversationDTO.ParticipantPseudo = autreParticipant?.APourConversationCompteNav?.Pseudo ?? "Utilisateur inconnu";
+                conversationDTO.IdImageParticipant = autreParticipant?.APourConversationCompteNav?.Images.First().IdImage ?? 0;
+            }
+        }
+
+        return Ok(result);
+    }
 }

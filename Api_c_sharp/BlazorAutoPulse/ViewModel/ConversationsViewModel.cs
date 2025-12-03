@@ -14,16 +14,20 @@ public class ConversationsViewModel
     private readonly IService<MessageDTO> _messageService;
     private readonly ICompteService _compteService;
     private readonly NavigationManager _navigation;
+    private readonly IImageService _imageService;
 
-    public List<ConversationDetailDTO> Conversations { get; private set; } = new();
+    public List<ConversationListDTO> Conversations { get; private set; } = new();
     public List<MessageDTO> Messages { get; private set; } = new();
-    public ConversationDetailDTO? SelectedConversation { get; private set; }
+    public ConversationListDTO? SelectedConversation { get; private set; }
     private Compte compte;
     
     public string NewMessage { get; set; } = "";
     public int CurrentUserId { get; private set; }
     public bool IsLoading { get; private set; } = true;
     public bool IsTyping { get; private set; } = false;
+    
+    private string mimeType = "data:image/jpeg;base64,";
+    public Dictionary<int, string> ImageSources { get; private set; } = new();
 
     public ElementReference MessagesContainer;
     private System.Threading.Timer? _typingTimer;
@@ -35,12 +39,14 @@ public class ConversationsViewModel
         IConversationService convService,
         IService<MessageDTO> msgService,
         ICompteService compteService,
+        IImageService imageService,
         NavigationManager nav)
     {
         _signalR = signalR;
         _conversationService = convService;
         _messageService = msgService;
         _compteService = compteService;
+        _imageService = imageService;
         _navigation = nav;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
@@ -62,6 +68,12 @@ public class ConversationsViewModel
             {
                 await _signalR.JoinConversation(conv.IdConversation);
             }
+            
+            foreach (var conv in Conversations)
+            {
+                await _signalR.JoinConversation(conv.IdConversation);
+                await GetImageProfil(conv.IdImageParticipant);
+            }
         }
         catch (Exception ex)
         {
@@ -74,8 +86,9 @@ public class ConversationsViewModel
         }
     }
     
-    public async Task SelectConversation(ConversationDetailDTO conv)
+    public async Task SelectConversation(ConversationListDTO conv)
     {
+        await _signalR.MarkAsRead(conv.IdConversation, CurrentUserId);
         SelectedConversation = conv;
 
         // Charger les messages existants
@@ -84,7 +97,7 @@ public class ConversationsViewModel
             .OrderBy(m => m.DateEnvoiMessage)
             .ToList();
         
-        await _signalR.MarkAsRead(conv.IdConversation, CurrentUserId);
+        await _signalR.MarkAsRead(SelectedConversation.IdConversation, CurrentUserId);
 
         _refreshUI?.Invoke();
     }
@@ -175,5 +188,34 @@ public class ConversationsViewModel
         _signalR.OnMessageReceived -= HandleMessageReceived;
         _signalR.OnUserTyping -= HandleUserTyping;
         _typingTimer?.Dispose();
+    }
+    
+    public async Task GetImageProfil(int idCompte)
+    {
+        try
+        {
+            Image? img = await _imageService.GetByIdAsync(idCompte);
+
+            string imageSource = "";
+            if (img != null && img.Fichier != null && img.Fichier.Length > 0)
+            {
+                var base64 = Convert.ToBase64String(img.Fichier);
+                imageSource = $"{mimeType}{base64}";
+            }
+            else
+            {
+                imageSource = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
+            }
+
+            ImageSources[idCompte] = imageSource;
+
+            _refreshUI?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de l'affichage de l'image : {ex.Message}");
+            ImageSources[idCompte] = "images/default-profile.png";
+            _refreshUI?.Invoke();
+        }
     }
 }

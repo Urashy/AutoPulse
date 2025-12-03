@@ -24,9 +24,21 @@
             {
                 <div class="conversation-item @(VM.SelectedConversation?.IdConversation == conv.IdConversation ? "active" : "")"
                      @onclick="() => VM.SelectConversation(conv)">
-                    <div class="conversation-avatar">👤</div>
+                    <div class="conversation-avatar">
+                        @if (VM.ImageSources.ContainsKey(conv.IdImageParticipant) &&
+                             !string.IsNullOrEmpty(VM.ImageSources[conv.IdImageParticipant]))
+                        {
+                            <img src="@VM.ImageSources[conv.IdImageParticipant]"
+                                 alt="Profile"
+                                 class="avatar-img" />
+                        }
+                        else
+                        {
+                            <span>👤</span>
+                        }
+                    </div>
                     <div class="conversation-info">
-                        <h4>@conv.IdAnnonce</h4>
+                        <h4>@conv.LibelleAnnonce</h4>
                         <p class="last-message">Dernier message...</p>
                     </div>
                 </div>
@@ -45,7 +57,8 @@
         else
         {
             <div class="conversation-header">
-                <h3>Conversation #@VM.SelectedConversation.IdConversation</h3>
+                <h3>@VM.SelectedConversation.LibelleAnnonce</h3>
+                <p>@VM.SelectedConversation.ParticipantPseudo</p>
             </div>
 
             <div class="messages-container" @ref="VM.MessagesContainer">
