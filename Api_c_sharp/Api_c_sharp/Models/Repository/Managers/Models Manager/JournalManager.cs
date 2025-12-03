@@ -89,21 +89,21 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             await LogActionAsync(idCompte, 7, contenu);
         }
 
-        public async Task LogAchatAsync(int idCompte, int idCommande, int idAnnonce, string titreAnnonce)
+        public async Task LogAchatAsync(int idCompteAcheteur, int idCompteVendeur, int idCommande, int idAnnonce, int idMoyenPaiement)
         {
-            var contenu = $"Achat effectué - Commande #{idCommande} pour l'annonce #{idAnnonce} : {titreAnnonce}";
-            await LogActionAsync(idCompte, 8, contenu);
+            var contenu = $"Achat effectué - Commande #{idCommande} pour l'annonce #{idAnnonce} : Acheteur {idCompteAcheteur}, Vendeur {idCompteVendeur}, Moyen de paiment {idMoyenPaiement}";
+            await LogActionAsync(idCompteAcheteur, 8, contenu);
         }
 
-        public async Task LogSignalementAsync(int idCompteSignalant, int idCompteSignale, int idSignalement)
+        public async Task LogSignalementAsync(int idCompteSignalant, int idCompteSignale, int idSignalement, int idTypeSignalement, string description)
         {
-            var contenu = $"Signalement effectué (#{idSignalement}) envers le compte #{idCompteSignale}";
+            var contenu = $"Signalement effectué (#{idSignalement}) envers le compte #{idCompteSignale}. De type {idTypeSignalement} pour le motif {description}";
             await LogActionAsync(idCompteSignalant, 9, contenu);
         }
 
-        public async Task LogDepotAvisAsync(int idCompteJugeur, int idCompteJuge, int idAvis, int note)
+        public async Task LogDepotAvisAsync(int idCompteJugeur, int idCompteJuge, int idAvis, int note, string description)
         {
-            var contenu = $"Dépôt d'un avis (#{idAvis}) avec la note {note}/5 pour le compte #{idCompteJuge}";
+            var contenu = $"Dépôt d'un avis (#{idAvis}) avec la note {note}/5 pour le compte #{idCompteJuge}, avec le message suivant {description}";
             await LogActionAsync(idCompteJugeur, 10, contenu);
         }
 

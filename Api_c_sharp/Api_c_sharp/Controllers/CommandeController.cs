@@ -18,7 +18,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CommandeController(CommandeManager _manager, IMapper _mapper) : ControllerBase
+public class CommandeController(CommandeManager _manager, IMapper _mapper, IJournalService _journalService) : ControllerBase
 {
     /// <summary>
     /// Récupère une commande à partir de son identifiant.
@@ -74,6 +74,7 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper) : Con
             return BadRequest(ModelState);
 
         var entity = _mapper.Map<Commande>(dto);
+        await _journalService.LogAchatAsync(dto.IdAcheteur,dto.IdVendeur,dto.IdCommande,dto.IdAnnonce,dto.IdMoyenPaiement);
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdCommande }, entity);
