@@ -2,7 +2,7 @@ using AutoPulse.Shared.DTO;
 
 namespace BlazorAutoPulse.Service.Interface;
 
-public interface IConversationService: IService<ConversationDetailDTO>
+public interface IConversationService: IService<ConversationListDTO>
 {
-    Task<IEnumerable<ConversationDetailDTO>> GetConversationsByCompteID(int compteId);
+    Task<IEnumerable<ConversationListDTO>> GetConversationsByCompteID(int compteId);
 }

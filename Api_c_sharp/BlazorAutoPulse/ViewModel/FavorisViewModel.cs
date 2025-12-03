@@ -25,6 +25,7 @@ namespace BlazorAutoPulse.ViewModel
             try
             {
                 AnnoncesFavoris.Clear();
+
                 var me = await _compteService.GetMe();
                 Favoris = await _favorisService.GetMesFavoris(me.IdCompte);
 

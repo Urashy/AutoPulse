@@ -224,11 +224,11 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
     #endregion
 
-    #region Autre methode
+#region Autre methode
     [ActionName("GetMe")]
     [Authorize]
     [HttpGet]
-    public IActionResult GetMe()
+    public async Task<ActionResult<CompteDetailDTO>> GetMe()
     {
         var claim = User.FindFirst("idUser")?.Value;
         if (string.IsNullOrEmpty(claim))
@@ -239,8 +239,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
         if (user == null)
             return NotFound();
-
-        return Ok(user);
+        
+        CompteDetailDTO dto = _compteMapper.Map<CompteDetailDTO>(user);
+        return Ok(dto);
     }
     
     /// <summary>
@@ -327,11 +328,11 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 Domain = null,
                 Path = "/"
             };
+            
             await _journalService.LogConnexionAsync(compte.IdCompte);
             
             Response.Cookies.Append("access_token", tokenString, cookieOptions);
-
-
+            
             return Ok(new { 
                 message = "Login OK",
                 userId = compte.IdCompte,

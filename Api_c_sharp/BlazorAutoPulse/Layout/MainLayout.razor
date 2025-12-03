@@ -42,9 +42,13 @@
                 </NavLink>
             }
 
+            @if (VM.IsAdmin)
+            {
+                
                 <NavLink href="admin">
                     <span class="btn-login"> Mode Admin </span>
                 </NavLink>
+            }
                 
         </ul>
     </nav>
