@@ -14,5 +14,6 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
             return await dbSet.Where(tc => tc.Cherchable == true).ToListAsync();
         }
+
     }
 }

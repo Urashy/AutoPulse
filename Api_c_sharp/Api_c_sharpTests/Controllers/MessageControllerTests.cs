@@ -146,11 +146,10 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task PostMessageTest_Entity()
         {
-            MessageDTO message = new MessageDTO()
+            MessageCreateDTO message = new MessageCreateDTO()
             {
                 IdCompte = 1,
                 ContenuMessage = _objetcommun.ContenuMessage,
-                DateEnvoiMessage = DateTime.Now,
             };
 
             var actionResult = await _controller.Post(message);
@@ -237,11 +236,11 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task BadRequestPostMessageTest()
         {
-            MessageDTO message = new MessageDTO()
+            MessageCreateDTO message = new MessageCreateDTO()
             {
                 IdCompte = 1,
                 ContenuMessage = _objetcommun.ContenuMessage,
-                DateEnvoiMessage = DateTime.Now,
+
             };
 
             _controller.ModelState.AddModelError("ContenuMessage", "Required");

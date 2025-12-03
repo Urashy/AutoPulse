@@ -16,6 +16,7 @@ using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
 using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
 using Api_c_sharp.Models.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace App.Controllers;
 
@@ -199,9 +200,31 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         await _manager.DeleteAsync(entity);
         return NoContent();
     }
-#endregion 
 
-#region Autre methode
+
+    /// <summary>
+    /// Récupère l'ID du type de compte à partir de l'ID du compte.
+    /// </summary>
+    /// <param name="idCompte">Identifiant unique du compte.</param>
+    /// <returns>
+    /// <item><description>L'ID du type de compte si le compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
+    /// </returns>
+    [HttpGet("GetTypeCompteByCompteId/{idCompte}")]
+    public async Task<ActionResult<int>> GetTypeCompteByCompteId(int idCompte)
+    {
+        var compte = await _manager.GetByIdAsync(idCompte);
+
+        if (compte is null)
+            return NotFound();
+
+        return compte.IdTypeCompte;
+    }
+
+
+    #endregion
+
+    #region Autre methode
     [ActionName("GetMe")]
     [Authorize]
     [HttpGet]
@@ -263,6 +286,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
         return new ActionResult<IEnumerable<CompteGetDTO>>(_compteMapper.Map<IEnumerable<CompteGetDTO>>(result));
     }
+
+
 #endregion
 
 #region Authentification Classique
@@ -310,7 +335,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return Ok(new { 
                 message = "Login OK",
                 userId = compte.IdCompte,
-                pseudo = compte.Pseudo
+                pseudo = compte.Pseudo,
+                role = compte.IdTypeCompte
             });
         }
         catch (Exception ex)
@@ -580,6 +606,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             new Claim("role", "Authorized"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("idUser", compte.IdCompte.ToString()),
+
         };
         
         var token = new JwtSecurityToken(

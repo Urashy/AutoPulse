@@ -1,4 +1,5 @@
-﻿using BlazorAutoPulse.Service.Interface;
+﻿using BlazorAutoPulse.Service;
+using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 
 namespace BlazorAutoPulse.ViewModel
@@ -9,6 +10,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IImageService _imageService;
 
         public bool IsConnected { get; private set; }
+        public bool IsAdmin { get; private set; }
         public string ImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
 
         private Action? _refreshUI;

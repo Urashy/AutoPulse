@@ -15,6 +15,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace App.Controllers.Tests
 {
@@ -26,6 +28,7 @@ namespace App.Controllers.Tests
         private JournalManager _manager;
         private IMapper _mapper;
         private Journal _objetcommun;
+        private ILogger<JournalManager> logger;
 
         [TestInitialize]
         public async Task Initialize()
@@ -42,7 +45,7 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
-            _manager = new JournalManager(_context);
+            _manager = new JournalManager(_context, logger);
             _controller = new JournalController(_manager, _mapper);
 
             _context.Adresses.RemoveRange(_context.Adresses);

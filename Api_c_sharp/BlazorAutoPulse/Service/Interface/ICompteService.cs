@@ -6,6 +6,8 @@ public interface ICompteService: IService<Compte>
 {
     Task<Compte> GetByNameAsync(string name);
     Task<Compte> GetMe();
+    Task<int?> GetTypeCompteByCompteId(int idCompte);
+
     Task<bool> VerifUser(ChangementMdp changementMdp);
     Task<ServiceResult<bool>> ChangementMdp(ChangementMdp changementMdp);
     Task<bool> Anonymisation(int idCompte);
