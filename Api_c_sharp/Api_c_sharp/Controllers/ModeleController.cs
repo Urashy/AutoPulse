@@ -64,7 +64,7 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     public async Task<ActionResult<IEnumerable<ModeleDTO>>> GetAllByMarque(int marqueId)
     {
         var list = await _manager.GetModelesByMarqueIdAsync(marqueId);
-        if (list is null)
+        if (list is null || !list.Any())
         {
             return NotFound();
         }

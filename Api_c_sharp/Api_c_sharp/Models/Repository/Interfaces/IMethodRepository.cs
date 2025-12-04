@@ -37,11 +37,6 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId);
     }
 
-    public interface IJournalRepository
-    {
-        Task<IEnumerable<Journal>> GetJournalByType(int typeID);
-    }
-
     public interface IAvisRepository
     {
         Task<IEnumerable<Avis>> GetAvisByCompteId(int compteId);
