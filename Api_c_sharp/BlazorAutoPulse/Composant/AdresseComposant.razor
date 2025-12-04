@@ -1,0 +1,62 @@
+@using AutoPulse.Shared.DTO
+@using BlazorAutoPulse.ViewModel
+@inject AdresseComposantViewModel VM
+@inject NavigationManager Navigation
+
+<div class="car-card" @onclick="NavigateToDetail">
+    <div class="car-image">
+        @if (Annonce.DatePublication >= DateTime.Now.AddMonths(-1))
+        {
+            <div class="car-badge">RÉCENT</div>
+        }
+
+        <div class="favorite-icon @(VM.IsFavorite ? "favorite-active" : "")"
+             @onclick="ToggleFavorite"
+             @onclick:stopPropagation="true">
+            @if (VM.IsFavorite)
+            {
+                <i class="fas fa-heart"></i>
+            }
+            else
+            {
+                <i class="far fa-heart"></i>
+            }
+        </div>
+
+        <img src="@VM.GetFirstImage(Annonce.IdVoiture)" alt="@Annonce.Libelle" />
+    </div>
+    <div class="car-info">
+        <h3 class="car-title">@Annonce.Libelle</h3>
+        <div class="car-specs">
+            <span>📅 @Annonce.Annee</span>
+        </div>
+        <div class="car-specs">
+            <span>📊 @Annonce.Kilometrage km</span>
+        </div>
+        <div class="car-price">@Annonce.Prix?.ToString("N0") €</div>
+        <button class="car-btn" @onclick="NavigateToDetail" @onclick:stopPropagation="true">Voir Détails</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public AdresseDTO Adresse { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Adresse != null)
+        {
+            await VM.InitializeAsync(Adresse, StateHasChanged);
+        }
+    }
+
+    private async Task ToggleFavorite()
+    {
+        await VM.ToggleFavoriteStatus();
+    }
+
+    private void NavigateToDetail()
+    {
+        Navigation.NavigateTo($"/annonce/{Annonce.IdAnnonce}");
+    }
+}

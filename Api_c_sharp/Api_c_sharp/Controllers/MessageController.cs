@@ -17,7 +17,7 @@ public class MessageController(
     MessageManager _manager, 
     IMapper _messagemapper,
     IJournalService _journalService, 
-    IHubContext<MessageHub> _hubContext) : ControllerBase
+    IHubContext<MessageHub> _hubContext = null) : ControllerBase
 {
     [ActionName("GetById")]
     [HttpGet("{id}")]
@@ -56,13 +56,15 @@ public class MessageController(
         await _journalService.LogEnvoiMessageAsync(dto.IdCompte, dto.IdConversation, dto.ContenuMessage);
         await _manager.AddAsync(entity);
 
-        // Notifier tous les participants via SignalR
-        await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
+        if(_hubContext != null)
+        {
+            await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
             .SendAsync("ReceiveMessage",
                 entity.IdConversation,
                 entity.IdCompte,
                 entity.ContenuMessage,
                 entity.DateEnvoiMessage);
+        }
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdMessage }, entity);
     }
@@ -109,7 +111,7 @@ public class MessageController(
         // Appel de la méthode qui marque les messages comme lus via la fonction BD
         var result = await _manager.GetMessagesByConversationAndMarkAsRead(idconversation, iduser);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
         // Notifier via SignalR que les messages ont été lus
