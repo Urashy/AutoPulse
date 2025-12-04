@@ -5,6 +5,7 @@ using FuzzySharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 
 namespace Api_c_sharp.Models.Repository.Managers
@@ -57,10 +58,14 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await ApplyIncludes().Where(a => a.IdEtatAnnonce == 1).FirstOrDefaultAsync(a => a.Libelle == name);
         }
 
-        public async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId)
+        public async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId, int pageNumber, int pageSize)
         {
+            int skip = Math.Max(0, (pageNumber - 1) * pageSize);
+            int take = Math.Max(1, pageSize);
             return await ApplyIncludes()
                 .Where(a => a.IdMiseEnAvant == miseAvantId && a.IdEtatAnnonce == 1)
+                .Skip(skip)
+                .Take(take)
                 .ToListAsync();
         }
 

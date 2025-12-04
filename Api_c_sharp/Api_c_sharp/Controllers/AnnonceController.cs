@@ -187,9 +187,12 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetByIdMiseEnAvant")]
     [HttpGet("{idmiseenavant}")]
-    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByIdMiseEnAvant(int idmiseenavant)
+    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByIdMiseEnAvant(
+        int idmiseenavant,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 21)
     {
-        var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant);
+        var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant,pageNumber,pageSize);
 
         if (result == null || !result.Any())
             return NotFound();
