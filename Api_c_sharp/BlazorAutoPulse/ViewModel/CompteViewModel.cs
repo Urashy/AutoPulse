@@ -17,6 +17,7 @@ namespace BlazorAutoPulse.ViewModel
 
         public CompteDetailDTO compte;
         public Compte compteEdit;
+        public IEnumerable<AdresseDTO> adresses;
         
         private string mimeType = "data:image/jpeg;base64,";
         public string imageSource;
@@ -81,6 +82,8 @@ namespace BlazorAutoPulse.ViewModel
                 RaisonSociale = compte.RaisonSociale ?? "",
                 IdImage = idImage,
             };
+
+            adresses = await _addressService.GetAdresseByCompte();
         }
 
         public async Task UpdateProfileImage(InputFileChangeEventArgs e)
