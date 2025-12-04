@@ -1,6 +1,7 @@
 ﻿using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
+using AutoPulse.Shared.DTO;
 
 namespace BlazorAutoPulse.ViewModel;
 
