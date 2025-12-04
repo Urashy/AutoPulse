@@ -353,7 +353,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     {
         try
         {
-            await _journalService.LogDeconnexionAsync(int.Parse(User.FindFirst("userId")?.Value));
+            await _journalService.LogDeconnexionAsync(int.Parse(User.FindFirst("idUser")?.Value));
             // Efface le cookie JWT HTTP-only
             Response.Cookies.Delete("access_token", new CookieOptions
             {
@@ -362,7 +362,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 SameSite = SameSiteMode.None,
                 Path = "/"
             });
-
             return Ok(new { message = "Logout OK" });
         }
         catch (Exception ex)

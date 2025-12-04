@@ -112,7 +112,6 @@ public class ConnexionViewModel
         catch (Exception ex)
         {
             Console.WriteLine($"Erreur DeconnexionUtilisateur: {ex.Message}");
-            // Même en cas d'erreur, on redirige vers la page de connexion
             _nav.NavigateTo("/connexion", forceLoad: true);
         }
     }
