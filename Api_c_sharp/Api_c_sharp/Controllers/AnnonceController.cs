@@ -252,7 +252,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </list>
     /// </returns>
     [ActionName("GetByCompteFavoris")]
-    [HttpGet("{idmiseenavant}")]
+    [HttpGet("{compteid}")]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByCompteFavoris(int compteid)
     {
         var result = await _manager.GetAnnoncesByCompteFavoris(compteid);
@@ -270,7 +270,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// Une liste de <see cref="AnnonceDTO"/> (200 OK).
     /// </returns>
     [ActionName("GetAnnoncesByCompteId")]
-    [HttpGet("{idcompte}")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetAnnoncesByCompteID(int idcompte)
     {
         var list = await _manager.GetAnnoncesByCompteID(idcompte);

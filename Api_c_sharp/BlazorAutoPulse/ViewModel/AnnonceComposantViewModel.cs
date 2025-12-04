@@ -56,13 +56,14 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        public async Task ToggleFavoriteStatus()
+        public async Task ToggleFavoriteStatus(int idannonce)
         {
             if (!_currentUserId.HasValue) return;
 
             try
             {
                 IsFavorite = !IsFavorite;
+                _favorisService.ToggleFavorite(_currentUserId.Value, idannonce); 
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)

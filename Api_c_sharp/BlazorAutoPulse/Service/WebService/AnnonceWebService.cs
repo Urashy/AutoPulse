@@ -45,5 +45,17 @@ namespace BlazorAutoPulse.Service
             return await response.Content.ReadFromJsonAsync<IEnumerable<AnnonceDTO>>()
                    ?? Enumerable.Empty<AnnonceDTO>();
         }
+
+        public async Task<IEnumerable<AnnonceDTO>> GetAnnoncesFavoritesByCompteId(int compteId)
+        {
+            var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                BuildUrl($"GetByCompteFavoris/{compteId}")
+            );
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<AnnonceDTO>>()
+                   ?? Enumerable.Empty<AnnonceDTO>();
+        }
     }
 }

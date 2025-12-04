@@ -32,18 +32,10 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                AnnoncesFavoris.Clear();
-
                 var me = await _compteService.GetMe();
-                Favoris = await _favorisService.GetMesFavoris(me.IdCompte);
 
-                var annonceIds = Favoris.Select(f => f.IdAnnonce).ToList();
-
-                // Charger les annonces depuis GetByCompteID qui retourne maintenant des AnnonceDTO
-                var allAnnonces = await _favorisService.GetAllAsync();
-
-                // Filtrer pour ne garder que les favoris
-                AnnoncesFavoris = allAnnonces.Where(a => annonceIds.Contains(a.IdAnnonce)).ToList();
+                // ✅ Appel direct à l'API qui retourne des AnnonceDTO
+                AnnoncesFavoris = (await _annonceService.GetAnnoncesFavoritesByCompteId(me.IdCompte)).ToList();
 
                 refreshUI?.Invoke();
             }
