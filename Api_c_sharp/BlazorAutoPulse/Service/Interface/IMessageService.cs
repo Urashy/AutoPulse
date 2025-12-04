@@ -4,5 +4,5 @@ namespace BlazorAutoPulse.Service.Interface;
 
 public interface IMessageService: IService<MessageDTO>
 {
-    Task<IEnumerable<MessageDTO>> GetMessagesParConversation(int idConv);
+    Task<IEnumerable<MessageDTO>> GetMessagesByConversationAndMarkAsRead(int conversationId, int userId);
 }
