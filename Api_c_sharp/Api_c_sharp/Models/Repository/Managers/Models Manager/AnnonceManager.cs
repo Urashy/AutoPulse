@@ -64,6 +64,8 @@ namespace Api_c_sharp.Models.Repository.Managers
                 .ToListAsync();
         }
 
+        // Dans AnnonceManager.cs - Méthode GetFilteredAnnonces
+
         public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderprix)
         {
             var query = ApplyIncludes();
@@ -118,18 +120,17 @@ namespace Api_c_sharp.Models.Repository.Managers
             else if (orderprix == 2) // Décroissant
                 orderedQuery = orderedQuery.ThenByDescending(a => a.Prix);
 
-            // Tri final par date de publication
             orderedQuery = orderedQuery.ThenByDescending(a => a.DatePublication);
 
-            // Logique de pagination
-            if (pageNumber > 0 && pageSize > 0)
-            {
-                orderedQuery = (IOrderedQueryable<Annonce>)orderedQuery
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize);
-            }
+            int skip = Math.Max(0, (pageNumber - 1) * pageSize);
+            int take = Math.Max(1, pageSize); // Assure qu'on prend au moins 1 élément
 
-            return await orderedQuery.ToListAsync();
+            var result = await orderedQuery
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
+
+            return result;
         }
 
         public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
