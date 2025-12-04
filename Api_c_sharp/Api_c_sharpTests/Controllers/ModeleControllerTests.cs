@@ -125,9 +125,7 @@ namespace App.Controllers.Tests
             var result = await _controller.GetAllByMarque(0);
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<ModeleDTO>));
-            Assert.IsFalse(result.Value.Any());
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

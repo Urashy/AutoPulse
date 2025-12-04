@@ -29,16 +29,12 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     public interface IMessageRepository
     {
         Task<IEnumerable<Message>> GetMessagesByConversation(int conversationId);
+        Task<int> GetUnreadMessageCount(int conversationId, int userId);
     }
 
     public interface ISignalementRepository
     {
         Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId);
-    }
-
-    public interface IJournalRepository
-    {
-        Task<IEnumerable<Journal>> GetJournalByType(int typeID);
     }
 
     public interface IAvisRepository

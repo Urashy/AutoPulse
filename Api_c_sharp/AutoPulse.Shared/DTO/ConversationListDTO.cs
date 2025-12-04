@@ -8,5 +8,7 @@ public class ConversationListDTO
     public string DernierMessage { get; set; }
     public DateTime DateDernierMessage { get; set; }
     public string ParticipantPseudo { get; set; }
-    public int IdImageParticipant { get; set; }
+    public int IdParticipant { get; set; }
+    
+    public int NombreNonLu { get; set; }
 }

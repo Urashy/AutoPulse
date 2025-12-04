@@ -224,7 +224,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
     #endregion
 
-    #region Autre methode
+#region Autre methode
     [ActionName("GetMe")]
     [Authorize]
     [HttpGet]
@@ -328,11 +328,11 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 Domain = null,
                 Path = "/"
             };
+            
             await _journalService.LogConnexionAsync(compte.IdCompte);
             
             Response.Cookies.Append("access_token", tokenString, cookieOptions);
-
-
+            
             return Ok(new { 
                 message = "Login OK",
                 userId = compte.IdCompte,

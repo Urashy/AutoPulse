@@ -18,7 +18,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AvisController(AvisManager _manager, IMapper _mapper) : ControllerBase
+public class AvisController(AvisManager _manager, IMapper _mapper, IJournalService _journalService) : ControllerBase
 {
     /// <summary>
     /// Récupère un avis à partir de son identifiant.
@@ -74,6 +74,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper) : ControllerB
             return BadRequest(ModelState);
 
         var entity = _mapper.Map<Avis>(dto);
+        await _journalService.LogDepotAvisAsync(dto.IdJugeur, dto.IdJugee, dto.IdAvis, dto.NoteAvis, dto.ContenuAvis);
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdAvis }, entity);

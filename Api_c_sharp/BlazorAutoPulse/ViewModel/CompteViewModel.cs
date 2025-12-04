@@ -11,6 +11,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly ICompteService _compteService;
         private readonly IPostImageService _postImageService;
         private readonly IImageService _imageService;
+        private readonly IAnnonceService _annonceService;
+        private readonly IAdresseService _addressService;
         public NavigationManager _nav { get; set; }
 
         public CompteDetailDTO compte;
@@ -40,11 +42,13 @@ namespace BlazorAutoPulse.ViewModel
         
         private Action? _refreshUI;
 
-        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService)
+        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService, IAnnonceService annonceService, IAdresseService adresseService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
             _imageService = imageService;
+            _annonceService = annonceService;
+            _addressService = adresseService;
         }
         
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -52,10 +56,9 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI = refreshUI;
             _nav = nav;
             
-
             try
             {
-                var compteDetail = await _compteService.GetMe();
+                compte = await _compteService.GetMe();
             }
             catch
             {
@@ -74,8 +77,8 @@ namespace BlazorAutoPulse.ViewModel
                 DateNaissance = compte.DateNaissance,
                 Biographie = compte.Biographie,
                 IdTypeCompte = compte.IdTypeCompte,
-                NumeroSiret = compte.NumeroSiret,
-                RaisonSociale = compte.RaisonSociale,
+                NumeroSiret = compte.NumeroSiret ?? "",
+                RaisonSociale = compte.RaisonSociale ?? "",
                 IdImage = idImage,
             };
         }
@@ -139,7 +142,7 @@ namespace BlazorAutoPulse.ViewModel
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de l'affichage de l'image : {ex.Message}");
-                imageSource = "images/default-profile.png";
+                imageSource = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
                 _refreshUI?.Invoke();
             }
         }

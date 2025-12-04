@@ -8,4 +8,5 @@ public class MessageDTO
     public DateTime DateEnvoiMessage { get; set; }
     public int IdCompte { get; set; }
     public string PseudoCompte { get; set; }
+    public bool EstLu { get; set; }
 }

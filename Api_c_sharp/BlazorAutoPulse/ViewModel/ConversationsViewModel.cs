@@ -4,6 +4,7 @@ using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using System.Net.Http.Json;
 
 namespace BlazorAutoPulse.ViewModel;
 
@@ -15,11 +16,11 @@ public class ConversationsViewModel
     private readonly ICompteService _compteService;
     private readonly NavigationManager _navigation;
     private readonly IImageService _imageService;
+    private readonly HttpClient _httpClient;
 
     public List<ConversationListDTO> Conversations { get; private set; } = new();
     public List<MessageDTO> Messages { get; private set; } = new();
     public ConversationListDTO? SelectedConversation { get; private set; }
-    private Compte compte;
     
     public string NewMessage { get; set; } = "";
     public int CurrentUserId { get; private set; }
@@ -40,6 +41,7 @@ public class ConversationsViewModel
         IService<MessageDTO> msgService,
         ICompteService compteService,
         IImageService imageService,
+        HttpClient httpClient,
         NavigationManager nav)
     {
         _signalR = signalR;
@@ -47,10 +49,12 @@ public class ConversationsViewModel
         _messageService = msgService;
         _compteService = compteService;
         _imageService = imageService;
+        _httpClient = httpClient;
         _navigation = nav;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
         _signalR.OnUserTyping += HandleUserTyping;
+        _signalR.OnMessagesRead += HandleMessagesRead;
     }
 
     public async Task InitializeAsync()
@@ -58,23 +62,22 @@ public class ConversationsViewModel
         try
         {
             await _signalR.StartAsync();
-
+            
             var compteDetail = await _compteService.GetMe();
-
             CurrentUserId = compteDetail.IdCompte;
-
-            Conversations = (await _conversationService.GetConversationsByCompteID(compteDetail.IdCompte)).ToList();
-
+            Console.WriteLine("1");
+            await LoadConversations();
+            Console.WriteLine("2");
             foreach (var conv in Conversations)
             {
+                Console.WriteLine("3");
                 await _signalR.JoinConversation(conv.IdConversation);
+                Console.WriteLine("4");
+                await GetImageProfil(conv.IdParticipant);
+                Console.WriteLine("5");
             }
             
-            foreach (var conv in Conversations)
-            {
-                await _signalR.JoinConversation(conv.IdConversation);
-                await GetImageProfil(conv.IdImageParticipant);
-            }
+            _refreshUI?.Invoke();
         }
         catch (Exception ex)
         {
@@ -86,22 +89,42 @@ public class ConversationsViewModel
             _refreshUI?.Invoke();
         }
     }
+
+    private async Task LoadConversations()
+    {
+        Conversations = (await _conversationService.GetConversationsByCompteID(CurrentUserId)).ToList();
+    }
     
     public async Task SelectConversation(ConversationListDTO conv)
     {
-        await _signalR.MarkAsRead(conv.IdConversation, CurrentUserId);
         SelectedConversation = conv;
 
-        // Charger les messages existants
-        Messages = (await _messageService.GetAllAsync())
-            .Where(m => m.IdConversation == conv.IdConversation)
-            .OrderBy(m => m.DateEnvoiMessage)
-            .ToList();
-        
-        await _signalR.MarkAsRead(SelectedConversation.IdConversation, CurrentUserId);
+        await LoadMessages(conv.IdConversation);
 
         _refreshUI?.Invoke();
     }
+
+    private async Task LoadMessages(int conversationId)
+    {
+        try
+        {
+            var conv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
+            if (conv != null)
+            {
+                conv.NombreNonLu = 0;
+            }
+
+            Messages = (await _messageService.GetAllAsync())
+                .Where(m => m.IdConversation == conv.IdConversation)
+                .OrderBy(m => m.DateEnvoiMessage)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement des messages: {ex.Message}");
+        }
+    }
+
     public async Task SendMessage()
     {
         if (SelectedConversation == null || string.IsNullOrWhiteSpace(NewMessage))
@@ -126,33 +149,57 @@ public class ConversationsViewModel
 
         _refreshUI?.Invoke();
     }
+
     private void HandleMessageReceived(int conversationId, int senderId, string message, DateTime date)
     {
-        if (SelectedConversation?.IdConversation != conversationId)
+        // Ajouter le message à la liste si c'est la conversation active
+        if (SelectedConversation?.IdConversation == conversationId)
         {
-            return;
+            var newMsg = new MessageDTO
+            {
+                IdConversation = conversationId,
+                IdCompte = senderId,
+                ContenuMessage = message,
+                DateEnvoiMessage = date,
+                EstLu = senderId == CurrentUserId
+            };
+
+            var exists = Messages.Any(m => 
+                m.IdCompte == senderId && 
+                m.ContenuMessage == message && 
+                Math.Abs((m.DateEnvoiMessage - date).TotalSeconds) < 2);
+
+            if (!exists)
+            {
+                Messages.Add(newMsg);
+            }
+        }
+        else
+        {
+            // Incrémenter le compteur de messages non lus pour cette conversation
+            var conv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
+            if (conv != null && senderId != CurrentUserId)
+            {
+                conv.NombreNonLu++;
+            }
         }
 
-        var newMsg = new MessageDTO
-        {
-            IdConversation = conversationId,
-            IdCompte = senderId,
-            ContenuMessage = message,
-            DateEnvoiMessage = date
-        };
+        _refreshUI?.Invoke();
+    }
 
-        var exists = Messages.Any(m => 
-            m.IdCompte == senderId && 
-            m.ContenuMessage == message && 
-            Math.Abs((m.DateEnvoiMessage - date).TotalSeconds) < 2);
-
-        if (!exists)
+    private void HandleMessagesRead(int conversationId, int userId)
+    {
+        // Si c'est nous qui avons lu, on met à jour les messages
+        if (userId == CurrentUserId && SelectedConversation?.IdConversation == conversationId)
         {
-            Messages.Add(newMsg);
-            
+            foreach (var msg in Messages.Where(m => m.IdCompte != CurrentUserId))
+            {
+                msg.EstLu = true;
+            }
             _refreshUI?.Invoke();
         }
     }
+
     private void HandleUserTyping(int conversationId, int userId, string userName)
     {
         if (SelectedConversation?.IdConversation != conversationId || userId == CurrentUserId)
@@ -167,6 +214,7 @@ public class ConversationsViewModel
             _refreshUI?.Invoke();
         });
     }
+
     public async Task HandleTyping(KeyboardEventArgs e)
     {
         if (SelectedConversation == null)
@@ -188,6 +236,7 @@ public class ConversationsViewModel
     {
         _signalR.OnMessageReceived -= HandleMessageReceived;
         _signalR.OnUserTyping -= HandleUserTyping;
+        _signalR.OnMessagesRead -= HandleMessagesRead;
         _typingTimer?.Dispose();
     }
     
@@ -195,7 +244,7 @@ public class ConversationsViewModel
     {
         try
         {
-            Image? img = await _imageService.GetByIdAsync(idCompte);
+            Image? img = await _imageService.GetImageProfil(idCompte);
 
             string imageSource = "";
             if (img != null && img.Fichier != null && img.Fichier.Length > 0)
@@ -209,14 +258,18 @@ public class ConversationsViewModel
             }
 
             ImageSources[idCompte] = imageSource;
-
             _refreshUI?.Invoke();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erreur lors de l'affichage de l'image : {ex.Message}");
-            ImageSources[idCompte] = "images/default-profile.png";
+            ImageSources[idCompte] = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
             _refreshUI?.Invoke();
         }
+    }
+
+    public int GetTotalUnreadCount()
+    {
+        return Conversations.Sum(c => c.NombreNonLu);
     }
 }

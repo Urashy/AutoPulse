@@ -1,13 +1,15 @@
-﻿using AutoPulse.Shared.DTO;
-using Api_c_sharp.Mapper;
+﻿using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using App.Controllers;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Api_c_sharp.Models.Entity;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace App.Controllers.Tests
 {
@@ -19,6 +21,7 @@ namespace App.Controllers.Tests
         private CommandeManager _manager;
         private IMapper _mapper;
         private Commande _commandeCommun;
+        private IJournalService _journalService;
 
         [TestInitialize]
         public async Task Initialize()
@@ -36,8 +39,9 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
+            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new CommandeManager(_context);
-            _controller = new CommandeController(_manager, _mapper);
+            _controller = new CommandeController(_manager, _mapper, _journalService);
 
             // Reset DB
             _context.Commandes.RemoveRange(_context.Commandes);

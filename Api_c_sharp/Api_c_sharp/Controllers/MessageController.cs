@@ -13,7 +13,7 @@ namespace App.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class MessageController(MessageManager _manager, IMapper _messagemapper, IHubContext<MessageHub> _hubContext = null ) : ControllerBase
+public class MessageController(MessageManager _manager, IMapper _messagemapper,IJournalService _journalService, IHubContext<MessageHub> _hubContext = null ) : ControllerBase
 {
     [ActionName("GetById")]
     [HttpGet("{id}")]
@@ -47,11 +47,10 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
 
         var entity = _messagemapper.Map<Message>(dto);
         entity.DateEnvoiMessage = DateTime.UtcNow;
-        
-        // 1. Sauvegarder le message en DB
+
+        await _journalService.LogEnvoiMessageAsync(dto.IdCompte, dto.IdConversation, dto.ContenuMessage);
         await _manager.AddAsync(entity);
 
-        // 2. Notifier TOUS les participants de la conversation via SignalR
         if (_hubContext != null)
         {
             await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
@@ -106,5 +105,13 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
             return NotFound();
 
         return new ActionResult<IEnumerable<MessageDTO>>(_messagemapper.Map<IEnumerable<MessageDTO>>(result));
+    }
+    
+    [ActionName("GetUnreadCount")]
+    [HttpGet("{conversationId}/{userId}")]
+    public async Task<ActionResult<int>> GetUnreadCount(int conversationId, int userId)
+    {
+        var count = await _manager.GetUnreadMessageCount(conversationId, userId);
+        return Ok(count);
     }
 }

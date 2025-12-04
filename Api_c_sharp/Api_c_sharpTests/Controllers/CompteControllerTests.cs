@@ -1,24 +1,25 @@
 ﻿using Api_c_sharp.Controllers;
-using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
+using Api_c_sharp.Models.Authentification;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using App.Controllers;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using Api_c_sharp.Models.Entity;
-using Microsoft.Extensions.Configuration;
-using Api_c_sharp.Models.Authentification;
-using Api_c_sharp.Models.Repository.Interfaces;
 
 namespace App.Controllers.Tests
 {
@@ -49,7 +50,7 @@ namespace App.Controllers.Tests
                 cfg.AddProfile<MapperProfile>();
             });
             _mapper = mapperconfig.CreateMapper();
-
+            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new CompteManager(_context);
             _controller = new CompteController(_manager, _mapper, config, _journalService);
 

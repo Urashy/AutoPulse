@@ -1,4 +1,5 @@
 ﻿using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
@@ -15,7 +16,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class FavoriController(FavoriManager _manager, IMapper _mapper) : ControllerBase
+    public class FavoriController(FavoriManager _manager, IMapper _mapper,IJournalService _journalService) : ControllerBase
     {
         /// <summary>
         /// Récupère tous les favoris.
@@ -72,6 +73,7 @@ namespace Api_c_sharp.Controllers
                 return BadRequest(ModelState);
 
             var entity = _mapper.Map<Favori>(dto);
+            await _journalService.LogMiseFavorisAsync(dto.IdCompte, dto.IdAnnonce);
             await _manager.AddAsync(entity);
 
             return CreatedAtAction(

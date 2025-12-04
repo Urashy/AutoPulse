@@ -25,10 +25,10 @@
                 <div class="conversation-item @(VM.SelectedConversation?.IdConversation == conv.IdConversation ? "active" : "")"
                      @onclick="() => VM.SelectConversation(conv)">
                     <div class="conversation-avatar">
-                        @if (VM.ImageSources.ContainsKey(conv.IdImageParticipant) &&
-                             !string.IsNullOrEmpty(VM.ImageSources[conv.IdImageParticipant]))
+                        @if (VM.ImageSources.ContainsKey(conv.IdParticipant) &&
+                             !string.IsNullOrEmpty(VM.ImageSources[conv.IdParticipant]))
                         {
-                            <img src="@VM.ImageSources[conv.IdImageParticipant]"
+                            <img src="@VM.ImageSources[conv.IdParticipant]"
                                  alt="Profile"
                                  class="avatar-img" />
                         }
@@ -39,8 +39,15 @@
                     </div>
                     <div class="conversation-info">
                         <h4>@conv.LibelleAnnonce</h4>
-                        <p class="last-message">Dernier message...</p>
+                        <p class="last-message">
+                            @(string.IsNullOrEmpty(conv.DernierMessage) ? "Aucun message" :
+                            conv.DernierMessage.Length > 40 ? conv.DernierMessage.Substring(0, 40) + "..." : conv.DernierMessage)
+                        </p>
                     </div>
+                    @if (conv.NombreNonLu > 0)
+                    {
+                        <span class="unread-badge">@conv.NombreNonLu    </span>
+                    }
                 </div>
             }
         }
@@ -67,7 +74,13 @@
                     <div class="message @(msg.IdCompte == VM.CurrentUserId ? "sent" : "received")">
                         <div class="message-bubble">
                             <p>@msg.ContenuMessage</p>
-                            <span class="message-time">@msg.DateEnvoiMessage.ToLocalTime().ToString("HH:mm")</span>
+                            <div class="message-footer">
+                                <span class="message-time">@msg.DateEnvoiMessage.ToLocalTime().ToString("HH:mm")</span>
+                                @if (msg.IdCompte == VM.CurrentUserId)
+                                {
+                                    <span class="read-indicator">@(msg.EstLu ? "✓✓" : "✓")</span>
+                                }
+                            </div>
                         </div>
                     </div>
                 }

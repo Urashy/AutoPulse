@@ -18,18 +18,14 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class ConversationController(ConversationManager _manager, IMapper _mapper) : ControllerBase
+public class ConversationController(
+    ConversationManager _manager, 
+    IConversationEnrichmentService _enrichmentService,
+    IMapper _mapper) : ControllerBase
 {
     /// <summary>
     /// Récupère une conversation à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce recherchée.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="ConversationDetailDTO"/> si la annonce existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
     public async Task<ActionResult<ConversationDetailDTO>> GetByID(int id)
@@ -45,9 +41,6 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     /// <summary>
     /// Récupère la liste de toutes les conversations.
     /// </summary>
-    /// <returns>
-    /// Une liste de <see cref="Conversation"/> (200 OK).
-    /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetAll()
@@ -57,15 +50,8 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     }
 
     /// <summary>
-    /// Crée une nouveau conversation.
+    /// Crée une nouvelle conversation.
     /// </summary>
-    /// <param name="dto">Objet <see cref="ConversationCreateDTO"/> contenant les informations du conversation à créer.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec le conversation créée (201).</description></item>
-    /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Post")]
     [HttpPost]
     public async Task<ActionResult<ConversationDetailDTO>> Post([FromBody] ConversationCreateDTO dto)
@@ -80,17 +66,8 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     }
 
     /// <summary>
-    /// Met à jour un Conversation existant.
+    /// Met à jour une conversation existante.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="Conversation"/> contenant les nouvelles valeurs.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune Conversation ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] ConversationCreateDTO dto)
@@ -110,15 +87,8 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     }
 
     /// <summary>
-    /// Supprime un conversation existant.
+    /// Supprime une conversation existante.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à supprimer.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun conversation ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
@@ -133,11 +103,9 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
     }
 
     /// <summary>
-    /// Récupère la liste de toutes les conversationsen fonctions d'un compte.
+    /// Récupère la liste de toutes les conversations en fonction d'un compte.
+    /// Utilise un service dédié pour enrichir les données (participants, messages non lus).
     /// </summary>
-    /// <returns>
-    /// Une liste de <see cref="Conversation"/> (200 OK).
-    /// </returns>
     [ActionName("GetConversationsByCompteID")]
     [HttpGet("{idcompte}")]
     public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetConversationsByCompteID(int idcompte)
@@ -147,22 +115,9 @@ public class ConversationController(ConversationManager _manager, IMapper _mappe
         if (conversations is null || !conversations.Any())
             return NotFound();
 
-        var result = _mapper.Map<IEnumerable<ConversationListDTO>>(conversations).ToList();
+        // Utiliser le service d'enrichissement pour ajouter les informations manquantes
+        var result = await _enrichmentService.EnrichConversationsAsync(conversations, idcompte);
 
-        foreach (var conversationDTO in result)
-        {
-            var conversation = conversations.FirstOrDefault(c => c.IdConversation == conversationDTO.IdConversation);
-        
-            if (conversation != null)
-            {
-                var autreParticipant = conversation.ApourConversations
-                    .FirstOrDefault(apc => apc.IdCompte != idcompte);
-            
-                conversationDTO.ParticipantPseudo = autreParticipant?.APourConversationCompteNav?.Pseudo ?? "Utilisateur inconnu";
-                conversationDTO.IdImageParticipant = autreParticipant?.APourConversationCompteNav?.Images.First().IdImage ?? 0;
-            }
-        }
-
-        return Ok(result);
+        return new ActionResult<IEnumerable<ConversationListDTO>>(result);
     }
 }

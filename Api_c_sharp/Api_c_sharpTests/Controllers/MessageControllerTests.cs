@@ -1,22 +1,24 @@
 ﻿using Api_c_sharp.Controllers;
-using AutoPulse.Shared.DTO;
+using Api_c_sharp.Hubs;
 using Api_c_sharp.Mapper;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using App.Controllers;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using Microsoft.AspNetCore.SignalR;
-using Api_c_sharp.Hubs;
-using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
@@ -28,6 +30,7 @@ namespace App.Controllers.Tests
         private MessageManager _manager;
         private IMapper _mapper;
         private Message _objetcommun;
+        private IJournalService _journalService;
 
         [TestInitialize]
         public async Task Initialize()
@@ -44,8 +47,9 @@ namespace App.Controllers.Tests
             });
             _mapper = config.CreateMapper();
 
+            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new MessageManager(_context);
-            _controller = new MessageController(_manager, _mapper);
+            _controller = new MessageController(_manager, _mapper, _journalService);
 
             _context.Messages.RemoveRange(_context.Messages);
             await _context.SaveChangesAsync();
