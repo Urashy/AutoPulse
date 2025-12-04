@@ -12,6 +12,7 @@ using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -62,6 +63,7 @@ namespace App.Controllers.Tests
 
             Compte compte = new Compte()
             {
+                IdCompte = 1,
                 Email = "john@gmail.com",
                 MotDePasse = "Password123!",
                 Nom = "Doe",
@@ -96,7 +98,8 @@ namespace App.Controllers.Tests
                 ContenuMessage = "Bonjour, je suis intéressé par votre annonce.",
                 DateEnvoiMessage = DateTime.Now,
                 IdConversation = 1,
-                IdCompte = 1
+                IdCompte = 1,
+                EstLu = false,
             };
 
             _context.TypesCompte.Add(typecompte);
@@ -152,6 +155,7 @@ namespace App.Controllers.Tests
         {
             MessageCreateDTO message = new MessageCreateDTO()
             {
+                IdConversation = 1,
                 IdCompte = 1,
                 ContenuMessage = _objetcommun.ContenuMessage,
             };
@@ -253,5 +257,30 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
 
+        [TestMethod]
+        public async Task GetUnreadCountTests()
+        {
+            // Act
+            var result = await _controller.GetUnreadCount(1,1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(int));
+            Assert.IsTrue(result.Value >= 0);
+        }
+
+        [TestMethod]
+        public async Task GetByConversationAndMarkAsReadTests()
+        {
+            var result = await _controller.GetByConversationAndMarkAsRead(1, 1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<MessageDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.EstLu == true));
+        }
     }
 }
