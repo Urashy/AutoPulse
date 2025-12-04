@@ -107,4 +107,12 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
 
         return new ActionResult<IEnumerable<MessageDTO>>(_messagemapper.Map<IEnumerable<MessageDTO>>(result));
     }
+    
+    [ActionName("GetUnreadCount")]
+    [HttpGet("{conversationId}/{userId}")]
+    public async Task<ActionResult<int>> GetUnreadCount(int conversationId, int userId)
+    {
+        var count = await _manager.GetUnreadMessageCount(conversationId, userId);
+        return Ok(count);
+    }
 }

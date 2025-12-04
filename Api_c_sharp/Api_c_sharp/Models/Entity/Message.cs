@@ -25,6 +25,9 @@ namespace Api_c_sharp.Models.Entity
         [Column("com_id")]
         [Required]
         public int IdCompte { get; set; }
+        
+        [Column("mes_estlu")]
+        public bool EstLu { get; set; } = false;
 
         [ForeignKey(nameof(IdCompte))]
         [InverseProperty(nameof(Compte.Messages))]

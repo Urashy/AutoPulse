@@ -55,6 +55,7 @@ builder.Services.AddScoped<JournalManager>();
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
 builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalManager>());
+builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmentService>();
 
 //------------------------------Authentification------------------------------
 builder.Services.AddAuthentication(options =>

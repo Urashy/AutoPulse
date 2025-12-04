@@ -9,4 +9,6 @@ public class ConversationListDTO
     public DateTime DateDernierMessage { get; set; }
     public string ParticipantPseudo { get; set; }
     public int IdParticipant { get; set; }
+    
+    public int NombreNonLu { get; set; }
 }
