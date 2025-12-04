@@ -22,9 +22,12 @@ namespace BlazorAutoPulse.Service
                    ?? Enumerable.Empty<AnnonceDTO>();
         }
 
-        public async Task<IEnumerable<AnnonceDTO>> GetByIdMiseEnAvant(int id)
+        public async Task<IEnumerable<AnnonceDTO>> GetByIdMiseEnAvant(int id, int pageNumber = 1, int pageSize = 21)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetByIdMiseEnAvant/{id}"));
+            var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                BuildUrl($"GetByIdMiseEnAvant/{id}?pageNumber={pageNumber}&pageSize={pageSize}")
+            );
             var response = await SendWithCredentialsAsync(request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IEnumerable<AnnonceDTO>>()

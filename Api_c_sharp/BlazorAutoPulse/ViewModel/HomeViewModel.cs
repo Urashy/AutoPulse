@@ -3,6 +3,7 @@ using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.ViewModel
 {
+
     public class HomeViewModel
     {
         private readonly IAnnonceService _annonceService;
@@ -43,20 +44,12 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                var searchParams = new ParametreRecherche
-                {
-                    PageNumber = CurrentPage,
-                    PageSize = ItemsPerPage
-                };
+                // ✅ Appel direct avec pagination côté API
+                var results = await _annonceService.GetByIdMiseEnAvant(3, CurrentPage, ItemsPerPage);
+                allAnnonces = results.ToArray();
 
-                // Utiliser GetByIdMiseEnAvant avec pagination
-                var results = (await _annonceService.GetByIdMiseEnAvant(3)).ToArray();
-
-                // Simuler la pagination côté client (en attendant que le back soit modifié)
-                var skip = (CurrentPage - 1) * ItemsPerPage;
-                allAnnonces = results.Skip(skip).Take(ItemsPerPage).ToArray();
-
-                HasMorePages = results.Length > skip + ItemsPerPage;
+                // Si on reçoit moins de résultats que demandé, c'est qu'il n'y a plus de pages
+                HasMorePages = allAnnonces.Length == ItemsPerPage;
             }
             catch (Exception ex)
             {
