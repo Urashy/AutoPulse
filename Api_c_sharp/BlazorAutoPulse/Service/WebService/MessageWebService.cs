@@ -11,9 +11,10 @@ public class MessageWebService: BaseWebService<MessageDTO>, IMessageService
     }
 
     protected override string ApiEndpoint => "Message";
-    public async Task<IEnumerable<MessageDTO>> GetMessagesParConversation(int idConv)
+
+    public async Task<IEnumerable<MessageDTO>> GetMessagesByConversationAndMarkAsRead(int conversationId, int userId)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetAllByConversation/{idConv}"));
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetAllByConversationAndMarkAsRead/{conversationId}/{userId}"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<IEnumerable<MessageDTO>>();
