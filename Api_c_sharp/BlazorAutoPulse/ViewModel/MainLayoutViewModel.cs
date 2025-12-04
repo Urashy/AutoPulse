@@ -27,7 +27,16 @@ namespace BlazorAutoPulse.ViewModel
         {
             _refreshUI = refreshUI;
             _nav = nav;
-            await CheckConnexion();
+
+            var uri = nav.Uri.ToLower();
+            bool isPublicPage = uri.Contains("/connexion") ||
+                                uri.Contains("/creationcompte") ||
+                                uri.Contains("/oublimdp");
+
+            if (!isPublicPage)
+            {
+                await CheckConnexion();
+            }
         }
 
         private async Task CheckConnexion()

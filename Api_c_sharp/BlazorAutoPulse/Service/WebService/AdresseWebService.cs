@@ -1,3 +1,4 @@
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using System.Net.Http.Json;
@@ -11,12 +12,12 @@ public class AdresseWebService: BaseWebService<Adresse>, IAdresseService
     }
     protected override string ApiEndpoint => "Adresse";
 
-    public async Task<IEnumerable<Adresse>> GetAdresseByCompte()
+    public async Task<IEnumerable<AdresseDTO>> GetAdresseByCompte()
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetAdresseByCompte/{1}"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<IEnumerable<Adresse>>();
+        return await response.Content.ReadFromJsonAsync<IEnumerable<AdresseDTO>>();
         throw new NotImplementedException();
     }
 }

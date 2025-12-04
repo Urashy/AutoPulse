@@ -12,7 +12,7 @@ public class ConversationsViewModel
 {
     private readonly ISignalRService _signalR;
     private readonly IConversationService _conversationService;
-    private readonly IService<MessageDTO> _messageService;
+    private readonly IMessageService _messageService;
     private readonly ICompteService _compteService;
     private readonly NavigationManager _navigation;
     private readonly IImageService _imageService;
@@ -38,7 +38,7 @@ public class ConversationsViewModel
     public ConversationsViewModel(
         ISignalRService signalR,
         IConversationService convService,
-        IService<MessageDTO> msgService,
+        IMessageService msgService,
         ICompteService compteService,
         IImageService imageService,
         HttpClient httpClient,
@@ -65,22 +65,18 @@ public class ConversationsViewModel
             
             var compteDetail = await _compteService.GetMe();
             CurrentUserId = compteDetail.IdCompte;
-            Console.WriteLine("1");
             await LoadConversations();
-            Console.WriteLine("2");
             foreach (var conv in Conversations)
             {
-                Console.WriteLine("3");
                 await _signalR.JoinConversation(conv.IdConversation);
-                Console.WriteLine("4");
                 await GetImageProfil(conv.IdParticipant);
-                Console.WriteLine("5");
             }
             
             _refreshUI?.Invoke();
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Erreur d'initialisation: {ex.Message}");
             _navigation.NavigateTo("/connexion");
         }
         finally
@@ -99,6 +95,7 @@ public class ConversationsViewModel
     {
         SelectedConversation = conv;
 
+        // Charger les messages ET les marquer comme lus via la fonction BD
         await LoadMessages(conv.IdConversation);
 
         _refreshUI?.Invoke();
@@ -108,16 +105,17 @@ public class ConversationsViewModel
     {
         try
         {
+            // Mettre à jour le compteur localement AVANT le chargement
             var conv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
             if (conv != null)
             {
                 conv.NombreNonLu = 0;
             }
 
-            Messages = (await _messageService.GetAllAsync())
-                .Where(m => m.IdConversation == conv.IdConversation)
-                .OrderBy(m => m.DateEnvoiMessage)
-                .ToList();
+            // Appeler la méthode qui marque automatiquement les messages comme lus
+            Messages = (await _messageService.GetMessagesByConversationAndMarkAsRead(conversationId, CurrentUserId)).ToList();
+
+            Console.WriteLine($"Messages chargés et marqués comme lus pour conversation {conversationId}");
         }
         catch (Exception ex)
         {
@@ -144,6 +142,7 @@ public class ConversationsViewModel
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Erreur lors de l'envoi du message: {ex.Message}");
             NewMessage = messageContent;
         }
 

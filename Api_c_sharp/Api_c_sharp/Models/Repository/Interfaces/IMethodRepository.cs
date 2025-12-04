@@ -28,8 +28,8 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
     public interface IMessageRepository
     {
-        Task<IEnumerable<Message>> GetMessagesByConversation(int conversationId);
         Task<int> GetUnreadMessageCount(int conversationId, int userId);
+        Task<IEnumerable<Message>> GetMessagesByConversationAndMarkAsRead(int conversationId, int userId);
     }
 
     public interface ISignalementRepository

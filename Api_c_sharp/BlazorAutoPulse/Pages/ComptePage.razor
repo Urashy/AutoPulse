@@ -275,6 +275,10 @@
             <div class="section-placeholder">
                 <h3>Section: @VM.activeSection</h3>
                 <p>Le contenu du composant @VM.activeSection sera affiché ici.</p>
+                @foreach(var adresse in VM.adresses)
+                {
+                    <p>adresse.Nom</p>
+                }
             </div>
         </div>
     </div>

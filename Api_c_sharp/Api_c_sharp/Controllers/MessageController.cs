@@ -13,7 +13,11 @@ namespace App.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class MessageController(MessageManager _manager, IMapper _messagemapper,IJournalService _journalService, IHubContext<MessageHub> _hubContext = null ) : ControllerBase
+public class MessageController(
+    MessageManager _manager, 
+    IMapper _messagemapper,
+    IJournalService _journalService, 
+    IHubContext<MessageHub> _hubContext) : ControllerBase
 {
     [ActionName("GetById")]
     [HttpGet("{id}")]
@@ -47,19 +51,18 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper,I
 
         var entity = _messagemapper.Map<Message>(dto);
         entity.DateEnvoiMessage = DateTime.UtcNow;
+        entity.EstLu = false;
 
         await _journalService.LogEnvoiMessageAsync(dto.IdCompte, dto.IdConversation, dto.ContenuMessage);
         await _manager.AddAsync(entity);
 
-        if (_hubContext != null)
-        {
-            await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
-                .SendAsync("ReceiveMessage",
-                    entity.IdConversation,
-                    entity.IdCompte,
-                    entity.ContenuMessage,
-                    entity.DateEnvoiMessage);
-        }
+        // Notifier tous les participants via SignalR
+        await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
+            .SendAsync("ReceiveMessage",
+                entity.IdConversation,
+                entity.IdCompte,
+                entity.ContenuMessage,
+                entity.DateEnvoiMessage);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdMessage }, entity);
     }
@@ -95,18 +98,30 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper,I
         return NoContent();
     }
 
-    [ActionName("GetAllByConversation")]
-    [HttpGet("{idconversation}")]
-    public async Task<ActionResult<IEnumerable<MessageDTO>>> GetByConversation(int idconversation)
+    /// <summary>
+    /// Récupère tous les messages d'une conversation et les marque automatiquement comme lus
+    /// via la fonction stockée en base de données
+    /// </summary>
+    [ActionName("GetAllByConversationAndMarkAsRead")]
+    [HttpGet("{idconversation}/{iduser}")]
+    public async Task<ActionResult<IEnumerable<MessageDTO>>> GetByConversationAndMarkAsRead(int idconversation, int iduser)
     {
-        var result = await _manager.GetMessagesByConversation(idconversation);
+        // Appel de la méthode qui marque les messages comme lus via la fonction BD
+        var result = await _manager.GetMessagesByConversationAndMarkAsRead(idconversation, iduser);
 
         if (result is null)
             return NotFound();
 
+        // Notifier via SignalR que les messages ont été lus
+        await _hubContext.Clients.Group($"conversation_{idconversation}")
+            .SendAsync("MessagesRead", idconversation, iduser);
+
         return new ActionResult<IEnumerable<MessageDTO>>(_messagemapper.Map<IEnumerable<MessageDTO>>(result));
     }
-    
+
+    /// <summary>
+    /// Récupère le nombre de messages non lus pour une conversation via fonction stockée
+    /// </summary>
     [ActionName("GetUnreadCount")]
     [HttpGet("{conversationId}/{userId}")]
     public async Task<ActionResult<int>> GetUnreadCount(int conversationId, int userId)
