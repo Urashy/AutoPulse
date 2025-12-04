@@ -76,6 +76,7 @@ public class ConversationsViewModel
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Erreur d'initialisation: {ex.Message}");
             _navigation.NavigateTo("/connexion");
         }
         finally
@@ -94,6 +95,7 @@ public class ConversationsViewModel
     {
         SelectedConversation = conv;
 
+        // Charger les messages ET les marquer comme lus via la fonction BD
         await LoadMessages(conv.IdConversation);
 
         _refreshUI?.Invoke();
@@ -103,13 +105,17 @@ public class ConversationsViewModel
     {
         try
         {
+            // Mettre à jour le compteur localement AVANT le chargement
             var conv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
             if (conv != null)
             {
                 conv.NombreNonLu = 0;
             }
 
-            Messages = (await _messageService.GetMessagesParConversation(conv.IdConversation)).ToList();
+            // Appeler la méthode qui marque automatiquement les messages comme lus
+            Messages = (await _messageService.GetMessagesByConversationAndMarkAsRead(conversationId, CurrentUserId)).ToList();
+
+            Console.WriteLine($"Messages chargés et marqués comme lus pour conversation {conversationId}");
         }
         catch (Exception ex)
         {
@@ -136,6 +142,7 @@ public class ConversationsViewModel
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Erreur lors de l'envoi du message: {ex.Message}");
             NewMessage = messageContent;
         }
 
