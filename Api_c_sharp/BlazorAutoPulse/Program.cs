@@ -28,7 +28,6 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IService<Motricite>, MotriciteWebService>();
             builder.Services.AddScoped<IService<Voiture>, VoitureWebService>();
             builder.Services.AddScoped<IService<APourCouleur>, APourCouleurWebService>();
-            builder.Services.AddScoped<IService<MessageDTO>, MessageWebService>();
 
             //----------------------- Service avec interface spécifique
             builder.Services.AddScoped<IAnnonceService, AnnonceWebService>();
@@ -45,6 +44,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IConversationService, ConversationWebService>();
             builder.Services.AddScoped<ITypeCompteService, TypeCompteWebService>();
             builder.Services.AddScoped<IAdresseService, AdresseWebService>();
+            builder.Services.AddScoped<IMessageService, MessageWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();

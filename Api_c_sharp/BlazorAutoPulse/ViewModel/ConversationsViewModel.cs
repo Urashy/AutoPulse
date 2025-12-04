@@ -12,7 +12,7 @@ public class ConversationsViewModel
 {
     private readonly ISignalRService _signalR;
     private readonly IConversationService _conversationService;
-    private readonly IService<MessageDTO> _messageService;
+    private readonly IMessageService _messageService;
     private readonly ICompteService _compteService;
     private readonly NavigationManager _navigation;
     private readonly IImageService _imageService;
@@ -38,7 +38,7 @@ public class ConversationsViewModel
     public ConversationsViewModel(
         ISignalRService signalR,
         IConversationService convService,
-        IService<MessageDTO> msgService,
+        IMessageService msgService,
         ICompteService compteService,
         IImageService imageService,
         HttpClient httpClient,
@@ -65,16 +65,11 @@ public class ConversationsViewModel
             
             var compteDetail = await _compteService.GetMe();
             CurrentUserId = compteDetail.IdCompte;
-            Console.WriteLine("1");
             await LoadConversations();
-            Console.WriteLine("2");
             foreach (var conv in Conversations)
             {
-                Console.WriteLine("3");
                 await _signalR.JoinConversation(conv.IdConversation);
-                Console.WriteLine("4");
                 await GetImageProfil(conv.IdParticipant);
-                Console.WriteLine("5");
             }
             
             _refreshUI?.Invoke();
@@ -114,10 +109,7 @@ public class ConversationsViewModel
                 conv.NombreNonLu = 0;
             }
 
-            Messages = (await _messageService.GetAllAsync())
-                .Where(m => m.IdConversation == conv.IdConversation)
-                .OrderBy(m => m.DateEnvoiMessage)
-                .ToList();
+            Messages = (await _messageService.GetMessagesParConversation(conv.IdConversation)).ToList();
         }
         catch (Exception ex)
         {
