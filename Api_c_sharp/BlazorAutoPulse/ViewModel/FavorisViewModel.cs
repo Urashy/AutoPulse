@@ -40,7 +40,7 @@ namespace BlazorAutoPulse.ViewModel
                 var annonceIds = Favoris.Select(f => f.IdAnnonce).ToList();
 
                 // Charger les annonces depuis GetByCompteID qui retourne maintenant des AnnonceDTO
-                var allAnnonces = await _annonceService.GetByCompteID(me.IdCompte);
+                var allAnnonces = await _favorisService.GetAllAsync();
 
                 // Filtrer pour ne garder que les favoris
                 AnnoncesFavoris = allAnnonces.Where(a => annonceIds.Contains(a.IdAnnonce)).ToList();
@@ -50,7 +50,7 @@ namespace BlazorAutoPulse.ViewModel
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur InitializeAsync: {ex.Message}");
-                nav.NavigateTo("/connexion");
+                //nav.NavigateTo("/connexion");
             }
             finally
             {
