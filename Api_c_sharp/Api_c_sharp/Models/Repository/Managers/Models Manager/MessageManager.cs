@@ -11,23 +11,29 @@ namespace Api_c_sharp.Models.Repository.Managers
         public MessageManager(AutoPulseBdContext context) : base(context)
         {
         }
-
         public async Task<IEnumerable<Message>> GetMessagesByConversationAndMarkAsRead(int conversationId, int userId)
         {
-            var messages = await dbSet
+            // Récupérer les messages NON LUS de l’autre utilisateur
+            var messagesToMark = await dbSet
                 .Where(m => m.IdConversation == conversationId && m.IdCompte != userId)
                 .ToListAsync();
 
-            foreach (var msg in messages)
+            // Les marquer comme lus
+            foreach (var msg in messagesToMark)
+            {
                 msg.EstLu = true;
+            }
 
             await context.SaveChangesAsync();
 
-            return await dbSet
+            // Récupérer la liste complète des messages (tracking activé)
+            var allMessages = await dbSet
                 .Include(m => m.MessageCompteNav)
                 .Where(m => m.IdConversation == conversationId)
                 .OrderBy(m => m.DateEnvoiMessage)
                 .ToListAsync();
+
+            return allMessages;
         }
 
         public async Task<int> GetUnreadMessageCount(int conversationId, int userId)

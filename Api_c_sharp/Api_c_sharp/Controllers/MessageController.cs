@@ -115,9 +115,11 @@ public class MessageController(
             return NotFound();
 
         // Notifier via SignalR que les messages ont été lus
-        await _hubContext.Clients.Group($"conversation_{idconversation}")
+        if (_hubContext != null)
+        {
+            await _hubContext.Clients.Group($"conversation_{idconversation}")
             .SendAsync("MessagesRead", idconversation, iduser);
-
+        }
         return new ActionResult<IEnumerable<MessageDTO>>(_messagemapper.Map<IEnumerable<MessageDTO>>(result));
     }
 
