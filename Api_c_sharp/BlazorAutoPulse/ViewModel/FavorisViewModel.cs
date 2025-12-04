@@ -1,4 +1,5 @@
-﻿using BlazorAutoPulse.Model;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 
@@ -10,10 +11,14 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IFavorisService _favorisService;
         private readonly IAnnonceService _annonceService;
 
-        public List<Annonce> AnnoncesFavoris { get; set; } = new List<Annonce>();
+        public List<AnnonceDTO> AnnoncesFavoris { get; set; } = new List<AnnonceDTO>();
         public IEnumerable<Favori> Favoris { get; set; }
+        public bool IsLoading { get; set; } = true;
 
-        public FavorisViewModel(ICompteService compteService, IFavorisService favorisservice, IAnnonceService annonceService)
+        public FavorisViewModel(
+            ICompteService compteService,
+            IFavorisService favorisservice,
+            IAnnonceService annonceService)
         {
             _compteService = compteService;
             _favorisService = favorisservice;
@@ -22,6 +27,9 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
         {
+            IsLoading = true;
+            refreshUI?.Invoke();
+
             try
             {
                 AnnoncesFavoris.Clear();
@@ -31,21 +39,11 @@ namespace BlazorAutoPulse.ViewModel
 
                 var annonceIds = Favoris.Select(f => f.IdAnnonce).ToList();
 
-                foreach (var id in annonceIds)
-                {
-                    try
-                    {
-                        var annonce = await _annonceService.GetByIdAsync(id);
-                        if (annonce != null)
-                        {
-                            AnnoncesFavoris.Add(annonce);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Erreur chargement annonce {id}: {ex.Message}");
-                    }
-                }
+                // Charger les annonces depuis GetByCompteID qui retourne maintenant des AnnonceDTO
+                var allAnnonces = await _annonceService.GetByCompteID(me.IdCompte);
+
+                // Filtrer pour ne garder que les favoris
+                AnnoncesFavoris = allAnnonces.Where(a => annonceIds.Contains(a.IdAnnonce)).ToList();
 
                 refreshUI?.Invoke();
             }
@@ -53,6 +51,11 @@ namespace BlazorAutoPulse.ViewModel
             {
                 Console.WriteLine($"Erreur InitializeAsync: {ex.Message}");
                 nav.NavigateTo("/connexion");
+            }
+            finally
+            {
+                IsLoading = false;
+                refreshUI?.Invoke();
             }
         }
     }

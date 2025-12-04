@@ -1,11 +1,11 @@
-@using BlazorAutoPulse.Model
+@using AutoPulse.Shared.DTO
 @using BlazorAutoPulse.ViewModel
 @inject AnnonceComposantViewModel VM
 @inject NavigationManager Navigation
 
 <div class="car-card" @onclick="NavigateToDetail">
     <div class="car-image">
-        @if (Annonce.DatePublication.HasValue && Annonce.DatePublication.Value >= DateTime.Now.AddMonths(-1))
+        @if (Annonce.DatePublication >= DateTime.Now.AddMonths(-1))
         {
             <div class="car-badge">RÉCENT</div>
         }
@@ -33,14 +33,14 @@
         <div class="car-specs">
             <span>📊 @Annonce.Kilometrage km</span>
         </div>
-        <div class="car-price">@Annonce.Prix.ToString("N0") €</div>
+        <div class="car-price">@Annonce.Prix?.ToString("N0") €</div>
         <button class="car-btn" @onclick="NavigateToDetail" @onclick:stopPropagation="true">Voir Détails</button>
     </div>
 </div>
 
 @code {
     [Parameter]
-    public Annonce Annonce { get; set; }
+    public AnnonceDTO Annonce { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

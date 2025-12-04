@@ -5,6 +5,6 @@ namespace BlazorAutoPulse.Service.Interface
 {
     public interface IAdresseService : IService<Adresse>
     {
-        Task<IEnumerable<AdresseDTO>> GetAdresseByCompte();
+        Task<IEnumerable<AdresseDTO>> GetAdresseByCompte(int id);
     }
 }

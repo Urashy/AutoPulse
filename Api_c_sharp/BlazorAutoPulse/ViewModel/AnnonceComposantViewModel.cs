@@ -1,90 +1,76 @@
-using BlazorAutoPulse.Model;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.ViewModel
 {
     public class AnnonceComposantViewModel
     {
+        private readonly IImageService _imageService;
         private readonly IFavorisService _favorisService;
         private readonly ICompteService _compteService;
-        private readonly IImageService _imageService;
 
-        public Annonce Annonce { get; set; }
         public bool IsFavorite { get; private set; }
-        private int? CurrentUserId { get; set; }
+        private int? _currentUserId;
         private Action? _refreshUI;
 
         public AnnonceComposantViewModel(
+            IImageService imageService,
             IFavorisService favorisService,
-            ICompteService compteService,
-            IImageService imageService)
+            ICompteService compteService)
         {
+            _imageService = imageService;
             _favorisService = favorisService;
             _compteService = compteService;
-            _imageService = imageService;
         }
 
-        public async Task InitializeAsync(Annonce annonce, Action refreshUI)
+        public async Task InitializeAsync(AnnonceDTO annonce, Action refreshUI)
         {
-            Annonce = annonce;
             _refreshUI = refreshUI;
 
             try
             {
                 var compte = await _compteService.GetMe();
-                CurrentUserId = compte?.IdCompte;
+                _currentUserId = compte?.IdCompte;
 
-                if (CurrentUserId.HasValue && Annonce != null)
+                if (_currentUserId.HasValue && annonce != null)
                 {
-                    await LoadFavoriteStatus();
+                    IsFavorite = await _favorisService.IsFavorite(_currentUserId.Value, annonce.IdAnnonce);
                 }
             }
             catch
             {
-                CurrentUserId = null;
+                _currentUserId = null;
                 IsFavorite = false;
-            }
-        }
-
-        public async Task LoadFavoriteStatus()
-        {
-            if (CurrentUserId.HasValue && Annonce != null)
-            {
-                try
-                {
-                    IsFavorite = await _favorisService.IsFavorite(CurrentUserId.Value, Annonce.IdAnnonce);
-                    _refreshUI?.Invoke();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erreur lors du chargement du statut favori: {ex.Message}");
-                    IsFavorite = false;
-                }
-            }
-        }
-
-        public async Task ToggleFavoriteStatus()
-        {
-            if (!CurrentUserId.HasValue || Annonce == null)
-            {
-                Console.WriteLine("Utilisateur non connecté ou annonce invalide");
-                return;
-            }
-
-            try
-            {
-                IsFavorite = await _favorisService.ToggleFavorite(CurrentUserId.Value, Annonce.IdAnnonce);
-                _refreshUI?.Invoke();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur lors du toggle favori: {ex.Message}");
             }
         }
 
         public string GetFirstImage(int idVoiture)
         {
-            return _imageService.GetFirstImage(idVoiture);
+            try
+            {
+                return _imageService.GetFirstImage(idVoiture);
+            }
+            catch
+            {
+                return "https://via.placeholder.com/300x200?text=No+Image";
+            }
+        }
+
+        public async Task ToggleFavoriteStatus()
+        {
+            if (!_currentUserId.HasValue) return;
+
+            try
+            {
+                IsFavorite = !IsFavorite;
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur toggle favori: {ex.Message}");
+                IsFavorite = !IsFavorite;
+                _refreshUI?.Invoke();
+            }
         }
     }
 }
