@@ -12,12 +12,12 @@ public class AdresseWebService: BaseWebService<Adresse>, IAdresseService
     }
     protected override string ApiEndpoint => "Adresse";
 
-    public async Task<IEnumerable<AdresseDTO>> GetAdresseByCompte()
+    public async Task<IEnumerable<AdresseDTO>> GetAdresseByCompte(int id)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetAdresseByCompte/{1}"));
+
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetAdressesByCompteID/{id}"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<IEnumerable<AdresseDTO>>();
-        throw new NotImplementedException();
     }
 }
