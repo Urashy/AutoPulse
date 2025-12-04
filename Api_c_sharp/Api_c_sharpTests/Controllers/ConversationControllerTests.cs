@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api_c_sharp.Controllers;
 using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
 
 namespace App.Controllers.Tests
 {
@@ -25,6 +26,7 @@ namespace App.Controllers.Tests
         private ConversationManager _manager;
         private IMapper _mapper;
         private Conversation _objetcommun;
+        private IConversationEnrichmentService _conversationEnrichmentService;
 
         [TestInitialize]
         public async Task Initialize()
@@ -42,7 +44,7 @@ namespace App.Controllers.Tests
             _mapper = config.CreateMapper();
 
             _manager = new ConversationManager(_context);
-            _controller = new ConversationController(_manager, _mapper);
+            _controller = new ConversationController(_manager, _conversationEnrichmentService, _mapper);
 
             _context.Marques.Add(new Marque { IdMarque = 1, LibelleMarque = "TestMarque" });
             _context.Motricites.Add(new Motricite { IdMotricite = 1, LibelleMotricite = "4x4" });
