@@ -212,7 +212,7 @@ namespace BlazorAutoPulse.ViewModel
         // ==================== Méthodes de pagination ====================
 
         private int CalculateEstimatedTotalPages()
-        {
+        {   
             // Estimation basée sur la page courante
             if (FilteredAnnonces == null || FilteredAnnonces.Length == 0) return 1;
             if (!HasMorePages && CurrentPage == 1) return 1;
