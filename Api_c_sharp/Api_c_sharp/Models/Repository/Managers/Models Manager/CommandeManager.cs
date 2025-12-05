@@ -15,7 +15,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.OrderBy(s => s.Date).ToListAsync();
         }
 
-        public async Task<IEnumerable<Commande>> GetCommandesByCompteId(int compteId)
+        public virtual async Task<IEnumerable<Commande>> GetCommandesByCompteId(int compteId)
         {
             return await dbSet.Where(commande => commande.IdAcheteur == compteId).ToListAsync();
         }

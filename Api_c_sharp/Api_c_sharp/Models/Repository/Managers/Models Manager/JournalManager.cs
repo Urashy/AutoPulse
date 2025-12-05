@@ -14,12 +14,12 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         }
 
         // Méthode existante
-        public async Task<IEnumerable<Journal>> GetJournalByType(int typeID)
+        public virtual async Task<IEnumerable<Journal>> GetJournalByType(int typeID)
         {
             return await dbSet.Where(journal => journal.IdTypeJournal == typeID).OrderBy(j => j.DateJournal).ToListAsync();
         }
 
-        public async Task LogActionAsync(int idCompte, int idTypeJournal, string contenu)
+        public virtual async Task LogActionAsync(int idCompte, int idTypeJournal, string contenu)
         {
             try
             {
@@ -47,73 +47,73 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             }
         }
 
-        public async Task LogConnexionAsync(int idCompte)
+        public virtual async Task LogConnexionAsync(int idCompte)
         {
             var contenu = "Connexion au compte";
             await LogActionAsync(idCompte, 1, contenu);
         }
 
-        public async Task LogDeconnexionAsync(int idCompte)
+        public virtual async Task LogDeconnexionAsync(int idCompte)
         {
             var contenu = "Déconnexion du compte";
             await LogActionAsync(idCompte, 2, contenu);
         }
 
-        public async Task LogCreationCompteAsync(int idCompte, string pseudo)
+        public virtual async Task LogCreationCompteAsync(int idCompte, string pseudo)
         {
             var contenu = $"Création du compte avec le pseudo : {pseudo}";
             await LogActionAsync(idCompte, 3, contenu);
         }
 
-        public async Task LogModificationProfilAsync(int idCompte)
+        public virtual async Task LogModificationProfilAsync(int idCompte)
         {
             var contenu = "Modification des informations du profil";
             await LogActionAsync(idCompte, 4, contenu);
         }
 
-        public async Task LogPublicationAnnonceAsync(int idCompte, int idAnnonce, string titreAnnonce)
+        public virtual async Task LogPublicationAnnonceAsync(int idCompte, int idAnnonce, string titreAnnonce)
         {
             var contenu = $"Publication de l'annonce #{idAnnonce} : {titreAnnonce}";
             await LogActionAsync(idCompte, 5, contenu);
         }
 
-        public async Task LogModificationAnnonceAsync(int idCompte, int idAnnonce, string titreAnnonce)
+        public virtual async Task LogModificationAnnonceAsync(int idCompte, int idAnnonce, string titreAnnonce)
         {
             var contenu = $"Modification de l'annonce #{idAnnonce} : {titreAnnonce}";
             await LogActionAsync(idCompte, 6, contenu);
         }
 
-        public async Task LogSuppressionAnnonceAsync(int idCompte, int idAnnonce, string titreAnnonce)
+        public virtual async Task LogSuppressionAnnonceAsync(int idCompte, int idAnnonce, string titreAnnonce)
         {
             var contenu = $"Suppression de l'annonce #{idAnnonce} : {titreAnnonce}";
             await LogActionAsync(idCompte, 7, contenu);
         }
 
-        public async Task LogAchatAsync(int idCompteAcheteur, int idCompteVendeur, int idCommande, int idAnnonce, int idMoyenPaiement)
+        public virtual async Task LogAchatAsync(int idCompteAcheteur, int idCompteVendeur, int idCommande, int idAnnonce, int idMoyenPaiement)
         {
             var contenu = $"Achat effectué - Commande #{idCommande} pour l'annonce #{idAnnonce} : Acheteur {idCompteAcheteur}, Vendeur {idCompteVendeur}, Moyen de paiment {idMoyenPaiement}";
             await LogActionAsync(idCompteAcheteur, 8, contenu);
         }
 
-        public async Task LogSignalementAsync(int idCompteSignalant, int idCompteSignale, int idSignalement, int idTypeSignalement, string description)
+        public virtual async Task LogSignalementAsync(int idCompteSignalant, int idCompteSignale, int idSignalement, int idTypeSignalement, string description)
         {
             var contenu = $"Signalement effectué (#{idSignalement}) envers le compte #{idCompteSignale}. De type {idTypeSignalement} pour le motif {description}";
             await LogActionAsync(idCompteSignalant, 9, contenu);
         }
 
-        public async Task LogDepotAvisAsync(int idCompteJugeur, int idCompteJuge, int idAvis, int note, string description)
+        public virtual async Task LogDepotAvisAsync(int idCompteJugeur, int idCompteJuge, int idAvis, int note, string description)
         {
             var contenu = $"Dépôt d'un avis (#{idAvis}) avec la note {note}/5 pour le compte #{idCompteJuge}, avec le message suivant {description}";
             await LogActionAsync(idCompteJugeur, 10, contenu);
         }
 
-        public async Task LogMiseFavorisAsync(int idCompte, int idAnnonce)
+        public virtual async Task LogMiseFavorisAsync(int idCompte, int idAnnonce)
         {
             var contenu = $"Ajout de l'annonce #{idAnnonce} aux favoris";
             await LogActionAsync(idCompte, 11, contenu);
         }
 
-        public async Task LogEnvoiMessageAsync(int idCompte, int idConversation, string message, int? idAnnonce = null)
+        public virtual async Task LogEnvoiMessageAsync(int idCompte, int idConversation, string message, int? idAnnonce = null)
         {
             var contenu = idAnnonce.HasValue
                 ? $"Envoi d'un message dans la conversation #{idConversation} concernant l'annonce #{idAnnonce} : {message}"
@@ -121,13 +121,13 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             await LogActionAsync(idCompte, 12, contenu);
         }
 
-        public async Task LogGenerationFactureAsync(int idCompte, int idFacture, int idCommande)
+        public virtual async Task LogGenerationFactureAsync(int idCompte, int idFacture, int idCommande)
         {
             var contenu = $"Génération de la facture #{idFacture} pour la commande #{idCommande}";
             await LogActionAsync(idCompte, 13, contenu);
         }
 
-        public async Task LogBlocageUtilisateurAsync(int idCompteBloquer, int idCompteBloque)
+        public virtual async Task LogBlocageUtilisateurAsync(int idCompteBloquer, int idCompteBloque)
         {
             var contenu = $"Blocage de l'utilisateur #{idCompteBloque}";
             await LogActionAsync(idCompteBloquer, 14, contenu);

@@ -58,7 +58,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await ApplyIncludes().Where(a => a.IdEtatAnnonce == 1).FirstOrDefaultAsync(a => a.Libelle == name);
         }
 
-        public async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId, int pageNumber, int pageSize)
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId, int pageNumber, int pageSize)
         {
             int skip = Math.Max(0, (pageNumber - 1) * pageSize);
             int take = Math.Max(1, pageSize);
@@ -71,7 +71,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         // Dans AnnonceManager.cs - Méthode GetFilteredAnnonces
 
-        public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderprix)
+        public virtual async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderprix)
         {
             var query = ApplyIncludes();
 
@@ -138,7 +138,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return result;
         }
 
-        public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
         {
             return await ApplyIncludes().Where(a => a.Favoris.Any(f => f.IdCompte == compteId)).ToListAsync();
         }
@@ -148,7 +148,7 @@ namespace Api_c_sharp.Models.Repository.Managers
                 .FirstOrDefaultAsync(a => a.IdAnnonce == id);
         }
 
-        public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId)
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId)
         {
             return await ApplyIncludes()
                 .Where(a => a.IdCompte == compteId)
@@ -157,8 +157,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public override async Task DeleteAsync(Annonce entity)
         {
-            Commande commandes = await context.Commandes
-                .FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
+            Commande commandes = await context.Commandes.FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
 
             if (commandes != null)
                 throw new InvalidOperationException("Impossible de supprimer une annonce deja commander.");

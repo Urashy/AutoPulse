@@ -17,7 +17,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.OrderBy(s => s.LibelleModele).ToListAsync();
         }
 
-        public async Task<IEnumerable<Modele>> GetModelesByMarqueIdAsync(int marqueId)
+        public virtual async Task<IEnumerable<Modele>> GetModelesByMarqueIdAsync(int marqueId)
         {
             return await dbSet.Where(m => m.IdMarque == marqueId).OrderBy(s => s.LibelleModele).ToListAsync();
         }

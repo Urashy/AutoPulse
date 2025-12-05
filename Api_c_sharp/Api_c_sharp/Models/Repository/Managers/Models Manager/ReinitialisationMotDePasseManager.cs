@@ -10,13 +10,13 @@ public class ReinitialisationMotDePasseManager: BaseManager<ReinitialisationMotD
     {
     }
 
-    public async Task<ReinitialisationMotDePasse> VerificationCode(string email, string code)
+    public virtual async Task<ReinitialisationMotDePasse> VerificationCode(string email, string code)
     {
         ReinitialisationMotDePasse entity = await dbSet.FirstOrDefaultAsync(r => r.Email == email && r.Token == code && r.Expiration > DateTime.UtcNow);
         return entity;
     }
 
-    public async override Task<ReinitialisationMotDePasse?> GetByNameAsync(string name)
+    public override async Task<ReinitialisationMotDePasse?> GetByNameAsync(string name)
     {
         return await dbSet.Where(r => r.Token == name).FirstOrDefaultAsync();
     }

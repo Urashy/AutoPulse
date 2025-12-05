@@ -15,7 +15,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.OrderBy(s => s.DateCreationSignalement).ToListAsync();
         }
 
-        public async Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId)
+        public virtual async Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId)
         {
             return await dbSet.Where(s => s.IdEtatSignalement == etatId).ToListAsync();
         }

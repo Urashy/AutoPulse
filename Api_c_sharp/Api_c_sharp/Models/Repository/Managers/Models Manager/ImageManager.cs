@@ -11,7 +11,7 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
-        public async Task<IEnumerable<int>> GetAllImagesByVoitureId(int voitureId)
+        public virtual async Task<IEnumerable<int>> GetAllImagesByVoitureId(int voitureId)
         {
             var list = await dbSet
                 .Where(img => img.IdVoiture == voitureId)
@@ -27,12 +27,12 @@ namespace Api_c_sharp.Models.Repository.Managers
             return ret;
         }
 
-        public async Task<Image> GetFirstImageByVoitureID(int idvoiture)
+        public virtual async Task<Image> GetFirstImageByVoitureID(int idvoiture)
         {
             return await dbSet.FirstOrDefaultAsync(img => img.IdVoiture == idvoiture);
         }
 
-        public async Task<Image> GetImageByCompteID(int idcompte)
+        public virtual async Task<Image> GetImageByCompteID(int idcompte)
         {
             return await dbSet.FirstOrDefaultAsync(img => img.IdCompte == idcompte);
         }

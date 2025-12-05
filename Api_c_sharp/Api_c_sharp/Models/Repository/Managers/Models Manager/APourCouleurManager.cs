@@ -10,9 +10,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
         }
 
-        public async Task<APourCouleur> GetAPourCouleursByIDS(int voitureId, int couleurId)
+        public virtual async Task<APourCouleur> GetAPourCouleursByIDS(int voitureId, int couleurId)
         {
-            return await dbSet.FirstOrDefaultAsync(apc => apc.IdVoiture == voitureId && apc.IdCouleur == couleurId);         
+            return await dbSet.FindAsync(voitureId, couleurId);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Api_c_sharp.Models.Repository.Managers
         protected WritableManager(AutoPulseBdContext context)
         {
             _context = context;
-            dbSet = context.Set<TEntity>();
+            dbSet = context?.Set<TEntity>();
         }
 
         public virtual async Task<TEntity> AddAsync(TEntity entity)

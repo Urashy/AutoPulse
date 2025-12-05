@@ -15,7 +15,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.OrderBy(s => s.LibelleCouleur).ToListAsync();
         }
 
-        public async Task<IEnumerable<Couleur>> GetCouleursByVoitureId(int voitureId)
+        public virtual async Task<IEnumerable<Couleur>> GetCouleursByVoitureId(int voitureId)
         {
             return await dbSet.Where(c => c.APourCouleurs.Any(ac => ac.IdVoiture == voitureId)).ToListAsync();
         }

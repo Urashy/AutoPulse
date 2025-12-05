@@ -8,10 +8,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             
         }
-        public async Task<Bloque?> GetByIdsAsync(int idBloque, int idBloquant)
+        public virtual async Task<Bloque?> GetByIdsAsync(int idBloque, int idBloquant)
         {
-            return await context.Set<Bloque>()
-                .FindAsync(idBloque, idBloquant);
+            return await dbSet.FindAsync(idBloque, idBloquant);
         }
     }
 }

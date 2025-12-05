@@ -14,7 +14,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.OrderBy(s => s.DateDernierMessage).ToListAsync();
         }
 
-        public async Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId)
+        public virtual async Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId)
         {
             return await dbSet
                 .Include(c => c.ApourConversations)

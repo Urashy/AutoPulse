@@ -13,7 +13,7 @@ namespace Api_c_sharp.Models.Repository.Managers
         public SearchableManager(AutoPulseBdContext context)
         {
             this.context = context;
-            this.dbSet = context.Set<TEntity>();
+            this.dbSet = context?.Set<TEntity>();
         }
 
         public abstract Task<TEntity?> GetByNameAsync(TKey name);

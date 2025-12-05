@@ -21,28 +21,27 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.Where(c => c.Email == mail).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<Compte>> GetCompteByIdAnnonceFavori(int annonceId)
+        public virtual async Task<IEnumerable<Compte>> GetCompteByIdAnnonceFavori(int annonceId)
         {
             return await dbSet.Where(c => c.Favoris.Any(a => a.IdAnnonce == annonceId)).ToListAsync();
         }
 
-        public async Task<IEnumerable<Compte>> GetComptesByTypes(int type)
+        public virtual async Task<IEnumerable<Compte>> GetComptesByTypes(int type)
         {
             return await dbSet.Where(c => c.IdTypeCompte == type).ToListAsync();
         }
 
-        public async Task<Compte> VerifMotDePasse(string email, string hash)
+        public virtual async Task<Compte> VerifMotDePasse(string email, string hash)
         {
             return await dbSet.SingleOrDefaultAsync(x => x.Email == email && x.MotDePasse == hash);
         }
 
-        public async Task<Compte> AuthenticateCompte(string email, string hash)
+        public virtual async Task<Compte> AuthenticateCompte(string email, string hash)
         {
-            return await dbSet.SingleOrDefaultAsync(x => x.Email.ToUpper() == email.ToUpper() && 
-                                                  x.MotDePasse == hash);
+            return await dbSet.SingleOrDefaultAsync(x => x.Email.ToUpper() == email.ToUpper() && x.MotDePasse == hash);
         }
 
-        public async Task UpdateAnonymise(int idcompte)
+        public virtual async Task UpdateAnonymise(int idcompte)
         {
 
             Compte compte = await dbSet
@@ -58,7 +57,6 @@ namespace Api_c_sharp.Models.Repository.Managers
 
             if (compte == null)
                 return;
-            // ✅ Vérifier si les collections sont null avant d'appeler .Any()
             bool aDesActivites = (compte.CommandeAcheteur?.Any() ?? false) ||
                                  (compte.Annonces?.Any() ?? false) ||
                                  (compte.SignalementsFaits?.Any() ?? false) ||
@@ -69,7 +67,6 @@ namespace Api_c_sharp.Models.Repository.Managers
 
             if (!aDesActivites)
             {
-                // Supprimer les données liées
                 List<Adresse> adressesASupprimer = await context.Adresses
                     .Where(a => a.IdCompte == compte.IdCompte)
                     .ToListAsync();

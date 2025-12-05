@@ -25,8 +25,9 @@ namespace App.ControllersMock.Tests
         [TestInitialize]
         public void Initialize()
         {
-            // Création du mock du manager
-            _mockManager = new Mock<AdresseManager>();
+            // Création du mock du manager avec un paramètre null pour le context
+            // (le mock n'utilisera pas le context réel)
+            _mockManager = new Mock<AdresseManager>(null);
 
             // Création de l'adresse de référence
             _objetcommun = new Adresse
@@ -138,8 +139,8 @@ namespace App.ControllersMock.Tests
             adresseEntity.IdAdresse = 2;
 
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Adresse>()))
-                                .ReturnsAsync(adresseEntity)
-                                .Verifiable();
+                       .ReturnsAsync(adresseEntity)
+                       .Verifiable();
 
             // Act
             var actionResult = await _controller.Post(adresseDTO);
@@ -150,6 +151,31 @@ namespace App.ControllersMock.Tests
             var createdAdresse = (Adresse)created.Value;
             Assert.AreEqual(adresseDTO.Rue, createdAdresse.Rue);
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Adresse>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task BadRequestPostAdresseTest()
+        {
+            // Arrange
+            var adresseDTO = new AdresseDTO
+            {
+                Nom = null, // Nom requis mais null
+                LibelleVille = "Annecy",
+                CodePostal = "74000",
+                Rue = "Route de test",
+                Numero = 12,
+                IdPays = 1,
+                IdCompte = 1
+            };
+
+            // Simuler une erreur de validation du modèle
+            _controller.ModelState.AddModelError("Nom", "Le nom est requis");
+
+            // Act
+            var actionResult = await _controller.Post(adresseDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]
@@ -265,7 +291,7 @@ namespace App.ControllersMock.Tests
                 LibelleVille = "Annecy",
                 CodePostal = "74000",
                 Rue = "Route de test",
-                Numero = -12,
+                Numero = -12, // Numéro invalide
                 IdPays = 1,
                 IdCompte = 1,
             };
@@ -280,25 +306,7 @@ namespace App.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task BadRequestPostAdresseTest()
-        {
-            // Arrange
-            var adresseDTO = new AdresseDTO
-            {
-                Nom = null,
-            };
-
-            _controller.ModelState.AddModelError("Nom", "Required");
-
-            // Act
-            var actionResult = await _controller.Post(adresseDTO);
-
-            // Assert
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task GetAdresseByCompteIDTest()
+        public async Task GetAdressesByCompteIDTest()
         {
             // Arrange
             var adressesList = new List<Adresse>
@@ -329,23 +337,22 @@ namespace App.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
+            Assert.AreEqual(2, result.Value.Count());
         }
 
         [TestMethod]
-        public async Task NotFoundGetAdresseByCompteIDTest()
+        public async Task NotFoundGetAdressesByCompteIDTest()
         {
             // Arrange
             _mockManager.Setup(m => m.GetAdresseByCompteID(0))
-                       .ReturnsAsync(new List<Adresse>());
+                       .ReturnsAsync((IEnumerable<Adresse>)null);
 
             // Act
             var result = await _controller.GetAdressesByCompteID(0);
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
-            Assert.IsFalse(result.Value.Any());
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }
