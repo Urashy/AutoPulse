@@ -10,7 +10,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
     public interface  IAnnonceRepository
     {
-        Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId);
+        Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId, int pageNumber, int pageSize);
         Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderbyprix);
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId);
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId);

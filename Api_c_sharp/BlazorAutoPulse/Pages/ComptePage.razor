@@ -260,10 +260,6 @@
                     @onclick="@(() => VM.SetActiveSection("adresses"))">
                 Adresses
             </button>
-            <button class="nav-item @(VM.activeSection == "favoris" ? "active" : "")"
-                    @onclick="@(() => VM.SetActiveSection("favoris"))">
-                Favoris
-            </button>
             <button class="nav-item @(VM.activeSection == "commandes" ? "active" : "")"
                     @onclick="@(() => VM.SetActiveSection("commandes"))">
                 Commandes
@@ -275,9 +271,64 @@
             <div class="section-placeholder">
                 <h3>Section: @VM.activeSection</h3>
                 <p>Le contenu du composant @VM.activeSection sera affiché ici.</p>
-                @foreach(var adresse in VM.adresses)
+
+                @switch(VM.activeSection)
                 {
-                    <p>adresse.Nom</p>
+                    case "annonces":
+                        if (@VM.annonces != null)
+                        {
+                            @foreach (var annonce in VM.annonces)
+                            {
+                                <p>@annonce.Libelle</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>Vous n'avez aucune annonce</p>
+                        }
+                        break;
+
+                        case "avis":
+                        if (@VM.avis != null)
+                        {
+                            @foreach (var av in VM.avis)
+                            {
+                                <p>@av.NoteAvis</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>Vous n'avez aucun avis</p>
+                        }
+                        break;
+
+                    case "adresses":
+                        if (@VM.adresses != null)
+                        {
+                            @foreach (var adresse in VM.adresses)
+                            {
+                                <p>@adresse.Nom</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>Vous n'avez aucune adresse</p>
+                        }
+                        break;
+
+                        case "commandes":
+                        if (@VM.commandes != null)
+                        {
+                            @foreach (var commande in VM.commandes)
+                            {
+                                <p>@commande.MoyenPaiement</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>Vous n'avez aucune commande</p>
+                        }
+                        break;
                 }
             </div>
         </div>

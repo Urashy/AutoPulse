@@ -12,13 +12,18 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IPostImageService _postImageService;
         private readonly IImageService _imageService;
         private readonly IAnnonceService _annonceService;
-        private readonly IAdresseService _addressService;
+        private readonly IAdresseService _addresseService;
+        private readonly IAvisService _avisService;
+        private readonly ICommandeService _commandeService;
         public NavigationManager _nav { get; set; }
 
         public CompteDetailDTO compte;
         public Compte compteEdit;
+        public IEnumerable<AnnonceDTO> annonces;
         public IEnumerable<AdresseDTO> adresses;
-        
+        public IEnumerable<AvisListDTO> avis;
+        public IEnumerable<CommandeDTO> commandes;
+
         private string mimeType = "data:image/jpeg;base64,";
         public string imageSource;
         public int idImage;
@@ -43,13 +48,15 @@ namespace BlazorAutoPulse.ViewModel
         
         private Action? _refreshUI;
 
-        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService, IAnnonceService annonceService, IAdresseService adresseService)
+        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService, IAnnonceService annonceService, IAdresseService adresseService, IAvisService avisService, ICommandeService commandeService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
             _imageService = imageService;
             _annonceService = annonceService;
-            _addressService = adresseService;
+            _addresseService = adresseService;
+            _avisService = avisService;
+            _commandeService = commandeService;
         }
         
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -83,7 +90,38 @@ namespace BlazorAutoPulse.ViewModel
                 IdImage = idImage,
             };
 
-            adresses = await _addressService.GetAdresseByCompte();
+            try
+            {
+                annonces = await _annonceService.GetByCompteID(compte.IdCompte);
+            }
+            catch
+            {
+                annonces = null;
+            }
+            try
+            {
+                avis = await _avisService.GetAvisByCompte(compte.IdCompte);
+            }
+            catch
+            {
+                avis = null;
+            }
+            try
+            {
+                adresses = await _addresseService.GetAdresseByCompte(compte.IdCompte);
+            }
+            catch
+            {
+                adresses = null;
+            }
+            try
+            {
+                commandes = await _commandeService.GetCommandeByCompte(compte.IdCompte);
+            }
+            catch
+            {
+                commandes = null;
+            }
         }
 
         public async Task UpdateProfileImage(InputFileChangeEventArgs e)

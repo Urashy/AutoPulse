@@ -187,9 +187,12 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetByIdMiseEnAvant")]
     [HttpGet("{idmiseenavant}")]
-    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByIdMiseEnAvant(int idmiseenavant)
+    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByIdMiseEnAvant(
+        int idmiseenavant,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 21)
     {
-        var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant);
+        var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant,pageNumber,pageSize);
 
         if (result == null || !result.Any())
             return NotFound();
@@ -249,7 +252,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </list>
     /// </returns>
     [ActionName("GetByCompteFavoris")]
-    [HttpGet("{idmiseenavant}")]
+    [HttpGet("{compteid}")]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByCompteFavoris(int compteid)
     {
         var result = await _manager.GetAnnoncesByCompteFavoris(compteid);
@@ -267,7 +270,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// Une liste de <see cref="AnnonceDTO"/> (200 OK).
     /// </returns>
     [ActionName("GetAnnoncesByCompteId")]
-    [HttpGet("{idcompte}")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetAnnoncesByCompteID(int idcompte)
     {
         var list = await _manager.GetAnnoncesByCompteID(idcompte);

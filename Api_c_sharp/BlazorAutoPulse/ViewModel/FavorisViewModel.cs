@@ -1,4 +1,5 @@
-﻿using BlazorAutoPulse.Model;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 
@@ -10,10 +11,14 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IFavorisService _favorisService;
         private readonly IAnnonceService _annonceService;
 
-        public List<Annonce> AnnoncesFavoris { get; set; } = new List<Annonce>();
+        public List<AnnonceDTO> AnnoncesFavoris { get; set; } = new List<AnnonceDTO>();
         public IEnumerable<Favori> Favoris { get; set; }
+        public bool IsLoading { get; set; } = true;
 
-        public FavorisViewModel(ICompteService compteService, IFavorisService favorisservice, IAnnonceService annonceService)
+        public FavorisViewModel(
+            ICompteService compteService,
+            IFavorisService favorisservice,
+            IAnnonceService annonceService)
         {
             _compteService = compteService;
             _favorisService = favorisservice;
@@ -22,37 +27,27 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
         {
+            IsLoading = true;
+            refreshUI?.Invoke();
+
             try
             {
-                AnnoncesFavoris.Clear();
-
                 var me = await _compteService.GetMe();
-                Favoris = await _favorisService.GetMesFavoris(me.IdCompte);
 
-                var annonceIds = Favoris.Select(f => f.IdAnnonce).ToList();
-
-                foreach (var id in annonceIds)
-                {
-                    try
-                    {
-                        var annonce = await _annonceService.GetByIdAsync(id);
-                        if (annonce != null)
-                        {
-                            AnnoncesFavoris.Add(annonce);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Erreur chargement annonce {id}: {ex.Message}");
-                    }
-                }
+                // ✅ Appel direct à l'API qui retourne des AnnonceDTO
+                AnnoncesFavoris = (await _annonceService.GetAnnoncesFavoritesByCompteId(me.IdCompte)).ToList();
 
                 refreshUI?.Invoke();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur InitializeAsync: {ex.Message}");
-                nav.NavigateTo("/connexion");
+                //nav.NavigateTo("/connexion");
+            }
+            finally
+            {
+                IsLoading = false;
+                refreshUI?.Invoke();
             }
         }
     }

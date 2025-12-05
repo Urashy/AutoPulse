@@ -14,6 +14,7 @@ public class MapperProfile : Profile
         // ============================================
         
         CreateMap<Marque, MarqueDTO>().ReverseMap();
+        CreateMap<Bloque, BloqueDTO>().ReverseMap();
 
         CreateMap<Modele, ModeleDTO>().ReverseMap();
         CreateMap<APourConversation, APourConversationDTO>().ReverseMap();

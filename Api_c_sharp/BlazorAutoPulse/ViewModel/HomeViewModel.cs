@@ -1,108 +1,135 @@
 ﻿using AutoPulse.Shared.DTO;
-using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
-using Microsoft.AspNetCore.Components;
-using ParametreRecherche = BlazorAutoPulse.Model.ParametreRecherche;
 
-namespace BlazorAutoPulse.ViewModel;
-
-public class HomeViewModel
+namespace BlazorAutoPulse.ViewModel
 {
-    // Service
-    private readonly IAnnonceService _annonceService;
-    private readonly IService<Marque> _marqueService;
-    private readonly IModeleService _modeleService;
-    private readonly IService<Carburant> _carburantService;
-    private readonly IService<Categorie> _categorieService;
-    private readonly ITypeCompteService _typeCompteService;
 
-    // Paramètres de recherche
-    public ParametreRecherche SearchParams { get; set; } = new();
-    
-    // Compte
-    private CompteDetailDTO compte;
-
-    // Données
-    public Annonce[] filteredAnnonces;
-    public Annonce[] allAnnonces;
-    public Marque[] allMarques;
-    public Modele[] allModeles;
-    public Modele[] filteredModeles;
-    public Carburant[] allCarburants;
-    public Categorie[] allCategories;
-    public TypeCompte[] allTypesCompte;
-
-    private Action? _refreshUI;
-
-    public HomeViewModel(
-        IAnnonceService annonceService,
-        IService<Marque> marqueService,
-        IModeleService modeleService,
-        IService<Carburant> carburantService,
-        IService<Categorie> categorieService,
-        ITypeCompteService typeCompteService)
+    public class HomeViewModel
     {
-        _annonceService = annonceService;
-        _marqueService = marqueService;
-        _modeleService = modeleService;
-        _carburantService = carburantService;
-        _categorieService = categorieService;
-        _typeCompteService = typeCompteService;
-    }
+        private readonly IAnnonceService _annonceService;
 
-    public async Task InitializeAsync(Action refreshUI)
-    {
-        _refreshUI = refreshUI;
+        // Pagination
+        public int CurrentPage { get; private set; } = 1;
+        public int ItemsPerPage { get; private set; } = 21;
+        private bool HasMorePages { get; set; } = true;
 
-        // Charger toutes les données nécessaires
-        allAnnonces = (await _annonceService.GetByIdMiseEnAvant(3)).ToArray();
-        filteredAnnonces = allAnnonces;
+        // Données
+        public AnnonceDTO[] allAnnonces { get; private set; } = Array.Empty<AnnonceDTO>();
+        public bool IsLoading { get; private set; } = true;
 
-        allMarques = (await _marqueService.GetAllAsync()).ToArray();
-        allModeles = (await _modeleService.GetAllAsync()).ToArray();
-        filteredModeles = allModeles;
+        // Propriétés calculées pour la pagination
+        public int CurrentPageResultCount => allAnnonces?.Length ?? 0;
+        public string PaginationInfo => $"Page {CurrentPage} - {CurrentPageResultCount} résultat(s)";
+        public bool CanGoToPreviousPage => CurrentPage > 1;
+        public bool CanGoToNextPage => HasMorePages && CurrentPageResultCount == ItemsPerPage;
+        public bool ShowPagination => CurrentPage > 1 || CanGoToNextPage;
 
-        allCarburants = (await _carburantService.GetAllAsync()).ToArray();
-        allCategories = (await _categorieService.GetAllAsync()).ToArray();
-        //allTypesCompte = (await _typeCompteService.GetAllAsync()).ToArray();
-    }
+        private Action? _refreshUI;
 
-    public async Task FiltreModeleParMarque(ChangeEventArgs e)
-    {
-        int selectedMarqueId = int.Parse(e.Value?.ToString() ?? "0");
-        SearchParams.IdMarque = selectedMarqueId;
-
-        if (selectedMarqueId == 0)
+        public HomeViewModel(IAnnonceService annonceService)
         {
-            filteredModeles = allModeles;
-            SearchParams.IdModele = 0;
-        }
-        else
-        {
-            filteredModeles = (await _modeleService.FiltreModeleParMarque(selectedMarqueId)).ToArray();
+            _annonceService = annonceService;
         }
 
-        _refreshUI?.Invoke();
-    }
-
-    public async Task RechercherAnnonces()
-    {
-        try
+        public async Task InitializeAsync(Action refreshUI)
         {
-            filteredAnnonces = (await _annonceService.GetFilteredAnnoncesAsync(SearchParams)).ToArray();
+            _refreshUI = refreshUI;
+            await LoadPage();
+        }
+
+        private async Task LoadPage()
+        {
+            IsLoading = true;
             _refreshUI?.Invoke();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erreur lors de la recherche: {ex.Message}");
-        }
-    }
 
-    public async Task ReinitialiserRecherche()
-    {
-        SearchParams = new ParametreRecherche();
-        filteredModeles = allModeles;
-        filteredAnnonces = allAnnonces;
-        _refreshUI?.Invoke();
+            try
+            {
+                // ✅ Appel direct avec pagination côté API
+                var results = await _annonceService.GetByIdMiseEnAvant(3, CurrentPage, ItemsPerPage);
+                allAnnonces = results.ToArray();
+
+                // Si on reçoit moins de résultats que demandé, c'est qu'il n'y a plus de pages
+                HasMorePages = allAnnonces.Length == ItemsPerPage;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du chargement: {ex.Message}");
+                allAnnonces = Array.Empty<AnnonceDTO>();
+                HasMorePages = false;
+            }
+            finally
+            {
+                IsLoading = false;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        public async Task GoToPage(int pageNumber)
+        {
+            if (pageNumber >= 1 && pageNumber != CurrentPage)
+            {
+                CurrentPage = pageNumber;
+                await LoadPage();
+            }
+        }
+
+        public async Task GoToNextPage()
+        {
+            if (CanGoToNextPage)
+            {
+                CurrentPage++;
+                await LoadPage();
+            }
+        }
+
+        public async Task GoToPreviousPage()
+        {
+            if (CanGoToPreviousPage)
+            {
+                CurrentPage--;
+                await LoadPage();
+            }
+        }
+
+        public PaginationData GetPaginationData()
+        {
+            var estimatedTotalPages = CalculateEstimatedTotalPages();
+
+            return new PaginationData
+            {
+                CurrentPage = CurrentPage,
+                TotalPages = estimatedTotalPages,
+                TotalResults = CurrentPageResultCount,
+                CanGoToPrevious = CanGoToPreviousPage,
+                CanGoToNext = CanGoToNextPage,
+                ShowFirstPage = CurrentPage > 3,
+                ShowLastPage = false,
+                ShowFirstDots = CurrentPage > 4,
+                ShowLastDots = CanGoToNextPage && CurrentPage > 2,
+                VisiblePages = GetVisiblePageNumbers()
+            };
+        }
+
+        private int CalculateEstimatedTotalPages()
+        {
+            if (allAnnonces == null || allAnnonces.Length == 0) return 1;
+            if (!HasMorePages && CurrentPage == 1) return 1;
+            if (!HasMorePages) return CurrentPage;
+            return CurrentPage + 1;
+        }
+
+        private int[] GetVisiblePageNumbers()
+        {
+            var pages = new List<int>();
+            var startPage = Math.Max(1, CurrentPage - 2);
+            var endPage = CurrentPage + 2;
+
+            for (int i = startPage; i <= endPage; i++)
+            {
+                pages.Add(i);
+            }
+
+            return pages.ToArray();
+        }
     }
 }

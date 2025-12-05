@@ -11,27 +11,96 @@
         <h1>Trouvez Votre Voiture Idéale</h1>
         <p>Plus de 500 véhicules d'occasion sélectionnés et garantis</p>
 
-        <BarreDeRechercheAvecFiltresComposant VM="@RechercheVM" IsHomePage="true"/>
+        <BarreDeRechercheAvecFiltresComposant VM="@RechercheVM" IsHomePage="true" />
     </div>
 </section>
 
 <div class="container">
     <h2 class="section-title">Nos Dernières Offres</h2>
-    @if (VM.allAnnonces is null)
+
+    @if (VM.IsLoading)
     {
-        <h2>Pas d'annonces mise en avant</h2>
+        <div class="loading">
+            <div class="loader"></div>
+            <p>Chargement des annonces...</p>
+        </div>
+    }
+    else if (VM.allAnnonces == null || !VM.allAnnonces.Any())
+    {
+        <div class="no-results">
+            <h2>Aucune annonce disponible</h2>
+            <p>Pas d'annonces mises en avant pour le moment</p>
+        </div>
     }
     else
     {
+        <div style="background: yellow; padding: 10px; margin: 10px;">
+            DEBUG:<br />
+            CurrentPage: @VM.CurrentPage<br />
+            CurrentPageResultCount: @VM.CurrentPageResultCount<br />
+            ItemsPerPage: @VM.ItemsPerPage<br />
+            CanGoToNextPage: @VM.CanGoToNextPage<br />
+            ShowPagination: @VM.ShowPagination
+        </div>
+        @if (VM.ShowPagination)
+        {
+            <div class="results-info">
+                <p class="pagination-info">@VM.PaginationInfo</p>
+            </div>
+        }
+
         <div class="cars-grid">
             @foreach (var a in VM.allAnnonces)
             {
                 <AnnonceComposant Annonce="@a" />
             }
         </div>
+
+        @if (VM.ShowPagination)
+        {
+            var paginationData = VM.GetPaginationData();
+
+            <div class="pagination">
+                <button class="pagination-btn"
+                        @onclick="async () => await VM.GoToPreviousPage()"
+                        disabled="@(!paginationData.CanGoToPrevious)">
+                    ← Précédent
+                </button>
+
+                @if (paginationData.ShowFirstPage)
+                {
+                    <button class="pagination-btn" @onclick="async () => await VM.GoToPage(1)">1</button>
+
+                    @if (paginationData.ShowFirstDots)
+                    {
+                        <span class="pagination-dots">...</span>
+                    }
+                }
+
+                @foreach (var pageNumber in paginationData.VisiblePages)
+                {
+                    var isCurrentPage = pageNumber == paginationData.CurrentPage;
+                    <button class="pagination-btn @(isCurrentPage ? "active" : "")"
+                            @onclick="async () => await VM.GoToPage(pageNumber)"
+                            disabled="@isCurrentPage">
+                        @pageNumber
+                    </button>
+                }
+
+                @if (paginationData.ShowLastDots)
+                {
+                    <span class="pagination-dots">...</span>
+                }
+
+                <button class="pagination-btn"
+                        @onclick="async () => await VM.GoToNextPage()"
+                        disabled="@(!paginationData.CanGoToNext)">
+                    Suivant →
+                </button>
+            </div>
+        }
     }
 </div>
-
 
 @code {
     protected override async Task OnInitializedAsync()
