@@ -5,37 +5,58 @@
 <PageTitle>Administration - AutoPulse</PageTitle>
 
 <div class="admin-layout">
+    <!-- Menu Burger -->
+    <button class="menu-burger @(menuOpen ? "open" : "")" @onclick="ToggleMenu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Overlay -->
+    @if (menuOpen)
+    {
+        <div class="menu-overlay" @onclick="ToggleMenu"></div>
+    }
+
     <!-- Sidebar -->
-    <div class="sidebar">
-        <h2>AutoPulse</h2>
+    <div class="sidebar @(menuOpen ? "open" : "")">
+        <div class="sidebar-header">
+            <h2>AutoPulse</h2>
+            <button class="close-btn" @onclick="ToggleMenu">×</button>
+        </div>
         <ul class="sidebar-nav">
             <li>
-                <a @onclick='() => activeSection = "dashboard"'
+                <a @onclick='() => { activeSection = "dashboard"; ToggleMenu(); }'
                    class="nav-link @(activeSection == "dashboard" ? "active" : "")">
-                    📊 Tableau de bord
+                    <span class="icon">📊</span>
+                    <span class="text">Tableau de bord</span>
                 </a>
             </li>
             <li>
-                <a @onclick='() => activeSection = "reports"'
+                <a @onclick='() => { activeSection = "reports"; ToggleMenu(); }'
                    class="nav-link @(activeSection == "reports" ? "active" : "")">
-                    🚩 Signalements
+                    <span class="icon">🚩</span>
+                    <span class="text">Signalements</span>
                 </a>
             </li>
             <li>
-                <a @onclick='() => activeSection = "listings"'
+                <a @onclick='() => { activeSection = "listings"; ToggleMenu(); }'
                    class="nav-link @(activeSection == "listings" ? "active" : "")">
-                    🚗 Annonces
+                    <span class="icon">🚗</span>
+                    <span class="text">Annonces</span>
                 </a>
             </li>
             <li>
-                <a @onclick='() => activeSection = "users"'
+                <a @onclick='() => { activeSection = "users"; ToggleMenu(); }'
                    class="nav-link @(activeSection == "users" ? "active" : "")">
-                    👥 Utilisateurs
+                    <span class="icon">👥</span>
+                    <span class="text">Utilisateurs</span>
                 </a>
             </li>
             <li>
                 <a href="/" class="btn-normal">
-                    ← Mode Normal
+                    <span class="icon">←</span>
+                    <span class="text">Mode Normal</span>
                 </a>
             </li>
         </ul>
@@ -277,6 +298,7 @@
 @code {
     private string activeSection = "dashboard";
     private string searchQuery = "";
+    private bool menuOpen = false;
 
     // Données de test
     private List<Report> reports = new()
@@ -317,6 +339,11 @@
     private void ViewUser(string id) => Console.WriteLine($"View user {id}");
     private void SuspendUser(string id) => Console.WriteLine($"Suspend user {id}");
     private void DeleteUser(string id) => Console.WriteLine($"Delete user {id}");
+
+    private void ToggleMenu()
+    {
+        menuOpen = !menuOpen;
+    }
 
     // Modèles de données
     private class Report
