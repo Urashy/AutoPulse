@@ -558,16 +558,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     public bool VerifUser([FromBody] ChangementMdpDTO dto)
     {
         string hash = ComputeSha256Hash(dto.MotDePasse);
-        var result =  _manager.VerifMotDePasse(dto.Email, hash) != null;
+        var result =  _manager.VerifMotDePasse(dto.Email, hash) is null;
 
-        if (result != null)
+        if (result)
         {
             return true;
         }
-        else         
-        {
-            return false;
-        }
+        return false;
     }
 #endregion
     
