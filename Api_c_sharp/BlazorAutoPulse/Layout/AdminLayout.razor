@@ -1,0 +1,46 @@
+﻿@inherits LayoutComponentBase
+
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-header">
+            <h2>🚗 AutoPulse</h2>
+            <p class="admin-badge">ADMIN</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <NavLink href="/admin" Match="NavLinkMatch.All" class="nav-item">
+                <span class="icon">📊</span>
+                <span class="text">Tableau de bord</span>
+            </NavLink>
+
+            <NavLink href="/admin/signalements" class="nav-item">
+                <span class="icon">🚩</span>
+                <span class="text">Signalements</span>
+                <span class="badge">23</span>
+            </NavLink>
+
+            <NavLink href="/admin/annonces" class="nav-item">
+                <span class="icon">🚗</span>
+                <span class="text">Annonces</span>
+            </NavLink>
+
+            <NavLink href="/admin/utilisateurs" class="nav-item">
+                <span class="icon">👥</span>
+                <span class="text">Utilisateurs</span>
+            </NavLink>
+
+            <div class="nav-divider"></div>
+
+            <NavLink href="/" class="nav-item nav-exit">
+                <span class="icon">←</span>
+                <span class="text">Mode Normal</span>
+            </NavLink>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-content">
+        @Body
+    </main>
+</div>
