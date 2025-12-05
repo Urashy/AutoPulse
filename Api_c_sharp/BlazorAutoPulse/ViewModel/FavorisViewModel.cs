@@ -34,7 +34,6 @@ namespace BlazorAutoPulse.ViewModel
             {
                 var me = await _compteService.GetMe();
 
-                // ✅ Appel direct à l'API qui retourne des AnnonceDTO
                 AnnoncesFavoris = (await _annonceService.GetAnnoncesFavoritesByCompteId(me.IdCompte)).ToList();
 
                 refreshUI?.Invoke();
