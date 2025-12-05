@@ -1,0 +1,349 @@
+@page "/admin"
+@using BlazorAutoPulse.ViewModel
+@inject NavigationManager Navigation
+
+<PageTitle>Administration - AutoPulse</PageTitle>
+
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>AutoPulse</h2>
+        <ul class="sidebar-nav">
+            <li>
+                <a @onclick='() => activeSection = "dashboard"'
+                   class="nav-link @(activeSection == "dashboard" ? "active" : "")">
+                    📊 Tableau de bord
+                </a>
+            </li>
+            <li>
+                <a @onclick='() => activeSection = "reports"'
+                   class="nav-link @(activeSection == "reports" ? "active" : "")">
+                    🚩 Signalements
+                </a>
+            </li>
+            <li>
+                <a @onclick='() => activeSection = "listings"'
+                   class="nav-link @(activeSection == "listings" ? "active" : "")">
+                    🚗 Annonces
+                </a>
+            </li>
+            <li>
+                <a @onclick='() => activeSection = "users"'
+                   class="nav-link @(activeSection == "users" ? "active" : "")">
+                    👥 Utilisateurs
+                </a>
+            </li>
+            <li>
+                <a href="/" class="btn-normal">
+                    ← Mode Normal
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        @if (activeSection == "dashboard")
+        {
+            <h1>Tableau de bord</h1>
+
+            <!-- Statistiques rapides -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-info">
+                        <h3>1,247</h3>
+                        <p>Annonces actives</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <h3>8,432</h3>
+                        <p>Utilisateurs</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🚩</div>
+                    <div class="stat-info">
+                        <h3>23</h3>
+                        <p>Signalements en attente</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <h3>45.2M€</h3>
+                        <p>Volume total</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphiques -->
+            <div class="dashboard-grid">
+                <div class="chart-card">
+                    <h3>Utilisation de l'IA d'estimation</h3>
+                    <div class="chart-placeholder">
+                        <span>Graphique Linéaire</span>
+                        <p class="chart-note">📈 +12% ce mois</p>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Annonces publiées par jour</h3>
+                    <div class="chart-placeholder">
+                        <span>Graphique à Barres</span>
+                        <p class="chart-note">📊 Moyenne: 42/jour</p>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Répartition des marques</h3>
+                    <div class="chart-placeholder">
+                        <span>Graphique Circulaire</span>
+                        <p class="chart-note">🎯 BMW en tête (18%)</p>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Nouveaux utilisateurs</h3>
+                    <div class="chart-placeholder">
+                        <span>Graphique Linéaire</span>
+                        <p class="chart-note">👤 +8% ce mois</p>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (activeSection == "reports")
+        {
+            <div class="section-header">
+                <h1>Signalements</h1>
+                <div class="header-actions">
+                    <span class="badge-warning">@reports.Count en attente</span>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID Annonce</th>
+                        <th>Motif</th>
+                        <th>Signalé par</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var report in reports)
+                    {
+                        <tr>
+                            <td><span class="id-badge">@report.IdAnnonce</span></td>
+                            <td>@report.Motif</td>
+                            <td>@report.SignalePar</td>
+                            <td>@report.Date</td>
+                            <td>
+                                <button class="btn btn-primary" @onclick="() => ViewListing(report.IdAnnonce)">
+                                    👁️ Voir
+                                </button>
+                                <button class="btn btn-danger" @onclick="() => DeleteListing(report.IdAnnonce)">
+                                    🗑️ Supprimer
+                                </button>
+                                <button class="btn btn-secondary" @onclick="() => DismissReport(report.IdAnnonce)">
+                                    ✓ Ignorer
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else if (activeSection == "listings")
+        {
+            <div class="section-header">
+                <h1>Toutes les annonces</h1>
+                <div class="header-actions">
+                    <input type="text"
+                           placeholder="🔍 Rechercher une annonce..."
+                           class="search-input"
+                           @bind="searchQuery">
+                    <select class="filter-select">
+                        <option value="all">Toutes les annonces</option>
+                        <option value="active">Actives</option>
+                        <option value="pending">En attente</option>
+                        <option value="expired">Expirées</option>
+                    </select>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Titre</th>
+                        <th>Vendeur</th>
+                        <th>Prix</th>
+                        <th>Publication</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var listing in listings)
+                    {
+                        <tr>
+                            <td><span class="id-badge">@listing.Id</span></td>
+                            <td>@listing.Titre</td>
+                            <td>@listing.Vendeur</td>
+                            <td><strong>@listing.Prix.ToString("N0") €</strong></td>
+                            <td>@listing.Publication</td>
+                            <td>
+                                <span class="badge @GetStatusClass(listing.Statut)">
+                                    @listing.Statut
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-primary" @onclick="() => ViewListing(listing.Id)">
+                                    👁️
+                                </button>
+                                <button class="btn btn-danger" @onclick="() => DeleteListing(listing.Id)">
+                                    🗑️
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else if (activeSection == "users")
+        {
+            <div class="section-header">
+                <h1>Utilisateurs</h1>
+                <div class="header-actions">
+                    <input type="text"
+                           placeholder="🔍 Rechercher un utilisateur..."
+                           class="search-input"
+                           @bind="searchQuery">
+                    <select class="filter-select">
+                        <option value="all">Tous les utilisateurs</option>
+                        <option value="particulier">Particuliers</option>
+                        <option value="professionnel">Professionnels</option>
+                        <option value="suspended">Suspendus</option>
+                    </select>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Type</th>
+                        <th>Inscription</th>
+                        <th>Annonces</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in users)
+                    {
+                        <tr>
+                            <td><span class="id-badge">@user.Id</span></td>
+                            <td>@user.Nom</td>
+                            <td>@user.Email</td>
+                            <td>
+                                <span class="badge @(user.Type == "Professionnel" ? "badge-pro" : "badge-user")">
+                                    @user.Type
+                                </span>
+                            </td>
+                            <td>@user.Inscription</td>
+                            <td>@user.NbAnnonces</td>
+                            <td>
+                                <button class="btn btn-primary" @onclick="() => ViewUser(user.Id)">
+                                    👁️
+                                </button>
+                                <button class="btn btn-warning" @onclick="() => SuspendUser(user.Id)">
+                                    ⚠️
+                                </button>
+                                <button class="btn btn-danger" @onclick="() => DeleteUser(user.Id)">
+                                    🗑️
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@code {
+    private string activeSection = "dashboard";
+    private string searchQuery = "";
+
+    // Données de test
+    private List<Report> reports = new()
+    {
+        new Report { IdAnnonce = "#7358", Motif = "Prix suspect, semble être une arnaque.", SignalePar = "Jean M.", Date = "14/10/2025" },
+        new Report { IdAnnonce = "#7211", Motif = "Photos non conformes", SignalePar = "Marie D.", Date = "13/10/2025" },
+        new Report { IdAnnonce = "#6998", Motif = "Le vendeur ne répond pas.", SignalePar = "Pierre L.", Date = "11/10/2025" }
+    };
+
+    private List<Listing> listings = new()
+    {
+        new Listing { Id = "#7358", Titre = "BMW Série 3 2021", Vendeur = "Jean Dupont", Prix = 32900, Publication = "12/10/2025", Statut = "Active" },
+        new Listing { Id = "#7357", Titre = "Mercedes Classe A 2020", Vendeur = "Alice Martin", Prix = 28500, Publication = "12/10/2025", Statut = "Active" },
+        new Listing { Id = "#7356", Titre = "Audi A4 2022", Vendeur = "ProCar Savoie", Prix = 38900, Publication = "11/10/2025", Statut = "Active" }
+    };
+
+    private List<User> users = new()
+    {
+        new User { Id = "#1234", Nom = "Jean Dupont", Email = "jean.dupont@email.com", Type = "Particulier", Inscription = "15/03/2024", NbAnnonces = 3 },
+        new User { Id = "#1235", Nom = "Alice Martin", Email = "alice.martin@email.com", Type = "Particulier", Inscription = "22/04/2024", NbAnnonces = 1 },
+        new User { Id = "#1236", Nom = "ProCar Savoie", Email = "contact@procar-savoie.com", Type = "Professionnel", Inscription = "10/01/2024", NbAnnonces = 27 }
+    };
+
+    private string GetStatusClass(string statut)
+    {
+        return statut.ToLower() switch
+        {
+            "active" => "badge-success",
+            "en attente" => "badge-warning",
+            "expirée" => "badge-danger",
+            _ => ""
+        };
+    }
+
+    private void ViewListing(string id) => Console.WriteLine($"View listing {id}");
+    private void DeleteListing(string id) => Console.WriteLine($"Delete listing {id}");
+    private void DismissReport(string id) => Console.WriteLine($"Dismiss report {id}");
+    private void ViewUser(string id) => Console.WriteLine($"View user {id}");
+    private void SuspendUser(string id) => Console.WriteLine($"Suspend user {id}");
+    private void DeleteUser(string id) => Console.WriteLine($"Delete user {id}");
+
+    // Modèles de données
+    private class Report
+    {
+        public string IdAnnonce { get; set; }
+        public string Motif { get; set; }
+        public string SignalePar { get; set; }
+        public string Date { get; set; }
+    }
+
+    private class Listing
+    {
+        public string Id { get; set; }
+        public string Titre { get; set; }
+        public string Vendeur { get; set; }
+        public int Prix { get; set; }
+        public string Publication { get; set; }
+        public string Statut { get; set; }
+    }
+
+    private class User
+    {
+        public string Id { get; set; }
+        public string Nom { get; set; }
+        public string Email { get; set; }
+        public string Type { get; set; }
+        public string Inscription { get; set; }
+        public int NbAnnonces { get; set; }
+    }
+}
