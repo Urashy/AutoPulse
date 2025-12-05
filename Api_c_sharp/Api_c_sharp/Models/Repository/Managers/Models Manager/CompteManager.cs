@@ -56,27 +56,37 @@ namespace Api_c_sharp.Models.Repository.Managers
                 .FirstOrDefaultAsync(c => c.IdCompte == idcompte);
             Compte comptedebase = compte;
 
-
-
-            bool aDesActivites = comptedebase.CommandeAcheteur.Any() ||
-                                 comptedebase.Annonces.Any() ||
-                                 comptedebase.SignalementsFaits.Any() ||
-                                 comptedebase.SignalementsRecus.Any() ||
-                                 comptedebase.CommandeVendeur.Any() ||
-                                 comptedebase.AvisJugees.Any() ||
-                                 comptedebase.AvisJugeur.Any();
+            if (compte == null)
+                return;
+            // ✅ Vérifier si les collections sont null avant d'appeler .Any()
+            bool aDesActivites = (compte.CommandeAcheteur?.Any() ?? false) ||
+                                 (compte.Annonces?.Any() ?? false) ||
+                                 (compte.SignalementsFaits?.Any() ?? false) ||
+                                 (compte.SignalementsRecus?.Any() ?? false) ||
+                                 (compte.CommandeVendeur?.Any() ?? false) ||
+                                 (compte.AvisJugees?.Any() ?? false) ||
+                                 (compte.AvisJugeur?.Any() ?? false);
 
             if (!aDesActivites)
             {
+                // Supprimer les données liées
+                List<Adresse> adressesASupprimer = await context.Adresses
+                    .Where(a => a.IdCompte == compte.IdCompte)
+                    .ToListAsync();
+                if (adressesASupprimer.Any())
+                    context.Adresses.RemoveRange(adressesASupprimer);
+                
+                List<Favori> favorisASupprimer = await context.Favoris
+                    .Where(f => f.IdCompte == compte.IdCompte)
+                    .ToListAsync();
+                if (favorisASupprimer.Any())
+                    context.Favoris.RemoveRange(favorisASupprimer);
 
-                List<Adresse> adressesASupprimer = context.Adresses.Where(a => a.IdCompte == compte.IdCompte).ToList();
-                if (adressesASupprimer.Any()) context.Adresses.RemoveRange(adressesASupprimer);
-
-                List<Favori> favorisASupprimer = context.Favoris.Where(f => f.IdCompte == compte.IdCompte).ToList();
-                if (favorisASupprimer.Any()) context.Favoris.RemoveRange(favorisASupprimer);
-
-                List<Journal> logsASupprimer = context.Journaux.Where(l => l.IdCompte == compte.IdCompte).ToList();
-                if (logsASupprimer.Any()) context.Journaux.RemoveRange(logsASupprimer);
+                List<Journal> logsASupprimer = await context.Journaux
+                    .Where(l => l.IdCompte == compte.IdCompte)
+                    .ToListAsync();
+                if (logsASupprimer.Any())
+                    context.Journaux.RemoveRange(logsASupprimer);
 
                 dbSet.Remove(compte);
                 await context.SaveChangesAsync();
@@ -93,7 +103,7 @@ namespace Api_c_sharp.Models.Repository.Managers
                 compte.DateNaissance = DateTime.SpecifyKind(new DateTime(1900, 01, 01), DateTimeKind.Utc);
                 compte.IdTypeCompte = 4;
                 compte.Biographie = null;
-                context.Entry(comptedebase).CurrentValues.SetValues(compte);
+                
                 await context.SaveChangesAsync();
 
             }

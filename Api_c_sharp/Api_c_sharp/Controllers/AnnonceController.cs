@@ -261,6 +261,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
+
     }
 
     /// <summary>

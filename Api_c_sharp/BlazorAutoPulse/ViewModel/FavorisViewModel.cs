@@ -41,7 +41,7 @@ namespace BlazorAutoPulse.ViewModel
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur InitializeAsync: {ex.Message}");
-                //nav.NavigateTo("/connexion");
+                nav.NavigateTo("/connexion");
             }
             finally
             {

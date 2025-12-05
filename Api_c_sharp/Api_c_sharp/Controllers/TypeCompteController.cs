@@ -66,5 +66,24 @@ namespace Api_c_sharp.Controllers
             return new ActionResult<IEnumerable<TypeCompteDTO>>(_typeCompteMapper.Map<IEnumerable<TypeCompteDTO>>(list));
         }
 
+
+        /// <summary>
+        /// Récupère l'ID du type de compte à partir de l'ID du compte.
+        /// </summary>
+        /// <param name="idCompte">Identifiant unique du compte.</param>
+        /// <returns>
+        /// <item><description>L'ID du type de compte si le compte existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
+        /// </returns>
+        [HttpGet("GetTypeCompteByCompteId/{idCompte}")]
+        public async Task<ActionResult<TypeCompteDTO>> GetTypeCompteByCompteId(int idCompte)
+        {
+            TypeCompte compte = await _manager.GetTypeCompteByCompteId(idCompte);
+
+            if (compte is null)
+                return NotFound();
+
+            return new ActionResult<TypeCompteDTO>(_typeCompteMapper.Map<TypeCompteDTO>(compte));
+        }
     }
 }

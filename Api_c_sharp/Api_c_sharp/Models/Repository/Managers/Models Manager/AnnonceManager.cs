@@ -140,7 +140,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
         {
-            return await dbSet.Where(a => a.Favoris.Any(f => f.IdCompte == compteId)).ToListAsync();
+            return await ApplyIncludes().Where(a => a.Favoris.Any(f => f.IdCompte == compteId)).ToListAsync();
         }
         public override async Task<Annonce?> GetByIdAsync(int id)
         {

@@ -44,6 +44,8 @@ namespace App.Controllers.Tests
             _mapper = config.CreateMapper();
 
             _manager = new ConversationManager(_context);
+            var messageManager = new MessageManager(_context);
+            _conversationEnrichmentService = new ConversationEnrichmentService(messageManager, _mapper);
             _controller = new ConversationController(_manager, _conversationEnrichmentService, _mapper);
 
             _context.Marques.Add(new Marque { IdMarque = 1, LibelleMarque = "TestMarque" });

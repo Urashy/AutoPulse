@@ -1,22 +1,23 @@
-using System.Text;
-using Api_c_sharp.Models.Repository.Interfaces;
-using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using System.Security.Cryptography;
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Api_c_sharp.Models.Repository.Managers;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.IdentityModel.Tokens;
 using Api_c_sharp.Models.Authentification;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text.Json;
+using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
+using Api_c_sharp.Models.Repository.Managers;
+using AutoMapper;
+using AutoPulse.Shared.DTO;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
-using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
-using Api_c_sharp.Models.Entity;
+using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Diagnostics.CodeAnalysis;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
 
 namespace App.Controllers;
 
@@ -208,28 +209,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         await _manager.DeleteAsync(entity);
         return NoContent();
     }
-
-
-    /// <summary>
-    /// Récupère l'ID du type de compte à partir de l'ID du compte.
-    /// </summary>
-    /// <param name="idCompte">Identifiant unique du compte.</param>
-    /// <returns>
-    /// <item><description>L'ID du type de compte si le compte existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
-    /// </returns>
-    [HttpGet("GetTypeCompteByCompteId/{idCompte}")]
-    public async Task<ActionResult<int>> GetTypeCompteByCompteId(int idCompte)
-    {
-        var compte = await _manager.GetByIdAsync(idCompte);
-
-        if (compte is null)
-            return NotFound();
-
-        return compte.IdTypeCompte;
-    }
-
-
     #endregion
 
 #region Autre methode
@@ -383,6 +362,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 #region Authentification Google
     [ActionName("GoogleLogin")]
     [HttpGet]
+    [ExcludeFromCodeCoverage]
     public IActionResult GoogleLogin()
     {
         var clientId = config["Authentication:Google:ClientId"];
@@ -401,6 +381,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     
     [ActionName("GoogleCallback")]
     [HttpGet]
+    [ExcludeFromCodeCoverage]
     public async Task<IActionResult> GoogleCallback([FromQuery] string code)
     {
         if (string.IsNullOrEmpty(code))
@@ -450,9 +431,10 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return StatusCode(500, $"Erreur : {ex.Message}");
         }
     }
-#endregion
+    #endregion
 
 #region Outils Authentification Google
+    [ExcludeFromCodeCoverage]
     private async Task<GoogleTokenResponse> ExchangeCodeForToken(string code)
     {
         var clientId = config["Authentication:Google:ClientId"];
@@ -473,7 +455,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var json = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<GoogleTokenResponse>(json);
     }
-
+    [ExcludeFromCodeCoverage]
     private async Task<GoogleUserInfo> GetGoogleUserInfo(string accessToken)
     {
         using var httpClient = new HttpClient();
@@ -484,7 +466,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var json = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<GoogleUserInfo>(json);
     }
-
+    [ExcludeFromCodeCoverage]
     private async Task<(bool, Compte)> GetOrCreateCompte(GoogleUserInfo userInfo)
     {
         // Cherche si un compte existe déjà avec cet email
