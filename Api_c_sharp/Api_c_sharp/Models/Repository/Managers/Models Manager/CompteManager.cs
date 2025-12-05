@@ -90,7 +90,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
                 compte.Email = $"anonyme_{compte.IdCompte}_{Guid.NewGuid().ToString().Substring(0, 8)}@deleted.com";
                 compte.Pseudo = $"anonyme_{compte.IdCompte}_{Guid.NewGuid().ToString().Substring(0, 3)}";
-                compte.DateNaissance = new DateTime(1900, 1, 1);
+                compte.DateNaissance = DateTime.SpecifyKind(new DateTime(1900, 01, 01), DateTimeKind.Utc);
                 compte.IdTypeCompte = 4;
                 compte.Biographie = null;
                 context.Entry(comptedebase).CurrentValues.SetValues(compte);

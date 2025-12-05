@@ -114,8 +114,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         entity.DateNaissance = DateTime.SpecifyKind(entity.DateNaissance, DateTimeKind.Utc);
         entity.DateCreation = DateTime.UtcNow;
         entity.DateDerniereConnexion = DateTime.UtcNow;
-        await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
         await _manager.AddAsync(entity);
+        await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
     }
@@ -175,6 +175,14 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return NotFound();
 
         await _manager.UpdateAnonymise(id);
+        
+        Response.Cookies.Delete("access_token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        });
 
         return NoContent();
     }

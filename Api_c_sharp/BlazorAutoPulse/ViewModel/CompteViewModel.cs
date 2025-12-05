@@ -367,6 +367,8 @@ namespace BlazorAutoPulse.ViewModel
             {
                 _compteService.Anonymisation(compte.IdCompte);
                 suppressionReussi = true;
+                Task.Delay(1000);
+                _nav.NavigateTo("/");
             }
         }
     }
