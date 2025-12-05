@@ -1,0 +1,156 @@
+/* ========== LAYOUT GLOBAL ========== */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background: #0a0a0a;
+}
+
+/* ========== SIDEBAR ========== */
+.admin-sidebar {
+    width: 280px;
+    background: linear-gradient(135deg, #1b1b2b 0%, #0f0f1a 100%);
+    border-right: 1px solid #333;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.sidebar-header {
+    padding: 30px 20px;
+    border-bottom: 1px solid #333;
+    text-align: center;
+}
+
+    .sidebar-header h2 {
+        margin: 0 0 10px 0;
+        font-size: 28px;
+        background: linear-gradient(135deg, #fff, #00d4ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+.admin-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(0, 212, 255, 0.2);
+    color: #00d4ff;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    margin: 0;
+}
+
+/* ========== NAVIGATION ========== */
+.sidebar-nav {
+    padding: 20px 10px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    margin-bottom: 4px;
+    color: #aaa;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.3s;
+    position: relative;
+}
+
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+
+    .nav-item.active {
+        background: linear-gradient(90deg, rgba(0, 212, 255, 0.2), transparent);
+        color: #fff;
+        border-left: 3px solid #00d4ff;
+    }
+
+    .nav-item .icon {
+        font-size: 20px;
+        width: 24px;
+        text-align: center;
+    }
+
+    .nav-item .text {
+        flex: 1;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    .nav-item .badge {
+        padding: 2px 8px;
+        background: #ff4444;
+        color: white;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+.nav-divider {
+    height: 1px;
+    background: #333;
+    margin: 20px 10px;
+}
+
+.nav-exit {
+    margin-top: 10px;
+    border: 1px solid #333;
+}
+
+    .nav-exit:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #00d4ff;
+    }
+
+/* ========== MAIN CONTENT ========== */
+.admin-content {
+    margin-left: 280px;
+    flex: 1;
+    padding: 40px;
+    min-height: 100vh;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 240px;
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+    }
+
+        .admin-sidebar.open {
+            transform: translateX(0);
+        }
+
+    .admin-content {
+        margin-left: 0;
+        padding: 20px;
+    }
+}
+
+/* ========== SCROLLBAR CUSTOM ========== */
+.admin-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+
+    .admin-sidebar::-webkit-scrollbar-thumb:hover {
+        background: #444;
+    }
