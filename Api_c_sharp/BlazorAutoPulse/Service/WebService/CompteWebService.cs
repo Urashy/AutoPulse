@@ -141,7 +141,7 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
 
     public async Task<bool> Anonymisation(int idCompte)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl($"Anonymisation/{idCompte}"));
+        var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"PutAnonymise/{idCompte}"));
         
         var response = await SendWithCredentialsAsync(request);
 

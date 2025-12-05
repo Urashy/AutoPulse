@@ -105,7 +105,14 @@ public class ConversationStateService : IDisposable
 
     public async Task LoadConversations()
     {
-        Conversations = (await _conversationService.GetConversationsByCompteID(CurrentUserId)).ToList();
+        try
+        {
+            Conversations = (await _conversationService.GetConversationsByCompteID(CurrentUserId)).ToList();
+        }
+        catch
+        {
+            Console.WriteLine("Aucune conversation trouvé pour l'utilisateur");
+        }
         NotifyStateChanged();
     }
     
