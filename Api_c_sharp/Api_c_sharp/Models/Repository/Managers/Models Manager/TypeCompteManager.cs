@@ -10,6 +10,13 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
+        public async Task<TypeCompte> GetTypeCompteByCompteId(int compteID)
+        {
+            return await dbSet
+                .Include(tc => tc.Comptes)
+                .FirstOrDefaultAsync(tc => tc.Comptes.Any(c => c.IdCompte == compteID));
+        }
+
         public async Task<IEnumerable<TypeCompte>> GetTypeComptesPourChercher()
         {
             return await dbSet.Where(tc => tc.Cherchable == true).ToListAsync();

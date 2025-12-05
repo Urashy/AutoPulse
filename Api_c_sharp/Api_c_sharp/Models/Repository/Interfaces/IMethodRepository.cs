@@ -79,6 +79,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     public interface ITypeCompteRepository
     {
         Task<IEnumerable<TypeCompte>> GetTypeComptesPourChercher();
+        Task<TypeCompte> GetTypeCompteByCompteId(int compteID);
     }
 
     public interface IConversationRepository

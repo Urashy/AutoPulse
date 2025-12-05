@@ -44,7 +44,6 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task UpdateAnonymise(int idcompte)
         {
-
             Compte compte = await dbSet
                 .Include(c => c.CommandeAcheteur)
                 .Include(c => c.Annonces)
@@ -54,48 +53,58 @@ namespace Api_c_sharp.Models.Repository.Managers
                 .Include(c => c.AvisJugees)
                 .Include(c => c.AvisJugeur)
                 .FirstOrDefaultAsync(c => c.IdCompte == idcompte);
-            Compte comptedebase = compte;
 
+            if (compte == null)
+                return;
 
-
-            bool aDesActivites = comptedebase.CommandeAcheteur.Any() ||
-                                 comptedebase.Annonces.Any() ||
-                                 comptedebase.SignalementsFaits.Any() ||
-                                 comptedebase.SignalementsRecus.Any() ||
-                                 comptedebase.CommandeVendeur.Any() ||
-                                 comptedebase.AvisJugees.Any() ||
-                                 comptedebase.AvisJugeur.Any();
+            // ✅ Vérifier si les collections sont null avant d'appeler .Any()
+            bool aDesActivites = (compte.CommandeAcheteur?.Any() ?? false) ||
+                                 (compte.Annonces?.Any() ?? false) ||
+                                 (compte.SignalementsFaits?.Any() ?? false) ||
+                                 (compte.SignalementsRecus?.Any() ?? false) ||
+                                 (compte.CommandeVendeur?.Any() ?? false) ||
+                                 (compte.AvisJugees?.Any() ?? false) ||
+                                 (compte.AvisJugeur?.Any() ?? false);
 
             if (!aDesActivites)
             {
+                // Supprimer les données liées
+                List<Adresse> adressesASupprimer = await context.Adresses
+                    .Where(a => a.IdCompte == compte.IdCompte)
+                    .ToListAsync();
+                if (adressesASupprimer.Any())
+                    context.Adresses.RemoveRange(adressesASupprimer);
 
-                List<Adresse> adressesASupprimer = context.Adresses.Where(a => a.IdCompte == compte.IdCompte).ToList();
-                if (adressesASupprimer.Any()) context.Adresses.RemoveRange(adressesASupprimer);
+                List<Favori> favorisASupprimer = await context.Favoris
+                    .Where(f => f.IdCompte == compte.IdCompte)
+                    .ToListAsync();
+                if (favorisASupprimer.Any())
+                    context.Favoris.RemoveRange(favorisASupprimer);
 
-                List<Favori> favorisASupprimer = context.Favoris.Where(f => f.IdCompte == compte.IdCompte).ToList();
-                if (favorisASupprimer.Any()) context.Favoris.RemoveRange(favorisASupprimer);
+                List<Journal> logsASupprimer = await context.Journaux
+                    .Where(l => l.IdCompte == compte.IdCompte)
+                    .ToListAsync();
+                if (logsASupprimer.Any())
+                    context.Journaux.RemoveRange(logsASupprimer);
 
-                List<Journal> logsASupprimer = context.Journaux.Where(l => l.IdCompte == compte.IdCompte).ToList();
-                if (logsASupprimer.Any()) context.Journaux.RemoveRange(logsASupprimer);
-
+                // Supprimer le compte
                 dbSet.Remove(compte);
                 await context.SaveChangesAsync();
             }
             else
             {
-
-                compte.MotDePasse = "XXXXXXXXX"; 
+                // Anonymiser le compte
+                compte.MotDePasse = "XXXXXXXXX";
                 compte.Nom = "ANONYME";
                 compte.Prenom = "Utilisateur";
-
                 compte.Email = $"anonyme_{compte.IdCompte}_{Guid.NewGuid().ToString().Substring(0, 8)}@deleted.com";
                 compte.Pseudo = $"anonyme_{compte.IdCompte}_{Guid.NewGuid().ToString().Substring(0, 3)}";
-                compte.DateNaissance = new DateTime(1900, 1, 1);
+                compte.DateNaissance = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 compte.IdTypeCompte = 4;
                 compte.Biographie = null;
-                context.Entry(comptedebase).CurrentValues.SetValues(compte);
-                await context.SaveChangesAsync();
 
+                // ✅ Pas besoin de SetValues, on modifie directement l'entité trackée
+                await context.SaveChangesAsync();
             }
         }
         public async Task<int?> GetTypeCompteByCompteId(int compteId)
