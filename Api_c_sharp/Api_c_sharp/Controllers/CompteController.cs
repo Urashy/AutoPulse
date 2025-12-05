@@ -354,7 +354,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 #region Authentification Google
     [ActionName("GoogleLogin")]
     [HttpGet]
-    [ExcludeFromCodeCoverage]
     public IActionResult GoogleLogin()
     {
         var clientId = config["Authentication:Google:ClientId"];
@@ -373,7 +372,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     
     [ActionName("GoogleCallback")]
     [HttpGet]
-    [ExcludeFromCodeCoverage]
     public async Task<IActionResult> GoogleCallback([FromQuery] string code)
     {
         if (string.IsNullOrEmpty(code))

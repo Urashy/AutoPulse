@@ -656,6 +656,31 @@ namespace App.Controllers.Tests
 
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
         }
+
+        [TestMethod]
+        public async Task Logout_InvalidUserId_ReturnsInternalServerError()
+        {
+            // Arrange - Configurer un claim avec un userId non numérique pour forcer une exception
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", "invalid_user_id") // Cela va causer une FormatException lors du Parse
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Act
+            var result = await _controller.Logout();
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(ObjectResult));
+            var objectResult = (ObjectResult)result;
+            Assert.AreEqual(500, objectResult.StatusCode);
+        }
         #endregion
 
         [TestMethod]
