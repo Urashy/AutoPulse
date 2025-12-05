@@ -115,7 +115,6 @@ public class ConversationController(
         if (conversations is null || !conversations.Any())
             return NotFound();
 
-        // Utiliser le service d'enrichissement pour ajouter les informations manquantes
         var result = await _enrichmentService.EnrichConversationsAsync(conversations, idcompte);
 
         return new ActionResult<IEnumerable<ConversationListDTO>>(result);

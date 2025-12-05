@@ -1,6 +1,5 @@
 ﻿using Api_c_sharp.Controllers;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Authentification;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
@@ -10,6 +9,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using App.Controllers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,8 +18,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace App.Controllers.Tests
 {
@@ -29,12 +29,10 @@ namespace App.Controllers.Tests
         private CompteController _controller;
         private AutoPulseBdContext _context;
         private CompteManager _manager;
+        private IConfiguration _config;
         private IMapper _mapper;
         private Compte _objetcommun;
         private IJournalService _journalService;
-        IConfiguration config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
-            .Build();
 
         [TestInitialize]
         public async Task Initialize()
@@ -49,10 +47,31 @@ namespace App.Controllers.Tests
             {
                 cfg.AddProfile<MapperProfile>();
             });
+
+            // ✅ Configuration JWT en mémoire
+            var inMemorySettings = new Dictionary<string, string>
+            {
+                {"Jwt:SecretKey", "UneSuperCleSecreteTresLonguePourLeTestJWT123456789"},
+                {"Jwt:Issuer", "TestIssuer"},
+                {"Jwt:Audience", "TestAudience"}
+            };
+            _config = new ConfigurationBuilder()
+                .AddInMemoryCollection(inMemorySettings)
+                .Build();
+
             _mapper = mapperconfig.CreateMapper();
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new CompteManager(_context);
-            _controller = new CompteController(_manager, _mapper, config, _journalService);
+
+            // ✅ IMPORTANT : Utiliser _config (configuration en mémoire) au lieu de config
+            _controller = new CompteController(_manager, _mapper, _config, _journalService);
+
+            // ✅ Configuration du contexte HTTP pour les cookies
+            var httpContext = new DefaultHttpContext();
+            _controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
 
             _context.Comptes.RemoveRange(_context.Comptes);
             await _context.SaveChangesAsync();
@@ -69,21 +88,30 @@ namespace App.Controllers.Tests
                 IdTypeCompte = 1,
                 Libelle = "Standard"
             };
+
+            TypeCompte typeCompteAnonyme = new TypeCompte
+            {
+                IdTypeCompte = 4,
+                Libelle = "Anonyme"
+            };
+
+            _context.TypesCompte.AddRange(typeCompte, typeCompteAnonyme);
             _context.TypesJournal.AddRange(
-            new TypeJournal { IdTypeJournaux = 1, LibelleTypeJournaux = "Connexion" },
-            new TypeJournal { IdTypeJournaux = 2, LibelleTypeJournaux = "Déconnexion" },
-            new TypeJournal { IdTypeJournaux = 3, LibelleTypeJournaux = "Création de compte" },
-            new TypeJournal { IdTypeJournaux = 4, LibelleTypeJournaux = "Modification de profil" },
-            new TypeJournal { IdTypeJournaux = 5, LibelleTypeJournaux = "Publication d'annonce" },
-            new TypeJournal { IdTypeJournaux = 6, LibelleTypeJournaux = "Modification d'annonce" },
-            new TypeJournal { IdTypeJournaux = 7, LibelleTypeJournaux = "Suppression d'annonce" },
-            new TypeJournal { IdTypeJournaux = 8, LibelleTypeJournaux = "Achat" },
-            new TypeJournal { IdTypeJournaux = 9, LibelleTypeJournaux = "Signalement" },
-            new TypeJournal { IdTypeJournaux = 10, LibelleTypeJournaux = "Dépôt avis" },
-            new TypeJournal { IdTypeJournaux = 11, LibelleTypeJournaux = "Mise en favoris" },
-            new TypeJournal { IdTypeJournaux = 12, LibelleTypeJournaux = "Envoyer un message/offre" },
-            new TypeJournal { IdTypeJournaux = 13, LibelleTypeJournaux = "Génération de facture" },
-            new TypeJournal { IdTypeJournaux = 14, LibelleTypeJournaux = "Utilisateur bloque un autre utilisateur" });
+                new TypeJournal { IdTypeJournaux = 1, LibelleTypeJournaux = "Connexion" },
+                new TypeJournal { IdTypeJournaux = 2, LibelleTypeJournaux = "Déconnexion" },
+                new TypeJournal { IdTypeJournaux = 3, LibelleTypeJournaux = "Création de compte" },
+                new TypeJournal { IdTypeJournaux = 4, LibelleTypeJournaux = "Modification de profil" },
+                new TypeJournal { IdTypeJournaux = 5, LibelleTypeJournaux = "Publication d'annonce" },
+                new TypeJournal { IdTypeJournaux = 6, LibelleTypeJournaux = "Modification d'annonce" },
+                new TypeJournal { IdTypeJournaux = 7, LibelleTypeJournaux = "Suppression d'annonce" },
+                new TypeJournal { IdTypeJournaux = 8, LibelleTypeJournaux = "Achat" },
+                new TypeJournal { IdTypeJournaux = 9, LibelleTypeJournaux = "Signalement" },
+                new TypeJournal { IdTypeJournaux = 10, LibelleTypeJournaux = "Dépôt avis" },
+                new TypeJournal { IdTypeJournaux = 11, LibelleTypeJournaux = "Mise en favoris" },
+                new TypeJournal { IdTypeJournaux = 12, LibelleTypeJournaux = "Envoyer un message/offre" },
+                new TypeJournal { IdTypeJournaux = 13, LibelleTypeJournaux = "Génération de facture" },
+                new TypeJournal { IdTypeJournaux = 14, LibelleTypeJournaux = "Utilisateur bloque un autre utilisateur" }
+            );
 
             TypeSignalement typeSignalement = new TypeSignalement
             {
@@ -107,14 +135,13 @@ namespace App.Controllers.Tests
                 Nom = "Doe",
                 Prenom = "John",
                 Email = "john@gmail.com",
-                MotDePasse = "728b252625ebcddcea74d61760866080a10196087c340a57a88ba511bd387921",
+                MotDePasse = "b2b8804d428bb1129711f32ce77b9d3dde5b063c02ae62fcbc73988ae84d7c76",
                 Pseudo = "johndoe",
                 DateCreation = DateTime.UtcNow,
                 DateNaissance = new DateTime(1990, 1, 1),
                 IdTypeCompte = typeCompte.IdTypeCompte,
                 DateDerniereConnexion = DateTime.UtcNow,
                 SignalementsFaits = new List<Signalement> { signalement }
-
             };
 
             Voiture voiture = new Voiture()
@@ -133,6 +160,7 @@ namespace App.Controllers.Tests
                 NbPlace = 5,
                 NbPorte = 5
             };
+
             EtatAnnonce etatAnnonce = new EtatAnnonce()
             {
                 IdEtatAnnonce = 1,
@@ -161,6 +189,7 @@ namespace App.Controllers.Tests
                 LibelleMiseEnAvant = "Standard",
                 PrixSemaine = 9,
             };
+
             Annonce annonce = new Annonce()
             {
                 IdAnnonce = 1,
@@ -180,12 +209,14 @@ namespace App.Controllers.Tests
                 IdCompte = compte.IdCompte
             };
 
+            // ✅ Ajouter TypeSignalement au contexte
+            await _context.TypesSignalement.AddAsync(typeSignalement);
+            await _context.Signalements.AddAsync(signalement);
             await _context.Pays.AddAsync(pays);
             await _context.Adresses.AddAsync(adresse);
             await _context.MisesEnAvant.AddAsync(miseEnAvant);
             await _context.EtatAnnonces.AddAsync(etatAnnonce);
             await _context.Voitures.AddAsync(voiture);
-            await _context.TypesCompte.AddAsync(typeCompte);
             await _context.Comptes.AddAsync(compte);
             await _context.Annonces.AddAsync(annonce);
             await _context.Favoris.AddAsync(favori);
@@ -255,7 +286,6 @@ namespace App.Controllers.Tests
             Assert.AreEqual(compteCreateDTO.Email, createdcompte.Email);
         }
 
-
         [TestMethod]
         public async Task DeleteAdresseTest()
         {
@@ -312,6 +342,7 @@ namespace App.Controllers.Tests
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+
         [TestMethod]
         public async Task BadRequestPutAdresseTest()
         {
@@ -325,16 +356,11 @@ namespace App.Controllers.Tests
                 IdTypeCompte = 1,
             };
 
-            // Forcer l'erreur de validation dans le test
             _controller.ModelState.AddModelError("Prenom", "Required");
-
-            // Act
             var result = await _controller.Put(_objetcommun.IdCompte, compteUpdateDTO);
 
-            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
-
 
         [TestMethod]
         public async Task BadRequestPostAdresseTest()
@@ -351,9 +377,7 @@ namespace App.Controllers.Tests
                 NumeroSiret = null,
             };
 
-            // Forcer l'erreur de validation dans le test
             _controller.ModelState.AddModelError("NumeroSiret", "Required");
-
             var actionResult = await _controller.Post(compteUpdateDTO);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
@@ -365,6 +389,7 @@ namespace App.Controllers.Tests
             var result = await _controller.PutAnonymise(_objetcommun.IdCompte);
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             var compteanonymise = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.IsNotNull(compteanonymise, "Le compte ne devrait pas être null");
             Assert.AreEqual("ANONYME", compteanonymise.Nom);
             Assert.AreEqual("Utilisateur", compteanonymise.Prenom);
         }
@@ -379,9 +404,7 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task GetByStringTest()
         {
-            // Act
             var result = await _controller.GetByString(_objetcommun.Email);
-            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(CompteDetailDTO));
@@ -391,9 +414,7 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task NotFoundGetByStringTest()
         {
-            // Act
             var result = await _controller.GetByString("NonExistentMail");
-            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
@@ -401,9 +422,7 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task GetByTypeCompteTest()
         {
-            // Act
             var result = await _controller.GetByTypeCompte(_objetcommun.IdTypeCompte);
-            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<CompteGetDTO>));
@@ -414,9 +433,7 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task NotFoundGetByTypeCompteTest()
         {
-            // Act
             var result = await _controller.GetByTypeCompte(999);
-            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
@@ -425,7 +442,6 @@ namespace App.Controllers.Tests
         public async Task GetCompteByAnnonceFavoriTest()
         {
             var result = await _controller.GetCompteByAnnonceFavori(1);
-            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<CompteGetDTO>));
@@ -436,13 +452,10 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task NotFoundGetCompteByAnnonceFavoriTest()
         {
-            // Act
             var result = await _controller.GetCompteByAnnonceFavori(999);
-            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
-
 
         [TestMethod]
         public async Task ModifMotDePasseTest()
@@ -479,10 +492,10 @@ namespace App.Controllers.Tests
             ChangementMdpDTO changementMdpDTO = new ChangementMdpDTO
             {
                 IdCompte = _objetcommun.IdCompte,
-                MotDePasse = "ouioui",
+                MotDePasse = "Testmdp1!",
                 Email = _objetcommun.Email
             };
-            bool result = _controller.VerifUser(changementMdpDTO);
+            bool result = await _controller.VerifUser(changementMdpDTO);
             Assert.IsTrue(result);
         }
 
@@ -495,8 +508,225 @@ namespace App.Controllers.Tests
                 MotDePasse = "nonnon",
                 Email = _objetcommun.Email
             };
-            bool result = _controller.VerifUser(changementMdpDTO);
+            bool result = await _controller.VerifUser(changementMdpDTO);
             Assert.IsFalse(result);
+        }
+
+        #region Tests Login
+
+        [TestMethod]
+        public async Task Login_ValidCredentials_ReturnsOkWithToken()
+        {
+            var loginRequest = new LoginRequest
+            {
+                Email = "john@gmail.com",
+                MotDePasse = "Testmdp1!"
+            };
+
+            var result = await _controller.Login(loginRequest);
+
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var cookies = _controller.Response.Headers["Set-Cookie"];
+            Assert.IsTrue(cookies.Count > 0);
+            Assert.IsTrue(cookies.ToString().Contains("access_token"));
+        }
+
+        [TestMethod]
+        public async Task Login_InvalidEmail_ReturnsUnauthorized()
+        {
+            var loginRequest = new LoginRequest
+            {
+                Email = "wrong@test.com",
+                MotDePasse = "Testmdp1!"
+            };
+
+            var result = await _controller.Login(loginRequest);
+
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_InvalidPassword_ReturnsUnauthorized()
+        {
+            var loginRequest = new LoginRequest
+            {
+                Email = "john@gmail.com",
+                MotDePasse = "WrongPassword"
+            };
+
+            var result = await _controller.Login(loginRequest);
+
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_EmptyEmail_ReturnsBadRequest()
+        {
+            var loginRequest = new LoginRequest
+            {
+                Email = "",
+                MotDePasse = "Testmdp1!"
+            };
+
+            var result = await _controller.Login(loginRequest);
+
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_EmptyPassword_ReturnsBadRequest()
+        {
+            var loginRequest = new LoginRequest
+            {
+                Email = "john@gmail.com",
+                MotDePasse = ""
+            };
+
+            var result = await _controller.Login(loginRequest);
+
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_NullCredentials_ReturnsBadRequest()
+        {
+            var loginRequest = new LoginRequest
+            {
+                Email = null,
+                MotDePasse = null
+            };
+
+            var result = await _controller.Login(loginRequest);
+
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_CaseInsensitiveEmail_ReturnsOk()
+        {
+            var loginRequest = new LoginRequest
+            {
+                Email = "JOHN@GMAIL.COM",
+                MotDePasse = "Testmdp1!"
+            };
+
+            var result = await _controller.Login(loginRequest);
+
+            Assert.IsInstanceOfType(result, typeof(ObjectResult));
+        }
+
+        #endregion
+
+        #region Tests Logout
+
+        [TestMethod]
+        public async Task Logout_AuthenticatedUser_ReturnsOk()
+        {
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", _objetcommun.IdCompte.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, _objetcommun.Email)
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _controller.ControllerContext.HttpContext.User = claimsPrincipal;
+
+            var result = await _controller.Logout();
+
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Logout_DeletesCookie()
+        {
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", _objetcommun.IdCompte.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _controller.ControllerContext.HttpContext.User = claimsPrincipal;
+
+            var result = await _controller.Logout();
+
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+        #endregion
+
+        [TestMethod]
+        public async Task GetMeTest()
+        {
+            // Arrange
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", _objetcommun.IdCompte.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Act
+            var result = await _controller.GetMe();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = (OkObjectResult)result.Result;
+            Assert.IsInstanceOfType(okResult.Value, typeof(CompteDetailDTO));
+            var compteDto = (CompteDetailDTO)okResult.Value;
+            Assert.AreEqual(_objetcommun.Email, compteDto.Email);
+            Assert.AreEqual(_objetcommun.Pseudo, compteDto.Pseudo);
+        }
+
+        [TestMethod]
+        public async Task GetMeTest_Unauthorized_NoUserIdClaim()
+        {
+            // Arrange
+            var claims = new List<Claim>();
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Act
+            var result = await _controller.GetMe();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedResult));
+        }
+
+        [TestMethod]
+        public async Task GetMeTest_NotFound_UserDoesNotExist()
+        {
+            // Arrange
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", "999")
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Act
+            var result = await _controller.GetMe();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

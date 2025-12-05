@@ -47,14 +47,29 @@ namespace App.Controllers.Tests
             _context.TypesCompte.RemoveRange(_context.TypesCompte);
             await _context.SaveChangesAsync();
 
-            var objet = new TypeCompte()
+            TypeCompte objet = new TypeCompte()
             {
                 IdTypeCompte = 1,
                 Libelle = "TestTypeCompte",
                 Cherchable = true
             };
 
+            Compte compte = new Compte()
+            {
+                IdCompte = 1,
+                Pseudo = "TestPseudo",
+                MotDePasse = "TestMotDePasse",
+                Nom = "TestNom",
+                Prenom = "TestPrenom",
+                Email = "test@gmail.com",
+                DateCreation = DateTime.Now,
+                DateDerniereConnexion = DateTime.Now,
+                DateNaissance = new DateTime(1990, 1, 1),
+                IdTypeCompte = objet.IdTypeCompte
+            };
+
             await _context.TypesCompte.AddAsync(objet);
+            await _context.Comptes.AddAsync(compte);
             await _context.SaveChangesAsync();
 
             // Initialisation de l'objet commun après l'avoir sauvegardé
@@ -110,6 +125,29 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<TypeCompteDTO>));
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task GetTypeCompteByCompteIdTests()
+        {
+            // Act
+            var result = await _controller.GetTypeCompteByCompteId(1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(TypeCompteDTO));
+            Assert.AreEqual(_objetcommun.Libelle, result.Value.Libelle);
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetTypeCompteByCompteIdTests()
+        {
+            // Act
+            var result = await _controller.GetTypeCompteByCompteId(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

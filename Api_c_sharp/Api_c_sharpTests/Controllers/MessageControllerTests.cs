@@ -61,7 +61,8 @@ namespace App.Controllers.Tests
                 Libelle = "Particulier"
             };
 
-            Compte compte = new Compte()
+            // ✅ PREMIER UTILISATEUR (vendeur)
+            Compte compte1 = new Compte()
             {
                 IdCompte = 1,
                 Email = "john@gmail.com",
@@ -71,6 +72,21 @@ namespace App.Controllers.Tests
                 DateNaissance = new DateTime(1990, 1, 1),
                 IdTypeCompte = typecompte.IdTypeCompte,
                 Pseudo = "john_doe",
+                DateCreation = DateTime.Now,
+                DateDerniereConnexion = DateTime.Now
+            };
+
+            // ✅ DEUXIÈME UTILISATEUR (acheteur)
+            Compte compte2 = new Compte()
+            {
+                IdCompte = 2,
+                Email = "jane@gmail.com",
+                MotDePasse = "Password123!",
+                Nom = "Smith",
+                Prenom = "Jane",
+                DateNaissance = new DateTime(1992, 5, 15),
+                IdTypeCompte = typecompte.IdTypeCompte,
+                Pseudo = "jane_smith",
                 DateCreation = DateTime.Now,
                 DateDerniereConnexion = DateTime.Now
             };
@@ -92,7 +108,8 @@ namespace App.Controllers.Tests
                 IdAnnonce = 1
             };
 
-            Message message = new Message()
+            // ✅ Message envoyé par le compte 1
+            Message message1 = new Message()
             {
                 IdMessage = 1,
                 ContenuMessage = "Bonjour, je suis intéressé par votre annonce.",
@@ -102,14 +119,27 @@ namespace App.Controllers.Tests
                 EstLu = false,
             };
 
+            // ✅ Message envoyé par le compte 2 (NON LU)
+            Message message2 = new Message()
+            {
+                IdMessage = 2,
+                ContenuMessage = "Oui, elle est toujours disponible.",
+                DateEnvoiMessage = DateTime.Now.AddMinutes(5),
+                IdConversation = 1,
+                IdCompte = 2,  // Envoyé par l'autre utilisateur
+                EstLu = false, // NON LU
+            };
+
             _context.TypesCompte.Add(typecompte);
-            _context.Comptes.Add(compte);
+            _context.Comptes.Add(compte1);
+            _context.Comptes.Add(compte2);  // ✅ Ajouter le 2ème compte
             _context.Annonces.Add(annonce);
             _context.Conversations.Add(conversation);
-            _context.Messages.Add(message);
-            await _context.SaveChangesAsync(); 
+            _context.Messages.Add(message1);
+            _context.Messages.Add(message2);  // ✅ Ajouter le 2ème message
+            await _context.SaveChangesAsync();
 
-            _objetcommun = message;
+            _objetcommun = message1;
         }
 
         [TestMethod]
@@ -273,14 +303,43 @@ namespace App.Controllers.Tests
         [TestMethod]
         public async Task GetByConversationAndMarkAsReadTests()
         {
+
             var result = await _controller.GetByConversationAndMarkAsRead(1, 1);
 
-            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<MessageDTO>));
             Assert.IsTrue(result.Value.Any());
+
             Assert.IsTrue(result.Value.Any(o => o.EstLu == true));
+
+            var messageFromOtherUser = result.Value.FirstOrDefault(m => m.IdCompte == 2);
+            Assert.IsNotNull(messageFromOtherUser);
+            Assert.IsTrue(messageFromOtherUser.EstLu);
+        }
+        [TestMethod]
+        public async Task NotFoundGetByConversationAndMarkAsReadTest_AucunMessage()
+        {
+            // Arrange
+            // Créer une conversation sans messages
+            Conversation conversationVide = new Conversation
+            {
+                IdConversation = 10,
+                IdAnnonce = 1,
+                DateDernierMessage = DateTime.UtcNow
+            };
+            await _context.Conversations.AddAsync(conversationVide);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetByConversationAndMarkAsRead(
+                conversationVide.IdConversation,
+                _objetcommun.IdCompte
+            );
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }
