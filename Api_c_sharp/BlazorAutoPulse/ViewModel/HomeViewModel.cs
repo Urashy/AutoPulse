@@ -44,11 +44,9 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // ✅ Appel direct avec pagination côté API
                 var results = await _annonceService.GetByIdMiseEnAvant(3, CurrentPage, ItemsPerPage);
                 allAnnonces = results.ToArray();
 
-                // Si on reçoit moins de résultats que demandé, c'est qu'il n'y a plus de pages
                 HasMorePages = allAnnonces.Length == ItemsPerPage;
             }
             catch (Exception ex)
