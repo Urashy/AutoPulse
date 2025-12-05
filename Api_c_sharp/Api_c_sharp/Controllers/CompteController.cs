@@ -555,19 +555,16 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <returns>Vrai si l'utilisateur avec ce mot de passe existe, sinon faux.</returns>
     [ActionName("VerifUser")]
     [HttpPost]
-    public bool VerifUser([FromBody] ChangementMdpDTO dto)
+    public async Task<bool> VerifUser([FromBody] ChangementMdpDTO dto)
     {
         string hash = ComputeSha256Hash(dto.MotDePasse);
-        var result =  _manager.VerifMotDePasse(dto.Email, hash) != null;
+        var result = await _manager.VerifMotDePasse(dto.Email, hash) is not null;
 
-        if (result != null)
+        if (result)
         {
             return true;
         }
-        else         
-        {
-            return false;
-        }
+        return false;
     }
 #endregion
     
