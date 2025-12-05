@@ -1,125 +1,88 @@
 using AutoPulse.Shared.DTO;
-using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
+using BlazorAutoPulse.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using System.Net.Http.Json;
 
 namespace BlazorAutoPulse.ViewModel;
 
-public class ConversationsViewModel
+/// <summary>
+/// ViewModel spécifique à la page Conversations
+/// Gère l'affichage des messages et l'envoi, mais utilise le service singleton pour l'état global
+/// </summary>
+public class ConversationViewModel : IDisposable
 {
+    private readonly ConversationStateService _conversationState;
     private readonly ISignalRService _signalR;
-    private readonly IConversationService _conversationService;
     private readonly IMessageService _messageService;
-    private readonly ICompteService _compteService;
-    private readonly NavigationManager _navigation;
-    private readonly IImageService _imageService;
-    private readonly HttpClient _httpClient;
 
-    public List<ConversationListDTO> Conversations { get; private set; } = new();
     public List<MessageDTO> Messages { get; private set; } = new();
     public ConversationListDTO? SelectedConversation { get; private set; }
-    
     public string NewMessage { get; set; } = "";
-    public int CurrentUserId { get; private set; }
-    public bool IsLoading { get; private set; } = true;
     public bool IsTyping { get; private set; } = false;
-    
-    private string mimeType = "data:image/jpeg;base64,";
-    public Dictionary<int, string> ImageSources { get; private set; } = new();
-
     public ElementReference MessagesContainer;
-    private System.Threading.Timer? _typingTimer;
 
+    private System.Threading.Timer? _typingTimer;
     public event Action? _refreshUI;
 
-    public ConversationsViewModel(
-        ISignalRService signalR,
-        IConversationService convService,
-        IMessageService msgService,
-        ICompteService compteService,
-        IImageService imageService,
-        HttpClient httpClient,
-        NavigationManager nav)
-    {
-        _signalR = signalR;
-        _conversationService = convService;
-        _messageService = msgService;
-        _compteService = compteService;
-        _imageService = imageService;
-        _httpClient = httpClient;
-        _navigation = nav;
+    // Déléguer les propriétés au service singleton
+    public List<ConversationListDTO> Conversations => _conversationState.Conversations;
+    public int CurrentUserId => _conversationState.CurrentUserId;
+    public bool IsLoading => _conversationState.IsLoading;
+    public Dictionary<int, string> ImageSources => _conversationState.ImageSources;
 
+    public ConversationViewModel(
+        ConversationStateService conversationState,
+        ISignalRService signalR,
+        IMessageService msgService)
+    {
+        _conversationState = conversationState;
+        _signalR = signalR;
+        _messageService = msgService;
+
+        // S'abonner aux events
         _signalR.OnMessageReceived += HandleMessageReceived;
         _signalR.OnUserTyping += HandleUserTyping;
         _signalR.OnMessagesRead += HandleMessagesRead;
+        _conversationState.OnStateChanged += HandleGlobalStateChanged;
     }
 
     public async Task InitializeAsync()
     {
-        try
-        {
-            await _signalR.StartAsync();
-            
-            var compteDetail = await _compteService.GetMe();
-            CurrentUserId = compteDetail.IdCompte;
-            await LoadConversations();
-            foreach (var conv in Conversations)
-            {
-                await _signalR.JoinConversation(conv.IdConversation);
-                await GetImageProfil(conv.IdParticipant);
-            }
-            
-            _refreshUI?.Invoke();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erreur d'initialisation: {ex.Message}");
-            _navigation.NavigateTo("/connexion");
-        }
-        finally
-        {
-            IsLoading = false;
-            _refreshUI?.Invoke();
-        }
+        // Appeler l'initialisation du service (ne fait rien si déjà fait)
+        await _conversationState.InitializeAsync();
     }
 
-    private async Task LoadConversations()
-    {
-        Conversations = (await _conversationService.GetConversationsByCompteID(CurrentUserId)).ToList();
-    }
-    
     public async Task SelectConversation(ConversationListDTO conv)
     {
         SelectedConversation = conv;
-
-        // Charger les messages ET les marquer comme lus via la fonction BD
         await LoadMessages(conv.IdConversation);
-
-        _refreshUI?.Invoke();
+        NotifyStateChanged();
     }
 
     private async Task LoadMessages(int conversationId)
     {
         try
         {
-            // Mettre à jour le compteur localement AVANT le chargement
+            // Mettre à jour le compteur localement
             var conv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
-            if (conv != null)
+            if (conv != null && conv.NombreNonLu > 0)
             {
+                Console.WriteLine($"📭 Marquage de {conv.NombreNonLu} messages comme lus");
+        
                 conv.NombreNonLu = 0;
+        
+                _conversationState.NotifyMessagesRead();
             }
 
-            // Appeler la méthode qui marque automatiquement les messages comme lus
+            // Charger et marquer comme lus
             Messages = (await _messageService.GetMessagesByConversationAndMarkAsRead(conversationId, CurrentUserId)).ToList();
-
-            Console.WriteLine($"Messages chargés et marqués comme lus pour conversation {conversationId}");
+            Console.WriteLine($"Messages chargés pour conversation {conversationId}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors du chargement des messages: {ex.Message}");
+            Console.WriteLine($"Erreur chargement messages: {ex.Message}");
         }
     }
 
@@ -142,16 +105,16 @@ public class ConversationsViewModel
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de l'envoi du message: {ex.Message}");
+            Console.WriteLine($"Erreur envoi message: {ex.Message}");
             NewMessage = messageContent;
         }
 
-        _refreshUI?.Invoke();
+        NotifyStateChanged();
     }
 
     private void HandleMessageReceived(int conversationId, int senderId, string message, DateTime date)
     {
-        // Ajouter le message à la liste si c'est la conversation active
+        // Si c'est la conversation active, ajouter le message
         if (SelectedConversation?.IdConversation == conversationId)
         {
             var newMsg = new MessageDTO
@@ -171,31 +134,20 @@ public class ConversationsViewModel
             if (!exists)
             {
                 Messages.Add(newMsg);
+                NotifyStateChanged();
             }
         }
-        else
-        {
-            // Incrémenter le compteur de messages non lus pour cette conversation
-            var conv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
-            if (conv != null && senderId != CurrentUserId)
-            {
-                conv.NombreNonLu++;
-            }
-        }
-
-        _refreshUI?.Invoke();
     }
 
     private void HandleMessagesRead(int conversationId, int userId)
     {
-        // Si c'est nous qui avons lu, on met à jour les messages
         if (userId == CurrentUserId && SelectedConversation?.IdConversation == conversationId)
         {
             foreach (var msg in Messages.Where(m => m.IdCompte != CurrentUserId))
             {
                 msg.EstLu = true;
             }
-            _refreshUI?.Invoke();
+            NotifyStateChanged();
         }
     }
 
@@ -205,13 +157,18 @@ public class ConversationsViewModel
             return;
 
         IsTyping = true;
-        _refreshUI?.Invoke();
+        NotifyStateChanged();
 
         Task.Delay(3000).ContinueWith(_ =>
         {
             IsTyping = false;
-            _refreshUI?.Invoke();
+            NotifyStateChanged();
         });
+    }
+
+    private void HandleGlobalStateChanged()
+    {
+        NotifyStateChanged();
     }
 
     public async Task HandleTyping(KeyboardEventArgs e)
@@ -230,45 +187,15 @@ public class ConversationsViewModel
         if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(NewMessage))
             await SendMessage();
     }
-    
+
+    private void NotifyStateChanged() => _refreshUI?.Invoke();
+
     public void Dispose()
     {
         _signalR.OnMessageReceived -= HandleMessageReceived;
         _signalR.OnUserTyping -= HandleUserTyping;
         _signalR.OnMessagesRead -= HandleMessagesRead;
+        _conversationState.OnStateChanged -= HandleGlobalStateChanged;
         _typingTimer?.Dispose();
-    }
-    
-    public async Task GetImageProfil(int idCompte)
-    {
-        try
-        {
-            Image? img = await _imageService.GetImageProfil(idCompte);
-
-            string imageSource = "";
-            if (img != null && img.Fichier != null && img.Fichier.Length > 0)
-            {
-                var base64 = Convert.ToBase64String(img.Fichier);
-                imageSource = $"{mimeType}{base64}";
-            }
-            else
-            {
-                imageSource = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
-            }
-
-            ImageSources[idCompte] = imageSource;
-            _refreshUI?.Invoke();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erreur lors de l'affichage de l'image : {ex.Message}");
-            ImageSources[idCompte] = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
-            _refreshUI?.Invoke();
-        }
-    }
-
-    public int GetTotalUnreadCount()
-    {
-        return Conversations.Sum(c => c.NombreNonLu);
     }
 }

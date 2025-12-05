@@ -1,9 +1,10 @@
 ﻿@using BlazorAutoPulse.Service.Interface
 @using BlazorAutoPulse.Service.WebService
+@using BlazorAutoPulse.Services
 @using BlazorAutoPulse.ViewModel
 @inherits LayoutComponentBase
 @inject MainLayoutViewModel VM
-@inject ISignalRService SVM
+@inject ConversationStateService CS
 @inject NavigationManager Navigation
 
 <header>
@@ -22,9 +23,9 @@
             <NavLink href="conversations" class="conversation-link">
                 <span class="conversation-btn">
                     💬 Conversations
-                    @if (unreadCount > 0)
+                    @if (VM.unreadCount > 0)
                     {
-                        <span class="notification-badge">@unreadCount</span>
+                        <span class="notification-badge">@VM.unreadCount</span>
                     }
                 </span>
             </NavLink>
@@ -66,33 +67,8 @@
 </footer>
 
 @code {
-    private int unreadCount = 0;
-    
     protected override async Task OnInitializedAsync()
     {
-        await VM.InitializeAsync(StateHasChanged, Navigation);
-    }
-    
-    private void OnNewMessage(int conversationId, int senderId, string message, DateTime timestamp)
-    {
-        unreadCount++;
-        StateHasChanged();
-    }
-
-    private void OnNotification(string message)
-    {
-        Console.WriteLine($"Notification: {message}");
-    }
-
-    private async Task LoadUnreadCount()
-    {
-        // TODO: Appeler l'API pour obtenir le nombre de messages non lus
-        // unreadCount = await MessageService.GetUnreadCount();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        SVM.OnMessageReceived -= OnNewMessage;
-        await SVM.StopAsync();
+        await VM.InitializeAsync(StateHasChanged, Navigation, CS);
     }
 }

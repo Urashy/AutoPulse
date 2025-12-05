@@ -4,6 +4,7 @@ using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Authentification;
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
+using BlazorAutoPulse.Services;
 using BlazorAutoPulse.ViewModel;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -62,12 +63,14 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<FavorisViewModel>();
             builder.Services.AddScoped<OubliMdpViewModel>();
             builder.Services.AddScoped<CompleteProfileViewModel>();
-            builder.Services.AddScoped<ConversationsViewModel>();
+            builder.Services.AddScoped<ConversationViewModel>();
             builder.Services.AddScoped<MainLayoutViewModel>();
 
             builder.Services.AddTransient<AnnonceComposantViewModel>();
             
             builder.Services.AddSingleton<ISignalRService, SignalRWebService>();
+            
+            builder.Services.AddScoped<ConversationStateService>();
 
             builder.Services.AddScoped(sp =>
             {
@@ -75,6 +78,11 @@ namespace BlazorAutoPulse
                 {
                     BaseAddress = new Uri("http://localhost:5086/api/")
                 };
+            });
+            
+            builder.Services.AddSingleton<ISignalRService>(sp =>
+            {
+                return new SignalRWebService();
             });
 
             await builder.Build().RunAsync();
