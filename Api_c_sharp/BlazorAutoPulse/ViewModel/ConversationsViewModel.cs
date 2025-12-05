@@ -4,6 +4,7 @@ using BlazorAutoPulse.Service.WebService;
 using BlazorAutoPulse.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace BlazorAutoPulse.ViewModel;
 
@@ -16,6 +17,7 @@ public class ConversationViewModel : IDisposable
     private readonly ConversationStateService _conversationState;
     private readonly ISignalRService _signalR;
     private readonly IMessageService _messageService;
+    private readonly IJSRuntime _jsRuntime;
 
     public List<MessageDTO> Messages { get; private set; } = new();
     public ConversationListDTO? SelectedConversation { get; private set; }
@@ -35,11 +37,13 @@ public class ConversationViewModel : IDisposable
     public ConversationViewModel(
         ConversationStateService conversationState,
         ISignalRService signalR,
-        IMessageService msgService)
+        IMessageService msgService,
+        IJSRuntime jsRuntime)
     {
         _conversationState = conversationState;
         _signalR = signalR;
         _messageService = msgService;
+        _jsRuntime = jsRuntime;
 
         // S'abonner aux events
         _signalR.OnMessageReceived += HandleMessageReceived;
@@ -59,6 +63,7 @@ public class ConversationViewModel : IDisposable
         SelectedConversation = conv;
         await LoadMessages(conv.IdConversation);
         NotifyStateChanged();
+        await ScrollToBottom();
     }
 
     private async Task LoadMessages(int conversationId)
@@ -102,6 +107,10 @@ public class ConversationViewModel : IDisposable
                 IdCompte = CurrentUserId,
                 ContenuMessage = messageContent,
             });
+            
+            // Scroll en bas après l'envoi
+            await Task.Delay(100); // Petit délai pour laisser le DOM se mettre à jour
+            await ScrollToBottom();
         }
         catch (Exception ex)
         {
@@ -112,7 +121,7 @@ public class ConversationViewModel : IDisposable
         NotifyStateChanged();
     }
 
-    private void HandleMessageReceived(int conversationId, int senderId, string message, DateTime date)
+    private async void HandleMessageReceived(int conversationId, int senderId, string message, DateTime date)
     {
         // Si c'est la conversation active, ajouter le message
         if (SelectedConversation?.IdConversation == conversationId)
@@ -135,6 +144,8 @@ public class ConversationViewModel : IDisposable
             {
                 Messages.Add(newMsg);
                 NotifyStateChanged();
+                await Task.Delay(100);
+                await ScrollToBottom();
             }
         }
     }
@@ -148,6 +159,7 @@ public class ConversationViewModel : IDisposable
                 msg.EstLu = true;
             }
             NotifyStateChanged();
+            Console.WriteLine("test");
         }
     }
 
@@ -186,6 +198,18 @@ public class ConversationViewModel : IDisposable
     {
         if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(NewMessage))
             await SendMessage();
+    }
+
+    public async Task ScrollToBottom()
+    {
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync("scrollToBottom", MessagesContainer);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur scroll: {ex.Message}");
+        }
     }
 
     private void NotifyStateChanged() => _refreshUI?.Invoke();

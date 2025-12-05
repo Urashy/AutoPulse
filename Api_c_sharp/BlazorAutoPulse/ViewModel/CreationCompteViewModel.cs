@@ -29,6 +29,7 @@ public class CreationCompteViewModel
         _compteService  = compteService;
         _connexionService = connexionService;
         compte = new Compte();
+        compte.IdTypeCompte = 1;
         compte.DateNaissance = new DateTime(2000, 1, 1);
         memeMotDePasse = true;
         showPopUp = false;
@@ -72,6 +73,7 @@ public class CreationCompteViewModel
         try
         {
             // ✅ Utiliser la nouvelle méthode avec gestion d'erreur
+            Console.WriteLine(compte.IdTypeCompte);
             var result = await _compteService.PostWithErrorHandlingAsync(compte);
 
             if (result.Success)

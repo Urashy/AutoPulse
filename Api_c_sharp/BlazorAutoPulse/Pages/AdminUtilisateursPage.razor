@@ -1,0 +1,221 @@
+@page "/admin/utilisateurs"
+@layout AdminLayout
+@using BlazorAutoPulse.ViewModel
+@inject AdminUtilisateursViewModel VM
+
+<PageTitle>Gestion des utilisateurs - Admin</PageTitle>
+
+<div class="admin-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h1>👥 Gestion des utilisateurs</h1>
+            <p class="subtitle">@VM.TotalUtilisateurs utilisateur(s) au total</p>
+        </div>
+        <div class="header-actions">
+            <input type="text"
+                   placeholder="🔍 Rechercher un utilisateur..."
+                   @bind="VM.SearchQuery"
+                   @bind:event="oninput"
+                   @onkeyup="VM.SearchUsers"
+                   class="search-input">
+            <button class="btn-primary" @onclick="VM.ExportUsers">
+                📊 Exporter
+            </button>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <button class="filter-btn @(VM.FilterStatus == "all" ? "active" : "")"
+                @ @onclick="@(() => VM.FilterByStatus("all"))">
+            Tous (@VM.TotalUtilisateurs)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "active" ? "active" : "")"
+                @ @onclick="@(() => VM.FilterByStatus("active"))">
+            Actifs (@VM.UtilisateursActifs)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "suspended" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("suspended"))">
+            Suspendus (@VM.UtilisateursSuspendus)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "pro" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("pro"))">
+            Professionnels (@VM.UtilisateursPro)
+        </button>
+    </div>
+
+    @if (VM.IsLoading)
+    {
+        <div class="loading-state">
+            <div class="loader"></div>
+            <p>Chargement des utilisateurs...</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Utilisateur</th>
+                        <th>Email</th>
+                        <th>Type</th>
+                        <th>Inscription</th>
+                        <th>Annonces</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in VM.FilteredUtilisateurs)
+                    {
+                        <tr class="@(user.IsSelected ? "selected" : "")">
+                            <td>#@user.Id</td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar">@user.Initiales</div>
+                                    <div>
+                                        <div class="user-name">@user.Pseudo</div>
+                                        <div class="user-fullname">@user.NomComplet</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@user.Email</td>
+                            <td>
+                                <span class="badge badge-@user.TypeCompte.ToLower()">
+                                    @user.TypeCompte
+                                </span>
+                            </td>
+                            <td>@user.DateInscription.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">@user.NombreAnnonces</td>
+                            <td>
+                                <span class="status-badge status-@user.Statut.ToLower()">
+                                    @user.Statut
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon"
+                                            @onclick="() => VM.ViewUserDetails(user)"
+                                            title="Voir détails">
+                                        👁️
+                                    </button>
+                                    <button class="btn-icon"
+                                            @onclick="() => VM.EditUser(user)"
+                                            title="Modifier">
+                                        ✏️
+                                    </button>
+                                    @if (user.Statut == "Actif")
+                                    {
+                                        <button class="btn-icon warning"
+                                                @onclick="() => VM.SuspendUser(user)"
+                                                title="Suspendre">
+                                            ⛔
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-icon success"
+                                                @onclick="() => VM.ActivateUser(user)"
+                                                title="Activer">
+                                            ✅
+                                        </button>
+                                    }
+                                    <button class="btn-icon danger"
+                                            @onclick="() => VM.DeleteUser(user)"
+                                            title="Supprimer">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (VM.TotalPages > 1)
+        {
+            <div class="pagination">
+                <button class="btn-page"
+                        @onclick="VM.PreviousPage"
+                        disabled="@(!VM.CanGoPrevious)">
+                    ← Précédent
+                </button>
+                <span class="page-info">
+                    Page @VM.CurrentPage sur @VM.TotalPages
+                </span>
+                <button class="btn-page"
+                        @onclick="VM.NextPage"
+                        disabled="@(!VM.CanGoNext)">
+                    Suivant →
+                </button>
+            </div>
+        }
+    }
+</div>
+
+<!-- Modal de détails utilisateur -->
+@if (VM.ShowDetailsModal && VM.SelectedUser != null)
+{
+    <div class="modal-overlay" @onclick="VM.CloseDetailsModal">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>👤 Détails de l'utilisateur</h2>
+                <button class="modal-close" @onclick="VM.CloseDetailsModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-grid">
+                    <div class="detail-section">
+                        <h3>Informations personnelles</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Pseudo :</span>
+                            <span class="detail-value">@VM.SelectedUser.Pseudo</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Nom complet :</span>
+                            <span class="detail-value">@VM.SelectedUser.NomComplet</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Email :</span>
+                            <span class="detail-value">@VM.SelectedUser.Email</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Type de compte :</span>
+                            <span class="detail-value">@VM.SelectedUser.TypeCompte</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>Statistiques</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Date d'inscription :</span>
+                            <span class="detail-value">@VM.SelectedUser.DateInscription.ToString("dd MMMM yyyy")</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Nombre d'annonces :</span>
+                            <span class="detail-value">@VM.SelectedUser.NombreAnnonces</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Dernière connexion :</span>
+                            <span class="detail-value">@VM.SelectedUser.DerniereConnexion</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Statut :</span>
+                            <span class="status-badge status-@VM.SelectedUser.Statut.ToLower()">
+                                @VM.SelectedUser.Statut
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+}

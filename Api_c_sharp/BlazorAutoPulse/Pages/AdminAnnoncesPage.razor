@@ -1,0 +1,194 @@
+@page "/admin/annonces"
+@layout AdminLayout
+@using BlazorAutoPulse.ViewModel
+@inject AdminAnnoncesViewModel VM
+
+<PageTitle>Gestion des annonces - Admin</PageTitle>
+
+<div class="admin-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h1>🚗 Gestion des annonces</h1>
+            <p class="subtitle">@VM.TotalAnnonces annonce(s) au total</p>
+        </div>
+        <div class="header-actions">
+            <input type="text"
+                   placeholder="🔍 Rechercher une annonce..."
+                   @bind="VM.SearchQuery"
+                   @bind:event="oninput"
+                   @onkeyup="VM.SearchAnnonces"
+                   class="search-input">
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <button class="filter-btn @(VM.FilterStatus == "all" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("all"))">
+            Toutes (@VM.TotalAnnonces)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "active" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("active"))">
+            Actives (@VM.AnnoncesActives)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "pending" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("pending"))">
+            En attente (@VM.AnnoncesEnAttente)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "rejected" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("rejected"))">
+            Refusées (@VM.AnnoncesRefusees)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "featured" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("featured"))">
+            Mises en avant (@VM.AnnoncesMisesEnAvant)
+        </button>
+    </div>
+
+    @if (VM.IsLoading)
+    {
+        <div class="loading-state">
+            <div class="loader"></div>
+            <p>Chargement des annonces...</p>
+        </div>
+    }
+    else
+    {
+        <div class="annonces-grid">
+            @foreach (var annonce in VM.GetPagedAnnonces())
+            {
+                <div class="annonce-card @(annonce.IsSelected ? "selected" : "")">
+                    <div class="annonce-image">
+                        <div class="annonce-badge badge-@annonce.Statut.ToLower()">
+                            @annonce.Statut
+                        </div>
+                        @if (annonce.EstMiseEnAvant)
+                        {
+                            <div class="featured-badge">⭐ MISE EN AVANT</div>
+                        }
+                    </div>
+
+                    <div class="annonce-content">
+                        <h3 class="annonce-title">@annonce.Titre</h3>
+                        <p class="annonce-description">@annonce.Description</p>
+
+                        <div class="annonce-details">
+                            <div class="detail-item">
+                                <span class="detail-icon">💰</span>
+                                <span class="detail-value">@annonce.Prix.ToString("N0") €</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-icon">📅</span>
+                                <span class="detail-value">@annonce.Annee</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-icon">📊</span>
+                                <span class="detail-value">@annonce.Kilometrage km</span>
+                            </div>
+                        </div>
+
+                        <div class="annonce-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Vendeur:</span>
+                                <span class="meta-value">@annonce.NomVendeur</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Publié:</span>
+                                <span class="meta-value">@annonce.DatePublication.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Vues:</span>
+                                <span class="meta-value">@annonce.NombreVues</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="annonce-actions">
+                        <button class="btn-action"
+                                @onclick="() => VM.ViewAnnonceDetails(annonce)"
+                                title="Voir détails">
+                            👁️ Détails
+                        </button>
+
+                        @if (annonce.Statut == "En attente")
+                        {
+                            <button class="btn-action success"
+                                    @onclick="() => VM.ApproveAnnonce(annonce)"
+                                    title="Approuver">
+                                ✅ Approuver
+                            </button>
+                            <button class="btn-action danger"
+                                    @onclick="() => VM.RejectAnnonce(annonce)"
+                                    title="Refuser">
+                                ❌ Refuser
+                            </button>
+                        }
+                        else if (annonce.Statut == "Active")
+                        {
+                            @if (!annonce.EstMiseEnAvant)
+                            {
+                                <button class="btn-action featured"
+                                        @onclick="() => VM.FeatureAnnonce(annonce)"
+                                        title="Mettre en avant">
+                                    ⭐ Mettre en avant
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-action"
+                                        @onclick="() => VM.UnfeatureAnnonce(annonce)"
+                                        title="Retirer mise en avant">
+                                    ⭐ Retirer
+                                </button>
+                            }
+                            <button class="btn-action warning"
+                                    @onclick="() => VM.SuspendAnnonce(annonce)"
+                                    title="Suspendre">
+                                🔒 Suspendre
+                            </button>
+                        }
+                        else if (annonce.Statut == "Suspendue")
+                        {
+                            <button class="btn-action success"
+                                    @onclick="() => VM.ReactivateAnnonce(annonce)"
+                                    title="Réactiver">
+                                🔓 Réactiver
+                            </button>
+                        }
+
+                        <button class="btn-action danger"
+                                @onclick="() => VM.DeleteAnnonce(annonce)"
+                                title="Supprimer">
+                            🗑️ Supprimer
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (VM.TotalPages > 1)
+        {
+            <div class="pagination">
+                <button class="btn-page"
+                        @onclick="VM.PreviousPage"
+                        disabled="@(!VM.CanGoPrevious)">
+                    ← Précédent
+                </button>
+                <span class="page-info">
+                    Page @VM.CurrentPage sur @VM.TotalPages
+                </span>
+                <button class="btn-page"
+                        @onclick="VM.NextPage"
+                        disabled="@(!VM.CanGoNext)">
+                    Suivant →
+                </button>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+}

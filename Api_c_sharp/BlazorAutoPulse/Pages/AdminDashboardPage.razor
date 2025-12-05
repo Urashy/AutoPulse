@@ -1,0 +1,107 @@
+@page "/admin"
+@layout AdminLayout
+@using BlazorAutoPulse.ViewModel
+@inject AdminDashboardViewModel VM
+
+<PageTitle>Tableau de bord Admin - AutoPulse</PageTitle>
+
+<div class="admin-dashboard">
+    <div class="dashboard-header">
+        <h1>📊 Tableau de bord</h1>
+        <p class="subtitle">Vue d'ensemble de la plateforme AutoPulse</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon users">👥</div>
+            <div class="stat-info">
+                <h3>@VM.TotalUtilisateurs</h3>
+                <p>Utilisateurs</p>
+                <span class="stat-trend positive">+@VM.NouveauxUtilisateurs cette semaine</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon annonces">🚗</div>
+            <div class="stat-info">
+                <h3>@VM.TotalAnnonces</h3>
+                <p>Annonces actives</p>
+                <span class="stat-trend positive">+@VM.NouvellesAnnonces cette semaine</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon signalements">🚩</div>
+            <div class="stat-info">
+                <h3>@VM.SignalementsEnAttente</h3>
+                <p>Signalements en attente</p>
+                <span class="stat-trend warning">À traiter</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon revenue">💰</div>
+            <div class="stat-info">
+                <h3>@VM.RevenuMensuel.ToString("N0") €</h3>
+                <p>Revenu ce mois</p>
+                <span class="stat-trend positive">+@VM.CroissanceRevenu%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="recent-activity">
+            <div class="section-header">
+                <h2>📋 Activité récente</h2>
+                <button class="btn-refresh" @onclick="VM.RefreshData">🔄 Actualiser</button>
+            </div>
+
+            <div class="activity-list">
+                @foreach (var activity in VM.RecentActivities)
+                {
+                    <div class="activity-item @activity.Type">
+                        <div class="activity-icon">@activity.Icon</div>
+                        <div class="activity-details">
+                            <p class="activity-text">@activity.Description</p>
+                            <span class="activity-time">@activity.TimeAgo</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <h2>⚡ Actions rapides</h2>
+            <div class="actions-grid">
+                <button class="action-btn" @onclick="@(() => NavigateTo("utilisateurs"))">
+                    <span class="action-icon">👤</span>
+                    <span>Gérer utilisateurs</span>
+                </button>
+                <button class="action-btn" @onclick="@(() => NavigateTo("annonces"))">
+                    <span class="action-icon">🚗</span>
+                    <span>Gérer annonces</span>
+                </button>
+                <button class="action-btn" @onclick="@(() => NavigateTo("signalements"))">
+                    <span class="action-icon">🚩</span>
+                    <span>Voir signalements</span>
+                </button>
+                <button class="action-btn" @onclick="@(() => NavigateTo("statistiques"))">
+                    <span class="action-icon">📊</span>
+                    <span>Statistiques</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+
+    private void NavigateTo(string section)
+    {
+        // Navigation sera gérée par le menu latéral
+    }
+}

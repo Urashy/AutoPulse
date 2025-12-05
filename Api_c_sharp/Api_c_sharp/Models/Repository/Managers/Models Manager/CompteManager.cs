@@ -44,6 +44,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task UpdateAnonymise(int idcompte)
         {
+
             Compte compte = await dbSet
                 .Include(c => c.CommandeAcheteur)
                 .Include(c => c.Annonces)
@@ -53,10 +54,10 @@ namespace Api_c_sharp.Models.Repository.Managers
                 .Include(c => c.AvisJugees)
                 .Include(c => c.AvisJugeur)
                 .FirstOrDefaultAsync(c => c.IdCompte == idcompte);
+            Compte comptedebase = compte;
 
             if (compte == null)
                 return;
-
             // ✅ Vérifier si les collections sont null avant d'appeler .Any()
             bool aDesActivites = (compte.CommandeAcheteur?.Any() ?? false) ||
                                  (compte.Annonces?.Any() ?? false) ||
@@ -74,7 +75,7 @@ namespace Api_c_sharp.Models.Repository.Managers
                     .ToListAsync();
                 if (adressesASupprimer.Any())
                     context.Adresses.RemoveRange(adressesASupprimer);
-
+                
                 List<Favori> favorisASupprimer = await context.Favoris
                     .Where(f => f.IdCompte == compte.IdCompte)
                     .ToListAsync();
@@ -87,24 +88,24 @@ namespace Api_c_sharp.Models.Repository.Managers
                 if (logsASupprimer.Any())
                     context.Journaux.RemoveRange(logsASupprimer);
 
-                // Supprimer le compte
                 dbSet.Remove(compte);
                 await context.SaveChangesAsync();
             }
             else
             {
-                // Anonymiser le compte
-                compte.MotDePasse = "XXXXXXXXX";
+
+                compte.MotDePasse = "XXXXXXXXX"; 
                 compte.Nom = "ANONYME";
                 compte.Prenom = "Utilisateur";
+
                 compte.Email = $"anonyme_{compte.IdCompte}_{Guid.NewGuid().ToString().Substring(0, 8)}@deleted.com";
                 compte.Pseudo = $"anonyme_{compte.IdCompte}_{Guid.NewGuid().ToString().Substring(0, 3)}";
-                compte.DateNaissance = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                compte.DateNaissance = DateTime.SpecifyKind(new DateTime(1900, 01, 01), DateTimeKind.Utc);
                 compte.IdTypeCompte = 4;
                 compte.Biographie = null;
-
-                // ✅ Pas besoin de SetValues, on modifie directement l'entité trackée
+                
                 await context.SaveChangesAsync();
+
             }
         }
         public async Task<int?> GetTypeCompteByCompteId(int compteId)

@@ -65,6 +65,9 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<CompleteProfileViewModel>();
             builder.Services.AddScoped<ConversationViewModel>();
             builder.Services.AddScoped<MainLayoutViewModel>();
+            builder.Services.AddScoped<AdminDashboardViewModel>();
+            builder.Services.AddScoped<AdminUtilisateursViewModel>();
+            builder.Services.AddScoped<AdminAnnoncesViewModel>();
 
             builder.Services.AddTransient<AnnonceComposantViewModel>();
             
