@@ -1,6 +1,8 @@
-﻿using BlazorAutoPulse.Model;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
+using ParametreRecherche = BlazorAutoPulse.Model.ParametreRecherche;
 
 namespace BlazorAutoPulse.ViewModel;
 
@@ -16,6 +18,9 @@ public class HomeViewModel
 
     // Paramètres de recherche
     public ParametreRecherche SearchParams { get; set; } = new();
+    
+    // Compte
+    private CompteDetailDTO compte;
 
     // Données
     public Annonce[] filteredAnnonces;

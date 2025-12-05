@@ -1,6 +1,7 @@
 @page "/conversations"
 @using BlazorAutoPulse.ViewModel
-@inject ConversationsViewModel VM
+@inject ConversationViewModel VM
+@implements IDisposable
 
 <PageTitle>Mes Conversations - AutoPulse</PageTitle>
 
@@ -46,7 +47,7 @@
                     </div>
                     @if (conv.NombreNonLu > 0)
                     {
-                        <span class="unread-badge">@conv.NombreNonLu    </span>
+                        <span class="unread-badge">@conv.NombreNonLu</span>
                     }
                 </div>
             }
@@ -112,7 +113,6 @@
     </div>
 </div>
 
-
 @code {
     protected override async Task OnInitializedAsync()
     {
@@ -123,5 +123,6 @@
     public void Dispose()
     {
         VM._refreshUI -= StateHasChanged;
+        VM.Dispose();
     }
 }
