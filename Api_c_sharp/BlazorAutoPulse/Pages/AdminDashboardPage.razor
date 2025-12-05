@@ -73,19 +73,19 @@
         <div class="quick-actions">
             <h2>⚡ Actions rapides</h2>
             <div class="actions-grid">
-                <button class="action-btn" @onclick="() => NavigateTo(\" utilisateurs\")">
+                <button class="action-btn" @onclick="@(() => NavigateTo("utilisateurs"))">
                     <span class="action-icon">👤</span>
                     <span>Gérer utilisateurs</span>
                 </button>
-                <button class="action-btn" @onclick="() => NavigateTo(\" annonces\")">
+                <button class="action-btn" @onclick="@(() => NavigateTo("annonces"))">
                     <span class="action-icon">🚗</span>
                     <span>Gérer annonces</span>
                 </button>
-                <button class="action-btn" @onclick="() => NavigateTo(\" signalements\")">
+                <button class="action-btn" @onclick="@(() => NavigateTo("signalements"))">
                     <span class="action-icon">🚩</span>
                     <span>Voir signalements</span>
                 </button>
-                <button class="action-btn" @onclick="() => NavigateTo(\" statistiques\")">
+                <button class="action-btn" @onclick="@(() => NavigateTo("statistiques"))">
                     <span class="action-icon">📊</span>
                     <span>Statistiques</span>
                 </button>

@@ -23,23 +23,23 @@
 
     <div class="filters-bar">
         <button class="filter-btn @(VM.FilterStatus == "all" ? "active" : "")"
-                @onclick="() => VM.FilterByStatus(\" all\")">
+                @onclick="@(() => VM.FilterByStatus("all"))">
             Toutes (@VM.TotalAnnonces)
         </button>
         <button class="filter-btn @(VM.FilterStatus == "active" ? "active" : "")"
-                @onclick="() => VM.FilterByStatus(\" active\")">
+                @onclick="@(() => VM.FilterByStatus("active"))">
             Actives (@VM.AnnoncesActives)
         </button>
         <button class="filter-btn @(VM.FilterStatus == "pending" ? "active" : "")"
-                @onclick="() => VM.FilterByStatus(\" pending\")">
+                @onclick="@(() => VM.FilterByStatus("pending"))">
             En attente (@VM.AnnoncesEnAttente)
         </button>
         <button class="filter-btn @(VM.FilterStatus == "rejected" ? "active" : "")"
-                @onclick="() => VM.FilterByStatus(\" rejected\")">
+                @onclick="@(() => VM.FilterByStatus("rejected"))">
             Refusées (@VM.AnnoncesRefusees)
         </button>
         <button class="filter-btn @(VM.FilterStatus == "featured" ? "active" : "")"
-                @onclick="() => VM.FilterByStatus(\" featured\")">
+                @onclick="@(() => VM.FilterByStatus("featured"))">
             Mises en avant (@VM.AnnoncesMisesEnAvant)
         </button>
     </div>
