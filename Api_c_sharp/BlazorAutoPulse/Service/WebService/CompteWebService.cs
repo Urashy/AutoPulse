@@ -156,4 +156,22 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
             return false;
         }
     }
+
+    public async Task<bool> PutTypeCompte(int idCompte)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"PutTypeCompte/{idCompte}"));
+        
+        var response = await SendWithCredentialsAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erreur Post : {error}");
+            return false;
+        }
+    }
 }

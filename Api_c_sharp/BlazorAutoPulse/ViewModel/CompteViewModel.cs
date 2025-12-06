@@ -45,6 +45,10 @@ namespace BlazorAutoPulse.ViewModel
         public bool confirmationSuppression = false;
         public string confirmationTexte = "";
         public bool suppressionReussi =  false;
+
+        public bool passerPro = false;
+        public CompteModifTypeCompteDTO compteModifType;
+        public string? erreurChangeTypeCompte = null;
         
         private Action? _refreshUI;
 
@@ -63,6 +67,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             _refreshUI = refreshUI;
             _nav = nav;
+            compteModifType = new CompteModifTypeCompteDTO();
             
             try
             {
@@ -370,6 +375,35 @@ namespace BlazorAutoPulse.ViewModel
                 Task.Delay(1000);
                 _nav.NavigateTo("/");
             }
+        }
+
+        public async Task OpenProModal()
+        {
+            passerPro = true;
+            _refreshUI?.Invoke();
+        }
+        
+        public async Task CloseProModal()
+        {
+            passerPro = false;
+            compteModifType = new CompteModifTypeCompteDTO();
+            _refreshUI?.Invoke();
+        }
+
+        public async Task ValidateProAccount()
+        {
+            bool reussite = await _compteService.PutTypeCompte(compte.IdCompte);
+
+            if (reussite)
+            {
+                CloseProModal();
+            }
+            else
+            {
+                erreurChangeTypeCompte = "Votre compte n'a pas pu être mis à jour, vérifier les informations";
+            }
+            
+            _refreshUI?.Invoke();
         }
     }
 }

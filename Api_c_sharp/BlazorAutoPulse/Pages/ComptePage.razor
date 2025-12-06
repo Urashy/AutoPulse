@@ -147,6 +147,65 @@
     </div>
 }
 
+<!-- Modal passer en compte professionnel -->
+<!-- Modal passer en compte professionnel -->
+@if (VM.passerPro)
+{
+    <div class="modal-overlay" @onclick="VM.CloseProModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>💼 Passer en compte professionnel</h3>
+                <button class="modal-close" @onclick="VM.CloseProModal">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="pro-info-box">
+                    <p class="pro-info-text">
+                        Accédez à des fonctionnalités exclusives en passant à un compte professionnel.
+                    </p>
+                </div>
+
+                @if (!string.IsNullOrEmpty(VM.erreurChangeTypeCompte))
+                {
+                    <div class="error-message-box">
+                        @VM.erreurChangeTypeCompte
+                    </div>
+                }
+
+                <form>
+                    <div class="form-group">
+                        <label>Raison sociale</label>
+                        <input type="text"
+                               placeholder="Nom de votre entreprise"
+                               @bind="VM.compteModifType.RaisonSociale"
+                               class="info-input"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Numéro SIRET</label>
+                        <input type="text"
+                               placeholder="123 456 789 00012"
+                               @bind="VM.compteModifType.NumeroSiret"
+                               class="info-input"
+                               required>
+                        <small class="input-hint">14 chiffres sans espaces</small>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" @onclick="VM.CloseProModal">
+                    Annuler
+                </button>
+                <button class="btn-pro" @onclick="VM.ValidateProAccount">
+                    Valider
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <div class="compte-container">
     <!-- Section haute - Profil et informations -->
     <div class="profile-header">
@@ -195,6 +254,14 @@
                         <span class="info-label">Biographie</span>
                         <span class="info-value">@VM.compte.Biographie</span>
                     </div>
+                    <div class="info-item">
+                        <span class="info-label">Raison social</span>
+                        <span class="info-value">@VM.compte.RaisonSociale</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Numéro de SIRET</span>
+                        <span class="info-value">@VM.compte.NumeroSiret</span>
+                    </div>
                 </div>
             }
             else
@@ -224,6 +291,14 @@
                         <label class="info-label">Biographie</label>
                         <input type="email" @bind="VM.compteEdit.Biographie" class="info-input"/>
                     </div>
+                    <div class="info-item">
+                        <label class="info-label">Raison sociale</label>
+                        <input type="email" @bind="VM.compteEdit.RaisonSociale" class="info-input"/>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Numéro de SIRET</span>
+                        <span class="info-value">@VM.compte.NumeroSiret</span>
+                    </div>
                 </div>
             }
 
@@ -238,6 +313,7 @@
                 {
                     <button class="btn-primary" @onclick="VM.SaveProfile">Enregistrer</button>
                     <button class="btn-secondary" @onclick="VM.CancelEdit">Annuler</button>
+                    <button class="btn-primary" @onclick="VM.OpenProModal">Passer en compte pro</button>
                 }
 
                 <button class="btn-danger" @onclick="ConnexionVM.DeconnexionUtilisateur">Déconnexion</button>
