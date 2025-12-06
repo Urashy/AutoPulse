@@ -205,13 +205,14 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     public async Task<ActionResult> PutTypeCompte(int id, [FromBody] CompteModifTypeCompteDTO dto)
     {
         Compte compte = await _manager.GetByIdAsync(id);
+
+        if (compte == null)
+            return NotFound();
+
         bool estpro = false;
 
         if (compte.IdTypeCompte == 2)
             estpro = true;
-
-        if (compte == null)
-            return NotFound();
 
         await _manager.UpdateTypeCompte(compte,dto,estpro);
 

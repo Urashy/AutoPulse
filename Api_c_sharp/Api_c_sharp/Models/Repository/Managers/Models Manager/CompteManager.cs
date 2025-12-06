@@ -95,7 +95,7 @@ namespace Api_c_sharp.Models.Repository.Managers
                     .Where(a => a.IdCompte == compte.IdCompte)
                     .ToListAsync();
 
-                foreach (var annonce in annoncesaModifier)
+                foreach (Annonce annonce in annoncesaModifier)
                 {
                     annonce.IdEtatAnnonce = 5; 
                 }

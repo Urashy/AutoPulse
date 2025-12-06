@@ -89,13 +89,19 @@ namespace App.ControllersUnitaires.Tests
                 Libelle = "Standard"
             };
 
+            TypeCompte typeComptepro = new TypeCompte
+            {
+                IdTypeCompte = 2,
+                Libelle = "Professionnel"
+            };
+
             TypeCompte typeCompteAnonyme = new TypeCompte
             {
                 IdTypeCompte = 4,
                 Libelle = "Anonyme"
             };
 
-            _context.TypesCompte.AddRange(typeCompte, typeCompteAnonyme);
+            _context.TypesCompte.AddRange(typeCompte, typeCompteAnonyme,typeComptepro);
             _context.TypesJournal.AddRange(
                 new TypeJournal { IdTypeJournaux = 1, LibelleTypeJournaux = "Connexion" },
                 new TypeJournal { IdTypeJournaux = 2, LibelleTypeJournaux = "Déconnexion" },
@@ -398,6 +404,33 @@ namespace App.ControllersUnitaires.Tests
         public async Task NotFoundPutAnonymiseTest()
         {
             var result = await _controller.PutAnonymise(0);
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task PutTypeCompteTest()
+                    {
+            CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
+            {
+                RaisonSociale = "test",
+                NumeroSiret = "12345678912345"
+            };
+            var result = await _controller.PutTypeCompte(_objetcommun.IdCompte, compteModifTypeCompteDTO);
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.AreEqual(compteModifTypeCompteDTO.RaisonSociale, compteModifie.RaisonSociale);
+            Assert.AreEqual(2,compteModifie.IdTypeCompte);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutTypeCompteTest()
+        {
+            CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
+            {
+                RaisonSociale = "test",
+                NumeroSiret = "12345678912345"
+            };
+            var result = await _controller.PutTypeCompte(0,compteModifTypeCompteDTO);
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
