@@ -26,11 +26,11 @@
 
     <div class="filters-bar">
         <button class="filter-btn @(VM.FilterStatus == "all" ? "active" : "")"
-                @ @onclick="@(() => VM.FilterByStatus("all"))">
+                @onclick="@(() => VM.FilterByStatus("all"))">
             Tous (@VM.TotalUtilisateurs)
         </button>
         <button class="filter-btn @(VM.FilterStatus == "active" ? "active" : "")"
-                @ @onclick="@(() => VM.FilterByStatus("active"))">
+                @onclick="@(() => VM.FilterByStatus("active"))">
             Actifs (@VM.UtilisateursActifs)
         </button>
         <button class="filter-btn @(VM.FilterStatus == "suspended" ? "active" : "")"
