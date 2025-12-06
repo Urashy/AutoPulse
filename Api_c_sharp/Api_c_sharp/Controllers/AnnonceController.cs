@@ -271,7 +271,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// Une liste de <see cref="AnnonceDTO"/> (200 OK).
     /// </returns>
     [ActionName("GetAnnoncesByCompteId")]
-    [HttpGet]
+    [HttpGet("{idcompte}")]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetAnnoncesByCompteID(int idcompte)
     {
         var list = await _manager.GetAnnoncesByCompteID(idcompte);

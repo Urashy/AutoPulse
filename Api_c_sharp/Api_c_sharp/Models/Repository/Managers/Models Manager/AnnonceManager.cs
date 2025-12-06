@@ -63,7 +63,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             int skip = Math.Max(0, (pageNumber - 1) * pageSize);
             int take = Math.Max(1, pageSize);
             return await ApplyIncludes()
-                .Where(a => a.IdMiseEnAvant == miseAvantId && a.IdEtatAnnonce == 1)
+                .Where(a => a.IdMiseEnAvant == miseAvantId && a.IdEtatAnnonce == 1 && a.IdEtatAnnonce == 1)
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync();
@@ -116,6 +116,8 @@ namespace Api_c_sharp.Models.Repository.Managers
             if (param.KmMax > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.Kilometrage <= param.KmMax);
 
+            query = query.Where(a => a.IdEtatAnnonce == 1);
+
             // Tri avec priorité : Mise en avant > Prix > Date
             IOrderedQueryable<Annonce> orderedQuery = query.OrderByDescending(a => a.IdMiseEnAvant);
 
@@ -140,7 +142,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
         {
-            return await ApplyIncludes().Where(a => a.Favoris.Any(f => f.IdCompte == compteId)).ToListAsync();
+            return await ApplyIncludes().Where(a => a.Favoris.Any(f => f.IdCompte == compteId) && a.IdEtatAnnonce == 1).ToListAsync();
         }
         public override async Task<Annonce?> GetByIdAsync(int id)
         {
