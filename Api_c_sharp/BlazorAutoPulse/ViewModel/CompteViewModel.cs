@@ -3,6 +3,7 @@ using BlazorAutoPulse.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Service;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -15,6 +16,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IAdresseService _addresseService;
         private readonly IAvisService _avisService;
         private readonly ICommandeService _commandeService;
+        private readonly NotificationService _notificationService;
         public NavigationManager _nav { get; set; }
 
         public CompteDetailDTO compte;
@@ -52,7 +54,14 @@ namespace BlazorAutoPulse.ViewModel
         
         private Action? _refreshUI;
 
-        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService, IAnnonceService annonceService, IAdresseService adresseService, IAvisService avisService, ICommandeService commandeService)
+        public CompteViewModel(ICompteService compteService, 
+                               IPostImageService postImageService, 
+                               IImageService imageService, 
+                               IAnnonceService annonceService, 
+                               IAdresseService adresseService, 
+                               IAvisService avisService, 
+                               ICommandeService commandeService,
+                               NotificationService notificationService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
@@ -61,6 +70,7 @@ namespace BlazorAutoPulse.ViewModel
             _addresseService = adresseService;
             _avisService = avisService;
             _commandeService = commandeService;
+            _notificationService = notificationService;
         }
         
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -210,11 +220,27 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task SaveProfile()
         {
-            await _compteService.UpdateAsync(compte.IdCompte, compteEdit);
-
-            compte = await _compteService.GetMe();
-            _refreshUI?.Invoke();
-            isEditing = false;
+            try
+            {
+                await _compteService.UpdateAsync(compte.IdCompte, compteEdit);
+                compte = await _compteService.GetMe();
+                
+                _notificationService.ShowSuccess(
+                    "Profil mis à jour",
+                    "Vos informations ont été enregistrées avec succès"
+                );
+                
+                isEditing = false;
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowError(
+                    "Erreur de sauvegarde",
+                    "Impossible de sauvegarder vos modifications"
+                );
+                Console.WriteLine($"Erreur SaveProfile: {ex.Message}");
+            }
         }
 
         public void CancelEdit()
@@ -374,10 +400,27 @@ namespace BlazorAutoPulse.ViewModel
         {
             if (compte.Pseudo == confirmationTexte)
             {
-                _compteService.Anonymisation(compte.IdCompte);
-                suppressionReussi = true;
-                Task.Delay(1000);
-                _nav.NavigateTo("/");
+                try
+                {
+                    _compteService.Anonymisation(compte.IdCompte);
+                    suppressionReussi = true;
+                    
+                    _notificationService.ShowInfo(
+                        "Compte supprimé",
+                        "Votre compte a été anonymisé avec succès"
+                    );
+                    
+                    Task.Delay(1000);
+                    _nav.NavigateTo("/");
+                }
+                catch (Exception ex)
+                {
+                    _notificationService.ShowError(
+                        "Erreur de suppression",
+                        "Impossible de supprimer votre compte"
+                    );
+                    Console.WriteLine($"Erreur suppression: {ex.Message}");
+                }
             }
         }
 
@@ -420,6 +463,22 @@ namespace BlazorAutoPulse.ViewModel
                     RaisonSociale = compte.RaisonSociale ?? "",
                     IdImage = idImage,
                 };
+                
+                if (compte.IdTypeCompte == 2)
+                {
+                    _notificationService.ShowSuccess(
+                        "Changement type de compte",
+                        "Vous avez maintenant accès aux fonctionnalités professionnelles"
+                    );
+                }
+                else
+                {
+                    _notificationService.ShowInfo(
+                        "Changement type de compte",
+                        "Votre compte a été converti en compte particulier"
+                    );
+                }
+                
                 CloseProModal();
             }
             else

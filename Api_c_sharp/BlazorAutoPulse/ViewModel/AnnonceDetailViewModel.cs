@@ -3,6 +3,7 @@ using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.JSInterop;
 using System.Threading.Tasks;
+using BlazorAutoPulse.Service;
 using Microsoft.AspNetCore.Components;
 using AnnonceDetailDTO = BlazorAutoPulse.Model.AnnonceDetailDTO;
 
@@ -16,6 +17,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IFavorisService _favorisService;
         private readonly ICompteService _compteService;
         private readonly ICouleurService _couleurService;
+        private readonly NotificationService  _notificationService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public List<int> ImageIds { get; private set; } = new();
@@ -44,7 +46,8 @@ namespace BlazorAutoPulse.ViewModel
             IFavorisService favorisService,
             ICompteService compteService,
             IImageService imageService,
-            ICouleurService couleurService)
+            ICouleurService couleurService,
+            NotificationService notificationService)
         {
             _annonceService = annonceService;
             _postImageService = postImageService;
@@ -52,6 +55,7 @@ namespace BlazorAutoPulse.ViewModel
             _compteService = compteService;
             _imageService = imageService;
             _couleurService = couleurService;
+            _notificationService = notificationService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime,  NavigationManager nav)
@@ -319,6 +323,9 @@ namespace BlazorAutoPulse.ViewModel
             try
             {
                 _annonceService.DeleteAsync(Annonce.IdAnnonce);
+                _notificationService.ShowSuccess(
+                    "Suppression d'annonce", 
+                "Votre annonce a bien été supprimé");
                 _nav.NavigateTo("/compte");
             }
             catch

@@ -71,8 +71,11 @@ namespace BlazorAutoPulse
 
             builder.Services.AddTransient<AnnonceComposantViewModel>();
             
+            //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService, SignalRWebService>();
+            builder.Services.AddSingleton<NotificationService>();
             
+            //----------------------- State service
             builder.Services.AddScoped<ConversationStateService>();
 
             builder.Services.AddScoped(sp =>
