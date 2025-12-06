@@ -48,7 +48,6 @@ namespace App.ControllersUnitaires.Tests
                 cfg.AddProfile<MapperProfile>();
             });
 
-            // ✅ Configuration JWT en mémoire
             var inMemorySettings = new Dictionary<string, string>
             {
                 {"Jwt:SecretKey", "UneSuperCleSecreteTresLonguePourLeTestJWT123456789"},

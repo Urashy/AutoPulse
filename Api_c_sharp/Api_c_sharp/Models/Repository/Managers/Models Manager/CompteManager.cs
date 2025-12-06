@@ -116,15 +116,6 @@ namespace Api_c_sharp.Models.Repository.Managers
 
             }
         }
-        public async Task<int?> GetTypeCompteByCompteId(int compteId)
-        {
-            var compte = await dbSet
-                .Where(c => c.IdCompte == compteId)
-                .Select(c => c.IdTypeCompte)
-                .FirstOrDefaultAsync();
-
-            return compte == 0 ? null : compte;
-        }
 
         public async Task UpdateTypeCompte(Compte compteamodif,CompteModifTypeCompteDTO compteModifTypeCompteDTO, bool estpro)
         {
