@@ -13,6 +13,13 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
     }
 
     protected override string ApiEndpoint => "Compte";
+    public async Task<CompteGetDTO> GetAllAsync()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetAll"));
+        var response = await SendWithCredentialsAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CompteGetDTO>();
+    }
 
     public async Task<Compte> GetByNameAsync(string name)
     {

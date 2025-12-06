@@ -1,8 +1,11 @@
-﻿namespace BlazorAutoPulse.ViewModel
+﻿using BlazorAutoPulse.Service.Interface;
+
+namespace BlazorAutoPulse.ViewModel
 {
     public class AdminDashboardViewModel
     {
-        // Statistiques principales
+        private readonly ICompteService _compteService;
+
         public int TotalUtilisateurs { get; private set; }
         public int NouveauxUtilisateurs { get; private set; }
         public int TotalAnnonces { get; private set; }
@@ -27,7 +30,7 @@
             // Simulation de chargement de données
             await Task.Delay(100);
 
-            // Statistiques simulées
+
             TotalUtilisateurs = 1247;
             NouveauxUtilisateurs = 34;
             TotalAnnonces = 523;
