@@ -125,7 +125,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// Met à jour une compte existante.
     /// </summary>
     /// <param name="id">Identifiant unique de la compte à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="CompteDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="CompteUpdateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -187,6 +187,37 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
         return NoContent();
     }
+
+    /// <summary>
+    /// Met à jour un compte existante.
+    /// </summary>
+    /// <param name="id">Identifiant unique du compte à mettre à jour.</param>
+    /// <param name="dto">Objet <see cref="CompteModifTypeCompteDTO"/> contenant les nouvelles valeurs.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("PutTypeCompte")]
+    [HttpPut("{id}")]
+    public async Task<ActionResult> PutTypeCompte(int id, [FromBody] CompteModifTypeCompteDTO dto)
+    {
+        Compte compte = await _manager.GetByIdAsync(id);
+        bool estpro = false;
+
+        if (compte.IdTypeCompte == 2)
+            estpro = true;
+
+        if (compte == null)
+            return NotFound();
+
+        await _manager.UpdateTypeCompte(compte,dto,estpro);
+
+        return NoContent();
+    }
+
     /// <summary>
     /// Supprime une compte existante.
     /// </summary>
