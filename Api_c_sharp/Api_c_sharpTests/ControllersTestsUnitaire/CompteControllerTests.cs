@@ -408,7 +408,7 @@ namespace App.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task PutTypeCompteTest()
+        public async Task PutTypeCompteProTest()
                     {
             CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
             {
@@ -420,6 +420,22 @@ namespace App.ControllersUnitaires.Tests
             var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
             Assert.AreEqual(compteModifTypeCompteDTO.RaisonSociale, compteModifie.RaisonSociale);
             Assert.AreEqual(2,compteModifie.IdTypeCompte);
+        }
+
+        [TestMethod]
+        public async Task PutTypeComptePersoTest()
+        {
+            _objetcommun.IdTypeCompte = 2;
+            CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
+            {
+                RaisonSociale = null,
+                NumeroSiret = null
+            };
+            var result = await _controller.PutTypeCompte(_objetcommun.IdCompte, compteModifTypeCompteDTO);
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.AreEqual(compteModifTypeCompteDTO.RaisonSociale, compteModifie.RaisonSociale);
+            Assert.AreEqual(1, compteModifie.IdTypeCompte);
         }
 
         [TestMethod]

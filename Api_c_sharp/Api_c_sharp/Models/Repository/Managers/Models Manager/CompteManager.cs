@@ -128,13 +128,20 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task UpdateTypeCompte(Compte compteamodif,CompteModifTypeCompteDTO compteModifTypeCompteDTO, bool estpro)
         {
-            if(estpro)
+            if (estpro)
+            {
                 compteamodif.IdTypeCompte = 1;
+                compteamodif.NumeroSiret = null;
+                compteamodif.RaisonSociale = null;
+            }
             else
-                compteamodif.IdTypeCompte = 2;          
+            {
+                compteamodif.IdTypeCompte = 2;
+                compteamodif.NumeroSiret = compteModifTypeCompteDTO.NumeroSiret;
+                compteamodif.RaisonSociale = compteModifTypeCompteDTO.RaisonSociale;
+            }
 
-            compteamodif.NumeroSiret = compteModifTypeCompteDTO.NumeroSiret; 
-            compteamodif.RaisonSociale = compteModifTypeCompteDTO.RaisonSociale;
+
 
             await context.SaveChangesAsync();
         }
