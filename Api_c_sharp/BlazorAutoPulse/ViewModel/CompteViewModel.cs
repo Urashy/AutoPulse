@@ -406,6 +406,20 @@ namespace BlazorAutoPulse.ViewModel
             if (reussite)
             {
                 compte = await _compteService.GetMe();
+                compteEdit = new Compte
+                {
+                    IdCompte = compte.IdCompte,
+                    Pseudo = compte.Pseudo,
+                    Nom = compte.Nom,
+                    Prenom = compte.Prenom,
+                    Email = compte.Email,
+                    DateNaissance = compte.DateNaissance,
+                    Biographie = compte.Biographie,
+                    IdTypeCompte = compte.IdTypeCompte,
+                    NumeroSiret = compte.NumeroSiret ?? "",
+                    RaisonSociale = compte.RaisonSociale ?? "",
+                    IdImage = idImage,
+                };
                 CloseProModal();
             }
             else
