@@ -254,14 +254,17 @@
                         <span class="info-label">Biographie</span>
                         <span class="info-value">@VM.compte.Biographie</span>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Raison social</span>
-                        <span class="info-value">@VM.compte.RaisonSociale</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Numéro de SIRET</span>
-                        <span class="info-value">@VM.compte.NumeroSiret</span>
-                    </div>
+                    @if (VM.compte.IdTypeCompte == 2)
+                    {
+                        <div class="info-item">
+                            <span class="info-label">Raison social</span>
+                            <span class="info-value">@VM.compte.RaisonSociale</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Numéro de SIRET</span>
+                            <span class="info-value">@VM.compte.NumeroSiret</span>
+                        </div>
+                    }
                 </div>
             }
             else
@@ -291,14 +294,17 @@
                         <label class="info-label">Biographie</label>
                         <input type="email" @bind="VM.compteEdit.Biographie" class="info-input"/>
                     </div>
-                    <div class="info-item">
-                        <label class="info-label">Raison sociale</label>
-                        <input type="email" @bind="VM.compteEdit.RaisonSociale" class="info-input"/>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Numéro de SIRET</span>
-                        <span class="info-value">@VM.compte.NumeroSiret</span>
-                    </div>
+                    @if (VM.compte.IdTypeCompte == 2)
+                    {
+                        <div class="info-item">
+                            <label class="info-label">Raison sociale</label>
+                            <input type="email" @bind="VM.compteEdit.RaisonSociale" class="info-input"/>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Numéro de SIRET</span>
+                            <span class="info-value">@VM.compte.NumeroSiret</span>
+                        </div>
+                    }
                 </div>
             }
 

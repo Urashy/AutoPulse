@@ -41,7 +41,7 @@ else
                     <div class="color-selector">
                         <h3>🎨 Couleur</h3>
                         <div class="color-options">
-                            @foreach (var color in VM.availableColors)
+                            @foreach (var color in VM.couleurDisponible)
                             {
                                 <div class="color-option @(VM.selectedColor == color.CodeHexaCouleur ? "selected" : "")"
                                      style="background-color: @color.CodeHexaCouleur"
@@ -226,8 +226,17 @@ else
                     🤍 Connectez-vous pour ajouter aux favoris
                 </button>
             }
-            <button class="btn-share">🔗 Partager</button>
+            @if (VM.CurrentUserId == VM.Annonce.IdVendeur)
+            {
+                <button @onclick="VM.SupprimerAnnonce" class="btn-supprimer">Supprimer l'annonce</button>
+            }
         </div>
+        @if (!string.IsNullOrEmpty(VM.erreurSupprimeAnnonce))
+        {
+            <div class="error-message-box">
+                @VM.erreurSupprimeAnnonce
+            </div>
+        }
     </div>
 }
 
@@ -238,7 +247,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         VM.Reset();
-        await VM.InitializeAsync(IdAnnonce, StateHasChanged, JSRuntime);
+        await VM.InitializeAsync(IdAnnonce, StateHasChanged, JSRuntime, Navigation);
     }
 
     public async ValueTask DisposeAsync()
