@@ -8,22 +8,16 @@ namespace BlazorAutoPulse.ViewModel
         private readonly ICompteService _compteService;
         private Action? _refreshUI;
 
-        // Liste complète des utilisateurs
         public List<CompteDetailDTO> AllUtilisateurs { get; set; } = new();
 
-        // Liste filtrée
         public List<CompteDetailDTO> FilteredUtilisateurs { get; set; } = new();
 
-        // État de chargement
         public bool IsLoading { get; set; } = true;
 
-        // Recherche
         public string SearchQuery { get; set; } = "";
 
-        // Filtres
         public string FilterStatus { get; set; } = "all";
 
-        // Pagination
         public int CurrentPage { get; set; } = 1;
         public int ItemsPerPage { get; set; } = 10;
         public int TotalPages => (int)Math.Ceiling((double)FilteredUtilisateurs.Count / ItemsPerPage);
@@ -37,7 +31,6 @@ namespace BlazorAutoPulse.ViewModel
         public int UtilisateursAdmins => AllUtilisateurs.Count(u => u.TypeCompte == "Administrateur");
         public int UtilisateursAnonymisés => AllUtilisateurs.Count(u => u.TypeCompte == "Anonyme");
 
-        // Modal de détails
         public bool ShowDetailsModal { get; set; }
         public CompteDetailDTO? SelectedUser { get; set; }
 
@@ -61,7 +54,6 @@ namespace BlazorAutoPulse.ViewModel
             {
                 Console.WriteLine("🔄 Début du chargement des utilisateurs...");
 
-                // Récupérer tous les comptes
                 var response = await _compteService.GetAllAsync();
 
                 Console.WriteLine($"✅ Réponse reçue: {response}");
@@ -73,26 +65,22 @@ namespace BlazorAutoPulse.ViewModel
                 }
                 else
                 {
-                    // Vérifier le type de réponse
                     Console.WriteLine($"📦 Type de réponse: {response.GetType().Name}");
 
-                    // Selon ton CompteWebService, GetAllAsync retourne CompteGetDTO
-                    // Donc on va essayer de caster
                     if (response is IEnumerable<CompteGetDTO> comptesGet)
                     {
                         Console.WriteLine($"📊 Nombre de comptes reçus: {comptesGet.Count()}");
 
-                        // Conversion de CompteGetDTO vers CompteDetailDTO
                         AllUtilisateurs = comptesGet.Select(c => new CompteDetailDTO
                         {
                             IdCompte = c.IdCompte,
                             Pseudo = c.Pseudo,
                             Nom = c.Nom,
                             Prenom = c.Prenom,
-                            Email = "", // À ajouter dans CompteGetDTO
+                            Email = "", 
                             TypeCompte = c.TypeCompte,
                             DateCreation = c.DateInscription,
-                            IdTypeCompte = 0 // Tu peux mapper ça si nécessaire
+                            IdTypeCompte = c.IdTypeCompte
                         }).ToList();
 
                         Console.WriteLine($"✅ {AllUtilisateurs.Count} utilisateurs chargés");
@@ -135,22 +123,22 @@ namespace BlazorAutoPulse.ViewModel
         public void FilterByStatus(string status)
         {
             FilterStatus = status;
-            CurrentPage = 1; // Reset à la première page
+            CurrentPage = 1; 
             ApplyFilters();
         }
 
         private void ApplyFilters()
         {
-            // On commence avec tous les utilisateurs
             var filtered = AllUtilisateurs.AsEnumerable();
 
-            // Filtre par type de compte
             if (FilterStatus != "all")
             {
                 filtered = filtered.Where(u => u.TypeCompte.Equals(FilterStatus, StringComparison.OrdinalIgnoreCase));
             }
 
-            // Filtre par recherche
+
+
+
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
                 var query = SearchQuery.ToLower();
@@ -161,7 +149,6 @@ namespace BlazorAutoPulse.ViewModel
                     u.Email.ToLower().Contains(query));
             }
 
-            // Conversion finale en List
             FilteredUtilisateurs = filtered.ToList();
 
             _refreshUI?.Invoke();
