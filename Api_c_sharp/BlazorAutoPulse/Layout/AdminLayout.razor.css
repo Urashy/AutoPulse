@@ -8,123 +8,250 @@
 /* ========== SIDEBAR ========== */
 .admin-sidebar {
     width: 280px;
-    background: linear-gradient(135deg, #1b1b2b 0%, #0f0f1a 100%);
-    border-right: 1px solid #333;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border-right: 1px solid rgba(102, 126, 234, 0.2);
     position: fixed;
     left: 0;
     top: 0;
     bottom: 0;
     overflow-y: auto;
     z-index: 1000;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
 }
 
+/* ========== SIDEBAR HEADER ========== */
 .sidebar-header {
-    padding: 30px 20px;
-    border-bottom: 1px solid #333;
-    text-align: center;
+    padding: 35px 25px;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
+    position: relative;
+    overflow: hidden;
 }
+
+    .sidebar-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
 
     .sidebar-header h2 {
-        margin: 0 0 10px 0;
+        margin: 0 0 12px 0;
         font-size: 28px;
-        background: linear-gradient(135deg, #fff, #00d4ff);
+        font-weight: 700;
+        background: linear-gradient(135deg, #fff 0%, #667eea 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+        position: relative;
+        z-index: 1;
     }
 
 .admin-badge {
     display: inline-block;
-    padding: 4px 12px;
-    background: rgba(0, 212, 255, 0.2);
-    color: #00d4ff;
+    padding: 6px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
     border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    border: 1px solid rgba(0, 212, 255, 0.3);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     margin: 0;
+    position: relative;
+    z-index: 1;
 }
 
 /* ========== NAVIGATION ========== */
 .sidebar-nav {
-    padding: 20px 10px;
+    padding: 25px 15px;
+    display: flex;
+    flex-direction: column;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    margin-bottom: 4px;
-    color: #aaa;
+    gap: 15px;
+    padding: 16px 18px;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
-    border-radius: 10px;
-    transition: all 0.3s;
+    border-radius: 12px;
+    transition: all 0.3s ease;
     position: relative;
+    overflow: hidden;
+    border: 1px solid transparent;
+    width: 100%;
 }
 
-    .nav-item:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: #fff;
+    .nav-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
     }
+
+    .nav-item:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #fff;
+        border-color: rgba(102, 126, 234, 0.3);
+        transform: translateX(5px);
+    }
+
+        .nav-item:hover::before {
+            transform: scaleY(1);
+        }
 
     .nav-item.active {
-        background: linear-gradient(90deg, rgba(0, 212, 255, 0.2), transparent);
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.25) 0%, rgba(102, 126, 234, 0.05) 100%);
         color: #fff;
-        border-left: 3px solid #00d4ff;
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
     }
 
+        .nav-item.active::before {
+            transform: scaleY(1);
+        }
+
     .nav-item .icon {
-        font-size: 20px;
-        width: 24px;
+        font-size: 22px;
+        width: 28px;
         text-align: center;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover .icon {
+        transform: scale(1.1);
     }
 
     .nav-item .text {
         flex: 1;
         font-size: 15px;
-        font-weight: 500;
+        font-weight: 600;
+        letter-spacing: 0.3px;
     }
 
     .nav-item .badge {
-        padding: 2px 8px;
-        background: #ff4444;
+        padding: 4px 10px;
+        background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
         color: white;
         border-radius: 12px;
         font-size: 11px;
-        font-weight: bold;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(255, 68, 68, 0.4);
+        animation: pulse-badge 2s ease-in-out infinite;
     }
 
-.nav-divider {
-    height: 1px;
-    background: #333;
-    margin: 20px 10px;
+@keyframes pulse-badge {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(255, 68, 68, 0.4);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(255, 68, 68, 0.6);
+    }
 }
 
+/* ========== NAV DIVIDER ========== */
+.nav-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.3) 50%, transparent 100%);
+    margin: 25px 15px;
+    position: relative;
+}
+
+    .nav-divider::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 6px;
+        height: 6px;
+        background: #667eea;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(102, 126, 234, 0.6);
+    }
+
+/* ========== NAV EXIT ========== */
 .nav-exit {
-    margin-top: 10px;
-    border: 1px solid #333;
+    margin-top: 15px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    background: rgba(102, 126, 234, 0.05);
 }
 
     .nav-exit:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: #00d4ff;
+        background: rgba(102, 126, 234, 0.15);
+        border-color: #667eea;
+        transform: translateX(0);
+    }
+
+    .nav-exit .icon {
+        font-size: 20px;
+        font-weight: bold;
     }
 
 /* ========== MAIN CONTENT ========== */
 .admin-content {
     margin-left: 280px;
     flex: 1;
-    padding: 40px;
+    padding: 0;
     min-height: 100vh;
+    background: #0a0a0a;
 }
 
+/* ========== SCROLLBAR CUSTOM ========== */
+.admin-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+    .admin-sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(102, 126, 234, 0.5);
+        background-clip: padding-box;
+    }
+
 /* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+    .admin-sidebar {
+        width: 260px;
+    }
+
+    .admin-content {
+        margin-left: 260px;
+    }
+}
+
 @media (max-width: 768px) {
     .admin-sidebar {
-        width: 240px;
+        width: 280px;
         transform: translateX(-100%);
-        transition: transform 0.3s;
+        transition: transform 0.3s ease;
     }
 
         .admin-sidebar.open {
@@ -133,24 +260,135 @@
 
     .admin-content {
         margin-left: 0;
-        padding: 20px;
+    }
+
+    /* Bouton burger pour mobile (à ajouter dans le HTML si nécessaire) */
+    .mobile-menu-toggle {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        display: none;
+    }
+
+        .mobile-menu-toggle.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+}
+
+@media (max-width: 480px) {
+    .admin-sidebar {
+        width: 100%;
+    }
+
+    .sidebar-header {
+        padding: 25px 20px;
+    }
+
+        .sidebar-header h2 {
+            font-size: 24px;
+        }
+
+    .sidebar-nav {
+        padding: 20px 10px;
+    }
+
+    .nav-item {
+        padding: 14px 16px;
+    }
+
+        .nav-item .text {
+            font-size: 14px;
+        }
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
     }
 }
 
-/* ========== SCROLLBAR CUSTOM ========== */
-.admin-sidebar::-webkit-scrollbar {
-    width: 6px;
+.nav-item {
+    animation: slideInFromLeft 0.3s ease-out;
 }
 
-.admin-sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.admin-sidebar::-webkit-scrollbar-thumb {
-    background: #333;
-    border-radius: 10px;
-}
-
-    .admin-sidebar::-webkit-scrollbar-thumb:hover {
-        background: #444;
+    .nav-item:nth-child(1) {
+        animation-delay: 0.05s;
     }
+
+    .nav-item:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    .nav-item:nth-child(3) {
+        animation-delay: 0.15s;
+    }
+
+    .nav-item:nth-child(4) {
+        animation-delay: 0.2s;
+    }
+
+    .nav-item:nth-child(5) {
+        animation-delay: 0.25s;
+    }
+
+/* ========== HOVER EFFECTS ========== */
+.nav-item {
+    position: relative;
+}
+
+    .nav-item::after {
+        content: '';
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%) translateX(-10px);
+        width: 0;
+        height: 0;
+        border-left: 6px solid #667eea;
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .nav-item:hover::after,
+    .nav-item.active::after {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+
+    /* ========== FOCUS STATES ========== */
+    .nav-item:focus {
+        outline: 2px solid #667eea;
+        outline-offset: 2px;
+    }
+
+        .nav-item:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+/* ========== DARK MODE ENHANCEMENT ========== */
+@media (prefers-color-scheme: dark) {
+    .admin-sidebar {
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.5);
+    }
+}
