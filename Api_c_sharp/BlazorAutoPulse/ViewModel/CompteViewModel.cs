@@ -67,7 +67,11 @@ namespace BlazorAutoPulse.ViewModel
         {
             _refreshUI = refreshUI;
             _nav = nav;
-            compteModifType = new CompteModifTypeCompteDTO();
+            compteModifType = new CompteModifTypeCompteDTO()
+            {
+                RaisonSociale = "",
+                NumeroSiret = ""
+            };
             
             try
             {
@@ -386,23 +390,29 @@ namespace BlazorAutoPulse.ViewModel
         public async Task CloseProModal()
         {
             passerPro = false;
-            compteModifType = new CompteModifTypeCompteDTO();
+            isEditing = false;
+            compteModifType = new CompteModifTypeCompteDTO()
+            {
+                RaisonSociale = "",
+                NumeroSiret = ""
+            };
             _refreshUI?.Invoke();
         }
 
         public async Task ValidateProAccount()
         {
-            bool reussite = await _compteService.PutTypeCompte(compte.IdCompte);
+            bool reussite = await _compteService.PutTypeCompte(compte.IdCompte, compteModifType);
 
             if (reussite)
             {
+                compte = await _compteService.GetMe();
                 CloseProModal();
             }
             else
             {
                 erreurChangeTypeCompte = "Votre compte n'a pas pu être mis à jour, vérifier les informations";
             }
-            
+
             _refreshUI?.Invoke();
         }
     }

@@ -157,9 +157,12 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
         }
     }
 
-    public async Task<bool> PutTypeCompte(int idCompte)
+    public async Task<bool> PutTypeCompte(int idCompte, CompteModifTypeCompteDTO compte)
     {
-        var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"PutTypeCompte/{idCompte}"));
+        var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"PutTypeCompte/{idCompte}"))
+        {
+            Content = JsonContent.Create(compte)
+        };
         
         var response = await SendWithCredentialsAsync(request);
 
