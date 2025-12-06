@@ -1,6 +1,7 @@
 ﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
+using AutoPulse.Shared.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers
@@ -90,6 +91,15 @@ namespace Api_c_sharp.Models.Repository.Managers
             }
             else
             {
+                List<Annonce> annoncesaModifier = await context.Annonces
+                    .Where(a => a.IdCompte == compte.IdCompte)
+                    .ToListAsync();
+
+                foreach (Annonce annonce in annoncesaModifier)
+                {
+                    annonce.IdEtatAnnonce = 5; 
+                }
+
 
                 compte.MotDePasse = "XXXXXXXXX"; 
                 compte.Nom = "ANONYME";
@@ -101,6 +111,7 @@ namespace Api_c_sharp.Models.Repository.Managers
                 compte.IdTypeCompte = 4;
                 compte.Biographie = null;
                 
+
                 await context.SaveChangesAsync();
 
             }
@@ -113,6 +124,19 @@ namespace Api_c_sharp.Models.Repository.Managers
                 .FirstOrDefaultAsync();
 
             return compte == 0 ? null : compte;
+        }
+
+        public async Task UpdateTypeCompte(Compte compteamodif,CompteModifTypeCompteDTO compteModifTypeCompteDTO, bool estpro)
+        {
+            if(estpro)
+                compteamodif.IdTypeCompte = 1;
+            else
+                compteamodif.IdTypeCompte = 2;          
+
+            compteamodif.NumeroSiret = compteModifTypeCompteDTO.NumeroSiret; 
+            compteamodif.RaisonSociale = compteModifTypeCompteDTO.RaisonSociale;
+
+            await context.SaveChangesAsync();
         }
     }
 }
