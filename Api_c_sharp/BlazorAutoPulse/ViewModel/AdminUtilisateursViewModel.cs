@@ -44,7 +44,6 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI = refreshUI;
             await LoadUsers();
         }
-
         public async Task LoadUsers()
         {
             IsLoading = true;
@@ -56,17 +55,14 @@ namespace BlazorAutoPulse.ViewModel
 
                 var response = await _compteService.GetAllAsync();
 
-                Console.WriteLine($"✅ Réponse reçue: {response}");
-
                 if (response == null)
                 {
                     Console.WriteLine("⚠️ La réponse est null !");
                     AllUtilisateurs = new List<CompteDetailDTO>();
+                    FilteredUtilisateurs = new List<CompteDetailDTO>(); // ✅ Ajouter
                 }
                 else
                 {
-                    Console.WriteLine($"📦 Type de réponse: {response.GetType().Name}");
-
                     if (response is IEnumerable<CompteGetDTO> comptesGet)
                     {
                         Console.WriteLine($"📊 Nombre de comptes reçus: {comptesGet.Count()}");
@@ -77,36 +73,25 @@ namespace BlazorAutoPulse.ViewModel
                             Pseudo = c.Pseudo,
                             Nom = c.Nom,
                             Prenom = c.Prenom,
-                            Email = "", 
+                            Email = "",
                             TypeCompte = c.TypeCompte,
                             DateCreation = c.DateInscription,
                             IdTypeCompte = c.IdTypeCompte
                         }).ToList();
 
                         Console.WriteLine($"✅ {AllUtilisateurs.Count} utilisateurs chargés");
-                    }
-                    else if (response is IEnumerable<CompteDetailDTO> comptesDetail)
-                    {
-                        AllUtilisateurs = comptesDetail.ToList();
-                        Console.WriteLine($"✅ {AllUtilisateurs.Count} utilisateurs détaillés chargés");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"❌ Type de réponse non géré: {response.GetType().FullName}");
-                        AllUtilisateurs = new List<CompteDetailDTO>();
+
+                        FilteredUtilisateurs = new List<CompteDetailDTO>(AllUtilisateurs);
                     }
                 }
 
-                ApplyFilters();
 
-                Console.WriteLine($"🎯 Filtrage appliqué. {FilteredUtilisateurs.Count} utilisateurs après filtres");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ ERREUR lors du chargement: {ex.Message}");
-                Console.WriteLine($"📍 StackTrace: {ex.StackTrace}");
                 AllUtilisateurs = new List<CompteDetailDTO>();
-                FilteredUtilisateurs = new List<CompteDetailDTO>();
+                FilteredUtilisateurs = new List<CompteDetailDTO>(); 
             }
             finally
             {
@@ -120,24 +105,85 @@ namespace BlazorAutoPulse.ViewModel
             ApplyFilters();
         }
 
-        public void FilterByStatus(string status)
+        public async Task FilterByStatus(string status)
         {
             FilterStatus = status;
-            CurrentPage = 1; 
-            ApplyFilters();
+            CurrentPage = 1;
+            IsLoading = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                Console.WriteLine($"🔍 Filtrage par statut: {status}");
+
+                if (!AllUtilisateurs.Any())
+                {
+                    var allResponse = await _compteService.GetAllAsync();
+                    AllUtilisateurs = ConvertToDetailDTO(allResponse);
+                }
+
+                // ✅ Maintenant charger les données filtrées
+                IEnumerable<CompteGetDTO> response;
+
+                if (status == "all")
+                {
+                    // Si "all", FilteredUtilisateurs = AllUtilisateurs
+                    FilteredUtilisateurs = new List<CompteDetailDTO>(AllUtilisateurs);
+                }
+                else
+                {
+                    int idTypeCompte = status switch
+                    {
+                        "Particuliers" => 1,
+                        "Pros" => 2,
+                        "Admin" => 3,
+                        "Anonymes" => 4,
+                        _ => 0
+                    };
+
+                    if (idTypeCompte == 0)
+                    {
+                        FilteredUtilisateurs = new List<CompteDetailDTO>(AllUtilisateurs);
+                    }
+                    else
+                    {
+                        response = await _compteService.GetByTypeCompteAsync(idTypeCompte);
+                        FilteredUtilisateurs = ConvertToDetailDTO(response);
+                    }
+                }
+
+                Console.WriteLine($"✅ {FilteredUtilisateurs.Count} filtrés / {AllUtilisateurs.Count} total");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERREUR lors du filtrage: {ex.Message}");
+                FilteredUtilisateurs = new List<CompteDetailDTO>();
+            }
+            finally
+            {
+                IsLoading = false;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        private List<CompteDetailDTO> ConvertToDetailDTO(IEnumerable<CompteGetDTO> comptes)
+        {
+            return comptes.Select(c => new CompteDetailDTO
+            {
+                IdCompte = c.IdCompte,
+                Pseudo = c.Pseudo,
+                Nom = c.Nom,
+                Prenom = c.Prenom,
+                Email = "",
+                TypeCompte = c.TypeCompte,
+                DateCreation = c.DateInscription,
+                IdTypeCompte = c.IdTypeCompte
+            }).ToList();
         }
 
         private void ApplyFilters()
         {
-            var filtered = AllUtilisateurs.AsEnumerable();
-
-            if (FilterStatus != "all")
-            {
-                filtered = filtered.Where(u => u.TypeCompte.Equals(FilterStatus, StringComparison.OrdinalIgnoreCase));
-            }
-
-
-
+            var filtered = FilteredUtilisateurs.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {

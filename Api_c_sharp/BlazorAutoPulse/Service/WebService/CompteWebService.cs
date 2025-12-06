@@ -37,12 +37,12 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
         return await response.Content.ReadFromJsonAsync<CompteDetailDTO>();
     }
 
-    public async Task<CompteGetDTO> GetComptesByIdTypeCompte (int idTypeCompte)
+    public async Task<IEnumerable<CompteGetDTO>> GetByTypeCompteAsync(int idTypeCompte)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetByTypeCompte/{idTypeCompte}"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<CompteGetDTO>();
+        return await response.Content.ReadFromJsonAsync<IEnumerable<CompteGetDTO>>();
     }
 
     public async Task<int?> GetTypeCompteByCompteId(int idCompte)
