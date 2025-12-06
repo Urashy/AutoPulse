@@ -101,11 +101,9 @@ namespace Api_c_sharp.Models.Repository.Managers
             if (param.IdTypeVoiture > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.IdCategorie == param.IdTypeVoiture);
 
-            // Filtre par type de vendeur
             if (param.IdTypeVendeur > 0)
                 query = query.Where(a => a.CompteAnnonceNav.IdTypeCompte == param.IdTypeVendeur);
 
-            // Filtre par nom
             if (!string.IsNullOrEmpty(param.Nom))
             {
                 query = query.Where(a => Fuzz.PartialRatio(a.Libelle.ToLower(), param.Nom.ToLower()) > 70);
@@ -118,10 +116,8 @@ namespace Api_c_sharp.Models.Repository.Managers
 
             query = query.Where(a => a.IdEtatAnnonce == 1);
 
-            // Tri avec priorité : Mise en avant > Prix > Date
             IOrderedQueryable<Annonce> orderedQuery = query.OrderByDescending(a => a.IdMiseEnAvant);
 
-            // Tri par prix selon le paramètre orderprix
             if (orderprix == 1) // Croissant
                 orderedQuery = orderedQuery.ThenBy(a => a.Prix);
             else if (orderprix == 2) // Décroissant
