@@ -1,14 +1,15 @@
 ﻿using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
-    public class FavoriManager : WriteableReadableManager<Favori>
+    public class FavoriManager : WriteableReadableManager<Favori>, IFavoriRepository
     {
         public FavoriManager(AutoPulseBdContext context) : base(context)
         {
         }
-        public virtual async Task<Favori?> GetByIdAsync(int idCompte, int idAnnonce)
+        public virtual async Task<Favori?> GetFavoriByIdsAsync(int idCompte, int idAnnonce)
         {
             return await dbSet
                 .Where(f => f.IdCompte == idCompte && f.IdAnnonce == idAnnonce)

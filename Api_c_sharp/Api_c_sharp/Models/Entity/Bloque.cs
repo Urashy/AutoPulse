@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_c_sharp.Models.Entity
 {
-    [Table("t_e_bloque_blo")]
+    [Table("t_j_bloque_blo")]
     public class Bloque
     {
         [Key]

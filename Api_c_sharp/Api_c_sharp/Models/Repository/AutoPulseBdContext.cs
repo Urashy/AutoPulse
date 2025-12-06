@@ -40,12 +40,14 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Motricite> Motricites { get; set; }
         public DbSet<MoyenPaiement> MoyensPaiements { get; set; }
         public DbSet<Pays> Pays { get; set; }
+        public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
+
         public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
         public DbSet<TypeJournal> TypesJournal { get; set; }
         public DbSet<TypeSignalement> TypesSignalement { get; set; }
         public DbSet<Voiture> Voitures { get; set; }
-        public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
+        public DbSet<Vue> Vues { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -309,6 +311,10 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<Pays>()
                 .HasKey(e => e.IdPays);
 
+            //-----------------------------ReinitialisationMotDePasse-----------------------------
+            modelBuilder.Entity<ReinitialisationMotDePasse>()
+                .HasKey(e => e.IdReinitialisationMdp);
+
             //-----------------------------Signalement-----------------------------
             modelBuilder.Entity<Signalement>()
                  .HasKey(e => e.IdSignalement);
@@ -384,6 +390,9 @@ namespace Api_c_sharp.Models.Repository
                 .WithMany(m => m.Voitures)
                 .HasForeignKey(v => v.IdModeleBlender);
 
+            //-----------------------------Vues-----------------------------
+            modelBuilder.Entity<Vue>()
+                .HasKey(e => new { e.IdCompte, e.IdAnnonce });
 
             //-----------------------------Indexes-----------------------------
             modelBuilder.Entity<Compte>()

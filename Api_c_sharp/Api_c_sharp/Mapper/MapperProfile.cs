@@ -49,6 +49,9 @@ public class MapperProfile : Profile
         CreateMap<ModeleBlender, ModeleBlenderDTO>()
             .ReverseMap();
 
+        CreateMap<Vue, VueDTO>()
+            .ReverseMap();
+
         // ============================================
         // MAPPERS ADRESSE
         // ============================================

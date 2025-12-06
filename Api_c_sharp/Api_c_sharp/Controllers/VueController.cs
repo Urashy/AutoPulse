@@ -8,19 +8,19 @@ using Api_c_sharp.Models.Entity;
 namespace Api_c_sharp.Controllers
 {
     /// <summary>
-    /// Contrôleur REST permettant de gérer la table de jointure entre couleur et voiture.
+    /// Contrôleur REST permettant de gérer la table de jointure entre compte et annonce pour les vues.
     /// Les méthodes exposent ou consomment des DTO afin
     /// d’assurer la séparation entre le modèle de domaine
     /// et la couche API.
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class APourConversationController(APourConversationManager _manager, IMapper _aPourCoversationMapper) : ControllerBase
+    public class VueController(VueManager _manager, IMapper _vuemapper) : ControllerBase
     {
         /// <summary>
-        /// Crée une nouvelle adresse.
+        /// Crée une nouvelle vue d'une annonce.
         /// </summary>
-        /// <param name="dto">Objet <see cref="APourConversationDTO"/> contenant les informations de l'adresse à créer.</param>
+        /// <param name="dto">Objet <see cref="VueDTO"/> contenant les informations de l'adresse à créer.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
@@ -29,23 +29,22 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
-        public async Task<ActionResult<APourConversationDTO>> Post([FromBody] APourConversationDTO dto)
+        public async Task<ActionResult<VueDTO>> Post([FromBody] VueDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var entity = _aPourCoversationMapper.Map<APourConversation>(dto);
+            var entity = _vuemapper.Map<Vue>(dto);
             await _manager.AddAsync(entity);
 
             // Retourne bien les deux clés
-            return CreatedAtAction(nameof(GetByID), new { idConversation = entity.IdConversation, idCompte = entity.IdCompte }, entity);
+            return CreatedAtAction(nameof(GetByIDs), new { idAnnonce = entity.IdAnnonce, idCompte = entity.IdCompte }, dto);
         }
 
         /// <summary>
-        /// Met à jour une Adresse existante.
+        /// Met à jour une vue existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
-        /// <param name="dto">Objet <see cref="APourConversationDTO"/> contenant les nouvelles valeurs.</param>
+        /// <param name="dto">Objet <see cref="VueDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -54,20 +53,17 @@ namespace Api_c_sharp.Controllers
         /// </list>
         /// </returns>
         [ActionName("Put")]
-        [HttpPut("{idConversation}/{idCompte}")]
-        public async Task<ActionResult> Put(int idConversation, int idCompte, [FromBody] APourConversationDTO dto)
+        [HttpPut("{idannonce}/{idCompte}")]
+        public async Task<ActionResult> Put(int idannonce, int idCompte, [FromBody] VueDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            if (idConversation != dto.IdConversation || idCompte != dto.IdCompte)
-                return BadRequest();
-
-            var toUpdate = await _manager.GetAPourConversationByIDS(idCompte, idConversation);
+            var toUpdate = await _manager.GetVueByIdsAsync(idCompte, idannonce);
             if (toUpdate == null)
                 return NotFound();
 
-            var updated = _aPourCoversationMapper.Map<APourConversation>(dto);
+            var updated = _vuemapper.Map<Vue>(dto);
 
             await _manager.UpdateAsync(toUpdate, updated);
 
@@ -87,7 +83,7 @@ namespace Api_c_sharp.Controllers
         [HttpDelete("{idConversation}/{idCompte}")]
         public async Task<IActionResult> Delete(int idConversation, int idCompte)
         {
-            var entity = await _manager.GetAPourConversationByIDS(idCompte, idConversation);
+            var entity = await _manager.GetVueByIdsAsync(idCompte, idConversation);
 
             if (entity == null)
                 return NotFound();
@@ -103,31 +99,31 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<APourConversationDTO>>> GetAll()
+        public async Task<ActionResult<IEnumerable<VueDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
-            return new ActionResult<IEnumerable<APourConversationDTO>>(_aPourCoversationMapper.Map<IEnumerable<APourConversationDTO>>(list));
+            return new ActionResult<IEnumerable<VueDTO>>(_vuemapper.Map<IEnumerable<VueDTO>>(list));
         }
         /// <summary>
-        /// Récupère une adresse à partir de son identifiant.
+        /// Récupère une vue à partir de ses identifiant.
         /// </summary>
         /// <param name="id">Identifiant unique de l'adresse recherchée.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="APourConversationDTO"/> si l'adresse existe (200 OK).</description></item>
+        /// <item><description><see cref="VueDTO"/> si l'adresse existe (200 OK).</description></item>
         /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("GetById")]
-        [HttpGet("{idConversation}/{idCompte}")]
-        public async Task<ActionResult<APourConversationDTO>> GetByID(int idConversation, int idCompte)
+        [HttpGet("{idannonce}/{idCompte}")]
+        public async Task<ActionResult<VueDTO>> GetByIDs(int idannonce, int idCompte)
         {
-            var result = await _manager.GetAPourConversationByIDS(idCompte, idConversation);
+            var result = await _manager.GetVueByIdsAsync(idCompte, idannonce);
 
             if (result == null)
                 return NotFound();
 
-            return _aPourCoversationMapper.Map<APourConversationDTO>(result);
+            return _vuemapper.Map<VueDTO>(result);
         }
     }
 }
