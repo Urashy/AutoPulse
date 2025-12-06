@@ -11,6 +11,10 @@ namespace Api_c_sharp.Models.Repository.Managers
         public CompteManager(AutoPulseBdContext context) : base(context)
         {
         }
+        public override async Task<IEnumerable<Compte>> GetAllAsync()
+        {
+            return await dbSet.Include(c => c.TypeCompteCompteNav).ToListAsync();
+        }
 
         public override async Task<Compte> GetByIdAsync(int id)
         {

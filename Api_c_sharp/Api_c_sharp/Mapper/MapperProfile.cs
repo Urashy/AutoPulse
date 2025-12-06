@@ -220,10 +220,12 @@ public class MapperProfile : Profile
         // ============================================
         
         CreateMap<Compte, CompteGetDTO>()
-            .ForMember(dest => dest.TypeCompte, 
-                opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
+            .ForMember(dest => dest.TypeCompte,
+                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.DateInscription, 
-                opt => opt.MapFrom(src => src.DateCreation)).ReverseMap();
+                opt => opt.MapFrom(src => src.DateCreation))
+            .ForMember(dest => dest.Email,
+                opt => opt.MapFrom(src => src.Email)).ReverseMap();
         
         CreateMap<Compte, CompteDetailDTO>()
             .ForMember(dest => dest.TypeCompte, 
