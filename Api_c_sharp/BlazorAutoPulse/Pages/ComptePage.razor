@@ -319,7 +319,7 @@
                 {
                     <button class="btn-primary" @onclick="VM.SaveProfile">Enregistrer</button>
                     <button class="btn-secondary" @onclick="VM.CancelEdit">Annuler</button>
-                    <button class="btn-primary" @onclick="VM.OpenProModal">Passer en compte pro</button>
+                    <button class="btn-primary" @onclick="(VM.compte.IdTypeCompte == 1? VM.OpenProModal : VM.ValidateProAccount)">@(VM.compte.IdTypeCompte == 1?  "Passer en compte pro": "Passer à un compte personnel")</button>
                 }
 
                 <button class="btn-danger" @onclick="ConnexionVM.DeconnexionUtilisateur">Déconnexion</button>
