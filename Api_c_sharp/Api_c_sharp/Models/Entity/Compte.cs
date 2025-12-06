@@ -114,5 +114,8 @@ namespace Api_c_sharp.Models.Entity
         [InverseProperty(nameof(Bloque.CompteBloqueNav))]
         public virtual ICollection<Bloque> ComptesBloqueurs { get; set; } = new List<Bloque>();
 
+        [InverseProperty(nameof(Vue.CompteVueNav))]
+        public virtual ICollection<Vue> Vues { get; set; } = new List<Vue>();
+
     }
 }

@@ -19,14 +19,13 @@ using System.Threading.Tasks;
 namespace App.ControllersUnitaires.Tests
 {
     [TestClass]
-    public class FavoriControllerTests
+    public class VueControllerTests
     {
-        private FavoriController _controller;
+        private VueController _controller;
         private AutoPulseBdContext _context;
-        private FavoriManager _manager;
+        private VueManager _manager;
         private IMapper _mapper;
-        private Favori _objetcommun;
-        private IJournalService _journalService;
+        private Vue _objetcommun;
 
         [TestInitialize]
         public async Task Initialize()
@@ -43,9 +42,8 @@ namespace App.ControllersUnitaires.Tests
             });
             _mapper = config.CreateMapper();
 
-            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
-            _manager = new FavoriManager(_context);
-            _controller = new FavoriController(_manager, _mapper, _journalService);
+            _manager = new VueManager(_context);
+            _controller = new VueController(_manager, _mapper);
 
             // Nettoyage
             _context.APourConversations.RemoveRange(_context.APourConversations);
@@ -153,7 +151,7 @@ namespace App.ControllersUnitaires.Tests
                 IdVoiture = voiture.IdVoiture,
             };
 
-            Favori favori = new Favori()
+            Vue vue = new Vue()
             {
                 IdAnnonce = annonce.IdAnnonce,
                 IdCompte = compte.IdCompte
@@ -168,21 +166,21 @@ namespace App.ControllersUnitaires.Tests
             await _context.Voitures.AddAsync(voiture);
             await _context.Annonces.AddAsync(annonce);
             await _context.Annonces.AddAsync(annonce2);
-            await _context.Favoris.AddAsync(favori);
+            await _context.Vues.AddAsync(vue);
             await _context.SaveChangesAsync();
 
-            _objetcommun = favori;
+            _objetcommun = vue;
         }
 
         [TestMethod]
         public async Task GetByIdTest()
         {
 
-            var result = await _controller.GetByIDS(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
+            var result = await _controller.GetByIDs(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
 
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(FavoriDTO));
+            Assert.IsInstanceOfType(result.Value, typeof(VueDTO));
             Assert.AreEqual(_objetcommun.IdAnnonce, result.Value.IdAnnonce);
             Assert.AreEqual(_objetcommun.IdCompte, result.Value.IdCompte);
         }
@@ -191,7 +189,7 @@ namespace App.ControllersUnitaires.Tests
         public async Task NotFoundGetByIdTest()
         {
 
-            var result = await _controller.GetByIDS(9999, _objetcommun.IdCompte);
+            var result = await _controller.GetByIDs(9999, _objetcommun.IdCompte);
 
             Assert.IsNotNull(result.Result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -207,7 +205,7 @@ namespace App.ControllersUnitaires.Tests
             Assert.IsNotNull(result.Value);
 
             var list = result.Value.ToList();
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<FavoriDTO>));
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<VueDTO>));
             Assert.IsTrue(list.Any());
             Assert.IsTrue(list.Any(x => x.IdAnnonce == _objetcommun.IdAnnonce));
         }
@@ -216,7 +214,7 @@ namespace App.ControllersUnitaires.Tests
         public async Task PostTest()
         {
 
-            FavoriDTO dto = new FavoriDTO
+            VueDTO dto = new VueDTO
             {
                 IdCompte = 1,
                 IdAnnonce = 2
@@ -227,7 +225,7 @@ namespace App.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
 
             var created = (CreatedAtActionResult)actionResult.Result;
-            var createdEntity = (FavoriDTO)created.Value;
+            var createdEntity = (VueDTO)created.Value;
 
             Assert.AreEqual(dto.IdAnnonce, createdEntity.IdAnnonce);
             Assert.AreEqual(dto.IdCompte, createdEntity.IdCompte);
@@ -236,7 +234,7 @@ namespace App.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPostTest()
         {
-            var dto = new FavoriDTO();
+            VueDTO dto = new VueDTO();
             _controller.ModelState.AddModelError("IdConversation", "Required");
 
             var actionResult = await _controller.Post(dto);
@@ -247,7 +245,7 @@ namespace App.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutTest()
         {
-            FavoriDTO dto = new FavoriDTO
+            VueDTO dto = new VueDTO
             {
                 IdCompte = _objetcommun.IdCompte,
                 IdAnnonce = _objetcommun.IdAnnonce
@@ -257,14 +255,14 @@ namespace App.ControllersUnitaires.Tests
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var updated = await _manager.GetFavoriByIdsAsync(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
+            var updated = await _manager.GetVueByIdsAsync(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
             Assert.AreEqual(dto.IdCompte, updated.IdCompte);
         }
 
         [TestMethod]
         public async Task NotFoundPutTest()
         {
-            FavoriDTO dto = new FavoriDTO
+            VueDTO dto = new VueDTO
             {
                 IdCompte = _objetcommun.IdCompte,
                 IdAnnonce = _objetcommun.IdAnnonce
@@ -278,7 +276,7 @@ namespace App.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPutTest()
         {
-            FavoriDTO dto = new FavoriDTO
+            VueDTO dto = new VueDTO
             {
                 IdCompte = _objetcommun.IdCompte,
             };
@@ -296,7 +294,7 @@ namespace App.ControllersUnitaires.Tests
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var deleted = await _manager.GetFavoriByIdsAsync(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
+            var deleted = await _manager.GetVueByIdsAsync(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
             Assert.IsNull(deleted);
         }
 
@@ -306,22 +304,6 @@ namespace App.ControllersUnitaires.Tests
             var result = await _controller.Delete(9999, _objetcommun.IdCompte);
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task IsFavoriteTest()
-        {
-            var result = await _controller.IsFavorite(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
-            Assert.IsNotNull(result);
-            Assert.IsTrue(result.Value);
-        }
-
-        [TestMethod]
-        public async Task IsNotFavoriteTest()
-        {
-            var result = await _controller.IsFavorite(9999, _objetcommun.IdAnnonce);
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.Value);
         }
     }
 }

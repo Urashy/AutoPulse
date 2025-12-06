@@ -102,7 +102,7 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var toUpdate = await _manager.GetByIdAsync(idcompte, idannonce);
+            var toUpdate = await _manager.GetFavoriByIdsAsync(idcompte, idannonce);
 
             if (toUpdate == null)
                 return NotFound();
@@ -128,7 +128,7 @@ namespace Api_c_sharp.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
-            var entity = await _manager.GetByIdAsync(idCompte, idAnnonce);
+            var entity = await _manager.GetFavoriByIdsAsync(idCompte, idAnnonce);
 
             if (entity == null)
                 return NotFound();
@@ -165,7 +165,7 @@ namespace Api_c_sharp.Controllers
         [HttpGet]
         public async Task<ActionResult<FavoriDTO>> GetByIDS([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
-            var result = await _manager.GetByIdAsync(idCompte, idAnnonce);
+            var result = await _manager.GetFavoriByIdsAsync(idCompte, idAnnonce);
 
 
             if (result == null)

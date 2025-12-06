@@ -74,4 +74,7 @@ public class Annonce
     [ForeignKey(nameof(IdVoiture))]
     [InverseProperty(nameof(Voiture.Annonces))]
     public virtual Voiture VoitureAnnonceNav { get; set; } = null!;
+
+    [InverseProperty(nameof(Vue.AnnonceVueNav))]
+    public virtual ICollection<Vue> Vues { get; set; } = new List<Vue>();
 }

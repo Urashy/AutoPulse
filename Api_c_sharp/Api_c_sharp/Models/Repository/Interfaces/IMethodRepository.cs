@@ -86,4 +86,21 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     {
         Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId);
     }
+
+    public interface IApourConversationRepository
+    {
+        Task<APourConversation> GetAPourConversationByIDS(int conversationId, int compteId);
+    }
+
+    public interface IFavoriRepository
+    {
+        Task<Favori?> GetFavoriByIdsAsync(int idCompte, int idAnnonce);
+        Task<bool> ExistsAsync(int idCompte, int idAnnonce);
+        Task<IEnumerable<Favori>> GetByCompteIdAsync(int idCompte);
+    }
+
+    public interface IVueRepository
+    {
+        Task<Vue?> GetVueByIdsAsync(int idCompte, int idAnnonce);
+    }
 }

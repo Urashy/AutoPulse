@@ -207,7 +207,7 @@ namespace App.ControllersUnitaires.Tests
             // Then : la réponse est NoContent et l'objet est mis à jour
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var updated = await _manager.GetByIdsAsync( _objetCommun.IdCompte, _objetCommun.IdConversation);
+            var updated = await _manager.GetAPourConversationByIDS( _objetCommun.IdCompte, _objetCommun.IdConversation);
             Assert.AreEqual(dto.IdCompte, updated.IdCompte);
         }
 
@@ -257,7 +257,7 @@ namespace App.ControllersUnitaires.Tests
             // Then : la réponse est NoContent et l'objet est supprimé
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var deleted = await _manager.GetByIdsAsync(_objetCommun.IdConversation, _objetCommun.IdCompte);
+            var deleted = await _manager.GetAPourConversationByIDS(_objetCommun.IdConversation, _objetCommun.IdCompte);
             Assert.IsNull(deleted);
         }
 
