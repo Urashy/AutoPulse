@@ -34,14 +34,7 @@
     }
     else
     {
-        <div style="background: yellow; padding: 10px; margin: 10px;">
-            DEBUG:<br />
-            CurrentPage: @VM.CurrentPage<br />
-            CurrentPageResultCount: @VM.CurrentPageResultCount<br />
-            ItemsPerPage: @VM.ItemsPerPage<br />
-            CanGoToNextPage: @VM.CanGoToNextPage<br />
-            ShowPagination: @VM.ShowPagination
-        </div>
+
         @if (VM.ShowPagination)
         {
             <div class="results-info">

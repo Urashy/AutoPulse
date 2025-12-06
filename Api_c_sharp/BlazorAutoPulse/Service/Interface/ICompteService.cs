@@ -11,4 +11,6 @@ public interface ICompteService: IService<Compte>
     Task<ServiceResult<bool>> ChangementMdp(ChangementMdp changementMdp);
     Task<bool> Anonymisation(int idCompte);
     Task<bool> PutTypeCompte(int idCompte, CompteModifTypeCompteDTO compte);
+    new Task<IEnumerable<CompteGetDTO>> GetAllAsync();
+
 }

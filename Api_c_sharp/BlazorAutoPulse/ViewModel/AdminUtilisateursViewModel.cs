@@ -1,5 +1,4 @@
-﻿using BlazorAutoPulse.Model;
-using AutoPulse.Shared.DTO;
+﻿using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.ViewModel
@@ -7,36 +6,45 @@ namespace BlazorAutoPulse.ViewModel
     public class AdminUtilisateursViewModel
     {
         private readonly ICompteService _compteService;
-        public AdminUtilisateursViewModel(ICompteService compteService)
-        {
-            _compteService = compteService;
-        }
-        private List<CompteGetDTO> AllUtilisateurs { get; set; } = new();
-        public List<CompteGetDTO> FilteredUtilisateurs { get; private set; } = new();
+        private Action? _refreshUI;
 
+        // Liste complète des utilisateurs
+        public List<CompteDetailDTO> AllUtilisateurs { get; set; } = new();
+
+        // Liste filtrée
+        public List<CompteDetailDTO> FilteredUtilisateurs { get; set; } = new();
+
+        // État de chargement
+        public bool IsLoading { get; set; } = true;
+
+        // Recherche
         public string SearchQuery { get; set; } = "";
-        public string FilterStatus { get; private set; } = "all";
 
-        public int CurrentPage { get; private set; } = 1;
-        public int ItemsPerPage { get; private set; } = 20;
+        // Filtres
+        public string FilterStatus { get; set; } = "all";
+
+        // Pagination
+        public int CurrentPage { get; set; } = 1;
+        public int ItemsPerPage { get; set; } = 10;
         public int TotalPages => (int)Math.Ceiling((double)FilteredUtilisateurs.Count / ItemsPerPage);
         public bool CanGoPrevious => CurrentPage > 1;
         public bool CanGoNext => CurrentPage < TotalPages;
 
-        // Propriétés de statistiques (basées sur le libellé du type de compte)
+        // Statistiques
         public int TotalUtilisateurs => AllUtilisateurs.Count;
         public int UtilisateursParticuliers => AllUtilisateurs.Count(u => u.TypeCompte == "Particulier");
         public int UtilisateursPros => AllUtilisateurs.Count(u => u.TypeCompte == "Professionnel");
         public int UtilisateursAdmins => AllUtilisateurs.Count(u => u.TypeCompte == "Administrateur");
         public int UtilisateursAnonymisés => AllUtilisateurs.Count(u => u.TypeCompte == "Anonyme");
 
+        // Modal de détails
+        public bool ShowDetailsModal { get; set; }
+        public CompteDetailDTO? SelectedUser { get; set; }
 
-        // Propriétés UI
-        public bool IsLoading { get; private set; } = true;
-        public bool ShowDetailsModal { get; private set; } = false;
-        public Compte? SelectedUser { get; private set; }
-
-        private Action? _refreshUI;
+        public AdminUtilisateursViewModel(ICompteService compteService)
+        {
+            _compteService = compteService;
+        }
 
         public async Task InitializeAsync(Action refreshUI)
         {
@@ -44,66 +52,122 @@ namespace BlazorAutoPulse.ViewModel
             await LoadUsers();
         }
 
-        // Attendre la tâche et transformer en List
-        private async Task LoadUsers()
+        public async Task LoadUsers()
         {
             IsLoading = true;
             _refreshUI?.Invoke();
 
-            var utilisateurs = await _compteService.GetAllAsync();
-            AllUtilisateurs = utilisateurs.ToList();
+            try
+            {
+                Console.WriteLine("🔄 Début du chargement des utilisateurs...");
 
-            FilteredUtilisateurs = new List<Compte>(AllUtilisateurs);
-            IsLoading = false;
-            _refreshUI?.Invoke();
+                // Récupérer tous les comptes
+                var response = await _compteService.GetAllAsync();
+
+                Console.WriteLine($"✅ Réponse reçue: {response}");
+
+                if (response == null)
+                {
+                    Console.WriteLine("⚠️ La réponse est null !");
+                    AllUtilisateurs = new List<CompteDetailDTO>();
+                }
+                else
+                {
+                    // Vérifier le type de réponse
+                    Console.WriteLine($"📦 Type de réponse: {response.GetType().Name}");
+
+                    // Selon ton CompteWebService, GetAllAsync retourne CompteGetDTO
+                    // Donc on va essayer de caster
+                    if (response is IEnumerable<CompteGetDTO> comptesGet)
+                    {
+                        Console.WriteLine($"📊 Nombre de comptes reçus: {comptesGet.Count()}");
+
+                        // Conversion de CompteGetDTO vers CompteDetailDTO
+                        AllUtilisateurs = comptesGet.Select(c => new CompteDetailDTO
+                        {
+                            IdCompte = c.IdCompte,
+                            Pseudo = c.Pseudo,
+                            Nom = c.Nom,
+                            Prenom = c.Prenom,
+                            Email = "", // À ajouter dans CompteGetDTO
+                            TypeCompte = c.TypeCompte,
+                            DateCreation = c.DateInscription,
+                            IdTypeCompte = 0 // Tu peux mapper ça si nécessaire
+                        }).ToList();
+
+                        Console.WriteLine($"✅ {AllUtilisateurs.Count} utilisateurs chargés");
+                    }
+                    else if (response is IEnumerable<CompteDetailDTO> comptesDetail)
+                    {
+                        AllUtilisateurs = comptesDetail.ToList();
+                        Console.WriteLine($"✅ {AllUtilisateurs.Count} utilisateurs détaillés chargés");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"❌ Type de réponse non géré: {response.GetType().FullName}");
+                        AllUtilisateurs = new List<CompteDetailDTO>();
+                    }
+                }
+
+                ApplyFilters();
+
+                Console.WriteLine($"🎯 Filtrage appliqué. {FilteredUtilisateurs.Count} utilisateurs après filtres");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERREUR lors du chargement: {ex.Message}");
+                Console.WriteLine($"📍 StackTrace: {ex.StackTrace}");
+                AllUtilisateurs = new List<CompteDetailDTO>();
+                FilteredUtilisateurs = new List<CompteDetailDTO>();
+            }
+            finally
+            {
+                IsLoading = false;
+                _refreshUI?.Invoke();
+            }
         }
 
-        public async Task FilterByStatus(string status)
+        public void SearchUsers()
+        {
+            ApplyFilters();
+        }
+
+        public void FilterByStatus(string status)
         {
             FilterStatus = status;
+            CurrentPage = 1; // Reset à la première page
             ApplyFilters();
-            CurrentPage = 1;
-            _refreshUI?.Invoke();
-            await Task.CompletedTask;
-        }
-
-        public async Task SearchUsers()
-        {
-            ApplyFilters();
-            CurrentPage = 1;
-            _refreshUI?.Invoke();
-            await Task.CompletedTask;
         }
 
         private void ApplyFilters()
         {
-            FilteredUtilisateurs = AllUtilisateurs;
+            // On commence avec tous les utilisateurs
+            var filtered = AllUtilisateurs.AsEnumerable();
 
-            // Filtre par statut (basé sur le libellé du type de compte)
+            // Filtre par type de compte
             if (FilterStatus != "all")
             {
-                FilteredUtilisateurs = FilterStatus switch
-                {
-                    "Particuliers" => FilteredUtilisateurs.Where(u => u.TypeCompte == "Particulier").ToList(),
-                    "Pros" => FilteredUtilisateurs.Where(u => u.TypeCompte == "Professionnel").ToList(),
-                    "Admin" => FilteredUtilisateurs.Where(u => u.TypeCompte == "Administrateur").ToList(),
-                    "Anonymes" => FilteredUtilisateurs.Where(u => u.TypeCompte == "Anonyme").ToList(),
-                    _ => FilteredUtilisateurs
-                };
+                filtered = filtered.Where(u => u.TypeCompte.Equals(FilterStatus, StringComparison.OrdinalIgnoreCase));
             }
 
             // Filtre par recherche
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
                 var query = SearchQuery.ToLower();
-                FilteredUtilisateurs = FilteredUtilisateurs.Where(u =>
-                    (u.Pseudo != null && u.Pseudo.ToLower().Contains(query)) ||
-                    (u.Nom != null && u.Nom.ToLower().Contains(query)) ||
-                    (u.Prenom != null && u.Prenom.ToLower().Contains(query))
-                ).ToList();
+                filtered = filtered.Where(u =>
+                    u.Pseudo.ToLower().Contains(query) ||
+                    u.Nom.ToLower().Contains(query) ||
+                    u.Prenom.ToLower().Contains(query) ||
+                    u.Email.ToLower().Contains(query));
             }
+
+            // Conversion finale en List
+            FilteredUtilisateurs = filtered.ToList();
+
+            _refreshUI?.Invoke();
         }
 
+        // Pagination
         public void NextPage()
         {
             if (CanGoNext)
@@ -122,7 +186,8 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        public void ViewUserDetails(Compte user)
+        // Actions utilisateur
+        public void ViewUserDetails(CompteDetailDTO user)
         {
             SelectedUser = user;
             ShowDetailsModal = true;
@@ -136,36 +201,50 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        public async Task EditUser(Compte user)
+        public async Task EditUser(CompteDetailDTO user)
         {
-            // Logique d'édition
-            Console.WriteLine($"Édition de l'utilisateur: {user.Pseudo}");
-            await Task.CompletedTask;
+            // TODO: Implémenter l'édition
+            Console.WriteLine($"Édition de l'utilisateur {user.Pseudo}");
         }
 
-        public async Task SuspendUser(Compte user)
+        public async Task SuspendUser(CompteDetailDTO user)
         {
-            //a faire
+            // TODO: Implémenter la suspension
+            Console.WriteLine($"Suspension de l'utilisateur {user.Pseudo}");
         }
 
-        public async Task ActivateUser(Compte user)
+        public async Task ActivateUser(CompteDetailDTO user)
         {
-            //a faire
+            // TODO: Implémenter l'activation
+            Console.WriteLine($"Activation de l'utilisateur {user.Pseudo}");
         }
 
-        public async Task DeleteUser(Compte user)
+        public async Task DeleteUser(CompteDetailDTO user)
         {
-            AllUtilisateurs.Remove(user);
-            ApplyFilters();
-            Console.WriteLine($"Utilisateur supprimé: {user.Pseudo}");
-            _refreshUI?.Invoke();
-            await Task.CompletedTask;
+            if (await ConfirmDelete(user))
+            {
+                try
+                {
+                    await _compteService.DeleteAsync(user.IdCompte);
+                    await LoadUsers();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors de la suppression: {ex.Message}");
+                }
+            }
+        }
+
+        private async Task<bool> ConfirmDelete(CompteDetailDTO user)
+        {
+            // TODO: Afficher une modale de confirmation
+            return true; // Pour l'instant
         }
 
         public async Task ExportUsers()
         {
-            Console.WriteLine("Export des utilisateurs...");
-            await Task.CompletedTask;
+            // TODO: Implémenter l'export CSV/Excel
+            Console.WriteLine("Export des utilisateurs");
         }
     }
 }
