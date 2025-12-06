@@ -237,7 +237,7 @@ namespace Api_c_sharp.Migrations
 
                     b.HasIndex("IdBloquant");
 
-                    b.ToTable("t_e_bloque_blo", "public");
+                    b.ToTable("t_j_bloque_blo", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.BoiteDeVitesse", b =>
@@ -1028,6 +1028,23 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_voiture_voi", "public");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Vue", b =>
+                {
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<int>("IdAnnonce")
+                        .HasColumnType("integer")
+                        .HasColumnName("ann_id");
+
+                    b.HasKey("IdCompte", "IdAnnonce");
+
+                    b.HasIndex("IdAnnonce");
+
+                    b.ToTable("t_j_vue_vue", "public");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.APourConversation", b =>
                 {
                     b.HasOne("Api_c_sharp.Models.Entity.Compte", "APourConversationCompteNav")
@@ -1415,6 +1432,25 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("MotriciteVoitureNavigation");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Vue", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Annonce", "AnnonceVueNav")
+                        .WithMany("Vues")
+                        .HasForeignKey("IdAnnonce")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteVueNav")
+                        .WithMany("Vues")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AnnonceVueNav");
+
+                    b.Navigation("CompteVueNav");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Adresse", b =>
                 {
                     b.Navigation("Annonces");
@@ -1427,6 +1463,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("Conversations");
 
                     b.Navigation("Favoris");
+
+                    b.Navigation("Vues");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.BoiteDeVitesse", b =>
@@ -1482,6 +1520,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("SignalementsFaits");
 
                     b.Navigation("SignalementsRecus");
+
+                    b.Navigation("Vues");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Conversation", b =>
