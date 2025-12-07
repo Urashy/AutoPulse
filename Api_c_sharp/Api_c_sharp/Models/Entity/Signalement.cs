@@ -63,8 +63,6 @@ namespace Api_c_sharp.Models.Entity
         [InverseProperty(nameof(TypeSignalement.Signalements))]
         public virtual TypeSignalement TypeSignalementSignalementNav { get; set; } = null!;
 
-        [ForeignKey(nameof(IdAnnonce))]
-        [InverseProperty(nameof(Annonce.Signalements))]
-        public virtual Annonce AnnonceSignalementNav { get; set; } = null!;
+
     }
 }
