@@ -63,7 +63,7 @@ namespace Api_c_sharp.Controllers
             if (idBloquant != dto.IdBloquant || idBloque != dto.IdBloque)
                 return BadRequest();
 
-            var toUpdate = await _manager.GetByIdsAsync(idBloque, idBloquant);
+            var toUpdate = await _manager.GetBloqueByIdsAsync(idBloque, idBloquant);
             if (toUpdate == null)
                 return NotFound();
 
@@ -87,7 +87,7 @@ namespace Api_c_sharp.Controllers
         [HttpDelete("{idBloquant}/{idBloque}")]
         public async Task<IActionResult> Delete(int idBloquant, int idBloque)
         {
-            var entity = await _manager.GetByIdsAsync(idBloque, idBloquant);
+            var entity = await _manager.GetBloqueByIdsAsync(idBloque, idBloquant);
 
             if (entity == null)
                 return NotFound();
@@ -122,12 +122,32 @@ namespace Api_c_sharp.Controllers
         [HttpGet("{idBloquant}/{idBloque}")]
         public async Task<ActionResult<BloqueDTO>> GetByID(int idBloquant, int idBloque)
         {
-            var result = await _manager.GetByIdsAsync(idBloque, idBloquant);
+            var result = await _manager.GetBloqueByIdsAsync(idBloque, idBloquant);
 
             if (result == null)
                 return NotFound();
 
             return _bloqueMapper.Map<BloqueDTO>(result);
+        }
+
+        /// <summary>
+        /// Vérifie si un compte est en bloque pour un compte.
+        /// </summary>
+        /// <param name="idBloque">Identifiant unique du compte bloque .</param>
+        /// <param name="idBloquant">Identifiant unique du compte bloquant.</param>
+        /// <returns>
+        /// <see cref="bool"/> indiquant si l'annonce est en favori (200 OK).
+        /// </returns>
+        [ActionName("HasBloque")]
+        [HttpGet]
+        public async Task<ActionResult<bool>> HasBloque([FromQuery] int idBloque, [FromQuery] int idBloquant, bool premierestbloquant)
+        {
+            bool result;
+            if(premierestbloquant)
+                 result = await _manager.ExistsAsync(idBloque, idBloquant);
+            else 
+                 result = await _manager.ExistsAsync(idBloquant, idBloque);
+            return result;
         }
     }
 }

@@ -104,4 +104,10 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     {
         Task<Vue?> GetVueByIdsAsync(int idCompte, int idAnnonce);
     }
+
+    public interface IBloqueRepository
+    {
+        Task<Bloque?> GetBloqueByIdsAsync(int idCompteBloqueur, int idCompteBloque);
+        Task<bool> ExistsAsync(int idCompte, int idAnnonce);
+    }
 }
