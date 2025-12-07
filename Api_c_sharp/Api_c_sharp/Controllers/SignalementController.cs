@@ -74,6 +74,8 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper,
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
+
+
         var entity = _mapper.Map<Signalement>(dto);
         await _journalService.LogSignalementAsync(dto.IdCompteSignalant, dto.IdAnnonceSignale, dto.IdSignalement, dto.IdTypeSignalement, dto.DescriptionSignalement);
 

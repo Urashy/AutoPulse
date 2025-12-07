@@ -870,6 +870,8 @@ namespace Api_c_sharp.Migrations
 
                     b.HasKey("IdSignalement");
 
+                    b.HasIndex("IdAnnonceSignale");
+
                     b.HasIndex("IdCompteSignalant");
 
                     b.HasIndex("IdCompteSignale");
@@ -1344,6 +1346,10 @@ namespace Api_c_sharp.Migrations
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Signalement", b =>
                 {
+                    b.HasOne("Api_c_sharp.Models.Entity.Annonce", "AnnonceSignaleNav")
+                        .WithMany("SignalementsRecus")
+                        .HasForeignKey("IdAnnonceSignale");
+
                     b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteSignalantNav")
                         .WithMany("SignalementsFaits")
                         .HasForeignKey("IdCompteSignalant")
@@ -1365,6 +1371,8 @@ namespace Api_c_sharp.Migrations
                         .HasForeignKey("IdTypeSignalement")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AnnonceSignaleNav");
 
                     b.Navigation("CompteSignalantNav");
 
@@ -1463,6 +1471,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("Conversations");
 
                     b.Navigation("Favoris");
+
+                    b.Navigation("SignalementsRecus");
 
                     b.Navigation("Vues");
                 });
