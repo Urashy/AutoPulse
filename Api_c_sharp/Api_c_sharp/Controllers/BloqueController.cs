@@ -33,8 +33,9 @@ namespace Api_c_sharp.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
+            
             var entity = _bloqueMapper.Map<Bloque>(dto);
+            entity.DateBloque = DateTime.UtcNow;
             await _manager.AddAsync(entity);
 
             // Retourne bien les deux clés

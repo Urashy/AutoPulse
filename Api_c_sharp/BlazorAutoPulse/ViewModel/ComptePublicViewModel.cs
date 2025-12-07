@@ -63,6 +63,16 @@ public class ComptePublicViewModel
             await GetImageProfil(comptePublic.IdCompte);
 
             compte = await _compteService.GetMe();
+            
+            await ABloquer(false);
+            if (EstBloque)
+            {
+                _notificationService.ShowInfo(
+                    "Bloquer",
+                    $"Vous avez été rediriger vers l'accueil car {comptePublic.Pseudo} vous à bloqué");
+                _nav.NavigateTo("/");
+                return;
+            }
             isLoading = false;
         }
         catch
@@ -70,7 +80,7 @@ public class ComptePublicViewModel
             RedirectionAccueil();
         }
 
-        ABloquer();
+        ABloquer(true);
         _refreshUI?.Invoke();
     }
     
@@ -133,7 +143,7 @@ public class ComptePublicViewModel
 
         try
         {
-            _bloqueService.PostWithErrorHandlingAsync(bloque);
+            await _bloqueService.PostWithErrorHandlingAsync(bloque);
             _notificationService.ShowSuccess(
                 "Bloquer",
                 "L'utilisateur à bien été bloquer");
@@ -144,6 +154,8 @@ public class ComptePublicViewModel
                 "Bloquer",
                 $"L'utilisateur n'a pas pu être bloquer ({ex.Message})");
         }
+        
+        await ABloquer(true);
         _refreshUI?.Invoke();
     }
 
@@ -151,10 +163,10 @@ public class ComptePublicViewModel
     {
         try
         {
-            _bloqueService.DeleteBloque(compte.IdCompte, comptePublic.IdCompte);
+            await _bloqueService.DeleteBloque(compte.IdCompte, comptePublic.IdCompte);
             _notificationService.ShowSuccess(
                 "Bloquer",
-                "L'utilisateur à été bloquer");
+                "L'utilisateur à été débloquer");
         }
         catch (Exception e)
         {
@@ -162,12 +174,14 @@ public class ComptePublicViewModel
                 "Erreur bloquer",
                 $"{e.Message}");
         }
+
+        await ABloquer(true);
         _refreshUI?.Invoke();
     }
 
-    public async Task ABloquer()
+    public async Task ABloquer(bool premierBloque)
     {
-        EstBloque = await _bloqueService.ABloque(compte.IdCompte,  comptePublic.IdCompte);
+        EstBloque = await _bloqueService.ABloque(compte.IdCompte,  comptePublic.IdCompte, premierBloque);
         _refreshUI?.Invoke();
     }
     
