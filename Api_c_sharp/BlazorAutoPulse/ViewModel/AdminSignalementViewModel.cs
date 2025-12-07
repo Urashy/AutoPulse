@@ -14,20 +14,20 @@ namespace BlazorAutoPulse.ViewModel
 
         public string SearchQuery { get; set; } = "";
         public string FilterType { get; private set; } = "all";
-        public string FilterStatus { get; private set; } = "pending";
+        public string FilterStatus { get; private set; } = "all";
 
         public int CurrentPage { get; private set; } = 1;
         public int ItemsPerPage { get; private set; } = 9;
-        public int TotalPages => (int)Math.Ceiling((double)FilteredSignalements.Count / ItemsPerPage);
+        public int TotalPages => FilteredSignalements.Count == 0 ? 1 : (int)Math.Ceiling((double)FilteredSignalements.Count / ItemsPerPage);
         public bool CanGoPrevious => CurrentPage > 1;
         public bool CanGoNext => CurrentPage < TotalPages;
 
-        public int TotalSignalements => AllSignalements.Count;
-        public int SignalementsAnnonces => AllSignalements.Count(s => s.TypeCible == "Annonce");
-        public int SignalementsComptes => AllSignalements.Count(s => s.TypeCible == "Compte");
-        public int SignalementsEnAttente => AllSignalements.Count(s => s.Statut == "En attente");
-        public int SignalementsTraites => AllSignalements.Count(s => s.Statut == "Traité");
-        public int SignalementsRejetes => AllSignalements.Count(s => s.Statut == "Rejeté");
+        public int TotalSignalements => AllSignalements?.Count ?? 0;
+        public int SignalementsAnnonces => AllSignalements?.Count(s => s.TypeCible == "Annonce") ?? 0;
+        public int SignalementsComptes => AllSignalements?.Count(s => s.TypeCible == "Compte") ?? 0;
+        public int SignalementsEnAttente => AllSignalements?.Count(s => s.Statut == "En attente") ?? 0;
+        public int SignalementsTraites => AllSignalements?.Count(s => s.Statut == "Traité") ?? 0;
+        public int SignalementsRejetes => AllSignalements?.Count(s => s.Statut == "Rejeté") ?? 0;
 
         public bool IsLoading { get; private set; } = true;
 
@@ -54,37 +54,16 @@ namespace BlazorAutoPulse.ViewModel
         public async Task InitializeAsync(Action refreshUI)
         {
             _refreshUI = refreshUI;
-            await LoadSignalements();
-        }
-
-        private async Task LoadSignalements()
-        {
             IsLoading = true;
             _refreshUI?.Invoke();
 
             try
             {
-                var signalements = await _signalementService.GetAllAsync();
-
-                AllSignalements = signalements.Select(s => new AdminSignalement
-                {
-                    Id = s.IdSignalement,
-                    TypeSignalement = s.LibelleTypeSignalement,
-                    TypeCible = s.IdCompteSignale.HasValue ? "Compte" : "Annonce",
-                    IdCible = s.IdCompteSignale ?? s.IdAnnonceSignale ?? 0,
-                    PseudoSignalant = s.PseudoSignalant,
-                    PseudoCible = s.IdCompteSignale.HasValue ? GetPseudoCompte(s.IdCompteSignale.Value) : null,
-                    TitreCible = s.IdAnnonceSignale ? s.LibelleAnnonceSignale : null,
-                    Description = s.DescriptionSignalement,
-                    DateSignalement = s.DateCreationSignalement,
-                    Statut = GetStatutText(s.IdEtatSignalement)
-                }).ToList();
-
-                ApplyFilters();
+                await LoadSignalements();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur chargement signalements: {ex.Message}");
+                Console.WriteLine($"Erreur InitializeAsync: {ex.Message}");
                 AllSignalements = new List<AdminSignalement>();
                 FilteredSignalements = new List<AdminSignalement>();
             }
@@ -95,25 +74,71 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        private string GetStatutText(int idEtat)
+        private async Task LoadSignalements()
         {
-            return idEtat switch
+            try
             {
-                1 => "En attente",
-                2 => "Traité",
-                3 => "Rejeté",
-                _ => "Inconnu"
-            };
-        }
+                Console.WriteLine("Début du chargement des signalements...");
 
-        private string GetPseudoCompte(int idCompte)
-        {
-            // TODO: Récupérer le vrai pseudo via le service
-            return $"Utilisateur#{idCompte}";
+                var signalements = await _signalementService.GetAllAsync();
+
+                Console.WriteLine($"Signalements récupérés: {signalements?.Count() ?? 0}");
+
+                if (signalements == null)
+                {
+                    Console.WriteLine("Aucun signalement récupéré (null)");
+                    AllSignalements = new List<AdminSignalement>();
+                    FilteredSignalements = new List<AdminSignalement>();
+                    return;
+                }
+
+                AllSignalements = signalements.Select(s =>
+                {
+                    try
+                    {
+                        return new AdminSignalement
+                        {
+                            Id = s.IdSignalement,
+                            TypeSignalement = s.LibelleTypeSignalement ?? "Type inconnu",
+                            // Si IdCompteSignale > 0, c'est un signalement de compte, sinon d'annonce
+                            TypeCible = s.IdCompteSignale > 0 ? "Compte" : "Annonce",
+                            IdCible = s.IdCompteSignale > 0 ? s.IdCompteSignale : 0,
+                            PseudoSignalant = s.PseudoSignalant ?? "Utilisateur inconnu",
+                            PseudoCible = s.IdCompteSignale > 0 ? (s.PseudoSignale ?? "Compte inconnu") : null,
+                            TitreCible = s.IdCompteSignale == 0 ? "Annonce signalée" : null,
+                            Description = s.DescriptionSignalement ?? "",
+                            DateSignalement = s.DateCreationSignalement,
+                            Statut = "En attente" // Par défaut car IdEtatSignalement n'existe pas dans SignalementDTO
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erreur mapping signalement {s.IdSignalement}: {ex.Message}");
+                        return null;
+                    }
+                })
+                .Where(s => s != null)
+                .Cast<AdminSignalement>()
+                .ToList();
+
+                Console.WriteLine($"Signalements mappés: {AllSignalements.Count}");
+
+                ApplyFilters();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur LoadSignalements: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                AllSignalements = new List<AdminSignalement>();
+                FilteredSignalements = new List<AdminSignalement>();
+            }
         }
 
         public List<AdminSignalement> GetPagedSignalements()
         {
+            if (FilteredSignalements == null || FilteredSignalements.Count == 0)
+                return new List<AdminSignalement>();
+
             return FilteredSignalements
                 .Skip((CurrentPage - 1) * ItemsPerPage)
                 .Take(ItemsPerPage)
@@ -148,7 +173,13 @@ namespace BlazorAutoPulse.ViewModel
 
         private void ApplyFilters()
         {
-            FilteredSignalements = AllSignalements;
+            if (AllSignalements == null)
+            {
+                FilteredSignalements = new List<AdminSignalement>();
+                return;
+            }
+
+            FilteredSignalements = AllSignalements.ToList();
 
             // Filtre par type
             if (FilterType != "all")
@@ -178,13 +209,15 @@ namespace BlazorAutoPulse.ViewModel
             {
                 var query = SearchQuery.ToLower();
                 FilteredSignalements = FilteredSignalements.Where(s =>
-                    s.TypeSignalement.ToLower().Contains(query) ||
-                    s.PseudoSignalant.ToLower().Contains(query) ||
+                    (s.TypeSignalement?.ToLower().Contains(query) ?? false) ||
+                    (s.PseudoSignalant?.ToLower().Contains(query) ?? false) ||
                     (s.PseudoCible?.ToLower().Contains(query) ?? false) ||
                     (s.TitreCible?.ToLower().Contains(query) ?? false) ||
                     (s.Description?.ToLower().Contains(query) ?? false)
                 ).ToList();
             }
+
+            Console.WriteLine($"Après filtres: {FilteredSignalements?.Count ?? 0} signalements");
         }
 
         public void NextPage()
@@ -270,6 +303,8 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
+                int nouvelEtat;
+
                 if (ActionType == "accept")
                 {
                     if (SelectedSignalement.TypeCible == "Annonce")
@@ -299,15 +334,22 @@ namespace BlazorAutoPulse.ViewModel
                         }
                     }
 
+                    nouvelEtat = 2; // Traité
                     SelectedSignalement.Statut = "Traité";
                 }
                 else if (ActionType == "reject")
                 {
+                    nouvelEtat = 3; // Rejeté
                     SelectedSignalement.Statut = "Rejeté";
                 }
+                else
+                {
+                    CloseActionModal();
+                    return;
+                }
 
-                // TODO: Mettre à jour le statut du signalement dans la base de données
-                // await _signalementService.UpdateEtatAsync(SelectedSignalement.Id, newEtat);
+                // Mettre à jour le statut du signalement
+                await _signalementService.UpdateEtatAsync(SelectedSignalement.Id, nouvelEtat);
 
                 CloseActionModal();
                 ApplyFilters();
