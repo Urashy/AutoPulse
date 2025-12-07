@@ -52,6 +52,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ICommandeService, CommandeWebService>();
             builder.Services.AddScoped<ISignalementService, SignalementWebService>();
             builder.Services.AddScoped<ITypeSignalementService, TypeSignalementWebService>();
+            builder.Services.AddScoped<IBloqueService, BloquerWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
