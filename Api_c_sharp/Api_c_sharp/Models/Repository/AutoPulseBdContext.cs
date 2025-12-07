@@ -353,7 +353,7 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<Signalement>()
                 .HasOne(s => s.AnnonceSignaleNav)
                 .WithMany(a => a.SignalementsRecus)
-                .HasForeignKey(s => s.IdAnnonce);
+                .HasForeignKey(s => s.IdAnnonceSignale);
 
             //-----------------------------TypeCompte-----------------------------
             modelBuilder.Entity<TypeCompte>()

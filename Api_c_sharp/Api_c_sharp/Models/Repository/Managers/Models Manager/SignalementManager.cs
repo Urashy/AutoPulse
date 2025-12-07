@@ -12,12 +12,22 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public override async Task<IEnumerable<Signalement>> GetAllAsync()
         {
-            return await dbSet.OrderBy(s => s.DateCreationSignalement).ToListAsync();
+            return await dbSet.OrderBy(s => s.DateCreationSignalement)
+                .Include(s => s.CompteSignalantNav)
+                .Include(s => s.CompteSignaleNav)
+                .Include(s => s.AnnonceSignaleNav)
+                .Include(s => s.TypeSignalementSignalementNav)
+                .Include(s => s.EtatSignalementNav).ToListAsync();
         }
 
         public virtual async Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId)
         {
-            return await dbSet.Where(s => s.IdEtatSignalement == etatId).ToListAsync();
+            return await dbSet.Where(s => s.IdEtatSignalement == etatId)
+                .Include(s => s.CompteSignalantNav)
+                .Include(s => s.CompteSignaleNav)
+                .Include(s => s.AnnonceSignaleNav)
+                .Include(s => s.TypeSignalementSignalementNav)
+                .Include(s => s.EtatSignalementNav).ToListAsync();
         }
 
         public override async Task<Signalement?> GetByIdAsync(int id)

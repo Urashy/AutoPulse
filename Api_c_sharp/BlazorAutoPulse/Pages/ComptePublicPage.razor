@@ -46,7 +46,7 @@ else
                                 <span>Envoyer un message</span>
                             </button>
 
-                            <button @onclick="() => SignalementVM.OpenModalUser(VM.comptePublic.IdCompte)"
+                            <button @onclick="() => SignalementVM.OpenModalCompte(VM.comptePublic.IdCompte)"
                                     @onmouseenter="() => VM.SetInfoOption(infoSignaler)"
                                     @onmouseleave="() => VM.SetInfoOption(null)"
                                     class="option-item">

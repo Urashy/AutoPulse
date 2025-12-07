@@ -61,7 +61,7 @@
                 <button class="btn-primary"
                         @onclick="@(genreSignalement == "annonce"
                                       ? VM.SubmitSignalement
-                                      : VM.SubmitCompteSignalement)"
+                                      : VM.SubmitSignalement)"
                         disabled="@VM.IsSubmitting">
                     @if (VM.IsSubmitting)
                     {

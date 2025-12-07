@@ -70,7 +70,7 @@ else
                             }
                             else
                             {
-                                <button @onclick="() => SignalementVM.OpenModal(VM.Annonce.IdAnnonce, VM.Annonce.IdVendeur)"
+                                <button @onclick="() => SignalementVM.OpenModalAnnonce(VM.Annonce.IdAnnonce)"
                                         @onmouseenter="() => VM.SetInfoOption(infoSignaler)"
                                         @onmouseleave="() => VM.SetInfoOption(null)"
                                         class="option-item">

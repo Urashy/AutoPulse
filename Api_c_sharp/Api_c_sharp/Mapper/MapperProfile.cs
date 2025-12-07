@@ -338,36 +338,34 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.MessageCompteNav.Pseudo)).ReverseMap();
         
         CreateMap<MessageCreateDTO, Message>().ReverseMap();
-        
+
         // ============================================
         // MAPPERS SIGNALEMENT
         // ============================================
-        
-        CreateMap<Signalement, SignalementDTO>()
-            .ForMember(dest => dest.PseudoSignalant, 
-                opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
-            .ForMember(destinationMember => destinationMember.IdCompteSignale,
-                opt => opt.MapFrom(src => src.CompteSignaleNav.IdCompte))
-            .ForMember(dest => dest.LibelleTypeSignalement, 
-                opt => opt.MapFrom(src => src.TypeSignalementSignalementNav.LibelleTypeSignalement)).ReverseMap();
 
-        CreateMap<Signalement, SignalementAnnonceDTO>()
+        CreateMap<Signalement, SignalementDTO>()
             .ForMember(dest => dest.PseudoSignalant,
                 opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
+            .ForMember(dest => dest.PseudoSignale,
+                opt => opt.MapFrom(src => src.CompteSignaleNav != null ? src.CompteSignaleNav.Pseudo : null))
             .ForMember(dest => dest.LibelleAnnonceSignale,
-                opt => opt.MapFrom(src => src.AnnonceSignaleNav != null ? src.AnnonceSignaleNav.Libelle : "Annonce supprimée"))
+                opt => opt.MapFrom(src => src.AnnonceSignaleNav != null ? src.AnnonceSignaleNav.Libelle : null))
             .ForMember(dest => dest.LibelleTypeSignalement,
                 opt => opt.MapFrom(src => src.TypeSignalementSignalementNav.LibelleTypeSignalement))
+            .ForMember(dest => dest.LibelleEtatSignalement,
+                opt => opt.MapFrom(src => src.EtatSignalementNav.LibelleEtatSignalement))
+            .ForMember(dest => dest.PseudoSignalant,
+                opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
+            .ForMember(dest => dest.IdCompteSignale,
+                opt => opt.MapFrom(src => src.IdCompteSignale))
             .ReverseMap();
 
         CreateMap<SignalementCreateDTO, Signalement>()
-            .ForMember(dest => dest.DateCreationSignalement, 
-                opt => opt.MapFrom(src => DateTime.Now)).ReverseMap();
-
-
-        CreateMap<SignalementAnnonceCreateDTO, Signalement>()
             .ForMember(dest => dest.DateCreationSignalement,
-                opt => opt.MapFrom(src => DateTime.Now)).ReverseMap();
+                opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.IdEtatSignalement,
+                opt => opt.MapFrom(src => 1)) 
+            .ReverseMap();
 
 
 

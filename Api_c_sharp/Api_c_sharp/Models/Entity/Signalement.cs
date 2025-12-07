@@ -12,9 +12,6 @@ namespace Api_c_sharp.Models.Entity
         [Column("sig_id")]
         public int IdSignalement { get; set; }
 
-        [Column("ann_id")]
-        public int? IdAnnonce { get; set; }
-
         [Column("sig_description")]
         [Required]
         public string? DescriptionSignalement { get; set; }

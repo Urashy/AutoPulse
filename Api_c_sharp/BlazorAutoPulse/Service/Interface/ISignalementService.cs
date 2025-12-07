@@ -2,10 +2,9 @@
 
 namespace BlazorAutoPulse.Service.Interface;
 
-public interface ISignalementService : IService<SignalementAnnonceCreateDTO>
+public interface ISignalementService : IService<SignalementCreateDTO>
 {
-    Task<IEnumerable<SignalementDTO>> GetAllAsync();
-    Task<bool> PostCompte(SignalementCreateDTO signalement);
+    Task<IEnumerable<SignalementDTO>> GetAllSignalementsAsync();
     Task<bool> UpdateEtatAsync(int idSignalement, int nouvelEtat);
 
 }
