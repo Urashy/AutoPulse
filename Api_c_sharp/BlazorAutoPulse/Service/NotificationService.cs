@@ -42,7 +42,8 @@ namespace BlazorAutoPulse.Service
                 Title = title,
                 Message = message,
                 Type = NotificationType.Info,
-                NavigationUrl = navigationUrl
+                NavigationUrl = navigationUrl,
+                DurationMs = 5000
             });
         }
         

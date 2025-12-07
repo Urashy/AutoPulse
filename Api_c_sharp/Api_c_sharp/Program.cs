@@ -53,6 +53,7 @@ builder.Services.AddScoped<ReinitialisationMotDePasseManager>();
 builder.Services.AddScoped<JournalManager>();
 builder.Services.AddScoped<SignalementManager>();
 builder.Services.AddScoped<TypeSignalementManager>();
+builder.Services.AddScoped<BloqueManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
