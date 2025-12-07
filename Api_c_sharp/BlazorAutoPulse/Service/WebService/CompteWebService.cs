@@ -37,6 +37,14 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
         return await response.Content.ReadFromJsonAsync<CompteDetailDTO>();
     }
 
+    public async Task<IEnumerable<CompteGetDTO>> GetByTypeCompteAsync(int idTypeCompte)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetByTypeCompte/{idTypeCompte}"));
+        var response = await SendWithCredentialsAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<IEnumerable<CompteGetDTO>>();
+    }
+
     public async Task<int?> GetTypeCompteByCompteId(int idCompte)
     {
         try
@@ -87,7 +95,6 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
         }
     }
 
-    // ✅ NOUVELLE MÉTHODE avec gestion d'erreur améliorée
     public async Task<ServiceResult<bool>> ChangementMdp(ChangementMdp changementMdp)
     {
         try

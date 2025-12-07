@@ -348,7 +348,7 @@ public class MapperProfile : Profile
         CreateMap<Signalement, SignalementDTO>()
             .ForMember(dest => dest.PseudoSignalant, 
                 opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
-            .ForMember(dest => dest.PseudoSignale, 
+            .ForMember(destinationMember => destinationMember.IdCompteSignale,
                 opt => opt.MapFrom(src => src.CompteSignaleNav.Pseudo))
             .ForMember(dest => dest.LibelleTypeSignalement, 
                 opt => opt.MapFrom(src => src.TypeSignalementSignalementNav.LibelleTypeSignalement)).ReverseMap();

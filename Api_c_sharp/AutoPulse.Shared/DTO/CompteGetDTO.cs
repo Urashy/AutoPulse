@@ -8,5 +8,6 @@ public class CompteGetDTO
     public string Prenom { get; set; }
     public string Email { get; set; }
     public string TypeCompte { get; set; }
+    public int IdTypeCompte { get; set; }
     public DateTime DateInscription { get; set; }
 }

@@ -7,5 +7,6 @@ public class SignalementDTO
     public DateTime DateCreationSignalement { get; set; }
     public string PseudoSignalant { get; set; }
     public string PseudoSignale { get; set; }
+    public int IdCompteSignale { get; set; }
     public string LibelleTypeSignalement { get; set; }
 }

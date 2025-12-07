@@ -1,5 +1,7 @@
 @page "/annonce/{IdAnnonce:int}"
 @using BlazorAutoPulse.ViewModel
+@using BlazorAutoPulse.Composant
+@inject SignalementViewModel SignalementVM
 @inject AnnonceDetailViewModel VM
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -270,6 +272,9 @@ else
                 <button class="btn-favorite @(VM.IsFavorite ? "active" : "")" @onclick="VM.ToggleFavorite">
                     @(VM.IsFavorite ? "❤ Retirer des favoris" : "🤍 Ajouter aux favoris")
                 </button>
+                <button class="btn-report" @onclick="() => SignalementVM.OpenModal(VM.Annonce.IdAnnonce, VM.Annonce.IdVendeur)">
+                    🚩 Signaler cette annonce
+                </button>
             }
             else
             {
@@ -285,6 +290,7 @@ else
                 @VM.erreurSupprimeAnnonce
             </div>
         }
+        <SignalementModal VM="@SignalementVM"/>
     </div>
 }
 
@@ -299,6 +305,7 @@ else
     {
         VM.Reset();
         await VM.InitializeAsync(IdAnnonce, StateHasChanged, JSRuntime, Navigation);
+        await SignalementVM.InitializeAsync(StateHasChanged);
     }
 
     public async ValueTask DisposeAsync()

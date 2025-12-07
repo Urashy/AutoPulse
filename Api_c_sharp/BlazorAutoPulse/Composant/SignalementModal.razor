@@ -1,0 +1,81 @@
+@using BlazorAutoPulse.ViewModel
+
+@if (VM.ShowModal)
+{
+    <div class="modal-overlay" @onclick="VM.CloseModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>🚩 Signaler cette annonce</h2>
+                <button class="modal-close" @onclick="VM.CloseModal">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="typeSignalement">Type de signalement <span class="required">*</span></label>
+                    <select id="typeSignalement"
+                            @bind="VM.SelectedTypeSignalement"
+                            class="form-control"
+                            disabled="@VM.IsSubmitting">
+                        <option value="0">-- Sélectionnez un type --</option>
+                        @foreach (var type in VM.TypesSignalement)
+                        {
+                            <option value="@type.IdTypeSignalement">@type.LibelleTypeSignalement</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">
+                        Description
+                        @if (VM.IsDescriptionRequired)
+                        {
+                            <span class="required">*</span>
+                        }
+                    </label>
+                    <textarea id="description"
+                              @bind="VM.Description"
+                              class="form-control"
+                              rows="5"
+                              placeholder="Décrivez le problème rencontré..."
+                              disabled="@VM.IsSubmitting"></textarea>
+                    @if (VM.IsDescriptionRequired)
+                    {
+                        <small class="form-hint">La description est obligatoire pour ce type de signalement</small>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(VM.ErrorMessage))
+                {
+                    <div class="error-message">
+                        ⚠️ @VM.ErrorMessage
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary"
+                        @onclick="VM.CloseModal"
+                        disabled="@VM.IsSubmitting">
+                    Annuler
+                </button>
+                <button class="btn-primary"
+                        @onclick="VM.SubmitSignalement"
+                        disabled="@VM.IsSubmitting">
+                    @if (VM.IsSubmitting)
+                    {
+                        <span>Envoi en cours...</span>
+                    }
+                    else
+                    {
+                        <span>Envoyer le signalement</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public required SignalementViewModel VM { get; set; }
+}
