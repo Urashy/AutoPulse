@@ -156,7 +156,7 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<Bloque>()
                 .HasOne(b => b.CompteBloquantNav)
                 .WithMany(c => c.ComptesBloquants)
-                .HasForeignKey(b => b.IdBloque);
+                .HasForeignKey(b => b.IdBloquant);
 
             //-----------------------------BoiteDeVitesse-----------------------------
             modelBuilder.Entity<BoiteDeVitesse>()
