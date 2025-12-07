@@ -27,12 +27,63 @@ else if (VM.Annonce == null)
 else
 {
     <div class="detail-container">
-        <!-- En-tête avec retour -->
+        <!-- En-tête avec retour et menu options -->
         <div class="header-nav">
             <button @onclick="() => Navigation.NavigateTo('/'.ToString())" class="btn-back">← Retour</button>
-            <button @onclick="VM.ToggleViewer3D" class="btn-3d">
-                @(VM.show3DViewer ? "🖼️ Voir les photos" : "🎨 Visualiseur 3D")
-            </button>
+            
+            <div class="header-actions">
+                <button @onclick="VM.ToggleViewer3D" class="btn-3d">
+                    @(VM.show3DViewer ? "🖼️ Voir les photos" : "🎨 Visualiseur 3D")
+                </button>
+
+                <!-- Menu d'options -->
+                <div class="options-menu">
+                    <button @onclick="VM.ToggleOptionsMenu" class="btn-options">
+                        <span class="menu-icon">⚙️</span>
+                    </button>
+                    
+                    @if (VM.IsOptionsMenuOpen)
+                    {
+                        <div class="options-dropdown">
+                            @if (VM.CurrentUserId == VM.Annonce.IdVendeur)
+                            {
+                                <button @onclick="VM.MasquerAnnonce"
+                                        @onmouseenter="() => VM.SetInfoOption(infoMasquer)"
+                                        @onmouseleave="() => VM.SetInfoOption(null)"
+                                        class="option-item">
+                                    <span class="option-icon">👁️</span>
+                                    <span>Masquer l'annonce</span>
+                                </button>
+
+                                <button @onclick="VM.SupprimerAnnonce"
+                                        @onmouseenter="() => VM.SetInfoOption(infoSupprimer)"
+                                        @onmouseleave="() => VM.SetInfoOption(null)"
+                                        class="option-item danger">
+                                    <span class="option-icon">🗑️</span>
+                                    <span>Supprimer l'annonce</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <button @onclick="VM.SignalerAnnonce"
+                                        @onmouseenter="() => VM.SetInfoOption(infoSignaler)"
+                                        @onmouseleave="() => VM.SetInfoOption(null)"
+                                        class="option-item">
+                                    <span class="option-icon">⚠️</span>
+                                    <span>Signaler l'annonce</span>
+                                </button>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(VM.infoOptionAnnonce))
+                            {
+                                <div class="option-info">
+                                    @VM.infoOptionAnnonce
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
 
         <!-- Visualiseur 3D (optionnel) -->
@@ -231,11 +282,8 @@ else
                     🤍 Connectez-vous pour ajouter aux favoris
                 </button>
             }
-            @if (VM.CurrentUserId == VM.Annonce.IdVendeur)
-            {
-                <button @onclick="VM.SupprimerAnnonce" class="btn-supprimer">Supprimer l'annonce</button>
-            }
         </div>
+        
         @if (!string.IsNullOrEmpty(VM.erreurSupprimeAnnonce))
         {
             <div class="error-message-box">
@@ -249,6 +297,9 @@ else
 @code {
     [Parameter]
     public int IdAnnonce { get; set; }
+    private string infoMasquer = "Masquer temporairement votre annonce sans la supprimer";
+    private string infoSupprimer = "Supprimer définitivement votre annonce";
+    private string infoSignaler = "Signaler cette annonce pour contenu inapproprié ou frauduleux";
 
     protected override async Task OnInitializedAsync()
     {
