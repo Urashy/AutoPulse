@@ -3,7 +3,7 @@ using BlazorAutoPulse.Model;
 
 namespace BlazorAutoPulse.Service.Interface;
 
-public interface ICompteService: IService<Compte>
+public interface ICompteService: IService<CompteDetailDTO>
 {
     Task<Compte> GetByNameAsync(string name);
     Task<CompteDetailDTO> GetMe();
@@ -13,6 +13,5 @@ public interface ICompteService: IService<Compte>
     Task<bool> PutTypeCompte(int idCompte, CompteModifTypeCompteDTO compte);
     new Task<IEnumerable<CompteGetDTO>> GetAllAsync();
     Task<IEnumerable<CompteGetDTO>> GetByTypeCompteAsync(int idTypeCompte);
-
-
+    Task<CompteProfilPublicDTO> GetComptePublicById(int id);
 }

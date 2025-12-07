@@ -38,7 +38,7 @@ else
 
                 <!-- Menu d'options -->
                 <div class="options-menu">
-                    <button @onclick="VM.ToggleOptionsMenu" class="btn-options">
+                    <button @onclick="VM.ToggleOptionsMenu" class="btn-options" @onmouseleave="() => { if (VM.IsOptionsMenuOpen) VM.ToggleOptionsMenu(); }">
                         <span class="menu-icon">⚙️</span>
                     </button>
                     
@@ -65,7 +65,7 @@ else
                             }
                             else
                             {
-                                <button @onclick="VM.SignalerAnnonce"
+                                <button @onclick="() => SignalementVM.OpenModal(VM.Annonce.IdAnnonce, VM.Annonce.IdVendeur)"
                                         @onmouseenter="() => VM.SetInfoOption(infoSignaler)"
                                         @onmouseleave="() => VM.SetInfoOption(null)"
                                         class="option-item">
@@ -271,9 +271,6 @@ else
             {
                 <button class="btn-favorite @(VM.IsFavorite ? "active" : "")" @onclick="VM.ToggleFavorite">
                     @(VM.IsFavorite ? "❤ Retirer des favoris" : "🤍 Ajouter aux favoris")
-                </button>
-                <button class="btn-report" @onclick="() => SignalementVM.OpenModal(VM.Annonce.IdAnnonce, VM.Annonce.IdVendeur)">
-                    🚩 Signaler cette annonce
                 </button>
             }
             else

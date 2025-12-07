@@ -17,10 +17,9 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IAvisService _avisService;
         private readonly ICommandeService _commandeService;
         private readonly NotificationService _notificationService;
-        public NavigationManager _nav { get; set; }
 
         public CompteDetailDTO compte;
-        public Compte compteEdit;
+        public CompteDetailDTO compteEdit;
         public IEnumerable<AnnonceDTO> annonces;
         public IEnumerable<AdresseDTO> adresses;
         public IEnumerable<AvisListDTO> avis;
@@ -53,6 +52,7 @@ namespace BlazorAutoPulse.ViewModel
         public string? erreurChangeTypeCompte = null;
         
         private Action? _refreshUI;
+        public NavigationManager _nav { get; set; }
 
         public CompteViewModel(ICompteService compteService, 
                                IPostImageService postImageService, 
@@ -94,7 +94,7 @@ namespace BlazorAutoPulse.ViewModel
             
             await GetImageProfil(compte.IdCompte);
             
-            compteEdit = new Compte
+            compteEdit = new CompteDetailDTO
             {
                 IdCompte = compte.IdCompte,
                 Pseudo = compte.Pseudo,
@@ -106,7 +106,6 @@ namespace BlazorAutoPulse.ViewModel
                 IdTypeCompte = compte.IdTypeCompte,
                 NumeroSiret = compte.NumeroSiret ?? "",
                 RaisonSociale = compte.RaisonSociale ?? "",
-                IdImage = idImage,
             };
 
             try
@@ -449,7 +448,7 @@ namespace BlazorAutoPulse.ViewModel
             if (reussite)
             {
                 compte = await _compteService.GetMe();
-                compteEdit = new Compte
+                compteEdit = new CompteDetailDTO
                 {
                     IdCompte = compte.IdCompte,
                     Pseudo = compte.Pseudo,
@@ -461,7 +460,6 @@ namespace BlazorAutoPulse.ViewModel
                     IdTypeCompte = compte.IdTypeCompte,
                     NumeroSiret = compte.NumeroSiret ?? "",
                     RaisonSociale = compte.RaisonSociale ?? "",
-                    IdImage = idImage,
                 };
                 
                 if (compte.IdTypeCompte == 2)

@@ -22,7 +22,7 @@ namespace BlazorAutoPulse
 
             //----------------------- Service de base
             builder.Services.AddScoped<IService<Marque>, MarqueWebService>();
-            builder.Services.AddScoped<IService<Compte>, CompteWebService>();
+            builder.Services.AddScoped<IService<CompteDetailDTO>, CompteWebService>();
             builder.Services.AddScoped<IService<Carburant>, CarburantWebService>();
             builder.Services.AddScoped<IService<Categorie>, CategorieWebService>();
             builder.Services.AddScoped<IService<BoiteDeVitesse>, BoiteVitesseWebService>();
@@ -72,6 +72,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<AdminAnnoncesViewModel>();
             builder.Services.AddScoped<ToastViewModel>();
             builder.Services.AddScoped<SignalementViewModel>();
+            builder.Services.AddScoped<ComptePublicViewModel>();
 
 
             builder.Services.AddTransient<AnnonceComposantViewModel>();
