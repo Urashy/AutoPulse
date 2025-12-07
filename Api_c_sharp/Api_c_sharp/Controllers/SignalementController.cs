@@ -75,8 +75,10 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper,
             return BadRequest(ModelState);
 
 
-
         var entity = _mapper.Map<Signalement>(dto);
+
+        entity.IdCompteSignale = null;
+
         await _journalService.LogSignalementAsync(dto.IdCompteSignalant, dto.IdAnnonceSignale, dto.IdSignalement, dto.IdTypeSignalement, dto.DescriptionSignalement);
 
         entity.DateCreationSignalement = DateTime.UtcNow;

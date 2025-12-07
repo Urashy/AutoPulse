@@ -130,7 +130,7 @@ public class SignalementViewModel
                 DescriptionSignalement = Description ?? string.Empty
             };
 
-            var result = await _signalementService.PostWithErrorHandlingAsync(signalement);
+            var result = await _signalementService.PostWithErrorHandlingAsync(signalement, "PostSignalementAnnonce");
 
             if (result.Success)
             {
