@@ -25,9 +25,9 @@ namespace BlazorAutoPulse.ViewModel
         public int TotalSignalements => AllSignalements?.Count ?? 0;
         public int SignalementsAnnonces => AllSignalements?.Count(s => s.TypeCible == "Annonce") ?? 0;
         public int SignalementsComptes => AllSignalements?.Count(s => s.TypeCible == "Compte") ?? 0;
-        public int SignalementsEnAttente => AllSignalements?.Count(s => s.Statut == "En attente") ?? 0;
-        public int SignalementsTraites => AllSignalements?.Count(s => s.Statut == "Traité") ?? 0;
-        public int SignalementsRejetes => AllSignalements?.Count(s => s.Statut == "Rejeté") ?? 0;
+        public int SignalementsEnAttente => AllSignalements?.Count(s => s.IdStatut == 1) ?? 0; // MODIFIÉ
+        public int SignalementsTraites => AllSignalements?.Count(s => s.IdStatut == 2) ?? 0; // MODIFIÉ
+        public int SignalementsRejetes => AllSignalements?.Count(s => s.IdStatut == 3) ?? 0; // MODIFIÉ
 
         public bool IsLoading { get; private set; } = true;
 
@@ -97,13 +97,11 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     try
                     {
-                        // Mapping avec le nouveau SignalementDTO unifié
                         return new AdminSignalement
                         {
                             Id = s.IdSignalement,
                             TypeSignalement = s.LibelleTypeSignalement ?? "Type inconnu",
 
-                            // TypeCible est maintenant une propriété calculée dans le DTO
                             TypeCible = s.TypeCible,
 
                             // IdCible dépend du type
@@ -119,8 +117,11 @@ namespace BlazorAutoPulse.ViewModel
                             Description = s.DescriptionSignalement ?? "",
                             DateSignalement = s.DateCreationSignalement,
 
+
                             // Statut depuis le DTO
-                            Statut = s.LibelleEtatSignalement ?? "En attente"
+                            Statut = s.LibelleEtatSignalement ?? "En attente",
+
+                            IdStatut = s.IdEtatSignalement
                         };
                     }
                     catch (Exception ex)
@@ -197,10 +198,11 @@ namespace BlazorAutoPulse.ViewModel
             // Filtre par type
             if (FilterType != "all")
             {
-                FilteredSignalements = FilterType switch
+                FilteredSignalements = FilterStatus switch
                 {
-                    "annonce" => FilteredSignalements.Where(s => s.TypeCible == "Annonce").ToList(),
-                    "compte" => FilteredSignalements.Where(s => s.TypeCible == "Compte").ToList(),
+                    "pending" => FilteredSignalements.Where(s => s.IdStatut == 1).ToList(), 
+                    "resolved" => FilteredSignalements.Where(s => s.IdStatut == 2).ToList(), 
+                    "rejected" => FilteredSignalements.Where(s => s.IdStatut == 3).ToList(), 
                     _ => FilteredSignalements
                 };
             }
@@ -329,11 +331,10 @@ namespace BlazorAutoPulse.ViewModel
                         }
                         else if (SelectedAction == "suspend")
                         {
-                            // TODO: Implémenter la suspension d'annonce
                             Console.WriteLine($"Annonce {SelectedSignalement.IdCible} suspendue");
                         }
                     }
-                    else // Compte
+                    else
                     {
                         if (SelectedAction == "anonymize")
                         {
@@ -349,11 +350,13 @@ namespace BlazorAutoPulse.ViewModel
 
                     nouvelEtat = 2; // Traité
                     SelectedSignalement.Statut = "Traité";
+                    SelectedSignalement.IdStatut = 2; 
                 }
                 else if (ActionType == "reject")
                 {
-                    nouvelEtat = 3; // Rejeté
+                    nouvelEtat = 3;
                     SelectedSignalement.Statut = "Rejeté";
+                    SelectedSignalement.IdStatut = 3; 
                 }
                 else
                 {
@@ -399,5 +402,6 @@ namespace BlazorAutoPulse.ViewModel
         public string? Description { get; set; }
         public DateTime DateSignalement { get; set; }
         public string Statut { get; set; } = ""; // "En attente", "Traité", "Rejeté"
+        public int IdStatut { get; set; } // NOUVELLE PROPRIÉTÉ POUR ID
     }
 }
