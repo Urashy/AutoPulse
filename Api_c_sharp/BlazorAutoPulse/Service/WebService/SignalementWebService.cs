@@ -41,4 +41,32 @@ public class SignalementWebService : BaseWebService<SignalementAnnonceCreateDTO>
             return false;
         }
     }
+    public async Task<bool> UpdateEtatAsync(int idSignalement, int nouvelEtat)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(
+                HttpMethod.Put,
+                BuildUrl($"UpdateEtat/{idSignalement}/{nouvelEtat}")
+            );
+
+            var response = await SendWithCredentialsAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Erreur UpdateEtat : {error}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception UpdateEtatAsync : {ex.Message}");
+            return false;
+        }
+    }
 }

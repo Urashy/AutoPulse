@@ -74,7 +74,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ToastViewModel>();
             builder.Services.AddScoped<SignalementViewModel>();
             builder.Services.AddScoped<ComptePublicViewModel>();
-
+            builder.Services.AddScoped<AdminSignalementsViewModel>();
             builder.Services.AddTransient<AnnonceComposantViewModel>();
             
             //----------------------- Singleton

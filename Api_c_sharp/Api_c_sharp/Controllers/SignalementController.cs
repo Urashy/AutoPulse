@@ -204,7 +204,7 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper,
     /// Met à jour l'état d'un signalement
     /// </summary>
     /// <param name="idSignalement">ID du signalement</param>
-    /// <param name="nouvelEtat">Nouvel état (1=En attente, 2=Résolu, 3=Rejeté)</param>
+    /// <param name="nouvelEtat">Nouvel état (1=En attente, 2=Traité, 3=Rejeté)</param>
     [ActionName("UpdateEtat")]
     [HttpPut("{idSignalement}/{nouvelEtat}")]
     public async Task<ActionResult> UpdateEtat(int idSignalement, int nouvelEtat)
@@ -216,7 +216,7 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper,
 
         // Valider que le nouvel état est valide
         if (nouvelEtat < 1 || nouvelEtat > 3)
-            return BadRequest("État invalide. Doit être 1 (En attente), 2 (Résolu) ou 3 (Rejeté)");
+            return BadRequest("État invalide. Doit être 1 (En attente), 2 (Traité) ou 3 (Rejeté)");
 
         signalement.IdEtatSignalement = nouvelEtat;
 
