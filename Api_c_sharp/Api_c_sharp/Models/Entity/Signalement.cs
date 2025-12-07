@@ -52,6 +52,10 @@ namespace Api_c_sharp.Models.Entity
         [InverseProperty(nameof(Compte.SignalementsRecus))]
         public virtual Compte CompteSignaleNav { get; set; } = null!;
 
+        [ForeignKey(nameof(IdAnnonceSignale))]
+        [InverseProperty(nameof(Annonce.SignalementsRecus))]
+        public virtual Annonce AnnonceSignaleNav { get; set; } = null!;
+
         [ForeignKey(nameof(IdTypeSignalement))]
         [InverseProperty(nameof(TypeSignalement.Signalements))]
         public virtual TypeSignalement TypeSignalementSignalementNav { get; set; } = null!;

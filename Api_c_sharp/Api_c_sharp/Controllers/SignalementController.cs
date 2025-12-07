@@ -83,7 +83,9 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper,
 
         await _manager.AddAsync(entity);
 
-        return CreatedAtAction(nameof(GetByID), new { id = entity.IdSignalement }, entity);
+        var signalementComplet = await _manager.GetByIdAsync(entity.IdSignalement);
+
+        return CreatedAtAction(nameof(GetByID), new { id = entity.IdSignalement }, _mapper.Map<SignalementAnnonceDTO>(signalementComplet));
     }
 
     /// <summary>
