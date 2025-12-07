@@ -10,11 +10,13 @@ public class ComptePublicViewModel
 {
     // Service
     private readonly ICompteService _compteService;
+    private readonly IBloqueService _bloqueService;
     private readonly NotificationService _notificationService;
     private readonly IImageService _imageService;
     
     // Modele
-    public CompteProfilPublicDTO compte { get; set; }
+    public CompteProfilPublicDTO comptePublic { get; set; }
+    public CompteDetailDTO compte  { get; set; }
     
     public bool isLoading = true;
     
@@ -32,16 +34,21 @@ public class ComptePublicViewModel
     public IEnumerable<AnnonceDTO> annonces;
     public IEnumerable<AvisListDTO> avis;
     
+    // Bloquer
+    public bool EstBloque { get; set; }
+    
     // Variable d'action
     private Action? _refreshUI;
     public NavigationManager _nav { get; set; }
 
     public ComptePublicViewModel(
         ICompteService compteService,
+        IBloqueService bloqueService,
         NotificationService notificationService,
         IImageService imageService)
     {
         _compteService = compteService;
+        _bloqueService = bloqueService;
         _notificationService = notificationService;
         _imageService = imageService;
     }
@@ -52,14 +59,18 @@ public class ComptePublicViewModel
 
         try
         {
-            compte = await _compteService.GetComptePublicById(idCompte);
-            await GetImageProfil(compte.IdCompte);
+            comptePublic = await _compteService.GetComptePublicById(idCompte);
+            await GetImageProfil(comptePublic.IdCompte);
+
+            compte = await _compteService.GetMe();
             isLoading = false;
         }
         catch
         {
             RedirectionAccueil();
         }
+
+        ABloquer();
         _refreshUI?.Invoke();
     }
     
@@ -112,9 +123,52 @@ public class ComptePublicViewModel
         
     }
 
-    public async Task SignalerUtilisateur()
+    public async Task BloquerUtilisateur()
     {
-        
+        BloqueDTO bloque = new BloqueDTO()
+        {
+            IdBloque = comptePublic.IdCompte,
+            IdBloquant = compte.IdCompte
+        };
+
+        try
+        {
+            _bloqueService.PostWithErrorHandlingAsync(bloque);
+            _notificationService.ShowSuccess(
+                "Bloquer",
+                "L'utilisateur à bien été bloquer");
+        }
+        catch (Exception ex)
+        {
+            _notificationService.ShowError(
+                "Bloquer",
+                $"L'utilisateur n'a pas pu être bloquer ({ex.Message})");
+        }
+        _refreshUI?.Invoke();
+    }
+
+    public async Task DebloquerUtilisateur()
+    {
+        try
+        {
+            _bloqueService.DeleteBloque(compte.IdCompte, comptePublic.IdCompte);
+            _notificationService.ShowSuccess(
+                "Bloquer",
+                "L'utilisateur à été bloquer");
+        }
+        catch (Exception e)
+        {
+            _notificationService.ShowError(
+                "Erreur bloquer",
+                $"{e.Message}");
+        }
+        _refreshUI?.Invoke();
+    }
+
+    public async Task ABloquer()
+    {
+        EstBloque = await _bloqueService.ABloque(compte.IdCompte,  comptePublic.IdCompte);
+        _refreshUI?.Invoke();
     }
     
     public void SetActiveSection(string section)

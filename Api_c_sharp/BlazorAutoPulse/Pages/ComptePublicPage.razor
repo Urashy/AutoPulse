@@ -4,7 +4,7 @@
 @inject SignalementViewModel SignalementVM
 @inject NavigationManager Navigation
 
-<PageTitle>@(VM.compte?.Pseudo ?? "Profil utilisateur") - AutoPulse</PageTitle>
+<PageTitle>@(VM.comptePublic?.Pseudo ?? "Profil utilisateur") - AutoPulse</PageTitle>
 
 @if (VM.isLoading)
 {
@@ -13,7 +13,7 @@
         <p>Chargement du profil...</p>
     </div>
 }
-else if (VM.compte == null)
+else if (VM.comptePublic == null)
 {
     <div class="error-container">
         <h2>Utilisateur introuvable</h2>
@@ -46,13 +46,34 @@ else
                                 <span>Envoyer un message</span>
                             </button>
 
-                            <button @onclick="() => SignalementVM.OpenModalUser(VM.compte.IdCompte)"
+                            <button @onclick="() => SignalementVM.OpenModalUser(VM.comptePublic.IdCompte)"
                                     @onmouseenter="() => VM.SetInfoOption(infoSignaler)"
                                     @onmouseleave="() => VM.SetInfoOption(null)"
                                     class="option-item">
                                 <span class="option-icon">⚠️</span>
                                 <span>Signaler l'utilisateur</span>
                             </button>
+
+                            @if (!VM.EstBloque)
+                            {
+                                <button @onclick="VM.BloquerUtilisateur"
+                                        @onmouseenter="() => VM.SetInfoOption(infoBloquer)"
+                                        @onmouseleave="() => VM.SetInfoOption(null)"
+                                        class="option-item">
+                                    <span class="option-icon">❗️</span>
+                                    <span>Bloquer l'utilisateur</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <button @onclick="VM.DebloquerUtilisateur"
+                                        @onmouseenter="() => VM.SetInfoOption(infoDebloquer)"
+                                        @onmouseleave="() => VM.SetInfoOption(null)"
+                                        class="option-item">
+                                    <span class="option-icon">❗</span>
+                                    <span>Déloquer l'utilisateur</span>
+                                </button>
+                            }
                             
                             @if (!string.IsNullOrEmpty(VM.infoOption))
                             {
@@ -77,10 +98,10 @@ else
             <div class="profile-info">
                 <div class="user-header">
                     <div>
-                        <h1 class="user-pseudo">@VM.compte.Pseudo</h1>
-                        <p class="user-type">@VM.compte.TypeCompte</p>
+                        <h1 class="user-pseudo">@VM.comptePublic.Pseudo</h1>
+                        <p class="user-type">@VM.comptePublic.TypeCompte</p>
                     </div>
-                    @if (VM.compte.IdTypeCompte == 2)
+                    @if (VM.comptePublic.IdTypeCompte == 2)
                     {
                         <div class="pro-badge">
                             <span class="badge-icon">💼</span>
@@ -92,33 +113,33 @@ else
                 <div class="info-grid">
                     <div class="info-item bio-item">
                         <span class="info-label">📝 Biographie</span>
-                        @if (!string.IsNullOrEmpty(VM.compte.Biographie))
+                        @if (!string.IsNullOrEmpty(VM.comptePublic.Biographie))
                         {
-                            <span class="info-value">@VM.compte.Biographie</span>
+                            <span class="info-value">@VM.comptePublic.Biographie</span>
                         }
                     </div>
-                    @if (VM.compte.IdTypeCompte == 2 && !string.IsNullOrEmpty(VM.compte.RaisonSociale))
+                    @if (VM.comptePublic.IdTypeCompte == 2 && !string.IsNullOrEmpty(VM.comptePublic.RaisonSociale))
                     {
                         <div class="info-item">
                             <span class="info-label">🏢 Raison sociale</span>
-                            <span class="info-value">@VM.compte.RaisonSociale</span>
+                            <span class="info-value">@VM.comptePublic.RaisonSociale</span>
                         </div>
                     }
                 </div>
 
                 <div class="profile-stats">
                     <div class="stat-item">
-                        <span class="stat-value">@VM.compte.NombreAnnonces</span>
+                        <span class="stat-value">@VM.comptePublic.NombreAnnonces</span>
                         <span class="stat-label">Annonces</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-value">@VM.compte.NombreAvis</span>
+                        <span class="stat-value">@VM.comptePublic.NombreAvis</span>
                         <span class="stat-label">Avis</span>
                     </div>
-                    @if (VM.compte.NoteMoyenne != null)
+                    @if (VM.comptePublic.NoteMoyenne != null)
                     {
                         <div class="stat-item">
-                            <span class="stat-value">@VM.compte.NoteMoyenne ⭐</span>
+                            <span class="stat-value">@VM.comptePublic.NoteMoyenne ⭐</span>
                             <span class="stat-label">Note moyenne</span>
                         </div>
                     }
@@ -131,11 +152,11 @@ else
             <nav class="account-navbar">
                 <button class="nav-item @(VM.activeSection == "annonces" ? "active" : "")"
                         @onclick="@(() => VM.SetActiveSection("annonces"))">
-                    📋 Annonces (@VM.compte.NombreAnnonces)
+                    📋 Annonces (@VM.comptePublic.NombreAnnonces)
                 </button>
                 <button class="nav-item @(VM.activeSection == "avis" ? "active" : "")"
                         @onclick="@(() => VM.SetActiveSection("avis"))">
-                    ⭐ Avis (@VM.compte.NombreAvis)
+                    ⭐ Avis (@VM.comptePublic.NombreAvis)
                 </button>
             </nav>
 
@@ -188,6 +209,8 @@ else
 
     private string infoMessage = "Envoyer un message privé à cet utilisateur";
     private string infoSignaler = "Signaler cet utilisateur pour comportement inapproprié";
+    private string infoBloquer = "Bloquer cet utilisateur pour ne plus voir ses annonces";
+    private string infoDebloquer = "Débloquer cet utilisateur pour revoir ses annonces";
 
     protected override async Task OnInitializedAsync()
     {
