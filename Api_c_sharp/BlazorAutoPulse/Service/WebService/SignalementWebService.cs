@@ -4,7 +4,7 @@ using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service.WebService;
 
-public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISignalementService
+public class SignalementWebService : BaseWebService<SignalementAnnonceCreateDTO>, ISignalementService
 {
     public SignalementWebService(HttpClient httpClient) : base(httpClient)
     {

@@ -19,5 +19,16 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             return await dbSet.Where(s => s.IdEtatSignalement == etatId).ToListAsync();
         }
+
+        public override async Task<Signalement?> GetByIdAsync(int id)
+        {
+            return await dbSet
+                .Include(s => s.CompteSignalantNav)
+                .Include(s => s.CompteSignaleNav) 
+                .Include(s => s.AnnonceSignaleNav) 
+                .Include(s => s.TypeSignalementSignalementNav)
+                .Include(s => s.EtatSignalementNav)
+                .FirstOrDefaultAsync(s => s.IdSignalement == id);
+        }
     }
 }

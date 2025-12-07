@@ -122,15 +122,15 @@ public class SignalementViewModel
 
         try
         {
-            var signalement = new SignalementCreateDTO
+            var signalement = new SignalementAnnonceCreateDTO
             {
                 IdCompteSignalant = _currentUserId.Value,
-                IdCompteSignale = _compteSignaleId,
+                IdAnnonceSignale = _annonceId,
                 IdTypeSignalement = SelectedTypeSignalement,
-                DescriptionSignalement = Description
+                DescriptionSignalement = Description ?? string.Empty
             };
 
-            var result = await _signalementService.PostWithErrorHandlingAsync(signalement);
+            var result = await _signalementService.PostWithErrorHandlingAsync(signalement, "PostSignalementAnnonce");
 
             if (result.Success)
             {

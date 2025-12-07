@@ -56,6 +56,42 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper,
         return new ActionResult<IEnumerable<SignalementDTO>>(_mapper.Map<IEnumerable<SignalementDTO>>(list));
     }
 
+
+    /// <summary>
+    /// Crée une nouveau signalements.
+    /// </summary>
+    /// <param name="dto">Objet <see cref="SignalementCreateDTO"/> contenant les informations de la signalement à créer.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="CreatedAtActionResult"/> avec la signalement créée (201).</description></item>
+    /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("PostSignalementAnnonce")]
+    [HttpPost]
+    public async Task<ActionResult<SignalementAnnonceCreateDTO>> PostSignalementAnnonce([FromBody] SignalementAnnonceCreateDTO dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+
+        var entity = _mapper.Map<Signalement>(dto);
+
+        entity.IdCompteSignale = null;
+
+        await _journalService.LogSignalementAsync(dto.IdCompteSignalant, dto.IdAnnonceSignale, dto.IdSignalement, dto.IdTypeSignalement, dto.DescriptionSignalement);
+
+        entity.DateCreationSignalement = DateTime.UtcNow;
+
+        entity.IdEtatSignalement = 1;
+
+        await _manager.AddAsync(entity);
+
+        var signalementComplet = await _manager.GetByIdAsync(entity.IdSignalement);
+
+        return CreatedAtAction(nameof(GetByID), new { id = entity.IdSignalement }, _mapper.Map<SignalementAnnonceDTO>(signalementComplet));
+    }
+
     /// <summary>
     /// Crée une nouveau signalements.
     /// </summary>

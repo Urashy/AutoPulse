@@ -77,4 +77,7 @@ public class Annonce
 
     [InverseProperty(nameof(Vue.AnnonceVueNav))]
     public virtual ICollection<Vue> Vues { get; set; } = new List<Vue>();
+
+    [InverseProperty(nameof(Signalement.AnnonceSignaleNav))]
+    public virtual ICollection<Signalement> SignalementsRecus { get; set; } = new List<Signalement>();
 }
