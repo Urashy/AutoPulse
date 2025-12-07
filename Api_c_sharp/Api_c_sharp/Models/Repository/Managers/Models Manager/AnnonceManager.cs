@@ -153,14 +153,15 @@ namespace Api_c_sharp.Models.Repository.Managers
                 .ToListAsync();
         }
 
-        public override async Task DeleteAsync(Annonce entity)
+        public override async Task<bool> DeleteAsync(Annonce entity)
         {
             Commande commandes = await context.Commandes.FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
 
             if (commandes != null)
-                throw new InvalidOperationException("Impossible de supprimer une annonce deja commander.");
+                return false;
             else
                 await base.DeleteAsync(entity);
+            return true;
         }
     }
 }
