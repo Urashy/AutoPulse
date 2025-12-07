@@ -2,6 +2,7 @@
 @layout AdminLayout
 @using BlazorAutoPulse.ViewModel
 @inject AdminDashboardViewModel VM
+@inject NavigationManager Navigation
 
 <PageTitle>Tableau de bord Admin - AutoPulse</PageTitle>
 
@@ -73,19 +74,19 @@
         <div class="quick-actions">
             <h2>⚡ Actions rapides</h2>
             <div class="actions-grid">
-                <button class="action-btn" @onclick="@(() => NavigateTo("utilisateurs"))">
+                <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/utilisateurs")'>
                     <span class="action-icon">👤</span>
                     <span>Gérer utilisateurs</span>
                 </button>
-                <button class="action-btn" @onclick="@(() => NavigateTo("annonces"))">
+                <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/annonces")'>
                     <span class="action-icon">🚗</span>
                     <span>Gérer annonces</span>
                 </button>
-                <button class="action-btn" @onclick="@(() => NavigateTo("signalements"))">
+                <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/signalements")'>
                     <span class="action-icon">🚩</span>
                     <span>Voir signalements</span>
                 </button>
-                <button class="action-btn" @onclick="@(() => NavigateTo("statistiques"))">
+                <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/statistiques")'>
                     <span class="action-icon">📊</span>
                     <span>Statistiques</span>
                 </button>
@@ -98,10 +99,5 @@
     protected override async Task OnInitializedAsync()
     {
         await VM.InitializeAsync(StateHasChanged);
-    }
-
-    private void NavigateTo(string section)
-    {
-        
     }
 }

@@ -1,0 +1,43 @@
+@using BlazorAutoPulse.Model
+@using BlazorAutoPulse.ViewModel
+@inject ToastViewModel VM
+
+<div class="toast-wrapper">
+    @foreach (var notification in VM.ActiveNotifications)
+    {
+        <div class="toast-item toast-@notification.Type.ToString().ToLower() @VM.GetAnimationClass(notification)"
+             @key="notification.Id">
+
+            <div class="toast-main" @onclick="() => VM.HandleClick(notification)">
+                <div class="toast-icon-box">
+                    <span class="toast-emoji">@VM.GetIcon(notification.Type)</span>
+                </div>
+
+                <div class="toast-text">
+                    <div class="toast-header">@notification.Title</div>
+                    <div class="toast-desc">@notification.Message</div>
+                </div>
+
+                <button class="toast-btn-close"
+                        @onclick:stopPropagation="true"
+                        @onclick="() => VM.RemoveNotification(notification)">
+                    ✕
+                </button>
+            </div>
+
+            <div class="toast-bar"></div>
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        VM.Attach(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        VM.Detach();
+    }
+}

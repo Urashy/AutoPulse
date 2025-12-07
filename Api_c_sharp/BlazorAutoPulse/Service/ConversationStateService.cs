@@ -1,5 +1,6 @@
 using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
+using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
 using Microsoft.AspNetCore.Components;
@@ -14,6 +15,7 @@ public class ConversationStateService : IDisposable
     private readonly ICompteService _compteService;
     private readonly NavigationManager _navigation;
     private readonly IImageService _imageService;
+    private readonly NotificationService _notificationService;
 
     private bool _isInitialized = false;
     private bool _isInitializing = false;
@@ -23,7 +25,6 @@ public class ConversationStateService : IDisposable
     public bool IsLoading { get; private set; } = true;
     public Dictionary<int, string> ImageSources { get; private set; } = new();
 
-    // ✅ Event qui notifie tous les abonnés
     public event Action? OnStateChanged;
 
     public ConversationStateService(
@@ -32,6 +33,7 @@ public class ConversationStateService : IDisposable
         IMessageService msgService,
         ICompteService compteService,
         IImageService imageService,
+        NotificationService notificationService,
         NavigationManager nav)
     {
         _signalR = signalR;
@@ -39,6 +41,7 @@ public class ConversationStateService : IDisposable
         _messageService = msgService;
         _compteService = compteService;
         _imageService = imageService;
+        _notificationService = notificationService;
         _navigation = nav;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
@@ -75,6 +78,9 @@ public class ConversationStateService : IDisposable
 
             var compteDetail = await _compteService.GetMe();
             CurrentUserId = compteDetail.IdCompte;
+            
+            _notificationService.SetCurrentUserId(CurrentUserId);
+            
             Console.WriteLine($"✓ Utilisateur courant: {CurrentUserId}");
 
             await LoadConversations();
@@ -111,7 +117,7 @@ public class ConversationStateService : IDisposable
         }
         catch
         {
-            Console.WriteLine("Aucune conversation trouvé pour l'utilisateur");
+            Console.WriteLine("Aucune conversation trouvée pour l'utilisateur");
         }
         NotifyStateChanged();
     }
@@ -132,6 +138,20 @@ public class ConversationStateService : IDisposable
             Console.WriteLine($"📬 Nouveau message dans conversation {conversationId}");
             Console.WriteLine($"   Total non lus pour cette conv: {conv.NombreNonLu}");
             Console.WriteLine($"   Total global: {GetTotalUnreadCount()}");
+            
+            var currentUrl = _navigation.Uri.ToLower();
+            bool isOnConversationsPage = currentUrl.Contains("/conversations");
+            
+            if (!isOnConversationsPage)
+            {
+                _notificationService.ShowNewMessage(
+                    senderName: conv.ParticipantPseudo,
+                    messagePreview: message,
+                    senderId: senderId
+                );
+                
+                Console.WriteLine($"🔔 Notification affichée pour message de {conv.ParticipantPseudo}");
+            }
             
             NotifyStateChanged();
         }

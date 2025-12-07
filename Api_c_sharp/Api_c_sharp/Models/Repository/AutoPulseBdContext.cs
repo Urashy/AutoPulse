@@ -96,6 +96,7 @@ namespace Api_c_sharp.Models.Repository
                 .HasForeignKey(a => a.IdMiseEnAvant);
 
 
+
             //-----------------------------APourConversation-----------------------------
             modelBuilder.Entity<APourConversation>()
                 .HasKey(e => new { e.IdCompte, e.IdConversation });
@@ -336,7 +337,8 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<Signalement>()
                 .HasOne(s => s.CompteSignaleNav)
                 .WithMany(c => c.SignalementsRecus)
-                .HasForeignKey(s => s.IdCompteSignale);
+                .HasForeignKey(s => s.IdCompteSignale)
+                .IsRequired(false);
 
             modelBuilder.Entity<Signalement>()
                 .HasOne(s => s.TypeSignalementSignalementNav)

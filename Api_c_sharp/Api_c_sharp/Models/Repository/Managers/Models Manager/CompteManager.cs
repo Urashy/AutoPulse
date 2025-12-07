@@ -33,7 +33,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public virtual async Task<IEnumerable<Compte>> GetComptesByTypes(int type)
         {
-            return await dbSet.Where(c => c.IdTypeCompte == type).ToListAsync();
+            return await dbSet.Include(c => c.TypeCompteCompteNav).Where(c => c.IdTypeCompte == type).ToListAsync();
         }
 
         public virtual async Task<Compte> VerifMotDePasse(string email, string hash)

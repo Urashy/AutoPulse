@@ -50,6 +50,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IMessageService, MessageWebService>();
             builder.Services.AddScoped<IAvisService, AvisWebService>();
             builder.Services.AddScoped<ICommandeService, CommandeWebService>();
+            builder.Services.AddScoped<ISignalementService, SignalementWebService>();
+            builder.Services.AddScoped<ITypeSignalementService, TypeSignalementWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -68,11 +70,17 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<AdminDashboardViewModel>();
             builder.Services.AddScoped<AdminUtilisateursViewModel>();
             builder.Services.AddScoped<AdminAnnoncesViewModel>();
+            builder.Services.AddScoped<ToastViewModel>();
+            builder.Services.AddScoped<SignalementViewModel>();
+
 
             builder.Services.AddTransient<AnnonceComposantViewModel>();
             
+            //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService, SignalRWebService>();
+            builder.Services.AddSingleton<NotificationService>();
             
+            //----------------------- State service
             builder.Services.AddScoped<ConversationStateService>();
 
             builder.Services.AddScoped(sp =>

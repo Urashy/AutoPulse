@@ -12,5 +12,7 @@ public interface ICompteService: IService<Compte>
     Task<bool> Anonymisation(int idCompte);
     Task<bool> PutTypeCompte(int idCompte, CompteModifTypeCompteDTO compte);
     new Task<IEnumerable<CompteGetDTO>> GetAllAsync();
+    Task<IEnumerable<CompteGetDTO>> GetByTypeCompteAsync(int idTypeCompte);
+
 
 }

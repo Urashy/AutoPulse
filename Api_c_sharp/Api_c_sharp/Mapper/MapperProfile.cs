@@ -348,14 +348,30 @@ public class MapperProfile : Profile
         CreateMap<Signalement, SignalementDTO>()
             .ForMember(dest => dest.PseudoSignalant, 
                 opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
-            .ForMember(dest => dest.PseudoSignale, 
+            .ForMember(destinationMember => destinationMember.IdCompteSignale,
                 opt => opt.MapFrom(src => src.CompteSignaleNav.Pseudo))
             .ForMember(dest => dest.LibelleTypeSignalement, 
                 opt => opt.MapFrom(src => src.TypeSignalementSignalementNav.LibelleTypeSignalement)).ReverseMap();
-        
+
+        CreateMap<Signalement, SignalementAnnonceDTO>()
+            .ForMember(dest => dest.PseudoSignalant,
+                opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
+            .ForMember(dest => dest.LibelleAnnonceSignale,
+                opt => opt.MapFrom(src => src.AnnonceSignaleNav != null ? src.AnnonceSignaleNav.Libelle : "Annonce supprimée"))
+            .ForMember(dest => dest.LibelleTypeSignalement,
+                opt => opt.MapFrom(src => src.TypeSignalementSignalementNav.LibelleTypeSignalement))
+            .ReverseMap();
+
         CreateMap<SignalementCreateDTO, Signalement>()
             .ForMember(dest => dest.DateCreationSignalement, 
                 opt => opt.MapFrom(src => DateTime.Now)).ReverseMap();
+
+
+        CreateMap<SignalementAnnonceCreateDTO, Signalement>()
+            .ForMember(dest => dest.DateCreationSignalement,
+                opt => opt.MapFrom(src => DateTime.Now)).ReverseMap();
+
+
 
         // ============================================
         // MAPPERS IMAGE

@@ -3,6 +3,7 @@ using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.JSInterop;
 using System.Threading.Tasks;
+using BlazorAutoPulse.Service;
 using Microsoft.AspNetCore.Components;
 using AnnonceDetailDTO = BlazorAutoPulse.Model.AnnonceDetailDTO;
 
@@ -16,6 +17,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IFavorisService _favorisService;
         private readonly ICompteService _compteService;
         private readonly ICouleurService _couleurService;
+        private readonly NotificationService  _notificationService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public List<int> ImageIds { get; private set; } = new();
@@ -32,6 +34,10 @@ namespace BlazorAutoPulse.ViewModel
         public List<Couleur> couleurDisponible { get; set; }
         public string selectedColor { get; private set; }
 
+        // Propriétés pour le menu d'options
+        public bool IsOptionsMenuOpen { get; private set; } = false;
+        public string? infoOptionAnnonce { get; private set; } = null;
+
         public string? erreurSupprimeAnnonce = null;
 
         private Action? _refreshUI;
@@ -44,7 +50,8 @@ namespace BlazorAutoPulse.ViewModel
             IFavorisService favorisService,
             ICompteService compteService,
             IImageService imageService,
-            ICouleurService couleurService)
+            ICouleurService couleurService,
+            NotificationService notificationService)
         {
             _annonceService = annonceService;
             _postImageService = postImageService;
@@ -52,6 +59,7 @@ namespace BlazorAutoPulse.ViewModel
             _compteService = compteService;
             _imageService = imageService;
             _couleurService = couleurService;
+            _notificationService = notificationService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime,  NavigationManager nav)
@@ -314,16 +322,53 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
+        // Méthodes pour le menu d'options
+        public void ToggleOptionsMenu()
+        {
+            IsOptionsMenuOpen = !IsOptionsMenuOpen;
+            if (!IsOptionsMenuOpen)
+            {
+                infoOptionAnnonce = null;
+            }
+            _refreshUI?.Invoke();
+        }
+
+        public void SetInfoOption(string? info)
+        {
+            infoOptionAnnonce = info;
+            _refreshUI?.Invoke();
+        }
+
+        public void MasquerAnnonce()
+        {
+            Console.WriteLine("Action: masquer l'annonce");
+            IsOptionsMenuOpen = false;
+            _refreshUI?.Invoke();
+        }
+
+        public void SignalerAnnonce()
+        {
+            Console.WriteLine("Action: Signaler l'annonce");
+            // TODO: Implémenter la logique de signalement
+            IsOptionsMenuOpen = false;
+            _refreshUI?.Invoke();
+        }
+
         public async void SupprimerAnnonce()
         {
             try
             {
+                Console.WriteLine("Action: Supprimer l'annonce");
                 _annonceService.DeleteAsync(Annonce.IdAnnonce);
+                _notificationService.ShowSuccess(
+                    "Suppression d'annonce", 
+                    "Votre annonce a bien été supprimée");
+                IsOptionsMenuOpen = false;
                 _nav.NavigateTo("/compte");
             }
             catch
             {
-                erreurSupprimeAnnonce = "L'annonce n'a pas u être supprimé";
+                erreurSupprimeAnnonce = "L'annonce n'a pas pu être supprimée";
             }
             _refreshUI?.Invoke();
         }
@@ -345,11 +390,13 @@ namespace BlazorAutoPulse.ViewModel
         
         public void Reset()
         {
-            CurrentImageIndex  = 0;
-            IsLoading  = true;
-            IsFavorite  = false;
-            show3DViewer  = false;
-            isLoading3D  = false;
+            CurrentImageIndex = 0;
+            IsLoading = true;
+            IsFavorite = false;
+            show3DViewer = false;
+            isLoading3D = false;
+            IsOptionsMenuOpen = false;
+            infoOptionAnnonce = null;
         }
     }
 }
