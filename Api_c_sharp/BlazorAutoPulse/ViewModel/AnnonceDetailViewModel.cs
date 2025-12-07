@@ -322,7 +322,6 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        // Méthodes pour le menu d'options
         public void ToggleOptionsMenu()
         {
             IsOptionsMenuOpen = !IsOptionsMenuOpen;
@@ -346,19 +345,10 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        public void SignalerAnnonce()
-        {
-            Console.WriteLine("Action: Signaler l'annonce");
-            // TODO: Implémenter la logique de signalement
-            IsOptionsMenuOpen = false;
-            _refreshUI?.Invoke();
-        }
-
         public async void SupprimerAnnonce()
         {
             try
             {
-                Console.WriteLine("Action: Supprimer l'annonce");
                 _annonceService.DeleteAsync(Annonce.IdAnnonce);
                 _notificationService.ShowSuccess(
                     "Suppression d'annonce", 

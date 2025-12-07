@@ -6,7 +6,7 @@ using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service;
 
-public class CompteWebService : BaseWebService<Compte>, ICompteService
+public class CompteWebService : BaseWebService<CompteDetailDTO>, ICompteService
 {
     public CompteWebService(HttpClient httpClient) : base(httpClient)
     {
@@ -190,5 +190,13 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
             Console.WriteLine($"Erreur Post : {error}");
             return false;
         }
+    }
+    
+    public async Task<CompteProfilPublicDTO> GetComptePublicById(int id)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetProfilPublic/{id}"));
+        var response = await SendWithCredentialsAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CompteProfilPublicDTO>();
     }
 }

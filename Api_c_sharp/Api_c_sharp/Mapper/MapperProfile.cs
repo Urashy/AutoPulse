@@ -242,8 +242,6 @@ public class MapperProfile : Profile
         CreateMap<Compte, CompteProfilPublicDTO>()
             .ForMember(dest => dest.DateInscription, 
                 opt => opt.MapFrom(src => src.DateCreation))
-            .ForMember(dest => dest.TypeCompte, 
-                opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.ImageProfil, 
                 opt => opt.MapFrom(src => src.Images.Any() 
                     ? Convert.ToBase64String(src.Images.First().Fichier) 

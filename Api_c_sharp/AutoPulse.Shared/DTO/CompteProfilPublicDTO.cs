@@ -7,8 +7,11 @@ public class CompteProfilPublicDTO
     public string Biographie { get; set; }
     public DateTime DateInscription { get; set; }
     public string TypeCompte { get; set; }
+    public int IdTypeCompte { get; set; }
     public string ImageProfil { get; set; }
     public int NombreAnnonces { get; set; }
-    public decimal NoteMoyenne { get; set; }
-    public int NombreAvis { get; set; }
+    public double NoteMoyenne { get; set; }
+    public int NombreAvis { get; set; }    
+    public string RaisonSociale { get; set; }
+
 }
