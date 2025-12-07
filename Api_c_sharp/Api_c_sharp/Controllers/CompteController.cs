@@ -332,7 +332,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
     #endregion
 
-    #region Authentification Classique
+#region Authentification Classique
     //----------------------------------------------
     // LOGIN
     //----------------------------------------------

@@ -39,6 +39,8 @@ namespace BlazorAutoPulse.ViewModel
         public string? infoOptionAnnonce { get; private set; } = null;
 
         public string? erreurSupprimeAnnonce = null;
+        
+        public string ProfileImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
 
         private Action? _refreshUI;
         private IJSRuntime? _jsRuntime;
@@ -84,6 +86,11 @@ namespace BlazorAutoPulse.ViewModel
 
                 // Charger l'annonce
                 Annonce = await _annonceService.GetByIdAsync(idAnnonce);
+                
+                if (Annonce != null)
+                {
+                    await LoadVendeurProfileImage(Annonce.IdVendeur);
+                }
                 
                 couleurDisponible = await _couleurService.GetCouleursByVoitureId(Annonce.IdVoiture);
                 selectedColor = couleurDisponible?.FirstOrDefault()?.CodeHexaCouleur;
@@ -361,6 +368,29 @@ namespace BlazorAutoPulse.ViewModel
                 erreurSupprimeAnnonce = "L'annonce n'a pas pu être supprimée";
             }
             _refreshUI?.Invoke();
+        }
+        
+        private async Task LoadVendeurProfileImage(int idVendeur)
+        {
+            try
+            {
+                var img = await _imageService.GetImageProfil(idVendeur);
+
+                if (img != null && img.Fichier != null && img.Fichier.Length > 0)
+                {
+                    var base64 = Convert.ToBase64String(img.Fichier);
+                    ProfileImageSource = $"data:image/jpeg;base64,{base64}";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur chargement image profil vendeur: {ex.Message}");
+            }
+        }
+
+        public async Task VoirProfilVendeur()
+        {
+            _nav.NavigateTo($"/comptepublic/{Annonce.IdVendeur}");
         }
 
         public async Task DisposeAsync()

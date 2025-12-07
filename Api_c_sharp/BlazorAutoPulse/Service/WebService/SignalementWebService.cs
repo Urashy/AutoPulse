@@ -20,4 +20,25 @@ public class SignalementWebService : BaseWebService<SignalementAnnonceCreateDTO>
         return await response.Content.ReadFromJsonAsync<IEnumerable<SignalementDTO>>()
                ?? Enumerable.Empty<SignalementDTO>();
     }
+
+    public async Task<bool> PostCompte(SignalementCreateDTO signalement)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl($"Post"))
+        {
+            Content = JsonContent.Create(signalement)
+        };
+        
+        var response = await SendWithCredentialsAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erreur Post : {error}");
+            return false;
+        }
+    }
 }

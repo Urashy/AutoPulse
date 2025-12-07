@@ -653,8 +653,80 @@
     transition: all 0.3s;
 }
 
-    .btn-report:hover {
-        background: rgba(255, 68, 68, 0.2);
-        border-color: #ff4444;
-        transform: translateY(-2px);
+.btn-report:hover {
+    background: rgba(255, 68, 68, 0.2);
+    border-color: #ff4444;
+    transform: translateY(-2px);
+}
+
+/* Ajouter ces styles dans AnnonceDetailPage.razor.css */
+
+/* Bouton photo de profil du vendeur dans le header */
+.seller-profile-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+/* Effet de bordure gradient */
+.seller-profile-badge::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    border-radius: 50%;
+    z-index: -1;
+    transition: all 0.3s ease;
+}
+
+.seller-profile-badge:hover {
+    transform: scale(1.08);
+}
+
+.seller-profile-badge:hover::before {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+    inset: -4px;
+}
+
+.seller-profile-picture {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #0a0a0a;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+/* Animation subtile au survol */
+.seller-profile-badge:hover .seller-profile-picture {
+    border-color: #1a1a1a;
+}
+
+.seller-profile-badge:active {
+    transform: scale(1.02);
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+    .seller-profile-picture {
+        width: 40px;
+        height: 40px;
+        border-width: 2px;
     }
+
+    .seller-profile-badge::before {
+        inset: -2px;
+    }
+
+    .seller-profile-badge:hover::before {
+        inset: -3px;
+    }
+}

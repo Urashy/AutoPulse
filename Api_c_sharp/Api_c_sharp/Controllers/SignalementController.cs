@@ -108,7 +108,9 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper,
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
+        
+        string compteId = User.FindFirst("idUser")?.Value;
+        dto.IdCompteSignalant = int.Parse(compteId);
         var entity = _mapper.Map<Signalement>(dto);
         await _journalService.LogSignalementAsync(dto.IdCompteSignalant,dto.IdCompteSignale,dto.IdSignalement,dto.IdTypeSignalement,dto.DescriptionSignalement);
 
