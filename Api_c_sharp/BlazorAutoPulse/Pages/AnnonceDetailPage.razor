@@ -36,6 +36,11 @@ else
                     @(VM.show3DViewer ? "🖼️ Voir les photos" : "🎨 Visualiseur 3D")
                 </button>
 
+                <!-- Photo de profil du vendeur -->
+                <button @onclick="VM.VoirProfilVendeur" class="seller-profile-badge">
+                    <img src="@VM.ProfileImageSource" alt="Vendeur" class="seller-profile-picture" />
+                </button>
+
                 <!-- Menu d'options -->
                 <div class="options-menu">
                     <button @onclick="VM.ToggleOptionsMenu" class="btn-options">
