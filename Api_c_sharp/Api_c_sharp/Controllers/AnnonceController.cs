@@ -163,8 +163,10 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
         if (entity == null)
             return NotFound();
 
-        await _manager.DeleteAsync(entity);
+        bool result = await _manager.DeleteAsync(entity);
 
+        if (!result)
+            return BadRequest("La suppression est impossible en raison d'une commande effectué sur cette annonce");
         await _journalService.LogSuppressionAnnonceAsync(
             entity.IdCompte,
             id,

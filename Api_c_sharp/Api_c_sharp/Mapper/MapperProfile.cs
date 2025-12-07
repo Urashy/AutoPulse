@@ -347,7 +347,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.PseudoSignalant, 
                 opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
             .ForMember(destinationMember => destinationMember.IdCompteSignale,
-                opt => opt.MapFrom(src => src.CompteSignaleNav.Pseudo))
+                opt => opt.MapFrom(src => src.CompteSignaleNav.IdCompte))
             .ForMember(dest => dest.LibelleTypeSignalement, 
                 opt => opt.MapFrom(src => src.TypeSignalementSignalementNav.LibelleTypeSignalement)).ReverseMap();
 

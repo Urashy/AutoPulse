@@ -9,6 +9,7 @@ using App.Controllers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Google.Apis.Util;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -246,6 +247,23 @@ namespace App.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             var deletedAnnonce = await _manager.GetByIdAsync(_objetcommun.IdAnnonce);
             Assert.IsNull(deletedAnnonce);
+        }
+
+        [TestMethod]
+        public async Task BadRequestDeleteAnnonceTest()
+        {
+            Commande commande = new Commande()
+            {
+                IdCommande = 1,
+                IdAnnonce = _objetcommun.IdAnnonce,
+                IdAcheteur = 2,
+            };
+
+            await _context.Commandes.AddAsync(commande);
+            await _context.SaveChangesAsync();
+
+            var result = await _controller.Delete(_objetcommun.IdAnnonce);
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]

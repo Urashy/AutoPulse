@@ -178,7 +178,7 @@ namespace App.ControllersUnitaires.Tests
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var deleted = await _manager.GetByIdsAsync(_objetCommun.IdBloque, _objetCommun.IdBloquant);
+            var deleted = await _manager.GetBloqueByIdsAsync(_objetCommun.IdBloque, _objetCommun.IdBloquant);
             Assert.IsNull(deleted);
         }
 
@@ -207,7 +207,7 @@ namespace App.ControllersUnitaires.Tests
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var updated = await _manager.GetByIdsAsync(_objetCommun.IdBloque, _objetCommun.IdBloquant);
+            var updated = await _manager.GetBloqueByIdsAsync(_objetCommun.IdBloque, _objetCommun.IdBloquant);
             Assert.IsNotNull(updated);
         }
 

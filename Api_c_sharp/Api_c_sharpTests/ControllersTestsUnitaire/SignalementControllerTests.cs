@@ -7,12 +7,14 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using App.Controllers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -174,19 +176,17 @@ namespace App.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PostSignalementTest()
         {
-            // Given : Un DTO valide
             SignalementCreateDTO signalementCreateDTO = new SignalementCreateDTO
             {
                 DescriptionSignalement = "Il a fait un truc pas bien",
-                IdCompteSignale = _signalementCommun.IdCompteSignale,
+                IdCompteSignale = 1,
                 IdCompteSignalant = _signalementCommun.IdCompteSignalant,
                 IdTypeSignalement = _signalementCommun.IdTypeSignalement
             };
+            ClaimCookie(1);
 
-            // When : On appelle Post
             var result = await _controller.Post(signalementCreateDTO);
 
-            // Then : La signalement doit être créée (201)
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
         }
 
@@ -215,7 +215,7 @@ namespace App.ControllersUnitaires.Tests
             {
                 IdSignalement = _signalementCommun.IdSignalement,
                 DescriptionSignalement = "Il a fait un truc pas bien",
-                IdCompteSignale = _signalementCommun.IdCompteSignale,
+                IdCompteSignale = 1,
                 IdCompteSignalant = _signalementCommun.IdCompteSignalant,
                 IdTypeSignalement = _signalementCommun.IdTypeSignalement
             };
@@ -308,6 +308,29 @@ namespace App.ControllersUnitaires.Tests
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+
+
+        private void ClaimCookie(int userId)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", userId.ToString())
+            };
+
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            var httpContext = new DefaultHttpContext
+            {
+                User = claimsPrincipal
+            };
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
         }
     }
 }

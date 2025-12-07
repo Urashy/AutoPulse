@@ -140,7 +140,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public async Task<Compte> GetProfilPublic(int idcompte)
         {
-            return await dbSet.Include(c => c.Images).Include(c => c.TypeCompteCompteNav).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
+            return await dbSet.Include(c => c.Images).Include(c => c.TypeCompteCompteNav).Include(c => c.Annonces).Include(c => c.AvisJugees).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
         }
     }
 }
