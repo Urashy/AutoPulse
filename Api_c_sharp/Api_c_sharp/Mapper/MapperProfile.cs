@@ -357,6 +357,13 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.DateCreationSignalement, 
                 opt => opt.MapFrom(src => DateTime.Now)).ReverseMap();
 
+
+        CreateMap<SignalementAnnonceCreateDTO, Signalement>()
+            .ForMember(dest => dest.DateCreationSignalement,
+                opt => opt.MapFrom(src => DateTime.Now)).ReverseMap();
+
+
+
         // ============================================
         // MAPPERS IMAGE
         // ============================================

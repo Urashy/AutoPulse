@@ -102,12 +102,14 @@ public class SignalementViewModel
             return;
         }
 
+        // Validation
         if (SelectedTypeSignalement == 0)
         {
             ErrorMessage = "Veuillez sélectionner un type de signalement";
             return;
         }
 
+        // Si c'est "Autre" (ID 10), la description est obligatoire
         if (SelectedTypeSignalement == 10 && string.IsNullOrWhiteSpace(Description))
         {
             ErrorMessage = "La description est obligatoire pour le type 'Autre'";
@@ -125,12 +127,12 @@ public class SignalementViewModel
                 IdCompteSignalant = _currentUserId.Value,
                 IdAnnonceSignale = _annonceId,
                 IdTypeSignalement = SelectedTypeSignalement,
-                DescriptionSignalement = Description
+                DescriptionSignalement = Description ?? string.Empty
             };
 
-            var result = await _signalementService.CreateAsync(signalement);
+            var result = await _signalementService.PostWithErrorHandlingAsync(signalement);
 
-            if (result)
+            if (result.Success)
             {
                 _notificationService.ShowSuccess(
                     "Signalement envoyé",
