@@ -46,7 +46,7 @@ else
                                 <span>Envoyer un message</span>
                             </button>
 
-                            <button @onclick="VM.SignalerUtilisateur"
+                            <button @onclick="() => SignalementVM.OpenModalUser(VM.compte.IdCompte)"
                                     @onmouseenter="() => VM.SetInfoOption(infoSignaler)"
                                     @onmouseleave="() => VM.SetInfoOption(null)"
                                     class="option-item">
@@ -90,14 +90,13 @@ else
                 </div>
 
                 <div class="info-grid">
-                    @if (!string.IsNullOrEmpty(VM.compte.Biographie))
-                    {
-                        <div class="info-item bio-item">
-                            <span class="info-label">📝 Biographie</span>
+                    <div class="info-item bio-item">
+                        <span class="info-label">📝 Biographie</span>
+                        @if (!string.IsNullOrEmpty(VM.compte.Biographie))
+                        {
                             <span class="info-value">@VM.compte.Biographie</span>
-                        </div>
-                    }
-
+                        }
+                    </div>
                     @if (VM.compte.IdTypeCompte == 2 && !string.IsNullOrEmpty(VM.compte.RaisonSociale))
                     {
                         <div class="info-item">
@@ -181,6 +180,8 @@ else
         <SignalementModal VM="@SignalementVM"/>
     </div>
 }
+
+<SignalementModal VM="@SignalementVM" genreSignalement="compte"/>
 
 @code {
     [Parameter] public int IdUtilisateur { get; set; }

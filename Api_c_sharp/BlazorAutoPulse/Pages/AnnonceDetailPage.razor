@@ -38,7 +38,7 @@ else
 
                 <!-- Menu d'options -->
                 <div class="options-menu">
-                    <button @onclick="VM.ToggleOptionsMenu" class="btn-options" @onmouseleave="() => { if (VM.IsOptionsMenuOpen) VM.ToggleOptionsMenu(); }">
+                    <button @onclick="VM.ToggleOptionsMenu" class="btn-options">
                         <span class="menu-icon">⚙️</span>
                     </button>
                     
@@ -287,13 +287,12 @@ else
                 @VM.erreurSupprimeAnnonce
             </div>
         }
-        <SignalementModal VM="@SignalementVM"/>
+        <SignalementModal VM="@SignalementVM" genreSignalement="annonce"/>
     </div>
 }
 
 @code {
-    [Parameter]
-    public int IdAnnonce { get; set; }
+    [Parameter] public int IdAnnonce { get; set; }
     private string infoMasquer = "Masquer temporairement votre annonce sans la supprimer";
     private string infoSupprimer = "Supprimer définitivement votre annonce";
     private string infoSignaler = "Signaler cette annonce pour contenu inapproprié ou frauduleux";
@@ -309,4 +308,5 @@ else
     {
         await VM.DisposeAsync();
     }
+
 }

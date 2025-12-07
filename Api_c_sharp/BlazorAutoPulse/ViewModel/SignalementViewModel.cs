@@ -84,6 +84,22 @@ public class SignalementViewModel
         ErrorMessage = "";
         _refreshUI?.Invoke();
     }
+    
+    public void OpenModalUser(int idUtilisateur)
+    {
+        if (!_currentUserId.HasValue)
+        {
+            _notificationService.ShowWarning(
+                "Connexion requise",
+                "Vous devez être connecté pour signaler une annonce"
+            );
+            return;
+        }
+        
+        _compteSignaleId = idUtilisateur;
+        ShowModal = true;
+        _refreshUI?.Invoke();
+    }
 
     public void CloseModal()
     {
@@ -146,6 +162,76 @@ public class SignalementViewModel
                 _notificationService.ShowError(
                     "Erreur",
                     result.ErrorMessage
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de l'envoi du signalement: {ex.Message}");
+            ErrorMessage = "Une erreur est survenue lors de l'envoi du signalement";
+            _notificationService.ShowError(
+                "Erreur",
+                "Une erreur est survenue lors de l'envoi du signalement"
+            );
+        }
+        finally
+        {
+            IsSubmitting = false;
+            _refreshUI?.Invoke();
+        }
+    }
+
+    public async Task SubmitCompteSignalement()
+    {
+        if (!_currentUserId.HasValue)
+        {
+            ErrorMessage = "Vous devez être connecté pour signaler une annonce";
+            return;
+        }
+
+        // Validation
+        if (SelectedTypeSignalement == 0)
+        {
+            ErrorMessage = "Veuillez sélectionner un type de signalement";
+            return;
+        }
+
+        // Si c'est "Autre" (ID 10), la description est obligatoire
+        if (SelectedTypeSignalement == 10 && string.IsNullOrWhiteSpace(Description))
+        {
+            ErrorMessage = "La description est obligatoire pour le type 'Autre'";
+            return;
+        }
+
+        IsSubmitting = true;
+        ErrorMessage = "";
+        _refreshUI?.Invoke();
+
+        try
+        {
+            var signalement = new SignalementCreateDTO()
+            {
+                DescriptionSignalement = Description,
+                IdCompteSignale = _compteSignaleId,
+                IdCompteSignalant = 0,
+                IdTypeSignalement = SelectedTypeSignalement
+            };
+
+            var result = await _signalementService.PostCompte(signalement);
+
+            if (result)
+            {
+                _notificationService.ShowSuccess(
+                    "Signalement envoyé",
+                    "Votre signalement a été transmis à nos équipes"
+                );
+                CloseModal();
+            }
+            else
+            {
+                _notificationService.ShowError(
+                    "Erreur",
+                    "Le signalement n'a pas pu se faire, réessayer ultérieurement"
                 );
             }
         }

@@ -59,7 +59,9 @@
                     Annuler
                 </button>
                 <button class="btn-primary"
-                        @onclick="VM.SubmitSignalement"
+                        @onclick="@(genreSignalement == "annonce"
+                                      ? VM.SubmitSignalement
+                                      : VM.SubmitCompteSignalement)"
                         disabled="@VM.IsSubmitting">
                     @if (VM.IsSubmitting)
                     {
@@ -76,6 +78,6 @@
 }
 
 @code {
-    [Parameter]
-    public required SignalementViewModel VM { get; set; }
+    [Parameter] public required SignalementViewModel VM { get; set; }
+    [Parameter] public required string genreSignalement { get; set; }
 }
