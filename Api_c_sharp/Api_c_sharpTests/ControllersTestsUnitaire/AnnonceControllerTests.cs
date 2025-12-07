@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 
 namespace App.ControllersUnitaires.Tests
@@ -512,6 +513,92 @@ namespace App.ControllersUnitaires.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetFilteredTriCroissantTest()
+        {
+            Annonce annonce = new Annonce()
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 25000,
+                Description = "Description de l'annonce",
+                IdMiseEnAvant = 1,
+                IdVoiture = 1,
+            };
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
+            ParametreRecherche parametreRecherche = new ParametreRecherche()
+            {
+                Departement = "12345",
+                IdCarburant = 1,
+                IdMarque = 1,
+                IdModele = 1,
+                PrixMin = 10000,
+                PrixMax = 30000,
+                IdTypeVoiture = 1,
+                IdTypeVendeur = 1,
+                Nom = "Annonce",
+                KmMin = 5000,
+                KmMax = 15000
+            };
+            // Act
+            var result = await _controller.GetFiltered(parametreRecherche,1,21,1);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            var annonces = result.Value.ToList();
+
+            Assert.IsTrue(annonces.Any());
+            Assert.IsTrue(annonces[0].Prix == _objetcommun.Prix);
+        }
+
+        [TestMethod]
+        public async Task GetFilteredTriDecroissantTest()
+        {
+            Annonce annonce = new Annonce()
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 19000,
+                Description = "Description de l'annonce",
+                IdMiseEnAvant = 1,
+                IdVoiture = 1,
+            };
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
+            ParametreRecherche parametreRecherche = new ParametreRecherche()
+            {
+                Departement = "12345",
+                IdCarburant = 1,
+                IdMarque = 1,
+                IdModele = 1,
+                PrixMin = 10000,
+                PrixMax = 30000,
+                IdTypeVoiture = 1,
+                IdTypeVendeur = 1,
+                Nom = "Annonce",
+                KmMin = 5000,
+                KmMax = 15000
+            };
+            // Act
+            var result = await _controller.GetFiltered(parametreRecherche, 1, 21, 1);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            var annonces = result.Value.ToList();
+
+            Assert.IsTrue(annonces.Any());
+            Assert.IsTrue(annonces[1].Prix == _objetcommun.Prix);
         }
 
         [TestMethod]

@@ -41,7 +41,6 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<MoyenPaiement> MoyensPaiements { get; set; }
         public DbSet<Pays> Pays { get; set; }
         public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
-
         public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
         public DbSet<TypeJournal> TypesJournal { get; set; }
@@ -147,6 +146,16 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------Bloque-----------------------------
             modelBuilder.Entity<Bloque>()
                 .HasKey(e => new { e.IdBloque, e.IdBloquant });
+
+            modelBuilder.Entity<Bloque>()
+                .HasOne(b => b.CompteBloqueNav)
+                .WithMany(c => c.ComptesBloqueurs)
+                .HasForeignKey(b => b.IdBloque);
+
+            modelBuilder.Entity<Bloque>()
+                .HasOne(b => b.CompteBloquantNav)
+                .WithMany(c => c.ComptesBloquants)
+                .HasForeignKey(b => b.IdBloque);
 
             //-----------------------------BoiteDeVitesse-----------------------------
             modelBuilder.Entity<BoiteDeVitesse>()
@@ -339,6 +348,11 @@ namespace Api_c_sharp.Models.Repository
                 .WithMany(e => e.Signalements)
                 .HasForeignKey(s => s.IdEtatSignalement);
 
+            modelBuilder.Entity<Signalement>()
+                .HasOne(s => s.AnnonceSignalementNav)
+                .WithMany(a => a.Signalements)
+                .HasForeignKey(s => s.IdAnnonce);
+
             //-----------------------------TypeCompte-----------------------------
             modelBuilder.Entity<TypeCompte>()
                 .HasKey(e => e.IdTypeCompte);
@@ -393,6 +407,16 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------Vues-----------------------------
             modelBuilder.Entity<Vue>()
                 .HasKey(e => new { e.IdCompte, e.IdAnnonce });
+
+            modelBuilder.Entity<Vue>()
+                .HasOne(v => v.AnnonceVueNav)
+                .WithMany(a => a.Vues)
+                .HasForeignKey(v => v.IdAnnonce);
+
+            modelBuilder.Entity<Vue>()
+                .HasOne(v => v.CompteVueNav)
+                .WithMany(c => c.Vues)
+                .HasForeignKey(v => v.IdCompte);
 
             //-----------------------------Indexes-----------------------------
             modelBuilder.Entity<Compte>()

@@ -135,10 +135,12 @@ namespace Api_c_sharp.Models.Repository.Managers
                 compteamodif.NumeroSiret = compteModifTypeCompteDTO.NumeroSiret;
                 compteamodif.RaisonSociale = compteModifTypeCompteDTO.RaisonSociale;
             }
-
-
-
             await context.SaveChangesAsync();
+        }
+
+        public async Task<Compte> GetProfilPublic(int idcompte)
+        {
+            return await dbSet.Include(c => c.Images).Include(c => c.TypeCompteCompteNav).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
         }
     }
 }

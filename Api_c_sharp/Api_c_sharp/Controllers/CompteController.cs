@@ -308,9 +308,31 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
 
-#endregion
+    /// <summary>
+    /// Récupère une profil public à partir de son identifiant.
+    /// </summary>
+    /// <param name="id">Identifiant unique de la compte recherchée.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="CompteDTO"/> si la compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("GetProfilPublic")]
+    [HttpGet("{id}")]
+    public async Task<ActionResult<CompteProfilPublicDTO>> GetProfilPublic(int id)
+    {
+        var result = await _manager.GetProfilPublic(id);
 
-#region Authentification Classique
+        if (result is null)
+            return NotFound();
+
+        return _compteMapper.Map<CompteProfilPublicDTO>(result);
+    }
+
+    #endregion
+
+    #region Authentification Classique
     //----------------------------------------------
     // LOGIN
     //----------------------------------------------
