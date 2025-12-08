@@ -1,6 +1,6 @@
 header {
     background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-    padding: 20px 0;
+    padding: 10px 0;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -94,7 +94,7 @@ nav {
 
 footer {
     background: #0a0a0a;
-    padding: 40px;
+    padding: 20px;
     text-align: center;
     border-top: 1px solid #222;
     color: #666;

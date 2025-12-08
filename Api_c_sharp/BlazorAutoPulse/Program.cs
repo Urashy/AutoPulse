@@ -52,6 +52,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ISignalementService, SignalementWebService>();
             builder.Services.AddScoped<ITypeSignalementService, TypeSignalementWebService>();
             builder.Services.AddScoped<IBloqueService, BloquerWebService>();
+            builder.Services.AddScoped<IPieceJointeService, PieceJointeWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -75,6 +76,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ComptePublicViewModel>();
             builder.Services.AddScoped<AdminSignalementsViewModel>();
             builder.Services.AddTransient<AnnonceComposantViewModel>();
+            builder.Services.AddTransient<FileUploadViewModel>();
             
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService, SignalRWebService>();

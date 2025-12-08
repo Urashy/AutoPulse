@@ -36,5 +36,8 @@ namespace Api_c_sharp.Models.Entity
         [ForeignKey(nameof(IdConversation))]
         [InverseProperty(nameof(Conversation.Messages))]
         public virtual Conversation ConversationMessageNav { get; set; }
+        
+        [InverseProperty(nameof(PieceJointe.MessagePjNav))]
+        public virtual ICollection<PieceJointe> PiecesJointes { get; set; } = new List<PieceJointe>();
     }
 }

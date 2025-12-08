@@ -70,44 +70,97 @@
             </div>
 
             <div class="messages-container" @ref="VM.MessagesContainer">
-                @foreach (var msg in VM.Messages)
+                @* ✅ NOUVEAU : Loading pendant le chargement des messages *@
+                @if (VM.IsLoadingMessages)
                 {
-                    <div class="message @(msg.IdCompte == VM.CurrentUserId ? "sent" : "received")">
-                        <div class="message-bubble">
-                            <p>@msg.ContenuMessage</p>
-                            <div class="message-footer">
-                                <span class="message-time">@msg.DateEnvoiMessage.ToLocalTime().ToString("HH:mm")</span>
-                                @if (msg.IdCompte == VM.CurrentUserId)
-                                {
-                                    <span class="read-indicator">@(msg.EstLu ? "✓✓" : "✓")</span>
-                                }
-                            </div>
-                        </div>
+                    <div class="messages-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Chargement des messages...</p>
                     </div>
                 }
-
-                @if (VM.IsTyping)
+                else
                 {
-                    <div class="typing-indicator">
-                        <span></span><span></span><span></span>
-                    </div>
+                    @foreach (var msg in VM.Messages)
+                    {
+                        <div class="message @(msg.IdCompte == VM.CurrentUserId ? "sent" : "received")">
+                            <div class="message-bubble">
+                                <p>@msg.ContenuMessage</p>
+
+                                @* Affichage des pièces jointes *@
+                                @if (msg.PiecesJointes != null && msg.PiecesJointes.Any())
+                                {
+                                    <div class="message-attachments">
+                                        @foreach (var pj in msg.PiecesJointes)
+                                        {
+                                            <div class="attachment-item">
+                                                @if (pj.EstImage)
+                                                {
+                                                    <a href="@pj.DataUrl" target="_blank" download="@pj.NomFichier">
+                                                        <img src="@pj.DataUrl" alt="@pj.NomFichier" class="attachment-image" />
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <a href="@pj.DataUrl" class="attachment-file" download="@pj.NomFichier">
+                                                        <span class="file-icon">@pj.IconeType</span>
+                                                        <div class="file-details">
+                                                            <span class="file-name">@pj.NomFichier</span>
+                                                            <span class="file-size">@pj.TailleFormatee</span>
+                                                        </div>
+                                                    </a>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                <div class="message-footer">
+                                    <span class="message-time">@msg.DateEnvoiMessage.ToLocalTime().ToString("HH:mm")</span>
+                                    @if (msg.IdCompte == VM.CurrentUserId)
+                                    {
+                                        <span class="read-indicator">@(msg.EstLu ? "✓✓" : "✓")</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (VM.IsTyping)
+                    {
+                        <div class="typing-indicator">
+                            <span></span><span></span><span></span>
+                        </div>
+                    }
                 }
             </div>
 
-            <div class="message-input-container">
-                <input type="text"
-                       placeholder="Tapez votre message..."
-                       @bind="VM.NewMessage"
-                       @bind:event="oninput"
-                       @onkeyup="VM.HandleTyping"
-                       @onkeydown="VM.HandleKeyPress"
-                       class="message-input" />
+            <div class="message-input-area">
 
-                <button @onclick="VM.SendMessage"
-                        class="send-btn"
-                        disabled="@string.IsNullOrWhiteSpace(VM.NewMessage)">
-                    ➤
-                </button>
+                <div class="message-input-container">
+                    <input type="text"
+                           placeholder="Tapez votre message..."
+                           @bind="VM.NewMessage"
+                           @bind:event="oninput"
+                           @onkeyup="VM.HandleTyping"
+                           @onkeydown="VM.HandleKeyPress"
+                           class="message-input"
+                           disabled="@VM.IsUploadingFiles" />
+                    
+                    <FileUploadComponent OnFilesSelected="@VM.OnFilesSelected" />
+
+                    <button @onclick="VM.SendMessage"
+                            class="send-btn"
+                            disabled="@((string.IsNullOrWhiteSpace(VM.NewMessage) && !VM.SelectedFiles.Any()) || VM.IsUploadingFiles)">
+                        @if (VM.IsUploadingFiles)
+                        {
+                            <span class="spinner">⏳</span>
+                        }
+                        else
+                        {
+                            <span>➤</span>
+                        }
+                    </button>
+                </div>
             </div>
         }
     </div>

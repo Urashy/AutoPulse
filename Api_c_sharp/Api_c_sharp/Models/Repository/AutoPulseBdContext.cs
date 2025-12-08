@@ -40,6 +40,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Motricite> Motricites { get; set; }
         public DbSet<MoyenPaiement> MoyensPaiements { get; set; }
         public DbSet<Pays> Pays { get; set; }
+        public DbSet<PieceJointe> PiecesJointes { get; set; }
         public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
         public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
@@ -320,6 +321,15 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------Pays-----------------------------
             modelBuilder.Entity<Pays>()
                 .HasKey(e => e.IdPays);
+            
+            //-----------------------------Piece jointe-----------------------------
+            modelBuilder.Entity<PieceJointe>()
+                .HasKey(e => e.IdPieceJointe);
+
+            modelBuilder.Entity<PieceJointe>()
+                .HasOne(p => p.MessagePjNav)
+                .WithMany(m => m.PiecesJointes)
+                .HasForeignKey(p => p.IdMessage);
 
             //-----------------------------ReinitialisationMotDePasse-----------------------------
             modelBuilder.Entity<ReinitialisationMotDePasse>()

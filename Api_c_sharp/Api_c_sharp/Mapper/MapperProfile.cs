@@ -390,5 +390,33 @@ public class MapperProfile : Profile
         // ============================================
         CreateMap<ReinitialisationMotDePasse, ReinitialiseMdpDTO>()
             .ReverseMap();
+        
+        CreateMap<PieceJointe, PieceJointeDTO>()
+            .ForMember(dest => dest.ContenuBase64, opt => opt.Ignore());
+
+        
+        // ============================================
+        // MAPPERS PIECE JOINTE
+        // ============================================
+        CreateMap<PieceJointeUploadDTO, PieceJointe>()
+            .ForMember(dest => dest.IdPieceJointe, opt => opt.Ignore())
+            .ForMember(dest => dest.DateUpload, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.Contenu, opt => opt.MapFrom(src => Convert.FromBase64String(src.ContenuBase64)))
+            .ForMember(dest => dest.MessagePjNav, opt => opt.Ignore());
+
+        // Mapping Message avec pièces jointes
+        CreateMap<Message, MessageDTO>()
+            .ForMember(dest => dest.PiecesJointes, opt => opt.MapFrom(src => 
+                src.PiecesJointes.Select(pj => new PieceJointeDTO
+                {
+                    IdPieceJointe = pj.IdPieceJointe,
+                    IdMessage = pj.IdMessage,
+                    NomFichier = pj.NomFichier,
+                    TypeMime = pj.TypeMime,
+                    Extension = pj.Extension,
+                    TailleFichier = pj.TailleFichier,
+                    DateUpload = pj.DateUpload,
+                    ContenuBase64 = Convert.ToBase64String(pj.Contenu)
+                })));
     }
 }

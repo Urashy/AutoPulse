@@ -3,20 +3,18 @@ using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
 using BlazorAutoPulse.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
 namespace BlazorAutoPulse.ViewModel;
 
-/// <summary>
-/// ViewModel spécifique à la page Conversations
-/// Gère l'affichage des messages et l'envoi, mais utilise le service singleton pour l'état global
-/// </summary>
 public class ConversationViewModel : IDisposable
 {
     private readonly ConversationStateService _conversationState;
     private readonly ISignalRService _signalR;
     private readonly IMessageService _messageService;
+    private readonly IPieceJointeService _pieceJointeService;
     private readonly IJSRuntime _jsRuntime;
 
     public List<MessageDTO> Messages { get; private set; } = new();
@@ -25,10 +23,16 @@ public class ConversationViewModel : IDisposable
     public bool IsTyping { get; private set; } = false;
     public ElementReference MessagesContainer;
 
+    public List<IBrowserFile> SelectedFiles { get; set; } = new();
+    public bool IsUploadingFiles { get; set; } = false;
+    
+    // ✅ NOUVEAU : Loading pour les messages
+    public bool IsLoadingMessages { get; private set; } = false;
+
     private System.Threading.Timer? _typingTimer;
+    private bool _typingNotified = false;
     public event Action? _refreshUI;
 
-    // Déléguer les propriétés au service singleton
     public List<ConversationListDTO> Conversations => _conversationState.Conversations;
     public int CurrentUserId => _conversationState.CurrentUserId;
     public bool IsLoading => _conversationState.IsLoading;
@@ -38,14 +42,15 @@ public class ConversationViewModel : IDisposable
         ConversationStateService conversationState,
         ISignalRService signalR,
         IMessageService msgService,
+        IPieceJointeService pieceJointeService,
         IJSRuntime jsRuntime)
     {
         _conversationState = conversationState;
         _signalR = signalR;
         _messageService = msgService;
+        _pieceJointeService = pieceJointeService;
         _jsRuntime = jsRuntime;
 
-        // S'abonner aux events
         _signalR.OnMessageReceived += HandleMessageReceived;
         _signalR.OnUserTyping += HandleUserTyping;
         _signalR.OnMessagesRead += HandleMessagesRead;
@@ -54,7 +59,6 @@ public class ConversationViewModel : IDisposable
 
     public async Task InitializeAsync()
     {
-        // Appeler l'initialisation du service (ne fait rien si déjà fait)
         await _conversationState.InitializeAsync();
     }
 
@@ -68,62 +72,133 @@ public class ConversationViewModel : IDisposable
 
     private async Task LoadMessages(int conversationId)
     {
+        // ✅ Activer le loading
+        IsLoadingMessages = true;
+        NotifyStateChanged();
+
         try
         {
-            // Mettre à jour le compteur localement
             var conv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
             if (conv != null && conv.NombreNonLu > 0)
             {
                 Console.WriteLine($"📭 Marquage de {conv.NombreNonLu} messages comme lus");
-        
                 conv.NombreNonLu = 0;
-        
                 _conversationState.NotifyMessagesRead();
             }
 
-            // Charger et marquer comme lus
             Messages = (await _messageService.GetMessagesByConversationAndMarkAsRead(conversationId, CurrentUserId)).ToList();
-            Console.WriteLine($"Messages chargés pour conversation {conversationId}");
+            Console.WriteLine($"✅ {Messages.Count} messages chargés pour conversation {conversationId}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur chargement messages: {ex.Message}");
+            Console.WriteLine($"❌ Erreur chargement messages: {ex.Message}");
+        }
+        finally
+        {
+            // ✅ Désactiver le loading
+            IsLoadingMessages = false;
+            NotifyStateChanged();
         }
     }
 
+    // ✅ Méthode CORRIGÉE pour gérer les fichiers avec rafraîchissement
     public async Task SendMessage()
     {
-        if (SelectedConversation == null || string.IsNullOrWhiteSpace(NewMessage))
+        if (SelectedConversation == null)
+            return;
+
+        // Vérifier qu'il y a du texte OU des fichiers
+        if (string.IsNullOrWhiteSpace(NewMessage) && !SelectedFiles.Any())
             return;
 
         var messageContent = NewMessage.Trim();
         NewMessage = "";
+        var filesToUpload = new List<IBrowserFile>(SelectedFiles);
+        SelectedFiles.Clear();
 
         try
         {
-            await _messageService.CreateAsync(new MessageDTO
+            IsUploadingFiles = true;
+            NotifyStateChanged();
+
+            // 1. Créer le message
+            var messageDto = new MessageDTO
             {
                 IdConversation = SelectedConversation.IdConversation,
                 IdCompte = CurrentUserId,
-                ContenuMessage = messageContent,
-            });
-            
-            // Scroll en bas après l'envoi
-            await Task.Delay(100); // Petit délai pour laisser le DOM se mettre à jour
+                ContenuMessage = string.IsNullOrWhiteSpace(messageContent) ? "[Fichier(s) joint(s)]" : messageContent,
+            };
+
+            var createdMessage = await _messageService.CreateAsync(messageDto);
+
+            if (createdMessage == null)
+            {
+                Console.WriteLine("❌ Erreur : message non créé");
+                NewMessage = messageContent;
+                SelectedFiles = filesToUpload;
+                return;
+            }
+
+            Console.WriteLine($"✅ Message créé avec ID: {createdMessage.IdMessage}");
+
+            // 2. Upload des fichiers si présents
+            if (filesToUpload.Any())
+            {
+                Console.WriteLine($"📤 Upload de {filesToUpload.Count} fichier(s)...");
+
+                var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
+                    createdMessage.IdMessage, 
+                    filesToUpload);
+
+                Console.WriteLine($"✅ {uploadedFiles.Count} fichier(s) uploadé(s)");
+
+                // ✅ CORRECTION : Attacher les fichiers au message créé
+                createdMessage.PiecesJointes = uploadedFiles;
+            }
+
+            // ✅ CORRECTION : Ajouter le message complet avec ses pièces jointes à la liste
+            var messageExists = Messages.Any(m => m.IdMessage == createdMessage.IdMessage);
+            if (!messageExists)
+            {
+                Messages.Add(createdMessage);
+                Console.WriteLine($"✅ Message ajouté à la liste locale avec {createdMessage.PiecesJointes?.Count() ?? 0} pièce(s) jointe(s)");
+            }
+            else
+            {
+                // Si le message existe déjà (via SignalR), mettre à jour ses pièces jointes
+                var existingMessage = Messages.First(m => m.IdMessage == createdMessage.IdMessage);
+                existingMessage.PiecesJointes = createdMessage.PiecesJointes;
+                Console.WriteLine($"✅ Message existant mis à jour avec {createdMessage.PiecesJointes?.Count() ?? 0} pièce(s) jointe(s)");
+            }
+
+            // ✅ Forcer le rafraîchissement de l'UI
+            NotifyStateChanged();
+
+            await Task.Delay(100);
             await ScrollToBottom();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur envoi message: {ex.Message}");
+            Console.WriteLine($"❌ Erreur envoi message: {ex.Message}");
             NewMessage = messageContent;
+            SelectedFiles = filesToUpload;
         }
+        finally
+        {
+            IsUploadingFiles = false;
+            NotifyStateChanged();
+        }
+    }
 
+    // ✅ Gérer la sélection de fichiers
+    public void OnFilesSelected(List<IBrowserFile> files)
+    {
+        SelectedFiles = files;
         NotifyStateChanged();
     }
 
     private async void HandleMessageReceived(int conversationId, int senderId, string message, DateTime date)
     {
-        // Si c'est la conversation active, ajouter le message
         if (SelectedConversation?.IdConversation == conversationId)
         {
             var newMsg = new MessageDTO
@@ -159,7 +234,6 @@ public class ConversationViewModel : IDisposable
                 msg.EstLu = true;
             }
             NotifyStateChanged();
-            Console.WriteLine("test");
         }
     }
 
@@ -189,7 +263,15 @@ public class ConversationViewModel : IDisposable
             return;
 
         _typingTimer?.Dispose();
-        _typingTimer = new System.Threading.Timer(_ => { }, null, 2000, Timeout.Infinite);
+        _typingTimer = new System.Threading.Timer(async _ =>
+        {
+            _typingNotified = false;
+        }, null, 2000, Timeout.Infinite);
+
+        if (_typingNotified)
+            return;
+
+        _typingNotified = true;
 
         await _signalR.NotifyTyping(SelectedConversation.IdConversation, CurrentUserId, "User");
     }

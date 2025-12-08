@@ -1,0 +1,57 @@
+@using BlazorAutoPulse.ViewModel
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="file-upload-inline">
+    <InputFile OnChange="@ViewModel.HandleFileSelection"
+               multiple
+               accept="@ViewModel.AcceptedFileFormats"
+               id="fileInputInline"
+               style="display: none;" />
+
+    <label for="fileInputInline" class="file-upload-icon-btn" title="Joindre des fichiers">
+        📎
+    </label>
+
+    @* Affichage des fichiers sélectionnés au-dessus de l'input *@
+    @if (ViewModel.SelectedFiles.Any())
+    {
+        <div class="selected-files-popup">
+            @foreach (var (file, index) in ViewModel.SelectedFiles.Select((f, i) => (f, i)))
+            {
+                <div class="selected-file-compact">
+                    <span class="file-icon-small">@ViewModel.GetFileIcon(file.Name)</span>
+                    <span class="file-name-compact" title="@file.Name">@file.Name</span>
+                    <span class="file-size-compact">@ViewModel.FormatFileSize(file.Size)</span>
+                    <button type="button"
+                            class="remove-file-compact"
+                            @onclick="() => ViewModel.RemoveFile(index)"
+                            aria-label="Supprimer">
+                        ✕
+                    </button>
+                </div>
+            }
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(ViewModel.ErrorMessage))
+    {
+        <div class="file-error-popup">
+            <span>⚠️ @ViewModel.ErrorMessage</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<List<IBrowserFile>> OnFilesSelected { get; set; }
+
+    private FileUploadViewModel ViewModel { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        ViewModel.SetOnFilesSelectedCallback(async (files) =>
+        {
+            await OnFilesSelected.InvokeAsync(files);
+        });
+    }
+}
