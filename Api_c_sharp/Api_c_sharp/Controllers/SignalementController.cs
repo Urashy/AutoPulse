@@ -5,8 +5,9 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Entity;
+using Npgsql.Internal;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
 /// <summary>
 /// Contrôleur REST permettant de gérer les signalements (annonces et comptes).
@@ -164,7 +165,7 @@ public class SignalementController(
     [HttpPut("{idSignalement}/{nouvelEtat}")]
     public async Task<ActionResult> UpdateEtat(int idSignalement, int nouvelEtat)
     {
-        var signalement = await _manager.GetByIdAsync(idSignalement);
+        Signalement signalement = await _manager.GetByIdAsync(idSignalement);
 
         if (signalement == null)
             return NotFound();
@@ -172,10 +173,19 @@ public class SignalementController(
         // Valider que le nouvel état est valide
         if (nouvelEtat < 1 || nouvelEtat > 3)
             return BadRequest("État invalide. Doit être 1 (En attente), 2 (Traité) ou 3 (Rejeté)");
+        Signalement newsignalement = new Signalement
+        {
+            IdSignalement = signalement.IdSignalement,
+            DescriptionSignalement = signalement.DescriptionSignalement,
+            DateCreationSignalement = signalement.DateCreationSignalement,
+            IdCompteSignalant = signalement.IdCompteSignalant,
+            IdCompteSignale = signalement.IdCompteSignale,
+            IdAnnonceSignale = signalement.IdAnnonceSignale,
+            IdTypeSignalement = signalement.IdTypeSignalement,
+            IdEtatSignalement = nouvelEtat
+        };
 
-        signalement.IdEtatSignalement = nouvelEtat;
-
-        await _manager.UpdateAsync(signalement, signalement);
+        await _manager.UpdateAsync(signalement, newsignalement);
 
         return NoContent();
     }

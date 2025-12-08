@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Api_c_sharp.Models.Entity;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
 /// <summary>
 /// Contrôleur REST permettant de gérer les commandes.

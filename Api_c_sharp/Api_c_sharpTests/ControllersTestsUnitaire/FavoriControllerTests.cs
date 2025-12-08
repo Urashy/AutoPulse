@@ -16,7 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass]
     public class FavoriControllerTests
@@ -175,7 +175,7 @@ namespace App.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task GetByIdTest()
+        public async Task GetByIdsTest()
         {
 
             var result = await _controller.GetByIDS(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
@@ -188,7 +188,7 @@ namespace App.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundGetByIdTest()
+        public async Task NotFoundGetByIdsTest()
         {
 
             var result = await _controller.GetByIDS(9999, _objetcommun.IdCompte);
@@ -202,6 +202,21 @@ namespace App.ControllersUnitaires.Tests
         {
 
             var result = await _controller.GetAll();
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+
+            var list = result.Value.ToList();
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<FavoriDTO>));
+            Assert.IsTrue(list.Any());
+            Assert.IsTrue(list.Any(x => x.IdAnnonce == _objetcommun.IdAnnonce));
+        }
+
+        [TestMethod]
+        public async Task GetFavoriByCompteIDTest()
+        {
+
+            var result = await _controller.GetByCompteId(_objetcommun.IdCompte);
 
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);

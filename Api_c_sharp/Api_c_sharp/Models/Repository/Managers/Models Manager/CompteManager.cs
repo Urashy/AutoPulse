@@ -60,8 +60,6 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .FirstOrDefaultAsync(c => c.IdCompte == idcompte);
             Compte comptedebase = compte;
 
-            if (compte == null)
-                return;
             bool aDesActivites = (compte.CommandeAcheteur?.Any() ?? false) ||
                                  (compte.Annonces?.Any() ?? false) ||
                                  (compte.SignalementsFaits?.Any() ?? false) ||

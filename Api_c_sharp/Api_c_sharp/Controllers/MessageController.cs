@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
@@ -109,7 +109,7 @@ public class MessageController(
     [HttpGet("{idconversation}/{iduser}")]
     public async Task<ActionResult<IEnumerable<MessageDTO>>> GetByConversationAndMarkAsRead(int idconversation, int iduser)
     {
-        // Appel de la méthode qui marque les messages comme lus via la fonction BD
+        // Api_c_sharpel de la méthode qui marque les messages comme lus via la fonction BD
         var result = await _manager.GetMessagesByConversationAndMarkAsRead(idconversation, iduser);
 
         if (result is null || !result.Any())

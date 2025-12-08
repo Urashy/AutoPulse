@@ -37,7 +37,7 @@ namespace Api_c_sharp.Controllers
             var entity = _adresseMapper.Map<APourCouleur>(dto);
             await _manager.AddAsync(entity);
 
-            return CreatedAtAction(nameof(GetByID), new { id = entity.IdCouleur }, entity);
+            return CreatedAtAction(nameof(GetByIDs), new { idvoiture = entity.IdVoiture, idcouleur = entity.IdCouleur }, entity);
         }
 
         /// <summary>
@@ -103,27 +103,6 @@ namespace Api_c_sharp.Controllers
         {
             var list = await _manager.GetAllAsync();
             return new ActionResult<IEnumerable<APourCouleurDTO>>(_adresseMapper.Map<IEnumerable<APourCouleurDTO>>(list));
-        }
-        /// <summary>
-        /// Récupère une adresse à partir de son identifiant.
-        /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse recherchée.</param>
-        /// <returns>
-        /// <list type="bullet">
-        /// <item><description><see cref="APourCouleur"/> si l'adresse existe (200 OK).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
-        /// </list>
-        /// </returns>
-        [ActionName("GetById")]
-        [HttpGet("{id}")]
-        public async Task<ActionResult<APourCouleurDTO>> GetByID(int id)
-        {
-            var result = await _manager.GetByIdAsync(id);
-
-            if (result is null)
-                return NotFound();
-
-            return _adresseMapper.Map<APourCouleurDTO>(result);
         }
 
         /// <summary>

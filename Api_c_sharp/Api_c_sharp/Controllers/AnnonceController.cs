@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
 /// <summary>
 /// Contrôleur REST permettant de gérer les annonces.

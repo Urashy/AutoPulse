@@ -12,7 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
-namespace App.ControllersMock.Tests
+namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass]
     public class ImageControllerTests

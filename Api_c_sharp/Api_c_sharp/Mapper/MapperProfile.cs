@@ -392,7 +392,7 @@ public class MapperProfile : Profile
             .ReverseMap();
         
         CreateMap<PieceJointe, PieceJointeDTO>()
-            .ForMember(dest => dest.ContenuBase64, opt => opt.Ignore());
+            .ForMember(dest => dest.ContenuBase64, opt => opt.MapFrom(src => src.Contenu)).ReverseMap();
 
         
         // ============================================

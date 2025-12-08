@@ -5,7 +5,7 @@ using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using App.Controllers;
+using Api_c_sharp.Controllers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Api_c_sharp.Models.Entity;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass()]
     public class AdresseControllerTests

@@ -6,7 +6,7 @@ using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using App.Controllers;
+using Api_c_sharp.Controllers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +21,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass()]
     public class CompteControllerTests
@@ -269,6 +269,30 @@ namespace App.ControllersUnitaires.Tests
         }
 
         [TestMethod]
+        public async Task GetProfilPublicTest()
+        {
+            // Act
+            var result = await _controller.GetProfilPublic(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(CompteProfilPublicDTO));
+            Assert.AreEqual(_objetcommun.Pseudo, result.Value.Pseudo);
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetProfilPublicTest()
+        {
+            // Act
+            var result = await _controller.GetProfilPublic(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
         public async Task PostAdresseTest_Entity()
         {
             CompteCreateDTO compteCreateDTO = new CompteCreateDTO
@@ -404,6 +428,58 @@ namespace App.ControllersUnitaires.Tests
         {
             var result = await _controller.PutAnonymise(0);
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task PutAnonymiseAvecAdresseJournauxFavoriTest()
+        {
+            Compte compte2 = new Compte
+            {
+                IdCompte = 2,
+                Nom = "Dupont",
+                Prenom = "Jean",
+                Email = "test@gmail.com",
+                MotDePasse = "anotherhashedpassword",
+                Pseudo = "jeandupont",
+                DateCreation = DateTime.UtcNow,
+                DateNaissance = new DateTime(1985, 5, 5),
+                IdTypeCompte = 1,
+                DateDerniereConnexion = DateTime.UtcNow,
+            };
+            _context.Comptes.Add(compte2);
+            Adresse adresse = new Adresse
+            {
+                IdAdresse = 2,
+                Nom = "Adresse Test",
+                Rue = "456 Rue de Test",
+                LibelleVille = "Testville",
+                CodePostal = "67890",
+                IdPays = 1,
+                IdCompte = compte2.IdCompte
+            };
+            _context.Adresses.Add(adresse);
+            _context.Journaux.Add(new Journal
+            {
+                IdJournal = 1,
+                IdCompte = compte2.IdCompte,
+                ContenuJournal = "Journal Test",
+            });
+            _context.Favoris.Add(new Favori
+            {
+                IdAnnonce = 1,
+                IdCompte = compte2.IdCompte
+            });
+            await _context.SaveChangesAsync();
+            var result = await _controller.PutAnonymise(compte2.IdCompte);
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var compteanonymise = await _manager.GetByIdAsync(compte2.IdCompte);
+            Assert.IsNull(compteanonymise);
+            var adresses = await _context.Adresses.Where(j => j.IdCompte == compte2.IdCompte).ToListAsync();
+            Assert.IsFalse(adresses.Any(), "Les journaux associés au compte devraient être supprimés.");
+            var journaux = await _context.Journaux.Where(j => j.IdCompte == compte2.IdCompte).ToListAsync();
+            Assert.IsFalse(journaux.Any(), "Les journaux associés au compte devraient être supprimés.");
+            var favoris = await _context.Favoris.Where(f => f.IdCompte == compte2.IdCompte).ToListAsync();
+            Assert.IsFalse(favoris.Any(), "Les favoris associés au compte devraient être supprimés.");
         }
 
         [TestMethod]

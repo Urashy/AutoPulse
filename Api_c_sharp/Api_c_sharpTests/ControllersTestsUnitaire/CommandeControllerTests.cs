@@ -4,14 +4,14 @@ using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using App.Controllers;
+using Api_c_sharp.Controllers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass]
     public class CommandeControllerTests
