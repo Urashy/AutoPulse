@@ -18,6 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
 namespace App.Controllers;
 

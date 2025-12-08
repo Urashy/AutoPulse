@@ -5,6 +5,7 @@ using Api_c_sharp.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Repository.Managers;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
 namespace App.Controllers;
 
