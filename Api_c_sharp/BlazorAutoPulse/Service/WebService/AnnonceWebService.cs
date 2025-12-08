@@ -2,10 +2,11 @@
 using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
+using AnnonceDetailDTO = AutoPulse.Shared.DTO.AnnonceDetailDTO;
 
 namespace BlazorAutoPulse.Service
 {
-    public class AnnonceWebService : BaseWebService<Annonce>, IAnnonceService
+    public class AnnonceWebService : BaseWebService<AnnonceDTO>, IAnnonceService
     {
         public AnnonceWebService(HttpClient httpClient) : base(httpClient)
         {
@@ -20,6 +21,38 @@ namespace BlazorAutoPulse.Service
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IEnumerable<AnnonceDTO>>()
                    ?? Enumerable.Empty<AnnonceDTO>();
+        }
+        
+        public async Task<AnnonceDTO> CreateAnnonceAsync(AnnonceCreateUpdateDTO entity)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("Post"))
+            {
+                Content = JsonContent.Create(entity)
+            };
+        
+            var response = await SendWithCredentialsAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<AnnonceDTO>();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Erreur Post : {error}");
+                return await response.Content.ReadFromJsonAsync<AnnonceDTO>();
+            }
+        }
+
+        public async Task UpdateAnnonceAsync(int id, AnnonceCreateUpdateDTO entity)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
+            {
+                Content = JsonContent.Create(entity)
+            };
+        
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task<IEnumerable<AnnonceDTO>> GetByIdMiseEnAvant(int id, int pageNumber = 1, int pageSize = 21)
@@ -56,6 +89,38 @@ namespace BlazorAutoPulse.Service
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IEnumerable<AnnonceDTO>>()
                    ?? Enumerable.Empty<AnnonceDTO>();
+        }
+
+        public async Task<bool> EstMasquerAsync(int id)
+        {
+            var request = new HttpRequestMessage(
+                HttpMethod.Get, BuildUrl($"EstMasquer/{id}")
+            );
+
+            var response = await SendWithCredentialsAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Erreur Get : {error}");
+                return false;
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            bool resultat = bool.Parse(json);
+
+            return resultat;
+        }
+
+        public async Task<AnnonceDetailDTO> GetAnnonceDetailById(int id)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetById/{id.ToString()}"));
+            var response = await SendWithCredentialsAsync(request);
+
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<AnnonceDetailDTO>();
         }
     }
 }

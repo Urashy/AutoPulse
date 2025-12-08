@@ -1,17 +1,14 @@
 ﻿using AutoPulse.Shared.DTO;
-using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.JSInterop;
-using System.Threading.Tasks;
 using BlazorAutoPulse.Service;
 using Microsoft.AspNetCore.Components;
-using AnnonceDetailDTO = BlazorAutoPulse.Model.AnnonceDetailDTO;
 
 namespace BlazorAutoPulse.ViewModel
 {
     public class AnnonceDetailViewModel
     {
-        private readonly IAnnonceDetailService _annonceService;
+        private readonly IAnnonceService _annonceService;
         private readonly IPostImageService _postImageService;
         private readonly IImageService _imageService;
         private readonly IFavorisService _favorisService;
@@ -31,7 +28,7 @@ namespace BlazorAutoPulse.ViewModel
         public bool is3DReady { get; private set; } = false;
         public bool isLoading3D { get; private set; } = false;
         
-        public List<Couleur> couleurDisponible { get; set; }
+        public List<CouleurDTO> couleurDisponible { get; set; }
         public string selectedColor { get; private set; }
 
         // Propriétés pour le menu d'options
@@ -39,6 +36,7 @@ namespace BlazorAutoPulse.ViewModel
         public string? infoOptionAnnonce { get; private set; } = null;
 
         public string? erreurSupprimeAnnonce = null;
+        public bool estMasquer = false;
         
         public string ProfileImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
 
@@ -47,7 +45,7 @@ namespace BlazorAutoPulse.ViewModel
         private NavigationManager _nav;
 
         public AnnonceDetailViewModel(
-            IAnnonceDetailService annonceService,
+            IAnnonceService annonceService,
             IPostImageService postImageService,
             IFavorisService favorisService,
             ICompteService compteService,
@@ -85,7 +83,7 @@ namespace BlazorAutoPulse.ViewModel
                 }
 
                 // Charger l'annonce
-                Annonce = await _annonceService.GetByIdAsync(idAnnonce);
+                Annonce = await _annonceService.GetAnnonceDetailById(idAnnonce);
                 
                 if (Annonce != null)
                 {
@@ -126,6 +124,8 @@ namespace BlazorAutoPulse.ViewModel
                     });
                 }
             }
+            
+            EstMasquerAnnonce();
         }
 
         public async Task ToggleFavorite()
@@ -345,10 +345,53 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        public void MasquerAnnonce()
+        public async Task MasquerAnnonce()
         {
-            Console.WriteLine("Action: masquer l'annonce");
+            AnnonceCreateUpdateDTO annonceChange = new AnnonceCreateUpdateDTO()
+            {
+                IdAnnonce = Annonce.IdAnnonce,
+                Libelle = Annonce.Libelle,
+                IdCompte = Annonce.IdVendeur,
+                IdEtatAnnonce = 4,
+                IdAdresse = Annonce.IdAdresse,
+                IdVoiture = Annonce.IdVoiture,
+                IdMiseEnAvant = Annonce.IdMiseEnAvant,
+                DatePublication = Annonce.DatePublication,
+                Prix = Annonce.Prix,
+                Description = Annonce.Libelle
+            };
+            _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
             IsOptionsMenuOpen = false;
+
+            await EstMasquerAnnonce();
+            _refreshUI?.Invoke();
+        }
+        
+        public async Task DemasquerAnnonce()
+        {
+            AnnonceCreateUpdateDTO annonceChange = new AnnonceCreateUpdateDTO()
+            {
+                IdAnnonce = Annonce.IdAnnonce,
+                Libelle = Annonce.Libelle,
+                IdCompte = Annonce.IdVendeur,
+                IdEtatAnnonce = 1,
+                IdAdresse = Annonce.IdAdresse,
+                IdVoiture = Annonce.IdVoiture,
+                IdMiseEnAvant = Annonce.IdMiseEnAvant,
+                DatePublication = Annonce.DatePublication,
+                Prix = Annonce.Prix,
+                Description = Annonce.Libelle
+            };
+            _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
+            IsOptionsMenuOpen = false;
+            
+            await EstMasquerAnnonce();
+            _refreshUI?.Invoke();
+        }
+
+        public async Task EstMasquerAnnonce()
+        {
+            estMasquer = await _annonceService.EstMasquerAsync(Annonce.IdAnnonce);
             _refreshUI?.Invoke();
         }
 
@@ -356,7 +399,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             try
             {
-                _annonceService.DeleteAsync(Annonce.IdAnnonce);
+                await _annonceService.DeleteAsync(Annonce.IdAnnonce);
                 _notificationService.ShowSuccess(
                     "Suppression d'annonce", 
                     "Votre annonce a bien été supprimée");

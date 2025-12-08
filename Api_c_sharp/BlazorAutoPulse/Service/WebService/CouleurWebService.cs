@@ -1,10 +1,11 @@
 using System.Net.Http.Json;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service.WebService;
 
-public class CouleurWebService: BaseWebService<Couleur>, ICouleurService
+public class CouleurWebService: BaseWebService<CouleurDTO>, ICouleurService
 {
     public CouleurWebService(HttpClient httpClient) : base(httpClient)
     {
@@ -12,11 +13,11 @@ public class CouleurWebService: BaseWebService<Couleur>, ICouleurService
 
     protected override string ApiEndpoint => "Couleur";
     
-    public async Task<List<Couleur>> GetCouleursByVoitureId(int voitureId)
+    public async Task<List<CouleurDTO>> GetCouleursByVoitureId(int voitureId)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetCouleursByVoitureID/{voitureId}"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<List<Couleur>>();
+        return await response.Content.ReadFromJsonAsync<List<CouleurDTO>>();
     }
 }

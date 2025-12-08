@@ -1,4 +1,5 @@
-﻿using BlazorAutoPulse.Model;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -18,7 +19,7 @@ namespace BlazorAutoPulse.ViewModel
         //-------------------------------- Modele
         public List<ImageUpload> imageUpload;
         
-        public Annonce annonce;
+        public AnnonceCreateUpdateDTO annonce;
         public Voiture voiture;
         public Adresse adresse;
         
@@ -48,14 +49,12 @@ namespace BlazorAutoPulse.ViewModel
             
             imageUpload = new List<ImageUpload>();
             
-            annonce = new Annonce()
+            annonce = new AnnonceCreateUpdateDTO()
             {
                 IdCompte = 1,
                 IdEtatAnnonce = 1,
                 IdMiseEnAvant = 1,
                 DatePublication = DateTime.Now,
-                Annee = null,
-                Kilometrage = null,
             };
             voiture = new Voiture
             {
@@ -292,12 +291,12 @@ namespace BlazorAutoPulse.ViewModel
                 
                 annonce.IdAdresse = resultAdr.IdAdresse;
                 annonce.IdVoiture = resultVoiture.IdVoiture;
-                await _annonceService.CreateAsync(annonce);
+                await _annonceService.CreateAnnonceAsync(annonce);
                 _nav.NavigateTo("/");
 
                 voiture = new Voiture();
                 adresse = new Adresse();
-                annonce = new Annonce();
+                annonce = new AnnonceCreateUpdateDTO();
                 nomPhotos = new List<string>();
                 selectedCouleurs = new List<int>();
             }
