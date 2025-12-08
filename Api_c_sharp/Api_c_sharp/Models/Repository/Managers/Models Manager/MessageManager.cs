@@ -4,7 +4,7 @@ using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace Api_c_sharp.Models.Repository.Managers
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class MessageManager : WriteableReadableManager<Message>, IMessageRepository
     {

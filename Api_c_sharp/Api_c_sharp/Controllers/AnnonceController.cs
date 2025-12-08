@@ -7,6 +7,7 @@ using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
 namespace App.Controllers;
 

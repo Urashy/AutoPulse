@@ -2,7 +2,7 @@
 using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Api_c_sharp.Models.Repository.Managers
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class CouleurManager : ReadableManager<Couleur>, ICouleurRepository
     {

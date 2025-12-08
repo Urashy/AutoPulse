@@ -211,7 +211,7 @@ namespace App.ControllersUnitaires.Tests
         public async Task PutSignalementTest()
         {
             // Given : Un DTO valide avec un ID correspondant
-            SignalementCreateDTO dto = new SignalementCreateDTO
+            SignalementUpdateDTO dto = new SignalementUpdateDTO
             {
                 IdSignalement = _signalementCommun.IdSignalement,
                 DescriptionSignalement = "Il a fait un truc pas bien",
@@ -231,10 +231,13 @@ namespace App.ControllersUnitaires.Tests
         public async Task PutBadRequestTest()
         {
             // Given : un DTO dont la validation doit échouer
-            var dto = new SignalementCreateDTO { IdSignalement = 999 };
+            SignalementUpdateDTO dto = new SignalementUpdateDTO 
+            { 
+                IdSignalement = _signalementCommun.IdSignalement,
+                DescriptionSignalement = null,
+            };
 
-            // On force une erreur de validation pour déclencher BadRequest()
-            _controller.ModelState.AddModelError("Test", "Invalid Model");
+            _controller.ModelState.AddModelError("DescriptionSignalement", "Required");
 
             // When
             var result = await _controller.Put(1, dto);
@@ -248,7 +251,7 @@ namespace App.ControllersUnitaires.Tests
         public async Task PutNotFoundTest()
         {
             // Given : Une signalement inexistante
-            var dto = new SignalementCreateDTO() { IdSignalement = 10 };
+            var dto = new SignalementUpdateDTO() { IdSignalement = 10 };
 
             // When : On appelle Put
             var result = await _controller.Put(10, dto);

@@ -4,7 +4,7 @@ using Api_c_sharp.Models.Repository.Managers;
 using AutoPulse.Shared.DTO;
 using Microsoft.EntityFrameworkCore;
 
-namespace Api_c_sharp.Models.Repository.Managers
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class CompteManager : BaseManager<Compte,string> , ICompteRepository
     {

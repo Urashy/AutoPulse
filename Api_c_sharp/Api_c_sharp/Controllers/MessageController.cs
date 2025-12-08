@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Api_c_sharp.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
 namespace App.Controllers;
 

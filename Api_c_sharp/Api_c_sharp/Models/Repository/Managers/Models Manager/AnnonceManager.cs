@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Drawing.Printing;
 using System.Linq;
 
-namespace Api_c_sharp.Models.Repository.Managers
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class AnnonceManager : BaseManager<Annonce,string>, IAnnonceRepository
     {
@@ -158,7 +158,10 @@ namespace Api_c_sharp.Models.Repository.Managers
             Commande commandes = await context.Commandes.FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
 
             if (commandes != null)
+            {
+                entity.IdEtatAnnonce = 6;
                 return false;
+            }
             else
                 await base.DeleteAsync(entity);
             return true;

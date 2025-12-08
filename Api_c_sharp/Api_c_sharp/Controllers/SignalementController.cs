@@ -107,8 +107,11 @@ public class SignalementController(
     /// </summary>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] SignalementCreateDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] SignalementUpdateDTO dto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
         var toUpdate = await _manager.GetByIdAsync(id);
 
         if (toUpdate == null)
