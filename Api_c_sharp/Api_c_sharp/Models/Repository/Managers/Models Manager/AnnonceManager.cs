@@ -166,5 +166,18 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 await base.DeleteAsync(entity);
             return true;
         }
+
+        public async Task<bool> EstMasque(int annonceId)
+        {
+            Annonce annonce = dbSet.Find(annonceId);
+            if (annonce.IdEtatAnnonce == 4)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

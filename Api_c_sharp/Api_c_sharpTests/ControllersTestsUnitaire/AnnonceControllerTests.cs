@@ -565,7 +565,7 @@ namespace App.ControllersUnitaires.Tests
                 KmMax = 15000
             };
             // Act
-            var result = await _controller.GetFiltered(parametreRecherche,1,21,1);
+            var result = await _controller.GetFiltered(parametreRecherche, 1, 21, 1);
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -640,6 +640,27 @@ namespace App.ControllersUnitaires.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task EstMasqueFalseTests()
+        {
+            var result = await _controller.EstMasque(_objetcommun.IdAnnonce);
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsFalse(result.Value);
+        }
+
+        [TestMethod]
+        public async Task EstMasqueTrueTests()
+        {
+            _objetcommun.IdEtatAnnonce = 4; // Etat "Masqué"
+            await _context.SaveChangesAsync();
+
+            var result = await _controller.EstMasque(_objetcommun.IdAnnonce);
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value);
         }
     }
 }
