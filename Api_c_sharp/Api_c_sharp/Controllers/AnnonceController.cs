@@ -284,4 +284,19 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(list));
     }
+
+    /// <summary>
+    /// Vérifie si une annonce est masqué.
+    /// </summary>
+    /// <param name="idannonce">Identifiant de l'annonce a vérifier</param>
+    /// <returns>
+    /// <see cref="bool"/> indiquant si l'annonce est en favori (200 OK).
+    /// </returns>
+    [ActionName("HasBloque")]
+    [HttpGet("{idannonce}")]
+    public async Task<ActionResult<bool>> EstMasque(int idannonce)
+    {
+        bool result = await _manager.EstMasque(idannonce);
+        return result;
+    }
 }
