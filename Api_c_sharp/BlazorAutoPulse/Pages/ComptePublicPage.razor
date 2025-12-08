@@ -54,26 +54,14 @@ else
                                 <span>Signaler l'utilisateur</span>
                             </button>
 
-                            @if (!VM.EstBloque)
-                            {
-                                <button @onclick="VM.BloquerUtilisateur"
-                                        @onmouseenter="() => VM.SetInfoOption(infoBloquer)"
-                                        @onmouseleave="() => VM.SetInfoOption(null)"
-                                        class="option-item">
-                                    <span class="option-icon">❗️</span>
-                                    <span>Bloquer l'utilisateur</span>
-                                </button>
-                            }
-                            else
-                            {
-                                <button @onclick="VM.DebloquerUtilisateur"
-                                        @onmouseenter="() => VM.SetInfoOption(infoDebloquer)"
-                                        @onmouseleave="() => VM.SetInfoOption(null)"
-                                        class="option-item">
-                                    <span class="option-icon">❗</span>
-                                    <span>Déloquer l'utilisateur</span>
-                                </button>
-                            }
+                            <button @onclick="VM.EstBloque ? VM.DebloquerUtilisateur : VM.BloquerUtilisateur"
+                                    @onmouseenter="() => VM.SetInfoOption(VM.EstBloque ? infoDebloquer : infoBloquer)"
+                                    @onmouseleave="() => VM.SetInfoOption(null)"
+                                    class="option-item">
+
+                                <span class="option-icon">❗</span>
+                                <span>@(VM.EstBloque ? "Débloquer l'utilisateur" : "Bloquer l'utilisateur")</span>
+                            </button>
                             
                             @if (!string.IsNullOrEmpty(VM.infoOption))
                             {

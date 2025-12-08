@@ -52,12 +52,13 @@ else
                         <div class="options-dropdown">
                             @if (VM.CurrentUserId == VM.Annonce.IdVendeur)
                             {
-                                <button @onclick="VM.MasquerAnnonce"
-                                        @onmouseenter="() => VM.SetInfoOption(infoMasquer)"
+                                <button @onclick="VM.estMasquer ? VM.DemasquerAnnonce : VM.MasquerAnnonce"
+                                        @onmouseenter="() => VM.SetInfoOption(VM.estMasquer ? infoDemasquer : infoMasquer)"
                                         @onmouseleave="() => VM.SetInfoOption(null)"
                                         class="option-item">
+
                                     <span class="option-icon">👁️</span>
-                                    <span>Masquer l'annonce</span>
+                                    <span>@(VM.estMasquer ? "Démasquer l'annonce" : "Masquer l'annonce")</span>
                                 </button>
 
                                 <button @onclick="VM.SupprimerAnnonce"
@@ -298,7 +299,8 @@ else
 
 @code {
     [Parameter] public int IdAnnonce { get; set; }
-    private string infoMasquer = "Masquer temporairement votre annonce sans la supprimer";
+    private string infoMasquer = "Masquer temporairement votre annonce pour que personne ne la vois sans la supprimer";
+    private string infoDemasquer = "Demasquer cette annonce pour que les gens puisse la chercher";
     private string infoSupprimer = "Supprimer définitivement votre annonce";
     private string infoSignaler = "Signaler cette annonce pour contenu inapproprié ou frauduleux";
 
