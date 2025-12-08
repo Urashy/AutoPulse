@@ -1,7 +1,5 @@
-﻿using Api_c_sharp.Controllers;
-using Api_c_sharp.Mapper;
+﻿using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Entity;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using App.Controllers;
 using AutoMapper;
@@ -18,25 +16,25 @@ namespace App.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class BoiteDeVitesseControllerTestsMock
+    public class CarburantControllerTestsMock
     {
-        private Mock<BoiteDeVitesseManager> _mockManager;
-        private BoiteDeVitesseController _controller;
+        private Mock<CarburantManager> _mockManager;
+        private CarburantController _controller;
         private IMapper _mapper;
-        private BoiteDeVitesse _objetcommun;
+        private Carburant _objetcommun;
 
         [TestInitialize]
         public void Initialize()
         {
             // Création du mock du manager avec un paramètre null pour le context
             // (le mock n'utilisera pas le context réel)
-            _mockManager = new Mock<BoiteDeVitesseManager>(null);
+            _mockManager = new Mock<CarburantManager>(null);
 
             // Création de l'adresse de référence
-            _objetcommun = new BoiteDeVitesse
+            _objetcommun = new Carburant
             {
-                IdBoiteDeVitesse = 1,
-                LibelleBoite ="Auto"
+                IdCarburant = 1,
+                LibelleCarburant = "Essence"
             };
 
             // Configuration AutoMapper
@@ -47,23 +45,23 @@ namespace App.ControllersMock.Tests
             _mapper = config.CreateMapper();
 
             // Injection dans le controller
-            _controller = new BoiteDeVitesseController(_mockManager.Object, _mapper);
+            _controller = new CarburantController(_mockManager.Object, _mapper);
         }
         [TestMethod]
         public async Task GetByIdTest()
         {
             // Arrange
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdBoiteDeVitesse))
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCarburant))
                        .ReturnsAsync(_objetcommun);
 
             // Act
-            var result = await _controller.GetById(_objetcommun.IdBoiteDeVitesse);
+            var result = await _controller.GetById(_objetcommun.IdCarburant);
 
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(BoiteDeVitesseDTO));
-            Assert.AreEqual(_objetcommun.LibelleBoite, result.Value.LibelleBoite);
+            Assert.IsInstanceOfType(result.Value, typeof(CarburantDTO));
+            Assert.AreEqual(_objetcommun.LibelleCarburant, result.Value.LibelleCarburant);
         }
 
         [TestMethod]
@@ -71,7 +69,7 @@ namespace App.ControllersMock.Tests
         {
             // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(0))
-                       .ReturnsAsync((BoiteDeVitesse)null);
+                       .ReturnsAsync((Carburant)null);
 
             // Act
             var result = await _controller.GetById(0);
@@ -85,18 +83,18 @@ namespace App.ControllersMock.Tests
         public async Task GetAllTest()
         {
             // Arrange
-            var BoiteDeVitesseList = new List<BoiteDeVitesse>
+            var CarburantList = new List<Carburant>
             {
                 _objetcommun,
-                new BoiteDeVitesse
+                new Carburant
                 {
-                    IdBoiteDeVitesse = 2,
-                    LibelleBoite ="Manuel"
+                    IdCarburant = 2,
+                    LibelleCarburant = "Diesel"
                 }
             };
 
             _mockManager.Setup(m => m.GetAllAsync())
-                       .ReturnsAsync(BoiteDeVitesseList);
+                       .ReturnsAsync(CarburantList);
 
             // Act
             var result = await _controller.GetAll();
@@ -104,9 +102,9 @@ namespace App.ControllersMock.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<BoiteDeVitesseDTO>));
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<CarburantDTO>));
             Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.LibelleBoite == _objetcommun.LibelleBoite));
+            Assert.IsTrue(result.Value.Any(o => o.LibelleCarburant == _objetcommun.LibelleCarburant));
             Assert.AreEqual(2, result.Value.Count());
         }
     }
