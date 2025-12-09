@@ -257,7 +257,7 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     IdCompte = _currentUserId.Value,
                     IdSignalement = _signalementId.Value,
-                    Contenu = PlainteContenu
+                    Description = PlainteContenu
                 };
 
                 var result = await _plainteService.CreatePlainteAsync(plainteDto);

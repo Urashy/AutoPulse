@@ -23,9 +23,17 @@ namespace Api_c_sharp.Models.Entity
         [Column("sig_id")] 
         public int IdSignalement { get; set; }
 
+        [Required]
+        [Column("com_id")]
+        public int IdCompte { get; set; }
+
+        [ForeignKey(nameof(IdCompte))]
+        [InverseProperty(nameof(Compte.Plaintes))]
+        public virtual Compte ComptePlainteNav { get; set; } = null!;
+
         [ForeignKey(nameof(IdSignalement))]
         [InverseProperty(nameof(Signalement.Plaintes))]
-        public virtual Signalement SignalementPainteNav { get; set; } = null!;
+        public virtual Signalement SignalementPlainteNav { get; set; } = null!;
         
 
     }

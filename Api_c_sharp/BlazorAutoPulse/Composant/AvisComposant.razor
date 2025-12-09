@@ -1,0 +1,85 @@
+﻿@using AutoPulse.Shared.DTO
+@using BlazorAutoPulse.ViewModel
+@inject AvisComposantViewModel AvisVM
+@inject NavigationManager Navigation
+
+<div class="avis-card">
+    <div class="avis-header">
+        <h3 class="avis-pseudoJugeur">@Avis.PseudoJugeur</h3>
+    </div>
+
+    <div class="avis-content">
+        <div class="avis-row">
+            <div class="avis-contenu">
+                <span class="avis-label">Avis</span>
+                <span class="avis-value">
+                    @Avis.ContenuAvis
+                </span>
+            </div>
+        </div>
+
+        <div class="avis-row">
+            <div class="avis-date">
+                <span class="avis-label">Date de l'avis'</span>
+                <span class="avis-value">
+                    @Avis.DateAvis
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @if (ShowActions)
+    {
+        <div class="avis-actions">
+            <button class="avis-btn" @onclick="EditAvis" @onclick:stopPropagation="true">
+                <span>✏️</span>
+                <span>Modifier</span>
+            </button>
+            <button class="avis-btn danger" @onclick="DeleteAvis" @onclick:stopPropagation="true">
+                <span>🗑️</span>
+                <span>Supprimer</span>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public AvisListDTO Avis { get; set; }
+
+    [Parameter]
+    public bool ShowActions { get; set; } = false;
+
+    [Parameter]
+    public bool IsPrincipal { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<AvisListDTO> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<AvisListDTO> OnDelete { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Avis != null)
+        {
+            await AvisVM.InitializeAsync(Avis, StateHasChanged);
+        }
+    }
+
+    private async Task EditAvis()
+    {
+        if (OnEdit.HasDelegate)
+        {
+            await OnEdit.InvokeAsync(Avis);
+        }
+    }
+
+    private async Task DeleteAvis()
+    {
+        if (OnDelete.HasDelegate)
+        {
+            await OnDelete.InvokeAsync(Avis);
+        }
+    }
+}

@@ -67,6 +67,8 @@ public class MapperProfile : Profile
 
         CreateMap<PlainteUpdateDTO, Plainte>().ReverseMap();
 
+        CreateMap<EtatCompte, EtatCompteDTO>().ReverseMap();
+
         // ============================================
         // MAPPERS ADRESSE
         // ============================================
