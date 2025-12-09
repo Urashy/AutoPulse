@@ -213,7 +213,7 @@ public class MapperProfile : Profile
                     ? src.VoitureAnnonceNav.ModeleBlenderNavigation.Lien 
                     : null)).ReverseMap();
         
-        CreateMap<AnnonceCreateUpdateDTO, Annonce>().ReverseMap();
+        CreateMap<AnnonceCreateDTO, Annonce>().ReverseMap();
         
         // ============================================
         // MAPPERS COMPTE

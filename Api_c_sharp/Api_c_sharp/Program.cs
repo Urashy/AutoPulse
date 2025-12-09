@@ -31,6 +31,7 @@ builder.Services.AddAutoMapper(typeof(MapperProfile));
 //------------------------------Managers (DI)------------------------------
 builder.Services.AddScoped<AnnonceManager>();
 builder.Services.AddScoped<AdresseManager>();
+builder.Services.AddScoped<AvisManager>();
 builder.Services.AddScoped<MarqueManager>();
 builder.Services.AddScoped<ModeleManager>();
 builder.Services.AddScoped<BoiteDeVitesseManager>();
@@ -58,6 +59,7 @@ builder.Services.AddScoped<PieceJointeManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
+builder.Services.AddScoped<IAvisRepository>(sp => sp.GetRequiredService<AvisManager>());
 builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalManager>());
 builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmentService>();
 

@@ -74,8 +74,8 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
             return BadRequest(ModelState);
 
         var entity = _mapper.Map<Avis>(dto);
-        await _journalService.LogDepotAvisAsync(dto.IdJugeur, dto.IdJugee, dto.IdAvis, dto.NoteAvis, dto.ContenuAvis);
         await _manager.AddAsync(entity);
+        await _journalService.LogDepotAvisAsync(dto.IdJugeur, dto.IdJugee, entity.IdAvis, dto.NoteAvis, dto.ContenuAvis);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdAvis }, entity);
     }
@@ -135,7 +135,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// <summary>
     /// Récupère des avis à partir d'un compte.
     /// </summary>
-    /// <param name="idtype">Identifiant unique du type recherchée.</param>
+    /// <param name="idcompte">Identifiant unique du type recherchée.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="AvisListDTO"/> si l'avis existe (200 OK).</description></item>
@@ -143,10 +143,13 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// </list>
     /// </returns>
     [ActionName("GetAvisByCompteID")]
-    [HttpGet("{id}")]
+    [HttpGet("{idcompte}")]
     public async Task<ActionResult<IEnumerable<AvisListDTO>>> GetAvisByCompteID(int idcompte)
     {
         var result = await _manager.GetAvisByCompteId(idcompte);
+
+        if (result is null || !result.Any())
+            return NotFound();
 
         return new ActionResult<IEnumerable<AvisListDTO>>(_mapper.Map<IEnumerable<AvisListDTO>>(result));
 

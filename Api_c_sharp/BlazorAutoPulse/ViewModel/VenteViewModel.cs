@@ -19,7 +19,7 @@ namespace BlazorAutoPulse.ViewModel
         //-------------------------------- Modele
         public List<ImageUpload> imageUpload;
         
-        public AnnonceCreateUpdateDTO annonce;
+        public AnnonceCreateDTO annonce;
         public Voiture voiture;
         public Adresse adresse;
         
@@ -49,7 +49,7 @@ namespace BlazorAutoPulse.ViewModel
             
             imageUpload = new List<ImageUpload>();
             
-            annonce = new AnnonceCreateUpdateDTO()
+            annonce = new AnnonceCreateDTO()
             {
                 IdCompte = 1,
                 IdEtatAnnonce = 1,
@@ -296,7 +296,7 @@ namespace BlazorAutoPulse.ViewModel
 
                 voiture = new Voiture();
                 adresse = new Adresse();
-                annonce = new AnnonceCreateUpdateDTO();
+                annonce = new AnnonceCreateDTO();
                 nomPhotos = new List<string>();
                 selectedCouleurs = new List<int>();
             }
