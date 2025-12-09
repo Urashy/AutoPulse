@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -8,8 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api_c_sharp.Migrations
 {
     /// <inheritdoc />
-    [ExcludeFromCodeCoverage]
-    public partial class AutoPulseDBCreate : Migration
+    public partial class CreationDbAutopulse : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -66,7 +64,8 @@ namespace Api_c_sharp.Migrations
                 {
                     cou_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    cou_lib = table.Column<string>(type: "text", nullable: false)
+                    cou_lib = table.Column<string>(type: "text", nullable: false),
+                    cou_codehexa = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -85,6 +84,34 @@ namespace Api_c_sharp.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_t_e_etatannonce_eta", x => x.eta_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_e_etatcompte_etc",
+                schema: "public",
+                columns: table => new
+                {
+                    etc_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    etc_libelle = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_e_etatcompte_etc", x => x.etc_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_e_etatsignalement_ets",
+                schema: "public",
+                columns: table => new
+                {
+                    ets_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    eta_lib = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_e_etatsignalement_ets", x => x.ets_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -173,13 +200,32 @@ namespace Api_c_sharp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "t_e_reinitialisationmotdepasse_rei",
+                schema: "public",
+                columns: table => new
+                {
+                    rei_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    com_id = table.Column<int>(type: "integer", nullable: false),
+                    com_email = table.Column<string>(type: "text", nullable: false),
+                    rei_token = table.Column<string>(type: "text", nullable: false),
+                    rei_expiration = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    rei_utilise = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_e_reinitialisationmotdepasse_rei", x => x.rei_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "t_e_typecompte_tco",
                 schema: "public",
                 columns: table => new
                 {
                     tco_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    tco_libelle = table.Column<string>(type: "text", nullable: false)
+                    tco_libelle = table.Column<string>(type: "text", nullable: false),
+                    tco_cherchable = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -237,29 +283,6 @@ namespace Api_c_sharp.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "t_e_ville_vil",
-                schema: "public",
-                columns: table => new
-                {
-                    vil_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    vil_libelle = table.Column<string>(type: "text", nullable: false),
-                    pay_id = table.Column<int>(type: "integer", nullable: false),
-                    vil_codepostal = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_t_e_ville_vil", x => x.vil_id);
-                    table.ForeignKey(
-                        name: "FK_t_e_ville_vil_t_e_pays_pay_pay_id",
-                        column: x => x.pay_id,
-                        principalSchema: "public",
-                        principalTable: "t_e_pays_pay",
-                        principalColumn: "pay_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "t_e_compte_com",
                 schema: "public",
                 columns: table => new
@@ -276,12 +299,23 @@ namespace Api_c_sharp.Migrations
                     com_date_naissance = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     com_biographie = table.Column<string>(type: "text", nullable: true),
                     tco_id = table.Column<int>(type: "integer", nullable: false),
-                    cpr_siret = table.Column<string>(type: "character varying(14)", maxLength: 14, nullable: false),
-                    cpr_raison_sociale = table.Column<string>(type: "text", nullable: true)
+                    com_numero_telephone = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
+                    etc_id = table.Column<int>(type: "integer", nullable: false),
+                    cpr_siret = table.Column<string>(type: "character varying(14)", maxLength: 14, nullable: true),
+                    cpr_raison_sociale = table.Column<string>(type: "text", nullable: true),
+                    com_google_id = table.Column<string>(type: "text", nullable: true),
+                    com_auth_provider = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_t_e_compte_com", x => x.com_id);
+                    table.ForeignKey(
+                        name: "FK_t_e_compte_com_t_e_etatcompte_etc_etc_id",
+                        column: x => x.etc_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_etatcompte_etc",
+                        principalColumn: "etc_id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_t_e_compte_com_t_e_typecompte_tco_tco_id",
                         column: x => x.tco_id,
@@ -302,7 +336,6 @@ namespace Api_c_sharp.Migrations
                     mot_id = table.Column<int>(type: "integer", nullable: false),
                     car_id = table.Column<int>(type: "integer", nullable: false),
                     boi_id = table.Column<int>(type: "integer", nullable: false),
-                    cou_id = table.Column<int>(type: "integer", nullable: false),
                     cat_id = table.Column<int>(type: "integer", nullable: false),
                     voi_nbplace = table.Column<int>(type: "integer", nullable: false),
                     voi_nbporte = table.Column<int>(type: "integer", nullable: false),
@@ -375,19 +408,30 @@ namespace Api_c_sharp.Migrations
                 {
                     adr_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    adr_nom = table.Column<string>(type: "text", nullable: false),
                     adr_numero = table.Column<int>(type: "integer", nullable: false),
                     adr_rue = table.Column<string>(type: "text", nullable: false),
-                    vil_id = table.Column<int>(type: "integer", nullable: false)
+                    adr_libelleville = table.Column<string>(type: "text", nullable: false),
+                    adr_codepostal = table.Column<string>(type: "text", nullable: false),
+                    com_id = table.Column<int>(type: "integer", nullable: false),
+                    pays_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_t_e_adresse_adr", x => x.adr_id);
                     table.ForeignKey(
-                        name: "FK_t_e_adresse_adr_t_e_ville_vil_vil_id",
-                        column: x => x.vil_id,
+                        name: "FK_t_e_adresse_adr_t_e_compte_com_com_id",
+                        column: x => x.com_id,
                         principalSchema: "public",
-                        principalTable: "t_e_ville_vil",
-                        principalColumn: "vil_id",
+                        principalTable: "t_e_compte_com",
+                        principalColumn: "com_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_t_e_adresse_adr_t_e_pays_pay_pays_id",
+                        column: x => x.pays_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_pays_pay",
+                        principalColumn: "pay_id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -424,41 +468,30 @@ namespace Api_c_sharp.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "t_e_signalement_sig",
+                name: "t_j_bloque_blo",
                 schema: "public",
                 columns: table => new
                 {
-                    sig_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    sig_description = table.Column<string>(type: "text", nullable: false),
-                    sig_datecreation = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    com_id_signalant = table.Column<int>(type: "integer", nullable: false),
-                    com_idsignale = table.Column<int>(type: "integer", nullable: false),
-                    tsi_id = table.Column<int>(type: "integer", nullable: false)
+                    blo_id = table.Column<int>(type: "integer", nullable: false),
+                    com_id = table.Column<int>(type: "integer", nullable: false),
+                    blo_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_t_e_signalement_sig", x => x.sig_id);
+                    table.PrimaryKey("PK_t_j_bloque_blo", x => new { x.com_id, x.blo_id });
                     table.ForeignKey(
-                        name: "FK_t_e_signalement_sig_t_e_compte_com_com_id_signalant",
-                        column: x => x.com_id_signalant,
+                        name: "FK_t_j_bloque_blo_t_e_compte_com_blo_id",
+                        column: x => x.blo_id,
                         principalSchema: "public",
                         principalTable: "t_e_compte_com",
                         principalColumn: "com_id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_t_e_signalement_sig_t_e_compte_com_com_idsignale",
-                        column: x => x.com_idsignale,
+                        name: "FK_t_j_bloque_blo_t_e_compte_com_com_id",
+                        column: x => x.com_id,
                         principalSchema: "public",
                         principalTable: "t_e_compte_com",
                         principalColumn: "com_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_t_e_signalement_sig_t_e_typesignalement_tsi_tsi_id",
-                        column: x => x.tsi_id,
-                        principalSchema: "public",
-                        principalTable: "t_e_typesignalement_tsi",
-                        principalColumn: "tsi_id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -531,7 +564,9 @@ namespace Api_c_sharp.Migrations
                     adr_id = table.Column<int>(type: "integer", nullable: false),
                     voi_id = table.Column<int>(type: "integer", nullable: false),
                     mav_id = table.Column<int>(type: "integer", nullable: true),
-                    ann_dat = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    ann_dat = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ann_pri = table.Column<int>(type: "integer", nullable: false),
+                    ann_description = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -573,40 +608,12 @@ namespace Api_c_sharp.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "t_j_apouradresse_apa",
-                schema: "public",
-                columns: table => new
-                {
-                    adr_id = table.Column<int>(type: "integer", nullable: false),
-                    com_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_t_j_apouradresse_apa", x => new { x.adr_id, x.com_id });
-                    table.ForeignKey(
-                        name: "FK_t_j_apouradresse_apa_t_e_adresse_adr_adr_id",
-                        column: x => x.adr_id,
-                        principalSchema: "public",
-                        principalTable: "t_e_adresse_adr",
-                        principalColumn: "adr_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_t_j_apouradresse_apa_t_e_compte_com_com_id",
-                        column: x => x.com_id,
-                        principalSchema: "public",
-                        principalTable: "t_e_compte_com",
-                        principalColumn: "com_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "t_e_commande_cmd",
                 schema: "public",
                 columns: table => new
                 {
                     cmd_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    fac_id = table.Column<int>(type: "integer", nullable: true),
                     com_id_vendeur = table.Column<int>(type: "integer", nullable: false),
                     com_id_acheteur = table.Column<int>(type: "integer", nullable: false),
                     cmd_id_annonce = table.Column<int>(type: "integer", nullable: false),
@@ -624,6 +631,20 @@ namespace Api_c_sharp.Migrations
                         principalColumn: "ann_id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_t_e_commande_cmd_t_e_compte_com_com_id_acheteur",
+                        column: x => x.com_id_acheteur,
+                        principalSchema: "public",
+                        principalTable: "t_e_compte_com",
+                        principalColumn: "com_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_t_e_commande_cmd_t_e_compte_com_com_id_vendeur",
+                        column: x => x.com_id_vendeur,
+                        principalSchema: "public",
+                        principalTable: "t_e_compte_com",
+                        principalColumn: "com_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_t_e_commande_cmd_t_e_moyenpaiement_mop_cmd_moyen_paiement",
                         column: x => x.cmd_moyen_paiement,
                         principalSchema: "public",
@@ -639,7 +660,8 @@ namespace Api_c_sharp.Migrations
                 {
                     con_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ann_id = table.Column<int>(type: "integer", nullable: false)
+                    ann_id = table.Column<int>(type: "integer", nullable: false),
+                    con_date_dernier_message = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -650,6 +672,59 @@ namespace Api_c_sharp.Migrations
                         principalSchema: "public",
                         principalTable: "t_e_annonce_ann",
                         principalColumn: "ann_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_e_signalement_sig",
+                schema: "public",
+                columns: table => new
+                {
+                    sig_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    sig_description = table.Column<string>(type: "text", nullable: false),
+                    sig_datecreation = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    com_idsignalant = table.Column<int>(type: "integer", nullable: false),
+                    com_idsignale = table.Column<int>(type: "integer", nullable: true),
+                    ann_idannoncesignale = table.Column<int>(type: "integer", nullable: true),
+                    tsi_id = table.Column<int>(type: "integer", nullable: false),
+                    ets_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_e_signalement_sig", x => x.sig_id);
+                    table.ForeignKey(
+                        name: "FK_t_e_signalement_sig_t_e_annonce_ann_ann_idannoncesignale",
+                        column: x => x.ann_idannoncesignale,
+                        principalSchema: "public",
+                        principalTable: "t_e_annonce_ann",
+                        principalColumn: "ann_id");
+                    table.ForeignKey(
+                        name: "FK_t_e_signalement_sig_t_e_compte_com_com_idsignalant",
+                        column: x => x.com_idsignalant,
+                        principalSchema: "public",
+                        principalTable: "t_e_compte_com",
+                        principalColumn: "com_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_t_e_signalement_sig_t_e_compte_com_com_idsignale",
+                        column: x => x.com_idsignale,
+                        principalSchema: "public",
+                        principalTable: "t_e_compte_com",
+                        principalColumn: "com_id");
+                    table.ForeignKey(
+                        name: "FK_t_e_signalement_sig_t_e_etatsignalement_ets_ets_id",
+                        column: x => x.ets_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_etatsignalement_ets",
+                        principalColumn: "ets_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_t_e_signalement_sig_t_e_typesignalement_tsi_tsi_id",
+                        column: x => x.tsi_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_typesignalement_tsi",
+                        principalColumn: "tsi_id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -673,6 +748,33 @@ namespace Api_c_sharp.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_t_j_favori_fav_t_e_compte_com_com_id",
+                        column: x => x.com_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_compte_com",
+                        principalColumn: "com_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_j_vue_vue",
+                schema: "public",
+                columns: table => new
+                {
+                    com_id = table.Column<int>(type: "integer", nullable: false),
+                    ann_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_j_vue_vue", x => new { x.com_id, x.ann_id });
+                    table.ForeignKey(
+                        name: "FK_t_j_vue_vue_t_e_annonce_ann_ann_id",
+                        column: x => x.ann_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_annonce_ann",
+                        principalColumn: "ann_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_t_j_vue_vue_t_e_compte_com_com_id",
                         column: x => x.com_id,
                         principalSchema: "public",
                         principalTable: "t_e_compte_com",
@@ -749,11 +851,20 @@ namespace Api_c_sharp.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     mes_contenu = table.Column<string>(type: "text", nullable: false),
                     mes_dateenvoi = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    con_id = table.Column<int>(type: "integer", nullable: false)
+                    con_id = table.Column<int>(type: "integer", nullable: false),
+                    com_id = table.Column<int>(type: "integer", nullable: false),
+                    mes_estlu = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_t_e_message_mes", x => x.mes_id);
+                    table.ForeignKey(
+                        name: "FK_t_e_message_mes_t_e_compte_com_com_id",
+                        column: x => x.com_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_compte_com",
+                        principalColumn: "com_id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_t_e_message_mes_t_e_conversation_con_con_id",
                         column: x => x.con_id,
@@ -790,11 +901,67 @@ namespace Api_c_sharp.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "t_e_plainte_pla",
+                schema: "public",
+                columns: table => new
+                {
+                    pla_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    pla_description = table.Column<string>(type: "text", nullable: false),
+                    pla_date_creation = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    sig_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_e_plainte_pla", x => x.pla_id);
+                    table.ForeignKey(
+                        name: "FK_t_e_plainte_pla_t_e_signalement_sig_sig_id",
+                        column: x => x.sig_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_signalement_sig",
+                        principalColumn: "sig_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_e_piecejointe_pj",
+                schema: "public",
+                columns: table => new
+                {
+                    pj_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    mes_id = table.Column<int>(type: "integer", nullable: false),
+                    pj_nom_fichier = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    pj_type_mime = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    pj_extension = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
+                    pj_taille_fichier = table.Column<long>(type: "bigint", nullable: false),
+                    pj_contenu = table.Column<byte[]>(type: "bytea", nullable: false),
+                    pj_date_upload = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_e_piecejointe_pj", x => x.pj_id);
+                    table.ForeignKey(
+                        name: "FK_t_e_piecejointe_pj_t_e_message_mes_mes_id",
+                        column: x => x.mes_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_message_mes",
+                        principalColumn: "mes_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
-                name: "IX_t_e_adresse_adr_vil_id",
+                name: "IX_t_e_adresse_adr_com_id",
                 schema: "public",
                 table: "t_e_adresse_adr",
-                column: "vil_id");
+                column: "com_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_e_adresse_adr_pays_id",
+                schema: "public",
+                table: "t_e_adresse_adr",
+                column: "pays_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_t_e_annonce_ann_adr_id",
@@ -883,6 +1050,12 @@ namespace Api_c_sharp.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_t_e_compte_com_etc_id",
+                schema: "public",
+                table: "t_e_compte_com",
+                column: "etc_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_t_e_compte_com_tco_id",
                 schema: "public",
                 table: "t_e_compte_com",
@@ -919,6 +1092,12 @@ namespace Api_c_sharp.Migrations
                 column: "tjo_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_t_e_message_mes_com_id",
+                schema: "public",
+                table: "t_e_message_mes",
+                column: "com_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_t_e_message_mes_con_id",
                 schema: "public",
                 table: "t_e_message_mes",
@@ -937,10 +1116,28 @@ namespace Api_c_sharp.Migrations
                 column: "mar_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_t_e_signalement_sig_com_id_signalant",
+                name: "IX_t_e_piecejointe_pj_mes_id",
+                schema: "public",
+                table: "t_e_piecejointe_pj",
+                column: "mes_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_e_plainte_pla_sig_id",
+                schema: "public",
+                table: "t_e_plainte_pla",
+                column: "sig_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_e_signalement_sig_ann_idannoncesignale",
                 schema: "public",
                 table: "t_e_signalement_sig",
-                column: "com_id_signalant");
+                column: "ann_idannoncesignale");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_e_signalement_sig_com_idsignalant",
+                schema: "public",
+                table: "t_e_signalement_sig",
+                column: "com_idsignalant");
 
             migrationBuilder.CreateIndex(
                 name: "IX_t_e_signalement_sig_com_idsignale",
@@ -949,22 +1146,16 @@ namespace Api_c_sharp.Migrations
                 column: "com_idsignale");
 
             migrationBuilder.CreateIndex(
+                name: "IX_t_e_signalement_sig_ets_id",
+                schema: "public",
+                table: "t_e_signalement_sig",
+                column: "ets_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_t_e_signalement_sig_tsi_id",
                 schema: "public",
                 table: "t_e_signalement_sig",
                 column: "tsi_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_t_e_ville_vil_pay_id",
-                schema: "public",
-                table: "t_e_ville_vil",
-                column: "pay_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_t_e_ville_vil_vil_codepostal",
-                schema: "public",
-                table: "t_e_ville_vil",
-                column: "vil_codepostal");
 
             migrationBuilder.CreateIndex(
                 name: "IX_t_e_voiture_voi_boi_id",
@@ -1009,12 +1200,6 @@ namespace Api_c_sharp.Migrations
                 column: "mot_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_t_j_apouradresse_apa_com_id",
-                schema: "public",
-                table: "t_j_apouradresse_apa",
-                column: "com_id");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_t_j_apourconversation_apc_con_id",
                 schema: "public",
                 table: "t_j_apourconversation_apc",
@@ -1027,10 +1212,22 @@ namespace Api_c_sharp.Migrations
                 column: "voi_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_t_j_bloque_blo_blo_id",
+                schema: "public",
+                table: "t_j_bloque_blo",
+                column: "blo_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_t_j_favori_fav_com_id",
                 schema: "public",
                 table: "t_j_favori_fav",
                 column: "com_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_j_vue_vue_ann_id",
+                schema: "public",
+                table: "t_j_vue_vue",
+                column: "ann_id");
         }
 
         /// <inheritdoc />
@@ -1053,15 +1250,15 @@ namespace Api_c_sharp.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "t_e_message_mes",
+                name: "t_e_piecejointe_pj",
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "t_e_signalement_sig",
+                name: "t_e_plainte_pla",
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "t_j_apouradresse_apa",
+                name: "t_e_reinitialisationmotdepasse_rei",
                 schema: "public");
 
             migrationBuilder.DropTable(
@@ -1073,7 +1270,15 @@ namespace Api_c_sharp.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
+                name: "t_j_bloque_blo",
+                schema: "public");
+
+            migrationBuilder.DropTable(
                 name: "t_j_favori_fav",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "t_j_vue_vue",
                 schema: "public");
 
             migrationBuilder.DropTable(
@@ -1085,11 +1290,11 @@ namespace Api_c_sharp.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "t_e_typesignalement_tsi",
+                name: "t_e_message_mes",
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "t_e_conversation_con",
+                name: "t_e_signalement_sig",
                 schema: "public");
 
             migrationBuilder.DropTable(
@@ -1101,15 +1306,23 @@ namespace Api_c_sharp.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
+                name: "t_e_conversation_con",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "t_e_etatsignalement_ets",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "t_e_typesignalement_tsi",
+                schema: "public");
+
+            migrationBuilder.DropTable(
                 name: "t_e_annonce_ann",
                 schema: "public");
 
             migrationBuilder.DropTable(
                 name: "t_e_adresse_adr",
-                schema: "public");
-
-            migrationBuilder.DropTable(
-                name: "t_e_compte_com",
                 schema: "public");
 
             migrationBuilder.DropTable(
@@ -1125,11 +1338,11 @@ namespace Api_c_sharp.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "t_e_ville_vil",
+                name: "t_e_compte_com",
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "t_e_typecompte_tco",
+                name: "t_e_pays_pay",
                 schema: "public");
 
             migrationBuilder.DropTable(
@@ -1157,7 +1370,11 @@ namespace Api_c_sharp.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "t_e_pays_pay",
+                name: "t_e_etatcompte_etc",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "t_e_typecompte_tco",
                 schema: "public");
 
             migrationBuilder.DropTable(
