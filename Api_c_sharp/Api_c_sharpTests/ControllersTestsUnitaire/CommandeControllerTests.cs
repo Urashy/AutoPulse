@@ -174,10 +174,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PostCommandeTest()
         {
-            // Given : Un DTO valide
             CommandeCreateDTO commandeCreateDTO = new CommandeCreateDTO
             {
-                IdCommande = 2,
                 IdVendeur = _commandeCommun.IdVendeur,
                 IdAcheteur = _commandeCommun.IdAcheteur,
                 IdAnnonce = _commandeCommun.IdAnnonce,
@@ -213,7 +211,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task PutCommandeTest()
         {
             // Given : Un DTO valide avec un ID correspondant
-            CommandeCreateDTO dto = new CommandeCreateDTO
+            CommandeUpdateDTO dto = new CommandeUpdateDTO
             {
                 IdCommande = _commandeCommun.IdCommande,
                 IdVendeur = _commandeCommun.IdVendeur,
@@ -234,7 +232,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task PutBadRequestTest()
         {
             // Given : un DTO dont la validation doit échouer
-            var dto = new CommandeCreateDTO { IdCommande = 999 };
+            var dto = new CommandeUpdateDTO { IdCommande = 999 };
 
             // On force une erreur de validation pour déclencher BadRequest()
             _controller.ModelState.AddModelError("Test", "Invalid Model");
@@ -251,7 +249,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task PutNotFoundTest()
         {
             // Given : Une commande inexistante
-            var dto = new CommandeCreateDTO() { IdCommande = 10 };
+            var dto = new CommandeUpdateDTO() { IdCommande = 10 };
 
             // When : On appelle Put
             var result = await _controller.Put(10, dto);

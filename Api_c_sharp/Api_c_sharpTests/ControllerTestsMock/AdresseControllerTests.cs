@@ -125,7 +125,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task PostAdresseTest()
         {
             // Arrange
-            var adresseDTO = new AdresseDTO()
+            AdresseCreateDTO adresseDTO = new AdresseCreateDTO()
             {
                 Nom = "Travail",
                 LibelleVille = "Annecy",
@@ -158,7 +158,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task BadRequestPostAdresseTest()
         {
             // Arrange
-            var adresseDTO = new AdresseDTO
+            AdresseCreateDTO adresseDTO = new AdresseCreateDTO
             {
                 Nom = null, // Nom requis mais null
                 LibelleVille = "Annecy",
@@ -227,7 +227,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdCompte = 1
             };
 
-            var updatedAdresseDTO = new AdresseDTO()
+            AdresseUpdateDTO updatedAdresseDTO = new AdresseUpdateDTO()
             {
                 IdAdresse = _objetcommun.IdAdresse,
                 Nom = "Domicile",
@@ -259,7 +259,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task NotFoundPutAdresseTest()
         {
             // Arrange
-            var adresseDTO = new AdresseDTO()
+            AdresseUpdateDTO adresseDTO = new AdresseUpdateDTO()
             {
                 IdAdresse = 0,
                 Nom = "Domicile",
@@ -285,7 +285,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task BadRequestPutAdresseTest()
         {
             // Arrange
-            var adresseDTO = new AdresseDTO()
+            AdresseUpdateDTO adresseDTO = new AdresseUpdateDTO()
             {
                 IdAdresse = _objetcommun.IdAdresse,
                 Nom = "Domicile",

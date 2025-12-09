@@ -277,7 +277,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutAnnonceTest()
         {
-            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
+            AnnonceUpdateDTO annonce = new AnnonceUpdateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
                 Libelle = "Nouvelle Annonce",
@@ -300,7 +300,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutAnnonceTest()
         {
-            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
+            AnnonceUpdateDTO annonce = new AnnonceUpdateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
                 Libelle = "Nouvelle Annonce",
@@ -319,7 +319,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPutAnnonceTest()
         {
-            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
+            AnnonceUpdateDTO annonce = new AnnonceUpdateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
                 Libelle = "Nouvelle Annonce",
@@ -346,13 +346,12 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         {
             AnnonceCreateDTO annonce = new AnnonceCreateDTO()
             {
-                IdAnnonce = _objetcommun.IdAnnonce,
                 Libelle = "Nouvelle Annonce",
                 IdCompte = 1,
                 IdEtatAnnonce = 1,
                 IdAdresse = 1,
                 Prix = 25000,
-                Description = "Description de la nouvelle annonce",
+                Description = null,
                 IdVoiture = _objetcommun.IdVoiture
             };
 
@@ -562,10 +561,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdTypeVendeur = 1,
                 Nom = "Annonce",
                 KmMin = 5000,
-                KmMax = 15000
+                KmMax = 15000,
+                PageNumber = 1,
+                PageSize = 21,
+                Order = 1
             };
             // Act
-            var result = await _controller.GetFiltered(parametreRecherche, 1, 21, 1);
+            var result = await _controller.GetFiltered(parametreRecherche);
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -605,10 +607,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdTypeVendeur = 1,
                 Nom = "Annonce",
                 KmMin = 5000,
-                KmMax = 15000
+                KmMax = 15000,
+                PageNumber = 1,
+                PageSize = 21,
+                Order = 2
             };
             // Act
-            var result = await _controller.GetFiltered(parametreRecherche, 1, 21, 2);
+            var result = await _controller.GetFiltered(parametreRecherche);
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);

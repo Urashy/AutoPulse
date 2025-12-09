@@ -220,7 +220,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutMessageTest()
         {
-            MessageDTO message = new MessageDTO()
+            MessageUpdateDTO message = new MessageUpdateDTO()
             {
                 IdMessage = _objetcommun.IdMessage,
                 IdCompte = 1,
@@ -239,7 +239,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutMessageTest()
         {
-            MessageDTO message = new MessageDTO()
+            MessageUpdateDTO message = new MessageUpdateDTO()
             {
                 IdCompte = 1,
                 ContenuMessage = _objetcommun.ContenuMessage,
@@ -253,7 +253,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPutMessageTest()
         {
-            MessageDTO message = new MessageDTO()
+            MessageUpdateDTO message = new MessageUpdateDTO()
             {
                 IdCompte = 1,
                 ContenuMessage = null,
