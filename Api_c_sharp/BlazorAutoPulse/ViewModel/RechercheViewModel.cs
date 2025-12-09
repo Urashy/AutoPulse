@@ -27,6 +27,8 @@ namespace BlazorAutoPulse.ViewModel
         public string Nom { get; set; } = "";
         public string Departement { get; set; } = "";
         public bool IsLoading { get; set; } = true;
+        public int SelectedOrder { get; set; } = 0;
+
 
         // Propriétés pour les sliders (valeurs numériques)
         public int PrixMinValue { get; set; } = 0;
