@@ -349,7 +349,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             AnnonceCreateDTO annonceChange = new AnnonceCreateDTO()
             {
-                IdAnnonce = Annonce.IdAnnonce,
+                //IdAnnonce = Annonce.IdAnnonce,
                 Libelle = Annonce.Libelle,
                 IdCompte = Annonce.IdVendeur,
                 IdEtatAnnonce = 4,
@@ -371,7 +371,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             AnnonceCreateDTO annonceChange = new AnnonceCreateDTO()
             {
-                IdAnnonce = Annonce.IdAnnonce,
+                //IdAnnonce = Annonce.IdAnnonce,
                 Libelle = Annonce.Libelle,
                 IdCompte = Annonce.IdVendeur,
                 IdEtatAnnonce = 1,
