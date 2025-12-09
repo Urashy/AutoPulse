@@ -110,8 +110,8 @@
             <select value="@VM.SelectedOrder" @onchange="@(e => VM.SelectedOrder = int.Parse(e.Value?.ToString() ?? "0"))">
                 <option value="1">Prix croissant</option>
                 <option value="2">Prix décroissant</option>
-                <option value="3">Année (plus récent)</option>
-                <option value="4">Année (plus ancien)</option>
+                <option value="3">Date (plus ancien)</option>
+                <option value="4">Date (plus récent)</option>
             </select>
         </div>
 
