@@ -1,3 +1,4 @@
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.SignalR.Client;
 
@@ -11,6 +12,9 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
     public event Action<int, int, string, DateTime>? OnMessageReceived;
     public event Action<int, int, string>? OnUserTyping;
     public event Action<int, int>? OnMessagesRead;
+    public event Action<PriceDropNotification>? OnPriceDropReceived;
+
+    // Dans StartAsync(), ajoute l'écoute :
 
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
@@ -91,6 +95,12 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
                 Console.WriteLine($"[SignalR] MessagesRead: conv={conversationId}, user={userId}");
                 OnMessagesRead?.Invoke(conversationId, userId);
             });
+        
+        _hubConnection.On<PriceDropNotification>("PriceDropNotification", notification =>
+        {
+            Console.WriteLine($"[SignalR] Price drop received for annonce {notification.IdAnnonce}");
+            OnPriceDropReceived?.Invoke(notification);
+        });
 
         Console.WriteLine("[SignalR] Starting connection...");
 
@@ -208,7 +218,27 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
             Console.WriteLine("[SignalR] Cannot mark messages as read: not connected.");
         }
     }
+    
+    // Rejoindre le groupe favoris d'une annonce
+    public async Task JoinFavorisAnnonce(int idAnnonce)
+    {
+        if (_hubConnection != null && IsConnected)
+        {
+            await _hubConnection.InvokeAsync("JoinFavorisAnnonce", idAnnonce);
+            Console.WriteLine($"[SignalR] Joined favoris group for annonce: {idAnnonce}");
+        }
+    }
 
+    // Quitter le groupe favoris d'une annonce
+    public async Task LeaveFavorisAnnonce(int idAnnonce)
+    {
+        if (_hubConnection != null && IsConnected)
+        {
+            await _hubConnection.InvokeAsync("LeaveFavorisAnnonce", idAnnonce);
+            Console.WriteLine($"[SignalR] Left favoris group for annonce: {idAnnonce}");
+        }
+    }
+    
     public async ValueTask DisposeAsync()
     {
         Console.WriteLine("[SignalR] DisposeAsync called");

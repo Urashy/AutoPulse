@@ -113,5 +113,42 @@ namespace Api_c_sharp.Hubs
                 }
             }
         }
+        
+        // Rejoindre le groupe des favoris d'une annonce
+        public async Task JoinFavorisAnnonce(int idAnnonce)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"favoris_annonce_{idAnnonce}");
+            Console.WriteLine($"Connection {Context.ConnectionId} joined favoris group for annonce {idAnnonce}");
+        }
+
+        // Quitter le groupe des favoris d'une annonce
+        public async Task LeaveFavorisAnnonce(int idAnnonce)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"favoris_annonce_{idAnnonce}");
+            Console.WriteLine($"Connection {Context.ConnectionId} left favoris group for annonce {idAnnonce}");
+        }
+
+        // Méthode statique pour notifier une baisse de prix
+        public static async Task NotifyPriceDrop(
+            IHubContext<MessageHub> hubContext, 
+            int idAnnonce, 
+            double oldPrice, 
+            double newPrice, 
+            string annonceLibelle)
+        {
+            var groupName = $"favoris_annonce_{idAnnonce}";
+    
+            await hubContext.Clients.Group(groupName)
+                .SendAsync("PriceDropNotification", new 
+                {
+                    IdAnnonce = idAnnonce,
+                    AnnonceLibelle = annonceLibelle,
+                    OldPrice = oldPrice,
+                    NewPrice = newPrice,
+                    Reduction = oldPrice - newPrice
+                });
+    
+            Console.WriteLine($"📉 Price drop notification sent to group {groupName}");
+        }
     }
 }

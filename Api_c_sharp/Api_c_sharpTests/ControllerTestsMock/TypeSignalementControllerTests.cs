@@ -16,25 +16,25 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class TypeJournalControllerTestsMock
+    public class TypeSignalementControllerTestsMock
     {
-        private Mock<TypeJournalManager> _mockManager;
-        private TypeJournalController _controller;
+        private Mock<TypeSignalementManager> _mockManager;
+        private TypeSignalementController _controller;
         private IMapper _mapper;
-        private TypeJournal _objetcommun;
+        private TypeSignalement _objetcommun;
 
         [TestInitialize]
         public void Initialize()
         {
             // Création du mock du manager avec un paramètre null pour le context
             // (le mock n'utilisera pas le context réel)
-            _mockManager = new Mock<TypeJournalManager>(null);
+            _mockManager = new Mock<TypeSignalementManager>(null);
 
             // Création de l'adresse de référence
-            _objetcommun = new TypeJournal
+            _objetcommun = new TypeSignalement
             {
-                IdTypeJournaux = 1,
-                LibelleTypeJournaux = "Connexion"
+                IdTypeSignalement = 1,
+                LibelleTypeSignalement = "Annoce frauduleuse"
             };
 
             // Configuration AutoMapper
@@ -45,23 +45,23 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mapper = config.CreateMapper();
 
             // Injection dans le controller
-            _controller = new TypeJournalController(_mockManager.Object, _mapper);
+            _controller = new TypeSignalementController(_mockManager.Object, _mapper);
         }
         [TestMethod]
         public async Task GetByIdTest()
         {
             // Arrange
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdTypeJournaux))
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdTypeSignalement))
                        .ReturnsAsync(_objetcommun);
 
             // Act
-            var result = await _controller.GetById(_objetcommun.IdTypeJournaux);
+            var result = await _controller.GetById(_objetcommun.IdTypeSignalement);
 
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(TypeJournalDTO));
-            Assert.AreEqual(_objetcommun.LibelleTypeJournaux, result.Value.LibelleTypeJournaux);
+            Assert.IsInstanceOfType(result.Value, typeof(TypeSignalementDTO));
+            Assert.AreEqual(_objetcommun.LibelleTypeSignalement, result.Value.LibelleTypeSignalement);
         }
 
         [TestMethod]
@@ -69,7 +69,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(0))
-                       .ReturnsAsync((TypeJournal)null);
+                       .ReturnsAsync((TypeSignalement)null);
 
             // Act
             var result = await _controller.GetById(0);
@@ -83,18 +83,18 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task GetAllTest()
         {
             // Arrange
-            var TypeJournalList = new List<TypeJournal>
+            var TypeSignalementList = new List<TypeSignalement>
             {
                 _objetcommun,
-                new TypeJournal
+                new TypeSignalement
                 {
-                    IdTypeJournaux = 2,
-                    LibelleTypeJournaux = "Déconnexion"
+                    IdTypeSignalement = 2,
+                    LibelleTypeSignalement = "Photo trompeuse"
                 }
             };
 
             _mockManager.Setup(m => m.GetAllAsync())
-                       .ReturnsAsync(TypeJournalList);
+                       .ReturnsAsync(TypeSignalementList);
 
             // Act
             var result = await _controller.GetAll();
@@ -102,9 +102,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<TypeJournalDTO>));
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<TypeSignalementDTO>));
             Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.LibelleTypeJournaux == _objetcommun.LibelleTypeJournaux));
+            Assert.IsTrue(result.Value.Any(o => o.LibelleTypeSignalement == _objetcommun.LibelleTypeSignalement));
             Assert.AreEqual(2, result.Value.Count());
         }
     }
