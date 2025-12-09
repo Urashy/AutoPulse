@@ -129,5 +129,7 @@ namespace Api_c_sharp.Models.Entity
         [InverseProperty(nameof(Vue.CompteVueNav))]
         public virtual ICollection<Vue> Vues { get; set; } = new List<Vue>();
 
+        [InverseProperty(nameof(Plainte.ComptePlainteNav))]
+        public virtual ICollection<Plainte> Plaintes { get; set; } = new List<Plainte>();
     }
 }
