@@ -59,6 +59,21 @@
             </select>
         </div>
 
+        <!-- typecompte -->
+        <div class="filter-group">
+            <label>Type de vendeur</label>
+            <select value="@VM.SelectedType" @onchange="e => { VM.SelectedType = e.Value?.ToString() ?? string.Empty; }">
+                <option value="0">Toutes les type de vendeurs</option>
+                @if (VM.AllTypeComptes != null)
+                {
+                    @foreach (var typecompte in VM.AllTypeComptes)
+                    {
+                        <option value="@typecompte.IdTypeCompte">@typecompte.Libelle</option>
+                    }
+                }
+            </select>
+        </div>
+
         <!-- Catégorie -->
         <div class="filter-group">
             <label>Catégorie</label>
@@ -163,6 +178,10 @@
         @if (VM.SelectedCategorie != "0")
         {
             <span class="filter-tag">Catégorie: @VM.GetCategorieLibelle(VM.SelectedCategorie)</span>
+        }
+        @if (VM.SelectedType != "0")
+        {
+            <span class="filter-tag">Type: @VM.GetTypeCompteLibelle(VM.SelectedType)</span>
         }
         @if (VM.PrixMinValue > 0 || VM.PrixMaxValue < 200000)
         {

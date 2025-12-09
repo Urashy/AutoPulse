@@ -1,7 +1,7 @@
 using AutoPulse.Shared.DTO;
-using Api_c_sharp.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Api_c_sharp.Models.Entity;
 
 namespace Api_c_sharp.Mapper;
 

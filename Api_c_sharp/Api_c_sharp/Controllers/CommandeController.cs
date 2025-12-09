@@ -1,12 +1,12 @@
 ﻿using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers;
 
@@ -146,9 +146,9 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper) : Con
     [HttpGet("{id}")]
     public async Task<ActionResult<IEnumerable<CommandeDTO>>> GetCommandeByCompteID(int idCompte)
     {
-        var result = await _manager.GetCommandeByCompteId(idCompte);
+        var result = await _manager.GetCommandesByCompteId(idCompte);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<CommandeDTO>>(_mapper.Map<IEnumerable<CommandeDTO>>(result));

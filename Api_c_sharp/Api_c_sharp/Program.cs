@@ -1,4 +1,4 @@
-using System.Text;
+ using System.Text;
 using Api_c_sharp.Hubs;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("AzureConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));

@@ -7,6 +7,7 @@ using App.Controllers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
@@ -191,7 +192,7 @@ namespace App.Controllers.Tests
         public async Task BadRequestPostCommandeTest()
         {
             CommandeCreateDTO dto = new CommandeCreateDTO();
-    
+
             _controller.ModelState.AddModelError("Erreur", "Required");
 
             // When : On appelle Post
@@ -289,17 +290,25 @@ namespace App.Controllers.Tests
         // GET ALL BY TYPE
         // -------------------------------------------------------------
         [TestMethod]
-        public async Task GetAllByTypeTest()
+        public async Task GetCommandeByCompteIDTest()
         {
-            // Given : Un acheteur ayant une commande
+
             var idAcheteur = _commandeCommun.IdAcheteur;
 
-            // When : On appelle GetAllByType
             var result = await _controller.GetCommandeByCompteID(idAcheteur);
 
-            // Then : La liste doit contenir des commandes
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
+        }
+
+        [TestMethod]
+        public async Task GetCommandeByCompteIDNotFoundTest()
+        {
+            // Acts
+            var result = await _controller.GetCommandeByCompteID(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult)); 
         }
     }
 }

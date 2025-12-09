@@ -1,7 +1,9 @@
-﻿using AutoPulse.Shared.DTO;
+﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace Api_c_sharp.Controllers
 {
@@ -28,7 +30,7 @@ namespace Api_c_sharp.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TypeCompteDTO>> GetById(int id)
         {
-            var result = await _manager.GetByIdAsync(id);
+            TypeCompte result = await _manager.GetByIdAsync(id);
 
             if (result is null)
                 return NotFound();
@@ -45,7 +47,22 @@ namespace Api_c_sharp.Controllers
         [ActionName("GetAll")]
         public async Task<ActionResult<IEnumerable<TypeCompteDTO>>> GetAll()
         {
-            var list = await _manager.GetAllAsync();
+            IEnumerable<TypeCompte> list = await _manager.GetAllAsync();
+            return new ActionResult<IEnumerable<TypeCompteDTO>>(_typeCompteMapper.Map<IEnumerable<TypeCompteDTO>>(list));
+        }
+
+
+        /// <summary>
+        /// Récupère la liste de toutes les types de compte avec lesquelle on peut filtrer.
+        /// </summary>
+        /// <returns>
+        /// Une liste de <see cref="TypeCompteDTO"/> (200 OK).
+        /// </returns>
+        [HttpGet]
+        [ActionName("GetTypeComptesPourChercher")]
+        public async Task<ActionResult<IEnumerable<TypeCompteDTO>>> GetTypeComptesPourChercher()
+        {
+            IEnumerable<TypeCompte> list = await _manager.GetTypeComptesPourChercher();
             return new ActionResult<IEnumerable<TypeCompteDTO>>(_typeCompteMapper.Map<IEnumerable<TypeCompteDTO>>(list));
         }
     }

@@ -91,12 +91,12 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
-        VM.OnRefresh += StateHasChanged;
+        VM._refreshUI += StateHasChanged;
         await VM.InitializeAsync();
     }
 
     public void Dispose()
     {
-        VM.OnRefresh -= StateHasChanged;
+        VM._refreshUI -= StateHasChanged;
     }
 }

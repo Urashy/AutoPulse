@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
@@ -84,7 +85,7 @@ namespace App.Controllers.Tests
             _context.Pays.Add(pays);
             _context.Comptes.Add(compte);
             _context.Adresses.Add(adresse);
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
 
             _objetcommun = adresse;
         }
@@ -128,7 +129,7 @@ namespace App.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task PostVoitureTest_Entity()
+        public async Task PostAdresseTest_Entity()
         {
             var adresse = new AdresseDTO()
             {
@@ -147,23 +148,23 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
-            var createdVoiture = (Adresse)created.Value;
-            Assert.AreEqual(adresse.Rue, createdVoiture.Rue);
+            var createdAdresse = (Adresse)created.Value;
+            Assert.AreEqual(adresse.Rue, createdAdresse.Rue);
         }
 
 
         [TestMethod]
-        public async Task DeleteVoitureTest()
+        public async Task DeleteAdresseTest()
         {
             var result = await _controller.Delete(_objetcommun.IdAdresse);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedVoiture = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
-            Assert.IsNull(deletedVoiture);
+            var deletedAdresse = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
+            Assert.IsNull(deletedAdresse);
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteVoitureTest()
+        public async Task NotFoundDeleteAdresseTest()
         {
             var result = await _controller.Delete(0);
 
@@ -171,7 +172,7 @@ namespace App.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task PutVoitureTest()
+        public async Task PutAdresseTest()
         {
             var adresse = new AdresseDTO()
             {
@@ -181,7 +182,7 @@ namespace App.Controllers.Tests
                 CodePostal = "74000",
                 Rue = "Route de test",
                 Numero = 12,
-                IdPays = 1,  
+                IdPays = 1,
                 IdCompte = 1,
             };
 
@@ -194,7 +195,7 @@ namespace App.Controllers.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundPutVoitureTest()
+        public async Task NotFoundPutAdresseTest()
         {
             var adresse = new AdresseDTO()
             {
@@ -212,7 +213,7 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
-        public async Task BadRequestPutVoitureTest()
+        public async Task BadRequestPutAdresseTest()
         {
             var adresse = new AdresseDTO()
             {
@@ -237,7 +238,7 @@ namespace App.Controllers.Tests
 
 
         [TestMethod]
-        public async Task BadRequestPostVoitureTest()
+        public async Task BadRequestPostAdresseTest()
         {
             var adresse = new AdresseDTO
             {
@@ -251,5 +252,29 @@ namespace App.Controllers.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
 
+        [TestMethod]
+        public async Task GetAdresseByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetAdressesByCompteID(_objetcommun.IdCompte);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAdresseByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetAdressesByCompteID(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
+            Assert.IsFalse(result.Value.Any());
+        }
     }
 }

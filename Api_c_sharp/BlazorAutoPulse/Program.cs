@@ -24,12 +24,10 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IService<Compte>, CompteWebService>();
             builder.Services.AddScoped<IService<Carburant>, CarburantWebService>();
             builder.Services.AddScoped<IService<Categorie>, CategorieWebService>();
-            builder.Services.AddScoped<IService<TypeCompte>, TypeCompteWebService>();
             builder.Services.AddScoped<IService<BoiteDeVitesse>, BoiteVitesseWebService>();
             builder.Services.AddScoped<IService<Motricite>, MotriciteWebService>();
             builder.Services.AddScoped<IService<Voiture>, VoitureWebService>();
             builder.Services.AddScoped<IService<APourCouleur>, APourCouleurWebService>();
-            builder.Services.AddScoped<IService<ConversationDetailDTO>, ConversationWebService>();
             builder.Services.AddScoped<IService<MessageDTO>, MessageWebService>();
 
             //----------------------- Service avec interface spécifique
@@ -44,6 +42,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IReinitialiseMdp, ReinitialisationMdpWebService>();
             builder.Services.AddScoped<ICouleurService, CouleurWebService>();
             builder.Services.AddScoped<ISignalRService, SignalRWebService>();
+            builder.Services.AddScoped<IConversationService, ConversationWebService>();
+            builder.Services.AddScoped<ITypeCompteService, TypeCompteWebService>();
             builder.Services.AddScoped<IAdresseService, AdresseWebService>();
 
             //----------------------- View Model

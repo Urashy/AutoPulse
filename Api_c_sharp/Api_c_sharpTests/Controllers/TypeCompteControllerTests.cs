@@ -1,5 +1,4 @@
 ﻿using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
@@ -14,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api_c_sharp.Controllers;
+using Api_c_sharp.Models.Entity;
 
 namespace App.Controllers.Tests
 {
@@ -49,7 +49,9 @@ namespace App.Controllers.Tests
 
             var objet = new TypeCompte()
             {
-                Libelle = "TestTypeCompte"
+                IdTypeCompte = 1,
+                Libelle = "TestTypeCompte",
+                Cherchable = true
             };
 
             await _context.TypesCompte.AddAsync(objet);
@@ -88,6 +90,19 @@ namespace App.Controllers.Tests
         {
             // Act
             var result = await _controller.GetAll();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<TypeCompteDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task GetTypeByCherchable()
+        {
+            var result = await _controller.GetTypeComptesPourChercher();
 
             // Assert
             Assert.IsNotNull(result);
