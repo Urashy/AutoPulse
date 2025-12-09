@@ -372,7 +372,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task UpdateEtatBadRequestInvalidStateTest()
+        public async Task UpdateEtatBadRequestInvalidState5Test()
         {
 
             var id = _signalementCommun.IdSignalement;
@@ -389,6 +389,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _controller.UpdateEtat(id, dto);
 
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task BadRequestUpdateEtatTest()
+        {
+            SignalementUpdateDTO dto = new SignalementUpdateDTO
+            {
+                IdSignalement = _signalementCommun.IdSignalement,
+                DescriptionSignalement = null,
+                IdCompteSignale = 1,
+                IdCompteSignalant = _signalementCommun.IdCompteSignalant,
+                IdTypeSignalement = _signalementCommun.IdTypeSignalement,
+                IdEtatSignalement = 2,
+
+            };
+
+            _controller.ModelState.AddModelError("DescriptionSignalement", "Required");
+
+            // When
+            var result = await _controller.UpdateEtat(1, dto);
+
+            // Then
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
 
 

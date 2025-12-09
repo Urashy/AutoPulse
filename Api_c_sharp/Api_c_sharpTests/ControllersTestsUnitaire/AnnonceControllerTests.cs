@@ -448,7 +448,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Nom = "Annonce",
                 KmMin = 5000,
                 KmMax = 15000,
-                Order = 5
+                Order = 5,
+                IdBoitedevitesse = 1,
             };
             // Act
             var result = await _controller.GetFiltered(parametreRecherche);

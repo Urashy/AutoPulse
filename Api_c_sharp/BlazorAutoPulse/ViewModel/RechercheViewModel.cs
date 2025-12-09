@@ -188,6 +188,7 @@ namespace BlazorAutoPulse.ViewModel
                 PrixMin = PrixMinValue,
                 PrixMax = PrixMaxValue < 200000 ? PrixMaxValue : 0,
                 IdTypeVoiture = SelectedCategorie != "0" ? int.Parse(SelectedCategorie) : 0,
+                Order = SelectedOrder,
                 Nom = Nom ?? string.Empty,
                 KmMin = KmMinValue,
                 KmMax = KmMaxValue < 300000 ? KmMaxValue : 0,
@@ -291,7 +292,7 @@ namespace BlazorAutoPulse.ViewModel
             KmMinValue = 0;
             KmMaxValue = 300000;
             SelectedBoite = "0";
-            SelectedOrder = 0;  
+            SelectedOrder = 4;  
             Nom = "";
             Departement = "";
             ResetToFirstPage();
@@ -341,8 +342,10 @@ namespace BlazorAutoPulse.ViewModel
             return SelectedMarque != "0"
                 || !string.IsNullOrEmpty(SelectedModele)
                 || SelectedCarburant != "0"
+                || SelectedType != "0"
                 || SelectedCategorie != "0"
                 || PrixMinValue > 0
+                || SelectedBoite != "0"
                 || PrixMaxValue < 200000
                 || SelectedOrder != 0
                 || KmMinValue > 0
@@ -351,6 +354,25 @@ namespace BlazorAutoPulse.ViewModel
                 || !string.IsNullOrEmpty(Departement);
         }
 
+        public string GetOrderLibelle(int order)
+        {
+            return order switch
+            {
+                1 => "Prix croissant",
+                2 => "Prix décroissant",
+                3 => "Date (plus ancien)",
+                4 => "Date (plus récent)"
+            };
+        }
+
+        public string GetBoiteLibelle(string idBoite)
+        {
+            if (AllBoitesDeVitesse == null || string.IsNullOrEmpty(idBoite) || idBoite == "0") return "";
+
+            var boite = AllBoitesDeVitesse.FirstOrDefault(b => b.IdBoiteDeVitesse.ToString() == idBoite);
+
+            return boite?.LibelleBoite ?? "";
+        }
         public string BuildQueryString()
         {
             var queryParams = new List<string>();

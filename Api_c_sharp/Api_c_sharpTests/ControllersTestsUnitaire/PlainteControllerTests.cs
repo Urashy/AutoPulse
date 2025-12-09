@@ -92,7 +92,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Plainte plainte = new Plainte
             {
                 IdPlainte = 1,
-                Description = "Ceci est une plainte de test.",
+                Description = "Ceci est une plainte de test. ",
                 DateCreation = DateTime.Now,
                 IdSignalement = 1
             };
