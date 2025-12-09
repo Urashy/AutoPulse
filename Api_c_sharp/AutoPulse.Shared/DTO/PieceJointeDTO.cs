@@ -4,53 +4,83 @@ public class PieceJointeDTO
 {
     public int IdPieceJointe { get; set; }
     public int IdMessage { get; set; }
-    public string NomFichier { get; set; } = null!;
-    public string TypeMime { get; set; } = null!;
-    public string Extension { get; set; } = null!;
+    public string NomFichier { get; set; } = string.Empty;
+    public string TypeMime { get; set; } = string.Empty;
+    public string Extension { get; set; } = string.Empty;
     public long TailleFichier { get; set; }
-    
-    /// <summary>
-    /// Contenu encodé en Base64 pour le transport
-    /// </summary>
+    public DateTime DateAjout { get; set; }
     public string? ContenuBase64 { get; set; }
-    
-    public DateTime DateUpload { get; set; }
-    
-    // Propriétés helpers
-    public string TailleFormatee => FormatFileSize(TailleFichier);
-    public bool EstImage => TypeMime.StartsWith("image/");
-    public bool EstPdf => TypeMime == "application/pdf";
-    public bool EstDocument => TypeMime.Contains("word") || TypeMime.Contains("document");
-    
-    /// <summary>
-    /// Data URL complète pour affichage direct dans le HTML
-    /// </summary>
-    public string DataUrl => !string.IsNullOrEmpty(ContenuBase64) 
-        ? $"data:{TypeMime};base64,{ContenuBase64}" 
-        : string.Empty;
 
-    /// <summary>
-    /// Icône en fonction du type de fichier
-    /// </summary>
-    public string IconeType => Extension.ToLowerInvariant() switch
+    // ✅ CACHE : Calculer une seule fois au lieu de chaque render
+    private string? _dataUrlCache;
+    public string DataUrl
     {
-        ".pdf" => "📄",
-        ".doc" or ".docx" => "📝",
-        ".txt" => "📃",
-        ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp" => "🖼️",
-        _ => "📎"
-    };
-
-    private static string FormatFileSize(long bytes)
-    {
-        string[] sizes = { "B", "KB", "MB", "GB" };
-        double len = bytes;
-        int order = 0;
-        while (len >= 1024 && order < sizes.Length - 1)
+        get
         {
-            order++;
-            len /= 1024;
+            if (_dataUrlCache != null)
+                return _dataUrlCache;
+
+            if (string.IsNullOrEmpty(ContenuBase64))
+                return string.Empty;
+
+            _dataUrlCache = $"data:{TypeMime};base64,{ContenuBase64}";
+            return _dataUrlCache;
         }
-        return $"{len:0.##} {sizes[order]}";
+    }
+
+    // ✅ CACHE : Propriétés calculées une seule fois
+    private bool? _estImageCache;
+    public bool EstImage
+    {
+        get
+        {
+            if (_estImageCache.HasValue)
+                return _estImageCache.Value;
+
+            _estImageCache = TypeMime?.StartsWith("image/") ?? false;
+            return _estImageCache.Value;
+        }
+    }
+
+    private string? _tailleFormateeCache;
+    public string TailleFormatee
+    {
+        get
+        {
+            if (_tailleFormateeCache != null)
+                return _tailleFormateeCache;
+
+            _tailleFormateeCache = TailleFichier switch
+            {
+                < 1024 => $"{TailleFichier} o",
+                < 1024 * 1024 => $"{TailleFichier / 1024.0:F1} Ko",
+                < 1024 * 1024 * 1024 => $"{TailleFichier / (1024.0 * 1024):F1} Mo",
+                _ => $"{TailleFichier / (1024.0 * 1024 * 1024):F1} Go"
+            };
+            return _tailleFormateeCache;
+        }
+    }
+
+    private string? _iconeTypeCache;
+    public string IconeType
+    {
+        get
+        {
+            if (_iconeTypeCache != null)
+                return _iconeTypeCache;
+
+            _iconeTypeCache = Extension?.ToLowerInvariant() switch
+            {
+                ".pdf" => "📄",
+                ".doc" or ".docx" => "📝",
+                ".xls" or ".xlsx" => "📊",
+                ".zip" or ".rar" or ".7z" => "📦",
+                ".jpg" or ".jpeg" or ".png" or ".gif" => "🖼️",
+                ".mp4" or ".avi" or ".mov" => "🎬",
+                ".mp3" or ".wav" or ".ogg" => "🎵",
+                _ => "📎"
+            };
+            return _iconeTypeCache;
+        }
     }
 }

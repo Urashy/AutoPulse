@@ -19,18 +19,24 @@ public class ConversationViewModel : IDisposable
 
     public List<MessageDTO> Messages { get; private set; } = new();
     public ConversationListDTO? SelectedConversation { get; private set; }
-    public string NewMessage { get; set; } = "";
+    
+    private string _newMessage = "";
+    public string NewMessage 
+    { 
+        get => _newMessage;
+        set => _newMessage = value; // ✅ AUCUN NotifyStateChanged
+    }
+    
     public bool IsTyping { get; private set; } = false;
     public ElementReference MessagesContainer;
 
     public List<IBrowserFile> SelectedFiles { get; set; } = new();
     public bool IsUploadingFiles { get; set; } = false;
-    
-    // ✅ NOUVEAU : Loading pour les messages
     public bool IsLoadingMessages { get; private set; } = false;
 
     private System.Threading.Timer? _typingTimer;
     private bool _typingNotified = false;
+    
     public event Action? _refreshUI;
 
     public List<ConversationListDTO> Conversations => _conversationState.Conversations;
@@ -67,12 +73,10 @@ public class ConversationViewModel : IDisposable
         SelectedConversation = conv;
         await LoadMessages(conv.IdConversation);
         NotifyStateChanged();
-        await ScrollToBottom();
     }
 
     private async Task LoadMessages(int conversationId)
     {
-        // ✅ Activer le loading
         IsLoadingMessages = true;
         NotifyStateChanged();
 
@@ -95,33 +99,34 @@ public class ConversationViewModel : IDisposable
         }
         finally
         {
-            // ✅ Désactiver le loading
             IsLoadingMessages = false;
             NotifyStateChanged();
         }
     }
 
-    // ✅ Méthode CORRIGÉE pour gérer les fichiers avec rafraîchissement
     public async Task SendMessage()
     {
         if (SelectedConversation == null)
             return;
 
-        // Vérifier qu'il y a du texte OU des fichiers
         if (string.IsNullOrWhiteSpace(NewMessage) && !SelectedFiles.Any())
             return;
 
         var messageContent = NewMessage.Trim();
-        NewMessage = "";
         var filesToUpload = new List<IBrowserFile>(SelectedFiles);
+        
+        // ✅ Nettoyer immédiatement
+        _newMessage = "";
         SelectedFiles.Clear();
+        
+        // ✅ UN SEUL rafraîchissement
+        NotifyStateChanged();
 
         try
         {
             IsUploadingFiles = true;
-            NotifyStateChanged();
 
-            // 1. Créer le message
+            // Créer le message texte
             var messageDto = new MessageDTO
             {
                 IdConversation = SelectedConversation.IdConversation,
@@ -134,53 +139,50 @@ public class ConversationViewModel : IDisposable
             if (createdMessage == null)
             {
                 Console.WriteLine("❌ Erreur : message non créé");
-                NewMessage = messageContent;
+                _newMessage = messageContent;
                 SelectedFiles = filesToUpload;
+                NotifyStateChanged();
                 return;
             }
 
-            Console.WriteLine($"✅ Message créé avec ID: {createdMessage.IdMessage}");
-
-            // 2. Upload des fichiers si présents
+            // ✅ Upload des fichiers en arrière-plan (ne pas bloquer l'UI)
             if (filesToUpload.Any())
             {
-                Console.WriteLine($"📤 Upload de {filesToUpload.Count} fichier(s)...");
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        Console.WriteLine($"📤 Upload de {filesToUpload.Count} fichier(s)...");
+                        var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
+                            createdMessage.IdMessage, 
+                            filesToUpload);
 
-                var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
-                    createdMessage.IdMessage, 
-                    filesToUpload);
-
-                Console.WriteLine($"✅ {uploadedFiles.Count} fichier(s) uploadé(s)");
-
-                // ✅ CORRECTION : Attacher les fichiers au message créé
-                createdMessage.PiecesJointes = uploadedFiles;
+                        // Mettre à jour le message avec les pièces jointes
+                        createdMessage.PiecesJointes = uploadedFiles;
+                        Console.WriteLine($"✅ {uploadedFiles.Count} fichier(s) uploadé(s)");
+                        
+                        // Rafraîchir seulement après l'upload
+                        NotifyStateChanged();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Erreur upload: {ex.Message}");
+                    }
+                });
             }
 
-            // ✅ CORRECTION : Ajouter le message complet avec ses pièces jointes à la liste
+            // ✅ Ajouter le message immédiatement (sans attendre les uploads)
             var messageExists = Messages.Any(m => m.IdMessage == createdMessage.IdMessage);
             if (!messageExists)
             {
                 Messages.Add(createdMessage);
-                Console.WriteLine($"✅ Message ajouté à la liste locale avec {createdMessage.PiecesJointes?.Count() ?? 0} pièce(s) jointe(s)");
+                NotifyStateChanged();
             }
-            else
-            {
-                // Si le message existe déjà (via SignalR), mettre à jour ses pièces jointes
-                var existingMessage = Messages.First(m => m.IdMessage == createdMessage.IdMessage);
-                existingMessage.PiecesJointes = createdMessage.PiecesJointes;
-                Console.WriteLine($"✅ Message existant mis à jour avec {createdMessage.PiecesJointes?.Count() ?? 0} pièce(s) jointe(s)");
-            }
-
-            // ✅ Forcer le rafraîchissement de l'UI
-            NotifyStateChanged();
-
-            await Task.Delay(100);
-            await ScrollToBottom();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Erreur envoi message: {ex.Message}");
-            NewMessage = messageContent;
+            _newMessage = messageContent;
             SelectedFiles = filesToUpload;
         }
         finally
@@ -190,7 +192,6 @@ public class ConversationViewModel : IDisposable
         }
     }
 
-    // ✅ Gérer la sélection de fichiers
     public void OnFilesSelected(List<IBrowserFile> files)
     {
         SelectedFiles = files;
@@ -219,8 +220,6 @@ public class ConversationViewModel : IDisposable
             {
                 Messages.Add(newMsg);
                 NotifyStateChanged();
-                await Task.Delay(100);
-                await ScrollToBottom();
             }
         }
     }
@@ -257,13 +256,14 @@ public class ConversationViewModel : IDisposable
         NotifyStateChanged();
     }
 
-    public async Task HandleTyping(KeyboardEventArgs e)
+    public void HandleTyping(KeyboardEventArgs e)
     {
         if (SelectedConversation == null)
             return;
 
+        // ✅ Ne PAS notifier SignalR à chaque frappe
         _typingTimer?.Dispose();
-        _typingTimer = new System.Threading.Timer(async _ =>
+        _typingTimer = new System.Threading.Timer(_ =>
         {
             _typingNotified = false;
         }, null, 2000, Timeout.Infinite);
@@ -273,28 +273,22 @@ public class ConversationViewModel : IDisposable
 
         _typingNotified = true;
 
-        await _signalR.NotifyTyping(SelectedConversation.IdConversation, CurrentUserId, "User");
+        // ✅ Async sans await (fire-and-forget)
+        _ = _signalR.NotifyTyping(SelectedConversation.IdConversation, CurrentUserId, "User");
     }
 
     public async Task HandleKeyPress(KeyboardEventArgs e)
     {
         if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(NewMessage))
+        {
             await SendMessage();
+        }
     }
 
-    public async Task ScrollToBottom()
+    private void NotifyStateChanged()
     {
-        try
-        {
-            await _jsRuntime.InvokeVoidAsync("scrollToBottom", MessagesContainer);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erreur scroll: {ex.Message}");
-        }
+        _refreshUI?.Invoke();
     }
-
-    private void NotifyStateChanged() => _refreshUI?.Invoke();
 
     public void Dispose()
     {
