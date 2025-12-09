@@ -68,7 +68,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<AvisCreateDTO>> Post([FromBody] AvisCreateDTO dto)
+    public async Task<ActionResult<AvisDetailDTO>> Post([FromBody] AvisCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -84,7 +84,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// Met à jour un avis existant.
     /// </summary>
     /// <param name="id">Identifiant unique de la annonce à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="avis"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="AvisUpdateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -94,7 +94,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] AvisCreateDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] AvisUpdateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);

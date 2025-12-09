@@ -72,7 +72,7 @@ public class MessageController(
 
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] MessageDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] MessageUpdateDTO dto)
     {
         if (id != dto.IdMessage)
             return BadRequest();

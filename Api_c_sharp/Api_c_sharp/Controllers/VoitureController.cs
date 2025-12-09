@@ -84,7 +84,7 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// Met à jour une voiture existant.
     /// </summary>
     /// <param name="id">Identifiant unique de la voiture à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="VoitureCreateDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="VoitureUpdateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -94,7 +94,7 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] VoitureCreateDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] VoitureUpdateDTO dto)
     {
         if (!ModelState.IsValid)
         {

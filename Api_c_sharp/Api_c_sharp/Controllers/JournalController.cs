@@ -59,7 +59,7 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// <summary>
     /// Crée une nouveau journal.
     /// </summary>
-    /// <param name="dto">Objet <see cref="Journal"/> contenant les informations du journal à créer.</param>
+    /// <param name="dto">Objet <see cref="JournalCreateDTO"/> contenant les informations du journal à créer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="CreatedAtActionResult"/> avec le journal créée (201).</description></item>
@@ -68,7 +68,7 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<JournalDTO>> Post([FromBody] JournalDTO dto)
+    public async Task<ActionResult<JournalDTO>> Post([FromBody] JournalCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -83,7 +83,7 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// Met à jour un journal existant.
     /// </summary>
     /// <param name="id">Identifiant unique de la annonce à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="JournalDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="JournalUpdateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -93,7 +93,7 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] JournalDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] JournalUpdateDTO dto)
     {
         if (ModelState.IsValid == false)
             return BadRequest();

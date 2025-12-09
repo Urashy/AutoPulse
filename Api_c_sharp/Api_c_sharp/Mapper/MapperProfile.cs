@@ -415,7 +415,6 @@ public class MapperProfile : Profile
                     TypeMime = pj.TypeMime,
                     Extension = pj.Extension,
                     TailleFichier = pj.TailleFichier,
-                    DateUpload = pj.DateUpload,
                     ContenuBase64 = Convert.ToBase64String(pj.Contenu)
                 })));
     }
