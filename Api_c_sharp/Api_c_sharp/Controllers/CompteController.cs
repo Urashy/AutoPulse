@@ -116,6 +116,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         entity.DateNaissance = DateTime.SpecifyKind(entity.DateNaissance, DateTimeKind.Utc);
         entity.DateCreation = DateTime.UtcNow;
         entity.DateDerniereConnexion = DateTime.UtcNow;
+        entity.IdEtatCompte = 1;
         await _manager.AddAsync(entity);
         await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
 

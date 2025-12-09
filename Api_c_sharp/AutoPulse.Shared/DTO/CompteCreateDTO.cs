@@ -23,4 +23,6 @@ public class CompteCreateDTO
     [RegularExpression(@"^\d{14}$", ErrorMessage = "Le SIRET doit contenir uniquement des chiffres")]
     public string? NumeroSiret { get; set; }
     public string? RaisonSociale { get; set; }
+    public bool EstSuspendu { get; set; }
+
 }
