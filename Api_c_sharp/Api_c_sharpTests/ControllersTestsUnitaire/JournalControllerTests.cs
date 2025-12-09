@@ -146,7 +146,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PostJournalTest_Entity()
         {
-            JournalDTO journal = new JournalDTO
+            JournalCreateDTO journal = new JournalCreateDTO
             {
                 ContenuJournal = "Nouveau journal de test",
                 DateJournal = DateTime.UtcNow,
@@ -184,7 +184,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutJournalTest()
         {
-            JournalDTO journal = new JournalDTO()
+            JournalUpdateDTO journal = new JournalUpdateDTO()
             {
                 IdJournal = _objetcommun.IdJournal,
                 ContenuJournal = "Journal modifié",
@@ -204,7 +204,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutJournalTest()
         {
-            JournalDTO journal = new JournalDTO()
+            JournalUpdateDTO journal = new JournalUpdateDTO()
             {
                 ContenuJournal = "Journal modifié",
                 DateJournal = DateTime.UtcNow,
@@ -220,7 +220,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPutJournalTest()
         {
-            JournalDTO journal = new JournalDTO()
+            JournalUpdateDTO journal = new JournalUpdateDTO()
             {
                 ContenuJournal = null,
                 DateJournal = DateTime.UtcNow,
@@ -238,7 +238,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPostJournalTest()
         {
-            JournalDTO journal = new JournalDTO()
+            JournalCreateDTO journal = new JournalCreateDTO()
             {
                 ContenuJournal = null,
                 DateJournal = DateTime.UtcNow,

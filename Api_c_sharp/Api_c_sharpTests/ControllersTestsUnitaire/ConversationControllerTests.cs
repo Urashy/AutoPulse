@@ -169,7 +169,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         {
             var voiture = new ConversationCreateDTO
             {
-                IdConversation = 2,
                 IdAnnonce = _objetcommun.IdAnnonce,
                 DateDernierMessage = _objetcommun.DateDernierMessage,
             };
@@ -181,7 +180,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var created = (CreatedAtActionResult)actionResult.Result;
 
             var createdVoiture = (Conversation)created.Value;
-            Assert.AreEqual(voiture.IdConversation, createdVoiture.IdConversation);
+            Assert.AreEqual(voiture.DateDernierMessage, createdVoiture.DateDernierMessage);
         }
 
 
@@ -206,7 +205,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutVoitureTest()
         {
-            var voiture = new ConversationCreateDTO()
+            ConversationUpdateDTO voiture = new ConversationUpdateDTO()
             {
                 IdConversation = _objetcommun.IdConversation,
                 IdAnnonce = _objetcommun.IdAnnonce,
@@ -224,7 +223,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutVoitureTest()
         {
-            var voiture = new ConversationCreateDTO()
+            ConversationUpdateDTO voiture = new ConversationUpdateDTO()
             {
                 IdConversation = _objetcommun.IdConversation,
                 IdAnnonce = _objetcommun.IdAnnonce,
@@ -239,7 +238,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task BadRequestPutVoitureTest()
         {
             // Arrange : voiture avec kilométrage invalide
-            var voiture = new ConversationCreateDTO()
+            ConversationUpdateDTO voiture = new ConversationUpdateDTO()
             {
                 IdConversation = _objetcommun.IdConversation,
                 IdAnnonce = -1,
@@ -260,9 +259,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPostVoitureTest()
         {
-            var voiture = new ConversationCreateDTO()
+            ConversationCreateDTO voiture = new ConversationCreateDTO()
             {
-                IdConversation = _objetcommun.IdConversation,
                 IdAnnonce = -1,
                 DateDernierMessage = DateTime.Now.AddDays(1),
             };

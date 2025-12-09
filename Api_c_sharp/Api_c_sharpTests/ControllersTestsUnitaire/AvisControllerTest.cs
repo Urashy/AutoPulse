@@ -166,7 +166,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutAvisTest()
         {
-            var dto = new AvisCreateDTO()
+            AvisUpdateDTO dto = new AvisUpdateDTO()
             {
                 IdAvis = _objetCommun.IdAvis,
                 IdJugee = 1,
@@ -186,7 +186,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutAvisTest()
         {
-            var dto = new AvisCreateDTO()
+            AvisUpdateDTO dto = new AvisUpdateDTO()
             {
                 ContenuAvis = "Test"
             };
@@ -199,7 +199,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPutAvisTest()
         {
-            var dto = new AvisCreateDTO()
+            AvisUpdateDTO dto = new AvisUpdateDTO()
             {
                 IdAvis = _objetCommun.IdAvis,
                 ContenuAvis = "",

@@ -349,7 +349,6 @@ namespace BlazorAutoPulse.ViewModel
         {
             AnnonceCreateDTO annonceChange = new AnnonceCreateDTO()
             {
-                //IdAnnonce = Annonce.IdAnnonce,
                 Libelle = Annonce.Libelle,
                 IdCompte = Annonce.IdVendeur,
                 IdEtatAnnonce = 4,
@@ -360,7 +359,7 @@ namespace BlazorAutoPulse.ViewModel
                 Prix = Annonce.Prix,
                 Description = Annonce.Libelle
             };
-            _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
+            await _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
             IsOptionsMenuOpen = false;
 
             await EstMasquerAnnonce();
@@ -371,7 +370,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             AnnonceCreateDTO annonceChange = new AnnonceCreateDTO()
             {
-                //IdAnnonce = Annonce.IdAnnonce,
+                IdAnnonce = Annonce.IdAnnonce,
                 Libelle = Annonce.Libelle,
                 IdCompte = Annonce.IdVendeur,
                 IdEtatAnnonce = 1,

@@ -39,11 +39,18 @@ public class MapperProfile : Profile
 
         CreateMap<Journal, JournalDTO>()
             .ReverseMap();
+        CreateMap<Journal, JournalCreateDTO>()
+            .ReverseMap();
+        CreateMap<Journal, JournalUpdateDTO>()
+            .ReverseMap();
 
         CreateMap<Facture, FactureDTO>()
             .ReverseMap();
 
         CreateMap<Conversation, ConversationCreateDTO>()
+            .ReverseMap();
+
+        CreateMap<Conversation, ConversationUpdateDTO>()
             .ReverseMap();
 
         CreateMap<ModeleBlender, ModeleBlenderDTO>()
@@ -60,9 +67,12 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.LibellePays,
                 opt => opt.MapFrom(src => src.PaysAdresseNav.Libelle))
             .ReverseMap();
-  
 
+        CreateMap<Adresse, AdresseCreateDTO>()
+            .ReverseMap();
 
+        CreateMap<Adresse, AdresseUpdateDTO>()
+            .ReverseMap();
 
 
         // ============================================
@@ -76,6 +86,7 @@ public class MapperProfile : Profile
         // ============================================
         
         CreateMap<Voiture, VoitureCreateDTO>().ReverseMap();
+        CreateMap<Voiture, VoitureUpdateDTO>().ReverseMap();
         
         CreateMap<Voiture, VoitureDTO>()
             .ForMember(dest => dest.Marque, 
@@ -216,6 +227,7 @@ public class MapperProfile : Profile
                     : null)).ReverseMap();
         
         CreateMap<AnnonceCreateDTO, Annonce>().ReverseMap();
+        CreateMap<AnnonceUpdateDTO, Annonce>().ReverseMap();
         
         // ============================================
         // MAPPERS COMPTE
@@ -281,6 +293,10 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.DateAvis, 
                 opt => opt.MapFrom(src => DateTime.UtcNow)).ReverseMap();
 
+        CreateMap<AvisUpdateDTO, Avis>()
+            .ForMember(dest => dest.DateAvis,
+                opt => opt.MapFrom(src => DateTime.UtcNow)).ReverseMap();
+
         // ============================================
         // MAPPERS COMMANDE
         // ============================================
@@ -305,7 +321,8 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Annonce, 
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav)).ReverseMap();
 
-        CreateMap<CommandeCreateDTO, Commande>();
+        CreateMap<CommandeCreateDTO, Commande>().ReverseMap();
+        CreateMap<CommandeUpdateDTO, Commande>().ReverseMap();
 
         // ============================================
         // MAPPERS FAVORI
@@ -340,6 +357,7 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.MessageCompteNav.Pseudo)).ReverseMap();
         
         CreateMap<MessageCreateDTO, Message>().ReverseMap();
+        CreateMap<MessageUpdateDTO, Message>().ReverseMap();
 
         // ============================================
         // MAPPERS SIGNALEMENT

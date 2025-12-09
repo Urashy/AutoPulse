@@ -163,7 +163,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutVoitureTest()
         {
-            var voiture = new VoitureCreateDTO()
+            VoitureUpdateDTO voiture = new VoitureUpdateDTO()
             {
                 IdVoiture = _objetcommun.IdVoiture,
                 IdMarque = 1,
@@ -190,7 +190,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutVoitureTest()
         {
-            var voiture = new VoitureCreateDTO()
+            VoitureUpdateDTO voiture = new VoitureUpdateDTO()
             {
                 IdVoiture = 0,
                 Kilometrage = 10000
@@ -204,7 +204,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task BadRequestPutVoitureTest()
         {
             // Arrange : voiture avec kilométrage invalide
-            var voiture = new VoitureCreateDTO()
+            VoitureUpdateDTO voiture = new VoitureUpdateDTO()
             {
                 IdVoiture = _objetcommun.IdVoiture,
                 Kilometrage = -20
