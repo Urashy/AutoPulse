@@ -31,7 +31,7 @@ namespace BlazorAutoPulse.ViewModel
 
         public string activeSection = "annonces";
         public bool isEditing = false;
-        
+
         public bool showPasswordModal = false;
         public string currentPassword = "";
         public string newPassword = "";
@@ -45,18 +45,34 @@ namespace BlazorAutoPulse.ViewModel
         public bool modalSuppression = false;
         public bool confirmationSuppression = false;
         public string confirmationTexte = "";
-        public bool suppressionReussi =  false;
-        
+        public bool suppressionReussi = false;
+
+        public bool passerPro = false;
+        public CompteModifTypeCompteDTO compteModifType;
+        public string? erreurChangeTypeCompte = null;
+
         private Action? _refreshUI;
         public NavigationManager _nav { get; set; }
 
-        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService)
+        public CompteViewModel(ICompteService compteService,
+                               IPostImageService postImageService,
+                               IImageService imageService,
+                               IAnnonceService annonceService,
+                               IAdresseService adresseService,
+                               IAvisService avisService,
+                               ICommandeService commandeService,
+                               NotificationService notificationService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
             _imageService = imageService;
+            _annonceService = annonceService;
+            _addresseService = adresseService;
+            _avisService = avisService;
+            _commandeService = commandeService;
+            _notificationService = notificationService;
         }
-        
+
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
         {
             _refreshUI = refreshUI;
@@ -66,7 +82,7 @@ namespace BlazorAutoPulse.ViewModel
                 RaisonSociale = "",
                 NumeroSiret = ""
             };
-            
+
             try
             {
                 compte = await _compteService.GetMe();
@@ -75,9 +91,9 @@ namespace BlazorAutoPulse.ViewModel
             {
                 _nav.NavigateTo("/connexion");
             }
-            
+
             await GetImageProfil(compte.IdCompte);
-            
+
             compteEdit = new CompteDetailDTO
             {
                 IdCompte = compte.IdCompte,
@@ -91,6 +107,39 @@ namespace BlazorAutoPulse.ViewModel
                 NumeroSiret = compte.NumeroSiret ?? "",
                 RaisonSociale = compte.RaisonSociale ?? "",
             };
+
+            try
+            {
+                annonces = await _annonceService.GetByCompteID(compte.IdCompte);
+            }
+            catch
+            {
+                annonces = null;
+            }
+            try
+            {
+                avis = await _avisService.GetAvisByCompte(compte.IdCompte);
+            }
+            catch
+            {
+                avis = null;
+            }
+            try
+            {
+                adresses = await _addresseService.GetAdresseByCompte(compte.IdCompte);
+            }
+            catch
+            {
+                adresses = null;
+            }
+            try
+            {
+                commandes = await _commandeService.GetCommandeByCompte(compte.IdCompte);
+            }
+            catch
+            {
+                commandes = null;
+            }
         }
 
         public async Task UpdateProfileImage(InputFileChangeEventArgs e)
@@ -104,14 +153,14 @@ namespace BlazorAutoPulse.ViewModel
                 await ChangeImageProfil(e);
             }
         }
-        
+
         private async Task UploadImageProfil(InputFileChangeEventArgs e)
         {
             ImageUpload imageProfil = new ImageUpload();
             imageProfil.File = e.File;
             imageProfil.IdCompte = compte.IdCompte;
             Image img = await _postImageService.CreateAsync(imageProfil);
-            
+
             await GetImageProfil(compte.IdCompte);
         }
 
@@ -120,15 +169,15 @@ namespace BlazorAutoPulse.ViewModel
             Console.WriteLine(e.File.Name);
             ImageUpload imageProfil = new ImageUpload();
             imageProfil.File = e.File;
-            
+
             imageProfil.IdImage = idImage;
             imageProfil.IdCompte = compte.IdCompte;
             imageProfil.IdVoiture = null;
-            
+
             await _postImageService.UpdateAsync(imageProfil.IdImage, imageProfil);
             await GetImageProfil(compte.IdCompte);
         }
-        
+
         private async Task GetImageProfil(int id)
         {
             try
@@ -161,7 +210,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             activeSection = section;
         }
-        
+
         public void ToggleEdit()
         {
             isEditing = true;
@@ -174,12 +223,12 @@ namespace BlazorAutoPulse.ViewModel
             {
                 await _compteService.UpdateAsync(compte.IdCompte, compteEdit);
                 compte = await _compteService.GetMe();
-                
+
                 _notificationService.ShowSuccess(
                     "Profil mis à jour",
                     "Vos informations ont été enregistrées avec succès"
                 );
-                
+
                 isEditing = false;
                 _refreshUI?.Invoke();
             }
@@ -222,109 +271,109 @@ namespace BlazorAutoPulse.ViewModel
             currentPasswordValid = true;
             newPasswordValid = true;
             _refreshUI?.Invoke();
-        } 
-        
-    public async Task ChangePassword()
-    {
-        // Reset des messages
-        passwordError = null;
-        passwordSuccess = null;
-        currentPasswordValid = true;
-        newPasswordValid = true;
-        
-        // Validation côté client basique
-        if (string.IsNullOrWhiteSpace(currentPassword))
-        {
-            passwordError = "Le mot de passe actuel est requis";
-            currentPasswordValid = false;
-            return;
         }
 
-        if (string.IsNullOrWhiteSpace(newPassword))
+        public async Task ChangePassword()
         {
-            passwordError = "Le nouveau mot de passe est requis";
-            newPasswordValid = false;
-            return;
-        }
+            // Reset des messages
+            passwordError = null;
+            passwordSuccess = null;
+            currentPasswordValid = true;
+            newPasswordValid = true;
 
-        if (newPassword != confirmNewPassword)
-        {
-            passwordError = "Les mots de passe ne correspondent pas";
-            newPasswordValid = false;
-            return;
-        }
-
-        isChangingPassword = true;
-        _refreshUI?.Invoke();
-
-        try
-        {
-            // 1. Vérifier le mot de passe actuel
-            var verifResult = await _compteService.VerifUser(new ChangementMdp
+            // Validation côté client basique
+            if (string.IsNullOrWhiteSpace(currentPassword))
             {
-                Email = compte.Email,
-                MotDePasse = currentPassword
-            });
-
-            if (!verifResult)
-            {
-                passwordError = "Le mot de passe actuel est incorrect";
+                passwordError = "Le mot de passe actuel est requis";
                 currentPasswordValid = false;
                 return;
             }
 
-            // 2. Changer le mot de passe
-            var changementMdp = new ChangementMdp
+            if (string.IsNullOrWhiteSpace(newPassword))
             {
-                IdCompte = compte.IdCompte,
-                Email = compte.Email,
-                MotDePasse = newPassword
-            };
-
-            var result = await _compteService.ChangementMdp(changementMdp);
-
-            if (result.Success)
-            {
-                passwordSuccess = "Mot de passe modifié avec succès";
-                
-                // Reset des champs
-                currentPassword = null;
-                newPassword = null;
-                confirmNewPassword = null;
-
-                // Fermer le modal après 2 secondes
-                await Task.Delay(2000);
-                ClosePasswordModal();
-            }
-            else
-            {
-                // ✅ Afficher l'erreur retournée par le backend
-                passwordError = result.ErrorMessage;
+                passwordError = "Le nouveau mot de passe est requis";
                 newPasswordValid = false;
-                
-                // Log pour debug
-                Console.WriteLine($"Erreur de changement de mot de passe: {result.ErrorMessage}");
-                
-                if (result.ValidationErrors != null)
+                return;
+            }
+
+            if (newPassword != confirmNewPassword)
+            {
+                passwordError = "Les mots de passe ne correspondent pas";
+                newPasswordValid = false;
+                return;
+            }
+
+            isChangingPassword = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                // 1. Vérifier le mot de passe actuel
+                var verifResult = await _compteService.VerifUser(new ChangementMdp
                 {
-                    foreach (var error in result.ValidationErrors)
+                    Email = compte.Email,
+                    MotDePasse = currentPassword
+                });
+
+                if (!verifResult)
+                {
+                    passwordError = "Le mot de passe actuel est incorrect";
+                    currentPasswordValid = false;
+                    return;
+                }
+
+                // 2. Changer le mot de passe
+                var changementMdp = new ChangementMdp
+                {
+                    IdCompte = compte.IdCompte,
+                    Email = compte.Email,
+                    MotDePasse = newPassword
+                };
+
+                var result = await _compteService.ChangementMdp(changementMdp);
+
+                if (result.Success)
+                {
+                    passwordSuccess = "Mot de passe modifié avec succès";
+
+                    // Reset des champs
+                    currentPassword = null;
+                    newPassword = null;
+                    confirmNewPassword = null;
+
+                    // Fermer le modal après 2 secondes
+                    await Task.Delay(2000);
+                    ClosePasswordModal();
+                }
+                else
+                {
+                    // ✅ Afficher l'erreur retournée par le backend
+                    passwordError = result.ErrorMessage;
+                    newPasswordValid = false;
+
+                    // Log pour debug
+                    Console.WriteLine($"Erreur de changement de mot de passe: {result.ErrorMessage}");
+
+                    if (result.ValidationErrors != null)
                     {
-                        Console.WriteLine($"  {error.Key}: {string.Join(", ", error.Value)}");
+                        foreach (var error in result.ValidationErrors)
+                        {
+                            Console.WriteLine($"  {error.Key}: {string.Join(", ", error.Value)}");
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                passwordError = "Une erreur inattendue s'est produite";
+                Console.WriteLine($"Exception ChangePassword: {ex.Message}");
+            }
+            finally
+            {
+                isChangingPassword = false;
+                _refreshUI?.Invoke();
+            }
         }
-        catch (Exception ex)
-        {
-            passwordError = "Une erreur inattendue s'est produite";
-            Console.WriteLine($"Exception ChangePassword: {ex.Message}");
-        }
-        finally
-        {
-            isChangingPassword = false;
-            _refreshUI?.Invoke();
-        }
-    }
 
         public void OpenSuppressionModal()
         {
@@ -354,12 +403,12 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     _compteService.Anonymisation(compte.IdCompte);
                     suppressionReussi = true;
-                    
+
                     _notificationService.ShowInfo(
                         "Compte supprimé",
                         "Votre compte a été anonymisé avec succès"
                     );
-                    
+
                     Task.Delay(1000);
                     _nav.NavigateTo("/");
                 }
@@ -379,7 +428,7 @@ namespace BlazorAutoPulse.ViewModel
             passerPro = true;
             _refreshUI?.Invoke();
         }
-        
+
         public async Task CloseProModal()
         {
             passerPro = false;
@@ -412,7 +461,7 @@ namespace BlazorAutoPulse.ViewModel
                     NumeroSiret = compte.NumeroSiret ?? "",
                     RaisonSociale = compte.RaisonSociale ?? "",
                 };
-                
+
                 if (compte.IdTypeCompte == 2)
                 {
                     _notificationService.ShowSuccess(
@@ -427,7 +476,7 @@ namespace BlazorAutoPulse.ViewModel
                         "Votre compte a été converti en compte particulier"
                     );
                 }
-                
+
                 CloseProModal();
             }
             else
