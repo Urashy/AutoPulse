@@ -25,9 +25,9 @@ namespace BlazorAutoPulse.ViewModel
         public int TotalSignalements => AllSignalements?.Count ?? 0;
         public int SignalementsAnnonces => AllSignalements?.Count(s => s.TypeCible == "Annonce") ?? 0;
         public int SignalementsComptes => AllSignalements?.Count(s => s.TypeCible == "Compte") ?? 0;
-        public int SignalementsEnAttente => AllSignalements?.Count(s => s.IdStatut == 1) ?? 0; // MODIFIÉ
-        public int SignalementsTraites => AllSignalements?.Count(s => s.IdStatut == 2) ?? 0; // MODIFIÉ
-        public int SignalementsRejetes => AllSignalements?.Count(s => s.IdStatut == 3) ?? 0; // MODIFIÉ
+        public int SignalementsEnAttente => AllSignalements?.Count(s => s.IdStatut == 1) ?? 0;
+        public int SignalementsTraites => AllSignalements?.Count(s => s.IdStatut == 2) ?? 0;
+        public int SignalementsRejetes => AllSignalements?.Count(s => s.IdStatut == 3) ?? 0;
 
         public bool IsLoading { get; private set; } = true;
 
@@ -80,7 +80,6 @@ namespace BlazorAutoPulse.ViewModel
             {
                 Console.WriteLine("Début du chargement des signalements...");
 
-                // Utilisation de la nouvelle méthode GetAllSignalementsAsync qui retourne SignalementDTO
                 var signalements = await _signalementService.GetAllSignalementsAsync();
 
                 Console.WriteLine($"Signalements récupérés: {signalements?.Count() ?? 0}");
@@ -104,13 +103,10 @@ namespace BlazorAutoPulse.ViewModel
 
                             TypeCible = s.TypeCible,
 
-                            // IdCible dépend du type
                             IdCible = s.IdAnnonceSignale ?? s.IdCompteSignale ?? 0,
 
-                            // Signalant (toujours présent)
                             PseudoSignalant = s.PseudoSignalant ?? "Utilisateur inconnu",
 
-                            // Cible (selon le type)
                             PseudoCible = s.PseudoSignale,
                             TitreCible = s.LibelleAnnonceSignale,
 
@@ -118,7 +114,6 @@ namespace BlazorAutoPulse.ViewModel
                             DateSignalement = s.DateCreationSignalement,
 
 
-                            // Statut depuis le DTO
                             Statut = s.LibelleEtatSignalement ?? "En attente",
 
                             IdStatut = s.IdEtatSignalement
@@ -195,7 +190,6 @@ namespace BlazorAutoPulse.ViewModel
 
             FilteredSignalements = AllSignalements.ToList();
 
-            // Filtre par type
             if (FilterType != "all")
             {
                 FilteredSignalements = FilterStatus switch
@@ -207,7 +201,6 @@ namespace BlazorAutoPulse.ViewModel
                 };
             }
 
-            // Filtre par statut
             if (FilterStatus != "all")
             {
                 FilteredSignalements = FilterStatus switch
@@ -343,12 +336,12 @@ namespace BlazorAutoPulse.ViewModel
                         }
                         else if (SelectedAction == "suspend")
                         {
-                            // TODO: Implémenter la suspension de compte
+                            await _compteService.ToggleSuspention(SelectedSignalement.IdCible);
                             Console.WriteLine($"Compte {SelectedSignalement.IdCible} suspendu");
                         }
                     }
 
-                    nouvelEtat = 2; // Traité
+                    nouvelEtat = 2;
                     SelectedSignalement.Statut = "Traité";
                     SelectedSignalement.IdStatut = 2; 
                 }
@@ -364,7 +357,6 @@ namespace BlazorAutoPulse.ViewModel
                     return;
                 }
 
-                // Mettre à jour le statut du signalement
                 bool success = await _signalementService.UpdateEtatAsync(SelectedSignalement.Id, nouvelEtat);
 
                 if (success)
@@ -394,14 +386,14 @@ namespace BlazorAutoPulse.ViewModel
     {
         public int Id { get; set; }
         public string TypeSignalement { get; set; } = "";
-        public string TypeCible { get; set; } = ""; // "Annonce" ou "Compte"
+        public string TypeCible { get; set; } = "";
         public int IdCible { get; set; }
         public string PseudoSignalant { get; set; } = "";
-        public string? PseudoCible { get; set; } // Pour les signalements de compte
-        public string? TitreCible { get; set; } // Pour les signalements d'annonce
+        public string? PseudoCible { get; set; }
+        public string? TitreCible { get; set; } 
         public string? Description { get; set; }
         public DateTime DateSignalement { get; set; }
-        public string Statut { get; set; } = ""; // "En attente", "Traité", "Rejeté"
-        public int IdStatut { get; set; } // NOUVELLE PROPRIÉTÉ POUR ID
+        public string Statut { get; set; } = "";
+        public int IdStatut { get; set; }
     }
 }

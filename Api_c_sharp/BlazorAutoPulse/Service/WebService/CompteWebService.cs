@@ -199,4 +199,29 @@ public class CompteWebService : BaseWebService<CompteDetailDTO>, ICompteService
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<CompteProfilPublicDTO>();
     }
+
+    public async Task<bool> ToggleSuspention(int idCompte)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"ToggleEtatCompte/{idCompte}"));
+
+            var response = await SendWithCredentialsAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erreur ToggleSuspention : {error}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception ToggleSuspention : {ex.Message}");
+            return false;
+        }
+    }
+
 }
