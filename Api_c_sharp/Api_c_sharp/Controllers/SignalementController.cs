@@ -166,7 +166,7 @@ public class SignalementController(
     public async Task<ActionResult> UpdateEtat(int idSignalement, [FromBody] SignalementUpdateDTO dto)
     {
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+            return BadRequest();
 
         var signalement = await _manager.GetByIdAsync(idSignalement);
 

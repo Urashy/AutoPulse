@@ -223,5 +223,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AvisListDTO>));
             Assert.IsTrue(result.Value.Any());
         }
+
+        [TestMethod]
+        public async Task NotFoundGetAllByCompte()
+        {
+            var result = await _controller.GetAvisByCompteID(999);
+
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
     }
 }
