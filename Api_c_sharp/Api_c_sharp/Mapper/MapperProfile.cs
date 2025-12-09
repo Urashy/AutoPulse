@@ -64,6 +64,8 @@ public class MapperProfile : Profile
         // ============================================
 
         CreateMap<Adresse, AdresseDTO>()
+            .ForMember(dest => dest.LibellePays,
+                opt => opt.MapFrom(src => src.PaysAdresseNav.Libelle))
             .ReverseMap();
 
         CreateMap<Adresse, AdresseCreateDTO>()
