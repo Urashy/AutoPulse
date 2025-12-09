@@ -26,6 +26,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task UpdateAnonymise(int idcompte);
         Task UpdateTypeCompte(Compte compteamodif,CompteModifTypeCompteDTO compteModifTypeCompteDTO, bool estpro);
         Task<Compte> GetProfilPublic(int idcompte);
+        Task ToggleEtatCompte(int idcompte, bool estretirer);
     }
 
     public interface IMessageRepository

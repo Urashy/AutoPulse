@@ -155,6 +155,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Description = "Description de l'annonce",
                 IdMiseEnAvant = miseEnAvant.IdMiseEnAvant,
                 IdVoiture = voiture.IdVoiture,
+                DatePublication = DateTime.Now
             };
 
             Favori favori = new Favori()
@@ -446,7 +447,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdTypeVendeur = 1,
                 Nom = "Annonce",
                 KmMin = 5000,
-                KmMax = 15000
+                KmMax = 15000,
+                Order = 5
             };
             // Act
             var result = await _controller.GetFiltered(parametreRecherche);
@@ -530,6 +532,100 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetFilteredTriDateCroissantTest()
+        {
+            Annonce annonce = new Annonce()
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 25000,
+                Description = "Description de l'annonce",
+                IdMiseEnAvant = 1,
+                IdVoiture = 1,
+                DatePublication = DateTime.Now.AddDays(-1)
+            };
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
+            ParametreRecherche parametreRecherche = new ParametreRecherche()
+            {
+                Departement = "12345",
+                IdCarburant = 1,
+                IdMarque = 1,
+                IdModele = 1,
+                PrixMin = 10000,
+                PrixMax = 30000,
+                IdTypeVoiture = 1,
+                IdTypeVendeur = 1,
+                Nom = "Annonce",
+                KmMin = 5000,
+                KmMax = 15000,
+                PageNumber = 1,
+                PageSize = 21,
+                Order = 3
+            };
+            // Act
+            var result = await _controller.GetFiltered(parametreRecherche);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            var annonces = result.Value.ToList();
+
+            Assert.IsTrue(annonces.Any());
+            Assert.IsTrue(annonces[1].DatePublication == _objetcommun.DatePublication);
+        }
+
+        [TestMethod]
+        public async Task GetFilteredTriDateDecroissantTest()
+        {
+            Annonce annonce = new Annonce()
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 25000,
+                Description = "Description de l'annonce",
+                IdMiseEnAvant = 1,
+                IdVoiture = 1,
+                DatePublication = DateTime.Now.AddDays(-1)
+            };
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
+            ParametreRecherche parametreRecherche = new ParametreRecherche()
+            {
+                Departement = "12345",
+                IdCarburant = 1,
+                IdMarque = 1,
+                IdModele = 1,
+                PrixMin = 10000,
+                PrixMax = 30000,
+                IdTypeVoiture = 1,
+                IdTypeVendeur = 1,
+                Nom = "Annonce",
+                KmMin = 5000,
+                KmMax = 15000,
+                PageNumber = 1,
+                PageSize = 21,
+                Order = 4
+            };
+            // Act
+            var result = await _controller.GetFiltered(parametreRecherche);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            var annonces = result.Value.ToList();
+
+            Assert.IsTrue(annonces.Any());
+            Assert.IsTrue(annonces[0].DatePublication == _objetcommun.DatePublication);
         }
 
         [TestMethod]

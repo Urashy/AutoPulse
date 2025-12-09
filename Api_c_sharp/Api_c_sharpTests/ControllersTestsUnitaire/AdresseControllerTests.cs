@@ -274,9 +274,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _controller.GetAdressesByCompteID(0);
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
-            Assert.IsFalse(result.Value.Any());
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

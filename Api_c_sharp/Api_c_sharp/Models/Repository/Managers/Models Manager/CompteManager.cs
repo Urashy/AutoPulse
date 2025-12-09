@@ -140,5 +140,20 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             return await dbSet.Include(c => c.Images).Include(c => c.TypeCompteCompteNav).Include(c => c.Annonces).Include(c => c.AvisJugees).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
         }
+
+        public async Task ToggleEtatCompte(int idcompte, bool estretirer = false)
+        {
+            Compte compte = await dbSet.Include(c => c.EtatCompteNav).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
+            if (compte.IdEtatCompte== 1)
+            {
+                compte.IdEtatCompte = 2; // Normalement "Suspendu"
+                context.SaveChanges();
+            }
+            else if(estretirer)
+            {
+                compte.IdEtatCompte = 1; // Normalement "Normal"
+                context.SaveChanges();
+            }
+        }
     }
 }

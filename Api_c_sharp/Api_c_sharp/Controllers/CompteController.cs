@@ -331,6 +331,30 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         return _compteMapper.Map<CompteProfilPublicDTO>(result);
     }
 
+    /// <summary>
+    /// Récupère un compte à partir d'un id de type de compte.
+    /// </summary>
+    /// <param name="type">Identifiant unique de la compte recherchée.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="CompteGetDTO"/> si les compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("ToggleEtatCompte")]
+    [HttpPut("{type}")]
+    public async Task<ActionResult<bool>> ToggleEtatCompte(int type)
+    {
+        Compte compte = await _manager.GetByIdAsync(type);
+
+        if (compte is null)
+            return NotFound();
+
+        await _manager.ToggleEtatCompte(type);
+
+        return NoContent();
+    }
+
     #endregion
 
 #region Authentification Classique

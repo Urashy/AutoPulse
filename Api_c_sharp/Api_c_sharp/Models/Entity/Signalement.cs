@@ -60,6 +60,7 @@ namespace Api_c_sharp.Models.Entity
         [InverseProperty(nameof(TypeSignalement.Signalements))]
         public virtual TypeSignalement TypeSignalementSignalementNav { get; set; } = null!;
 
-
+        [InverseProperty(nameof(Plainte.SignalementPainteNav))]
+        public virtual ICollection<Plainte> Plaintes { get; set; } = new List<Plainte>();
     }
 }

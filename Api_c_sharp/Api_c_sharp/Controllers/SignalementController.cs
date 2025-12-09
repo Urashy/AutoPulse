@@ -160,32 +160,25 @@ public class SignalementController(
     /// Met à jour l'état d'un signalement.
     /// </summary>
     /// <param name="idSignalement">ID du signalement</param>
-    /// <param name="nouvelEtat">Nouvel état (1=En attente, 2=Traité, 3=Rejeté)</param>
+    /// <param name="dto">DTO contenant le nouvel état</param>
     [ActionName("UpdateEtat")]
-    [HttpPut("{idSignalement}/{nouvelEtat}")]
-    public async Task<ActionResult> UpdateEtat(int idSignalement, int nouvelEtat)
+    [HttpPut("{idSignalement}")]
+    public async Task<ActionResult> UpdateEtat(int idSignalement, [FromBody] SignalementUpdateDTO dto)
     {
-        Signalement signalement = await _manager.GetByIdAsync(idSignalement);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var signalement = await _manager.GetByIdAsync(idSignalement);
 
         if (signalement == null)
             return NotFound();
 
-        // Valider que le nouvel état est valide
-        if (nouvelEtat < 1 || nouvelEtat > 3)
+        if (dto.IdEtatSignalement < 1 || dto.IdEtatSignalement > 3)
             return BadRequest("État invalide. Doit être 1 (En attente), 2 (Traité) ou 3 (Rejeté)");
-        Signalement newsignalement = new Signalement
-        {
-            IdSignalement = signalement.IdSignalement,
-            DescriptionSignalement = signalement.DescriptionSignalement,
-            DateCreationSignalement = signalement.DateCreationSignalement,
-            IdCompteSignalant = signalement.IdCompteSignalant,
-            IdCompteSignale = signalement.IdCompteSignale,
-            IdAnnonceSignale = signalement.IdAnnonceSignale,
-            IdTypeSignalement = signalement.IdTypeSignalement,
-            IdEtatSignalement = nouvelEtat
-        };
 
-        await _manager.UpdateAsync(signalement, newsignalement);
+        // Mapper le DTO vers l'entité existante
+        var updatedEntity = _mapper.Map<Signalement>(dto);
+        await _manager.UpdateAsync(signalement, updatedEntity);
 
         return NoContent();
     }
