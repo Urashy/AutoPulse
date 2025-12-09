@@ -1,7 +1,7 @@
 ﻿using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service;
+using BlazorAutoPulse.Service.Authentification;
 using BlazorAutoPulse.Service.Interface;
-using BlazorAutoPulse.Service.WebService;
 using BlazorAutoPulse.Services;
 using Microsoft.AspNetCore.Components;
 
@@ -11,22 +11,47 @@ namespace BlazorAutoPulse.ViewModel
     {
         private readonly ICompteService _compteService;
         private readonly IImageService _imageService;
+        private readonly IPlainteService _plainteService;
+        private readonly ISignalementService _signalementService;
+        private readonly IServiceConnexion _connexionService;
+        private readonly NotificationService _notificationService;
         private ConversationStateService _conversationStateService;
 
         public bool IsConnected { get; private set; }
         public bool IsAdmin { get; private set; }
+        public bool IsAccountSuspended { get; private set; }
         public string ImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
 
         private List<ConversationListDTO> allConversations { get; set; } = new();
         public int unreadCount = 0;
-        
+
+        // Propriétés pour le formulaire de plainte
+        public bool ShowPlainteForm { get; private set; }
+        public string PlainteContenu { get; set; } = "";
+        public string PlainteError { get; set; } = "";
+        public string PlainteSuccess { get; set; } = "";
+        public bool IsSubmittingPlainte { get; private set; }
+
+        private int? _currentUserId;
+        private int? _signalementId;
+
         private Action? _refreshUI;
         private NavigationManager? _nav;
 
-        public MainLayoutViewModel(ICompteService compteService, IImageService imageService)
+        public MainLayoutViewModel(
+            ICompteService compteService,
+            IImageService imageService,
+            IPlainteService plainteService,
+            ISignalementService signalementService,
+            IServiceConnexion connexionService,
+            NotificationService notificationService)
         {
             _compteService = compteService;
             _imageService = imageService;
+            _plainteService = plainteService;
+            _signalementService = signalementService;
+            _connexionService = connexionService;
+            _notificationService = notificationService;
         }
 
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav, ConversationStateService conversationStateService)
@@ -55,11 +80,22 @@ namespace BlazorAutoPulse.ViewModel
 
                 if (IsConnected)
                 {
+                    _currentUserId = compte.IdCompte;
                     IsAdmin = compte.TypeCompte == "Administrateur";
-                    await LoadProfileImage(compte.IdCompte);
-                    await _conversationStateService.InitializeAsync();
-                    unreadCount = _conversationStateService.GetTotalUnreadCount();
-                    _conversationStateService.OnStateChanged += UpdateUnreadCount;
+                    IsAccountSuspended = compte.EstSuspendu;
+
+                    if (!IsAccountSuspended)
+                    {
+                        await LoadProfileImage(compte.IdCompte);
+                        await _conversationStateService.InitializeAsync();
+                        unreadCount = _conversationStateService.GetTotalUnreadCount();
+                        _conversationStateService.OnStateChanged += UpdateUnreadCount;
+                    }
+                    else
+                    {
+                        // Si suspendu, vérifier s'il y a un signalement actif
+                        await LoadActiveSignalement();
+                    }
                 }
             }
             catch
@@ -68,6 +104,29 @@ namespace BlazorAutoPulse.ViewModel
             }
 
             _refreshUI?.Invoke();
+        }
+
+        private async Task LoadActiveSignalement()
+        {
+            try
+            {
+                // Récupérer tous les signalements
+                var signalements = await _signalementService.GetAllSignalementsAsync();
+
+                // Trouver un signalement en attente pour ce compte
+                var signalement = signalements.FirstOrDefault(s =>
+                    s.IdCompteSignale == _currentUserId &&
+                    s.IdEtatSignalement == 1); // 1 = En attente
+
+                if (signalement != null)
+                {
+                    _signalementId = signalement.IdSignalement;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du chargement du signalement: {ex.Message}");
+            }
         }
 
         private async Task LoadProfileImage(int idCompte)
@@ -98,6 +157,149 @@ namespace BlazorAutoPulse.ViewModel
         public void NavigateToProfile()
         {
             _nav?.NavigateTo("/compte");
+        }
+
+        // ========== GESTION DES PLAINTES ==========
+
+        public void OpenPlainteForm()
+        {
+            ShowPlainteForm = true;
+            PlainteContenu = "";
+            PlainteError = "";
+            PlainteSuccess = "";
+            _refreshUI?.Invoke();
+        }
+
+        public void CancelPlainte()
+        {
+            ShowPlainteForm = false;
+            PlainteContenu = "";
+            PlainteError = "";
+            PlainteSuccess = "";
+            _refreshUI?.Invoke();
+        }
+
+        public async Task SubmitPlainte()
+        {
+            PlainteError = "";
+            PlainteSuccess = "";
+
+            // Validation
+            if (string.IsNullOrWhiteSpace(PlainteContenu))
+            {
+                PlainteError = "Veuillez décrire le motif de votre plainte";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            if (PlainteContenu.Length < 10)
+            {
+                PlainteError = "La plainte doit contenir au moins 10 caractères";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            if (PlainteContenu.Length > 1000)
+            {
+                PlainteError = "La plainte ne peut pas dépasser 1000 caractères";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            if (!_currentUserId.HasValue)
+            {
+                PlainteError = "Erreur d'identification utilisateur";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            IsSubmittingPlainte = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                // Si pas de signalement actif, en créer un
+                if (!_signalementId.HasValue)
+                {
+                    var signalementDto = new SignalementCreateDTO
+                    {
+                        IdCompteSignalant = _currentUserId.Value,
+                        IdCompteSignale = _currentUserId.Value,
+                        IdTypeSignalement = 10, // Type "Autre" ou "Contestation suspension"
+                        DescriptionSignalement = "Contestation de suspension de compte"
+                    };
+
+                    var createdSignalement = await _signalementService.CreateAsync(signalementDto);
+
+                    if (createdSignalement != null)
+                    {
+                        // Récupérer l'ID du signalement créé
+                        var signalements = await _signalementService.GetAllSignalementsAsync();
+                        var newSignalement = signalements
+                            .OrderByDescending(s => s.DateCreationSignalement)
+                            .FirstOrDefault(s => s.IdCompteSignalant == _currentUserId.Value);
+
+                        if (newSignalement != null)
+                        {
+                            _signalementId = newSignalement.IdSignalement;
+                        }
+                    }
+                }
+
+                if (!_signalementId.HasValue)
+                {
+                    PlainteError = "Impossible de créer le signalement";
+                    return;
+                }
+
+                // Créer la plainte
+                var plainteDto = new PlainteCreateDTO
+                {
+                    IdCompte = _currentUserId.Value,
+                    IdSignalement = _signalementId.Value,
+                    Contenu = PlainteContenu
+                };
+
+                var result = await _plainteService.CreatePlainteAsync(plainteDto);
+
+                if (result != null)
+                {
+                    PlainteSuccess = "Votre plainte a été envoyée avec succès. Nos équipes l'examineront dans les plus brefs délais.";
+                    PlainteContenu = "";
+
+                    await Task.Delay(3000);
+                    CancelPlainte();
+                }
+                else
+                {
+                    PlainteError = "Une erreur est survenue lors de l'envoi de votre plainte";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'envoi de la plainte: {ex.Message}");
+                PlainteError = "Une erreur est survenue lors de l'envoi de votre plainte";
+            }
+            finally
+            {
+                IsSubmittingPlainte = false;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        public async Task LogoutSuspendedAccount()
+        {
+            try
+            {
+                await _connexionService.LogOutUser();
+                await Task.Delay(100);
+                _nav?.NavigateTo("/connexion", forceLoad: true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur déconnexion: {ex.Message}");
+                _nav?.NavigateTo("/connexion", forceLoad: true);
+            }
         }
     }
 }
