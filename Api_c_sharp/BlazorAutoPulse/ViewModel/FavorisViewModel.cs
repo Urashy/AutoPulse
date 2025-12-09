@@ -1,6 +1,7 @@
 ﻿using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
+using BlazorAutoPulse.Service.WebService;
 using Microsoft.AspNetCore.Components;
 
 namespace BlazorAutoPulse.ViewModel
@@ -10,6 +11,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly ICompteService _compteService;
         private readonly IFavorisService _favorisService;
         private readonly IAnnonceService _annonceService;
+        private readonly ISignalRService _signalRService;
 
         public List<AnnonceDTO> AnnoncesFavoris { get; set; } = new List<AnnonceDTO>();
         public IEnumerable<Favori> Favoris { get; set; }
@@ -18,11 +20,13 @@ namespace BlazorAutoPulse.ViewModel
         public FavorisViewModel(
             ICompteService compteService,
             IFavorisService favorisservice,
-            IAnnonceService annonceService)
+            IAnnonceService annonceService,
+            ISignalRService signalRService)
         {
             _compteService = compteService;
             _favorisService = favorisservice;
             _annonceService = annonceService;
+            _signalRService = signalRService;
         }
 
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -35,6 +39,11 @@ namespace BlazorAutoPulse.ViewModel
                 var me = await _compteService.GetMe();
 
                 AnnoncesFavoris = (await _annonceService.GetAnnoncesFavoritesByCompteId(me.IdCompte)).ToList();
+                
+                foreach (var annonce in AnnoncesFavoris)
+                {
+                    await _signalRService.JoinFavorisAnnonce(annonce.IdAnnonce);
+                }
 
                 refreshUI?.Invoke();
             }

@@ -7,7 +7,9 @@ using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Api_c_sharp.Hubs;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Api_c_sharp.Controllers;
 
@@ -19,7 +21,7 @@ namespace Api_c_sharp.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, IJournalService _journalService) : ControllerBase
+public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, IJournalService _journalService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
 {
     /// <summary>
     /// Récupère une annoncs à partir de son identifiant.
@@ -133,15 +135,36 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
 
         if (toUpdate == null)
             return NotFound();
+        
+        double oldPrice = toUpdate.Prix;
+        double newPrice = dto.Prix;
 
         var updatedEntity = _annonceMapper.Map<Annonce>(dto);
+        
         await _journalService.LogModificationAnnonceAsync(
             toUpdate.IdCompte,
             id,
             toUpdate.Libelle
         );
+        
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
+        if (_hubContext != null)
+        {
+            if (newPrice < oldPrice)
+            {
+        
+                await MessageHub.NotifyPriceDrop(
+                    _hubContext,
+                    id,
+                    oldPrice,
+                    newPrice,
+                    toUpdate.Libelle
+                );
+        
+            }
+        }
+        
         return NoContent();
     }
 
