@@ -123,16 +123,14 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             IOrderedQueryable<Annonce> orderedQuery = query.OrderByDescending(a => a.IdMiseEnAvant);
 
-            if (param.Order == 1)
-                orderedQuery = orderedQuery.ThenBy(a => a.Prix);
-            else if (param.Order == 2)
-                orderedQuery = orderedQuery.ThenByDescending(a => a.Prix);
-            else if (param.Order == 3)
-                orderedQuery = orderedQuery.ThenBy(a => a.DatePublication);
-            else if (param.Order == 4)
-                orderedQuery = orderedQuery.ThenByDescending(a => a.DatePublication);
-
-            orderedQuery = orderedQuery.ThenByDescending(a => a.DatePublication);
+            query = param.Order switch
+            {
+                1 => query.OrderBy(a => a.Prix),              // Prix croissant
+                2 => query.OrderByDescending(a => a.Prix),    // Prix décroissant
+                3 => query.OrderBy(a => a.DatePublication),   // Date croissant
+                4 => query.OrderByDescending(a => a.DatePublication), // Date décroissant
+                _ => query.OrderByDescending(a => a.DatePublication)  // Par défaut
+            };
 
             int skip = Math.Max(0, (param.PageNumber - 1) * param.PageSize);
             int take = Math.Max(1, param.PageSize);

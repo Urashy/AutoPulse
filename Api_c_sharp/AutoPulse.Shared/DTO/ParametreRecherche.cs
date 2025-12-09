@@ -33,9 +33,11 @@ namespace AutoPulse.Shared.DTO
             if (PrixMax > 0) parameters.Add($"prixmax={PrixMax}");
             if (IdTypeVoiture > 0) parameters.Add($"idtypevoiture={IdTypeVoiture}");
             if (IdTypeVendeur > 0) parameters.Add($"idtypevendeur={IdTypeVendeur}");
+            if (IdBoitedevitesse > 0) parameters.Add($"idboitedevitesse={IdBoitedevitesse}");
             if (!string.IsNullOrEmpty(Nom)) parameters.Add($"nom={Uri.EscapeDataString(Nom)}");
             if (KmMin > 0) parameters.Add($"kmmin={KmMin}");
             if (KmMax > 0) parameters.Add($"kmmax={KmMax}");
+            if (Order > 0) parameters.Add($"order={Order}");
             if (!string.IsNullOrEmpty(Departement)) parameters.Add($"departement={Uri.EscapeDataString(Departement)}");
             if (PageNumber > 1) parameters.Add($"pageNumber={PageNumber}");
             if (PageSize != 21) parameters.Add($"pageSize={PageSize}");
