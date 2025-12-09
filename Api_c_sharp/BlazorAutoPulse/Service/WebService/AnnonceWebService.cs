@@ -23,7 +23,7 @@ namespace BlazorAutoPulse.Service
                    ?? Enumerable.Empty<AnnonceDTO>();
         }
         
-        public async Task<AnnonceDTO> CreateAnnonceAsync(AnnonceCreateUpdateDTO entity)
+        public async Task<AnnonceDTO> CreateAnnonceAsync(AnnonceCreateDTO entity)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("Post"))
             {
@@ -44,7 +44,7 @@ namespace BlazorAutoPulse.Service
             }
         }
 
-        public async Task UpdateAnnonceAsync(int id, AnnonceCreateUpdateDTO entity)
+        public async Task UpdateAnnonceAsync(int id, AnnonceCreateDTO entity)
         {
             var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
             {

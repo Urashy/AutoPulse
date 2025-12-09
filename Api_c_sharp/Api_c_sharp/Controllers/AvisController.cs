@@ -74,8 +74,8 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
             return BadRequest(ModelState);
 
         var entity = _mapper.Map<Avis>(dto);
-        await _journalService.LogDepotAvisAsync(dto.IdJugeur, dto.IdJugee, dto.IdAvis, dto.NoteAvis, dto.ContenuAvis);
         await _manager.AddAsync(entity);
+        await _journalService.LogDepotAvisAsync(dto.IdJugeur, dto.IdJugee, entity.IdAvis, dto.NoteAvis, dto.ContenuAvis);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdAvis }, entity);
     }

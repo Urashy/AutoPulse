@@ -93,7 +93,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<AnnonceDTO>> Post([FromBody] AnnonceCreateUpdateDTO dto)
+    public async Task<ActionResult<AnnonceDTO>> Post([FromBody] AnnonceCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -124,7 +124,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] AnnonceCreateUpdateDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] AnnonceCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest();
@@ -226,16 +226,10 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     [ActionName("GetFiltered")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetFiltered(
-        [FromQuery] ParametreRecherche param = null,
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 21,
-        [FromQuery] int prixorderby = 0)
+        [FromQuery] ParametreRecherche param = null)
     {
         IEnumerable<Annonce> result = await _manager.GetFilteredAnnonces(
-            param,
-            pageNumber,
-            pageSize,
-            prixorderby
+            param
         );
 
         if (result == null || !result.Any())

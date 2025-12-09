@@ -74,8 +74,8 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
             return BadRequest(ModelState);
 
         var entity = _mapper.Map<Commande>(dto);
-        await _journalService.LogAchatAsync(dto.IdAcheteur,dto.IdVendeur,dto.IdCommande,dto.IdAnnonce,dto.IdMoyenPaiement);
         await _manager.AddAsync(entity);
+        await _journalService.LogAchatAsync(dto.IdAcheteur,dto.IdVendeur,entity.IdCommande,dto.IdAnnonce,dto.IdMoyenPaiement);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdCommande }, entity);
     }

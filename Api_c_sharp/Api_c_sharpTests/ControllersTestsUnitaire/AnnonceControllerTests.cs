@@ -218,7 +218,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PostAnnonceTest_Entity()
         {
-            AnnonceCreateUpdateDTO annonce = new AnnonceCreateUpdateDTO()
+            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
             {
                 Libelle = "Nouvelle Annonce",
                 IdCompte = 1,
@@ -277,7 +277,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutAnnonceTest()
         {
-            AnnonceCreateUpdateDTO annonce = new AnnonceCreateUpdateDTO()
+            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
                 Libelle = "Nouvelle Annonce",
@@ -300,7 +300,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutAnnonceTest()
         {
-            AnnonceCreateUpdateDTO annonce = new AnnonceCreateUpdateDTO()
+            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
                 Libelle = "Nouvelle Annonce",
@@ -319,7 +319,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPutAnnonceTest()
         {
-            AnnonceCreateUpdateDTO annonce = new AnnonceCreateUpdateDTO()
+            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
                 Libelle = "Nouvelle Annonce",
@@ -344,7 +344,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPostAnnonceTest()
         {
-            AnnonceCreateUpdateDTO annonce = new AnnonceCreateUpdateDTO()
+            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
                 Libelle = "Nouvelle Annonce",
