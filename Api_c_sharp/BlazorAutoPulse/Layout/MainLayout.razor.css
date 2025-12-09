@@ -1,3 +1,4 @@
+/* ========== STYLES EXISTANTS (conservés) ========== */
 header {
     background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
     padding: 10px 0;
@@ -61,17 +62,6 @@ nav {
         transform: scale(1.05);
     }
 
-.btn-signup {
-    background: rgba(0, 212, 255, 0.1);
-    border: 1px solid #00d4ff;
-    color: #00d4ff;
-}
-
-    .btn-signup:hover {
-        background: rgba(0, 212, 255, 0.2);
-    }
-
-/* Photo de profil */
 .profile-menu {
     cursor: pointer;
     display: flex;
@@ -98,27 +88,6 @@ footer {
     text-align: center;
     border-top: 1px solid #222;
     color: #666;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .nav-links {
-        gap: 20px;
-    }
-
-        .nav-links span {
-            font-size: 14px;
-        }
-
-    .btn-login, .btn-signup {
-        padding: 8px 15px;
-        font-size: 14px;
-    }
-
-    .profile-picture {
-        width: 40px;
-        height: 40px;
-    }
 }
 
 .conversation-link {
@@ -153,7 +122,291 @@ footer {
     0%, 100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.1);
+    }
+}
+
+/* ========== LAYOUT COMPTE SUSPENDU ========== */
+.suspended-layout {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+.suspended-header {
+    padding: 20px 40px;
+    border-bottom: 1px solid #333;
+}
+
+.suspended-logo {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ff4444;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.suspended-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.suspended-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    border: 2px solid #ff4444;
+    border-radius: 20px;
+    padding: 50px 40px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(255, 68, 68, 0.3);
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.suspended-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.suspended-card h1 {
+    font-size: 32px;
+    color: #ff4444;
+    margin-bottom: 20px;
+}
+
+.suspended-message {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.suspended-submessage {
+    font-size: 15px;
+    color: #aaa;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+/* ========== FORMULAIRE PLAINTE ========== */
+.plainte-form {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    border-radius: 15px;
+    padding: 30px;
+    margin: 30px 0;
+    text-align: left;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.plainte-form h3 {
+    color: #00d4ff;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+    .form-group label {
+        display: block;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s;
+    font-family: inherit;
+    resize: vertical;
+}
+
+    .form-control:focus {
+        border-color: #00d4ff;
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    }
+
+.char-count {
+    display: block;
+    color: #666;
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: right;
+}
+
+.error-message {
+    padding: 12px 15px;
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    border-radius: 8px;
+    color: #ff4444;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.success-message {
+    padding: 12px 15px;
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 8px;
+    color: #00ff88;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    color: #fff;
+}
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid #333;
+}
+
+    .btn-secondary:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #555;
+    }
+
+.btn-plainte {
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 20px 0;
+}
+
+    .btn-plainte:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4);
+    }
+
+.btn-logout {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #aaa;
+    border: 1px solid #333;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 20px;
+}
+
+    .btn-logout:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #555;
+        color: #fff;
+    }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .suspended-card {
+        padding: 30px 20px;
+    }
+
+    .suspended-icon {
+        font-size: 60px;
+    }
+
+    .suspended-card h1 {
+        font-size: 24px;
+    }
+
+    .plainte-form {
+        padding: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-primary, .btn-secondary {
+        width: 100%;
     }
 }

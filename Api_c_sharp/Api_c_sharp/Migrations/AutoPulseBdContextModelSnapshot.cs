@@ -375,6 +375,10 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("text")
                         .HasColumnName("com_google_id");
 
+                    b.Property<int>("IdEtatCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("etc_id");
+
                     b.Property<int>("IdTypeCompte")
                         .HasColumnType("integer")
                         .HasColumnName("tco_id");
@@ -394,6 +398,11 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("character varying(14)")
                         .HasColumnName("cpr_siret");
 
+                    b.Property<string>("NumeroTelephone")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("com_numero_telephone");
+
                     b.Property<string>("Prenom")
                         .IsRequired()
                         .HasColumnType("text")
@@ -412,6 +421,8 @@ namespace Api_c_sharp.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("IdEtatCompte");
 
                     b.HasIndex("IdTypeCompte");
 
@@ -486,6 +497,25 @@ namespace Api_c_sharp.Migrations
                     b.HasKey("IdEtatAnnonce");
 
                     b.ToTable("t_e_etatannonce_eta", "public");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCompte", b =>
+                {
+                    b.Property<int>("IdEtatCompte")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("etc_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEtatCompte"));
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("etc_libelle");
+
+                    b.HasKey("IdEtatCompte");
+
+                    b.ToTable("t_e_etatcompte_etc", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatSignalement", b =>
@@ -843,6 +873,35 @@ namespace Api_c_sharp.Migrations
                     b.HasIndex("IdMessage");
 
                     b.ToTable("t_e_piecejointe_pj", "public");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Plainte", b =>
+                {
+                    b.Property<int>("IdPlainte")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("pla_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPlainte"));
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("pla_date_creation");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("pla_description");
+
+                    b.Property<int>("IdSignalement")
+                        .HasColumnType("integer")
+                        .HasColumnName("sig_id");
+
+                    b.HasKey("IdPlainte");
+
+                    b.HasIndex("IdSignalement");
+
+                    b.ToTable("t_e_plainte_pla", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.ReinitialisationMotDePasse", b =>
@@ -1281,11 +1340,19 @@ namespace Api_c_sharp.Migrations
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Compte", b =>
                 {
+                    b.HasOne("Api_c_sharp.Models.Entity.EtatCompte", "EtatCompteNav")
+                        .WithMany("Comptes")
+                        .HasForeignKey("IdEtatCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Api_c_sharp.Models.Entity.TypeCompte", "TypeCompteCompteNav")
                         .WithMany("Comptes")
                         .HasForeignKey("IdTypeCompte")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("EtatCompteNav");
 
                     b.Navigation("TypeCompteCompteNav");
                 });
@@ -1404,6 +1471,17 @@ namespace Api_c_sharp.Migrations
                         .IsRequired();
 
                     b.Navigation("MessagePjNav");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Plainte", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Signalement", "SignalementPainteNav")
+                        .WithMany("Plaintes")
+                        .HasForeignKey("IdSignalement")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SignalementPainteNav");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Signalement", b =>
@@ -1613,6 +1691,11 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("Annonces");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCompte", b =>
+                {
+                    b.Navigation("Comptes");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatSignalement", b =>
                 {
                     b.Navigation("Signalements");
@@ -1658,6 +1741,11 @@ namespace Api_c_sharp.Migrations
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Pays", b =>
                 {
                     b.Navigation("Adresses");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Signalement", b =>
+                {
+                    b.Navigation("Plaintes");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.TypeCompte", b =>

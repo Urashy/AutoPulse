@@ -9,64 +9,150 @@
 
 <ToastContainer />
 
-<header>
-    <nav>
-        <NavLink href="/">
-            <span class="logo"> AutoPulse </span>
-        </NavLink>
-        <ul class="nav-links">
-            <NavLink href="vente">
-                <span> Vendre </span>
-            </NavLink>
-            <NavLink href="favoris">
-                <span> ❤ Favoris</span>
-            </NavLink>
+@if (VM.IsAccountSuspended)
+{
+    <!-- Mode compte suspendu -->
+    <div class="suspended-layout">
+        <div class="suspended-header">
+            <div class="suspended-logo">⚠️ AutoPulse</div>
+        </div>
 
-            <NavLink href="conversations" class="conversation-link">
-                <span class="conversation-btn">
-                    💬 Conversations
-                    @if (VM.unreadCount > 0)
-                    {
-                        <span class="notification-badge">@VM.unreadCount</span>
-                    }
-                </span>
-            </NavLink>
+        <div class="suspended-content">
+            <div class="suspended-card">
+                <div class="suspended-icon">🚫</div>
+                <h1>Compte Suspendu</h1>
+                <p class="suspended-message">
+                    Votre compte a été temporairement suspendu par nos équipes.
+                </p>
+                <p class="suspended-submessage">
+                    Si vous pensez qu'il s'agit d'une erreur, vous pouvez contacter nos administrateurs
+                    en déposant une plainte ci-dessous.
+                </p>
 
-            @if (VM.IsConnected)
-            {
-                <li class="profile-menu" @onclick="VM.NavigateToProfile">
-                    <img src="@VM.ImageSource" alt="Profil" class="profile-picture" />
-                </li>
-            }
-            else
-            {
-                <NavLink href="connexion">
-                    <span class="btn-login"> Connexion </span>
+                @if (VM.ShowPlainteForm)
+                {
+                    <div class="plainte-form">
+                        <h3>Déposer une plainte</h3>
+
+                        <div class="form-group">
+                            <label>Motif de votre plainte</label>
+                            <textarea @bind="VM.PlainteContenu"
+                                      placeholder="Expliquez pourquoi vous contestez cette suspension..."
+                                      rows="6"
+                                      maxlength="1000"
+                                      class="form-control"></textarea>
+                            <small class="char-count">@VM.PlainteContenu.Length / 1000 caractères</small>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(VM.PlainteError))
+                        {
+                            <div class="error-message">
+                                ⚠️ @VM.PlainteError
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(VM.PlainteSuccess))
+                        {
+                            <div class="success-message">
+                                ✓ @VM.PlainteSuccess
+                            </div>
+                        }
+
+                        <div class="form-actions">
+                            <button class="btn-secondary"
+                                    @onclick="VM.CancelPlainte"
+                                    disabled="@VM.IsSubmittingPlainte">
+                                Annuler
+                            </button>
+                            <button class="btn-primary"
+                                    @onclick="VM.SubmitPlainte"
+                                    disabled="@VM.IsSubmittingPlainte">
+                                @if (VM.IsSubmittingPlainte)
+                                {
+                                    <span>Envoi en cours...</span>
+                                }
+                                else
+                                {
+                                    <span>Envoyer la plainte</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <button class="btn-plainte" @onclick="VM.OpenPlainteForm">
+                        📝 Déposer une plainte
+                    </button>
+                }
+
+                <button class="btn-logout" @onclick="VM.LogoutSuspendedAccount">
+                    Se déconnecter
+                </button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Layout normal -->
+    <header>
+        <nav>
+            <NavLink href="/">
+                <span class="logo"> AutoPulse </span>
+            </NavLink>
+            <ul class="nav-links">
+                <NavLink href="vente">
+                    <span> Vendre </span>
                 </NavLink>
-            }
-
-            @if (VM.IsAdmin)
-            {
-                
-                <NavLink href="admin">
-                    <span class="btn-login"> Mode Admin </span>
+                <NavLink href="favoris">
+                    <span> ❤ Favoris</span>
                 </NavLink>
-            }
-                
-        </ul>
-    </nav>
-</header>
 
-<div>
-    <article class="content">
-        @Body
-    </article>
-</div>
+                <NavLink href="conversations" class="conversation-link">
+                    <span class="conversation-btn">
+                        💬 Conversations
+                        @if (VM.unreadCount > 0)
+                        {
+                            <span class="notification-badge">@VM.unreadCount</span>
+                        }
+                    </span>
+                </NavLink>
 
-<footer>
-    <p>&copy; 2025 AutoPulse - Tous droits réservés</p>
-    <p>📍 Chambéry, France | 📞 04 XX XX XX XX | ✉️ contact@AutoPulse.fr</p>
-</footer>
+                @if (VM.IsConnected)
+                {
+                    <li class="profile-menu" @onclick="VM.NavigateToProfile">
+                        <img src="@VM.ImageSource" alt="Profil" class="profile-picture" />
+                    </li>
+                }
+                else
+                {
+                    <NavLink href="connexion">
+                        <span class="btn-login"> Connexion </span>
+                    </NavLink>
+                }
+
+                @if (VM.IsAdmin)
+                {
+                    <NavLink href="admin">
+                        <span class="btn-login"> Mode Admin </span>
+                    </NavLink>
+                }
+            </ul>
+        </nav>
+    </header>
+
+    <div>
+        <article class="content">
+            @Body
+        </article>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 AutoPulse - Tous droits réservés</p>
+        <p>📍 Chambéry, France | 📞 04 XX XX XX XX | ✉️ contact@AutoPulse.fr</p>
+    </footer>
+}
 
 @code {
     protected override async Task OnInitializedAsync()

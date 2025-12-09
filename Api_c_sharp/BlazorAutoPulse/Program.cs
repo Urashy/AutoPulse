@@ -54,6 +54,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IBloqueService, BloquerWebService>();
             builder.Services.AddScoped<IPieceJointeService, PieceJointeWebService>();
             builder.Services.AddScoped<IAdresseService, AdresseWebService>();
+            builder.Services.AddScoped<IPlainteService, PlainteWebService>();
+
 
 
             //----------------------- View Model
@@ -80,6 +82,7 @@ namespace BlazorAutoPulse
             builder.Services.AddTransient<AnnonceComposantViewModel>();
             builder.Services.AddTransient<FileUploadViewModel>();
             builder.Services.AddScoped<AdresseComposantViewModel>();
+
 
 
             //----------------------- Singleton

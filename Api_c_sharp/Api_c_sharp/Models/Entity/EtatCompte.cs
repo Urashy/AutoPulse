@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_c_sharp.Models.Entity
 {
-    [Table("t_e_etat_compte_etc")]
+    [Table("t_e_etatt_e_etat_compte_etccompte_etc")]
     public class EtatCompte
     {
         [Key]
