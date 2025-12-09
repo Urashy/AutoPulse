@@ -290,6 +290,8 @@ namespace BlazorAutoPulse.ViewModel
             PrixMaxValue = 200000;
             KmMinValue = 0;
             KmMaxValue = 300000;
+            SelectedBoite = "0";
+            SelectedOrder = 0;  
             Nom = "";
             Departement = "";
             ResetToFirstPage();
@@ -342,6 +344,7 @@ namespace BlazorAutoPulse.ViewModel
                 || SelectedCategorie != "0"
                 || PrixMinValue > 0
                 || PrixMaxValue < 200000
+                || SelectedOrder != 0
                 || KmMinValue > 0
                 || KmMaxValue < 300000
                 || !string.IsNullOrEmpty(Nom)
@@ -363,6 +366,9 @@ namespace BlazorAutoPulse.ViewModel
 
             if (SelectedCategorie != "0")
                 queryParams.Add($"categorie={SelectedCategorie}");
+
+            if (SelectedOrder != 0)
+                queryParams.Add($"order={SelectedOrder}");
 
             if (PrixMinValue > 0)
                 queryParams.Add($"prixmin={PrixMinValue}");

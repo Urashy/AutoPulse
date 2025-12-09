@@ -104,7 +104,16 @@
             </select>
         </div>
 
-
+        <!-- Ordre de tri -->
+        <div class="filter-group">
+            <label>Trier par</label>
+            <select value="@VM.SelectedOrder" @onchange="@(e => VM.SelectedOrder = int.Parse(e.Value?.ToString() ?? "0"))">
+                <option value="1">Prix croissant</option>
+                <option value="2">Prix décroissant</option>
+                <option value="3">Année (plus récent)</option>
+                <option value="4">Année (plus ancien)</option>
+            </select>
+        </div>
 
         <!-- Département -->
         <div class="filter-group">
