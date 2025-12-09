@@ -73,13 +73,22 @@
 
     private ElementReference _messagesContainerRef;
     private int? _previousConversationId;
+    private int _previousMessageCount = 0;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Auto-scroll uniquement si la conversation a changé ou si c'est le premier render
-        if (ConversationId.HasValue && ConversationId != _previousConversationId)
+        // 🔥 Scroll si :
+        // 1. La conversation a changé
+        // 2. De nouveaux messages sont arrivés
+        // 3. Le typing indicator apparaît
+        
+        bool conversationChanged = ConversationId.HasValue && ConversationId != _previousConversationId;
+        bool newMessagesAdded = Messages.Count > _previousMessageCount;
+        
+        if (conversationChanged || newMessagesAdded || IsTyping)
         {
             _previousConversationId = ConversationId;
+            _previousMessageCount = Messages.Count;
             await ScrollToBottom();
         }
     }

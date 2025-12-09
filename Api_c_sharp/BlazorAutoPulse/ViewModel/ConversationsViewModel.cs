@@ -170,14 +170,6 @@ public class ConversationViewModel : IDisposable
                     }
                 });
             }
-
-            // ✅ Ajouter le message immédiatement (sans attendre les uploads)
-            var messageExists = Messages.Any(m => m.IdMessage == createdMessage.IdMessage);
-            if (!messageExists)
-            {
-                Messages.Add(createdMessage);
-                NotifyStateChanged();
-            }
         }
         catch (Exception ex)
         {
@@ -202,6 +194,22 @@ public class ConversationViewModel : IDisposable
     {
         if (SelectedConversation?.IdConversation == conversationId)
         {
+            // ✅ CORRECTION : Si c'est notre propre message, vérifier par ID exact
+            if (senderId == CurrentUserId)
+            {
+                // Notre propre message : vérifier s'il existe déjà par contenu ET date
+                var exists = Messages.Any(m => 
+                    m.IdCompte == senderId && 
+                    m.ContenuMessage == message && 
+                    Math.Abs((m.DateEnvoiMessage - date).TotalSeconds) < 2);
+
+                if (exists)
+                {
+                    Console.WriteLine($"⚠️ Message déjà présent localement (ignoré de SignalR)");
+                    return;
+                }
+            }
+
             var newMsg = new MessageDTO
             {
                 IdConversation = conversationId,
@@ -211,15 +219,21 @@ public class ConversationViewModel : IDisposable
                 EstLu = senderId == CurrentUserId
             };
 
-            var exists = Messages.Any(m => 
+            // Pour les messages des autres, vérifier aussi
+            var messageExists = Messages.Any(m => 
                 m.IdCompte == senderId && 
                 m.ContenuMessage == message && 
                 Math.Abs((m.DateEnvoiMessage - date).TotalSeconds) < 2);
 
-            if (!exists)
+            if (!messageExists)
             {
                 Messages.Add(newMsg);
+                Console.WriteLine($"📨 Message reçu de {senderId}: {message.Substring(0, Math.Min(30, message.Length))}...");
                 NotifyStateChanged();
+            }
+            else
+            {
+                Console.WriteLine($"⚠️ Message déjà présent (doublon SignalR évité)");
             }
         }
     }
@@ -288,6 +302,17 @@ public class ConversationViewModel : IDisposable
     private void NotifyStateChanged()
     {
         _refreshUI?.Invoke();
+    }
+    
+    public void RemoveFile(IBrowserFile file)
+    {
+        SelectedFiles.Remove(file);
+        NotifyStateChanged();
+    }
+    
+    public void OnInputChanged(ChangeEventArgs e)
+    {
+        NewMessage = e.Value?.ToString() ?? "";
     }
 
     public void Dispose()
