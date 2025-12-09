@@ -11,7 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass]
     public class ReinitialisationMotDePasseControllerTests
@@ -312,6 +312,163 @@ namespace App.ControllersUnitaires.Tests
 
             // Assert
             Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public async Task VerifCode_OK()
+        {
+            // Arrange
+            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+
+            var dto = new ReinitialiseMdpDTO
+            {
+                Email = entity.Email,
+                Code = entity.Token
+            };
+
+            // Act
+            var result = await _controller.VerifCode(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+
+            var okResult = (OkObjectResult)result;
+            dynamic responseValue = okResult.Value;
+            string message = responseValue.GetType().GetProperty("Message").GetValue(responseValue, null);
+
+            Assert.IsTrue(message.Contains("validé avec succès"));
+        }
+
+        [TestMethod]
+        public async Task VerifCode_InvalidCode()
+        {
+            // Arrange
+            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+
+            var dto = new ReinitialiseMdpDTO
+            {
+                Email = entity.Email,
+                Code = "WRONGCODE"
+            };
+
+            // Act
+            var result = await _controller.VerifCode(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+
+            var notFoundResult = (NotFoundObjectResult)result;
+            dynamic responseValue = notFoundResult.Value;
+            string message = responseValue.GetType().GetProperty("Message").GetValue(responseValue, null);
+
+            Assert.IsTrue(message.Contains("invalide ou expiré"));
+        }
+
+        [TestMethod]
+        public async Task VerifCode_ExpiredCode()
+        {
+            // Arrange
+            var expired = new ReinitialisationMotDePasse
+            {
+                IdCompte = 10,
+                Email = "expired@mail.com",
+                Token = "EXPIRED123",
+                Expiration = DateTime.UtcNow.AddMinutes(-10),
+                Utilise = false
+            };
+
+            await _context.ReinitialisationMotDePasses.AddAsync(expired);
+            await _context.SaveChangesAsync();
+
+            var dto = new ReinitialiseMdpDTO
+            {
+                Email = expired.Email,
+                Code = expired.Token
+            };
+
+            // Act
+            var result = await _controller.VerifCode(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+
+            var notFoundResult = (NotFoundObjectResult)result;
+            dynamic responseValue = notFoundResult.Value;
+            string message = responseValue.GetType().GetProperty("Message").GetValue(responseValue, null);
+
+            Assert.IsTrue(message.Contains("invalide ou expiré"));
+        }
+
+        [TestMethod]
+        public async Task VerifCode_EmptyCode()
+        {
+            // Arrange
+            var dto = new ReinitialiseMdpDTO
+            {
+                Email = "test@mail.com",
+                Code = ""
+            };
+
+            // Act
+            var result = await _controller.VerifCode(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        }
+
+        [TestMethod]
+        public async Task VerifCode_NullCode()
+        {
+            // Arrange
+            var dto = new ReinitialiseMdpDTO
+            {
+                Email = "test@mail.com",
+                Code = null
+            };
+
+            // Act
+            var result = await _controller.VerifCode(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        }
+
+        [TestMethod]
+        public async Task VerifCode_BadRequest()
+        {
+            // Arrange
+            _controller.ModelState.AddModelError("Email", "Required");
+
+            var dto = new ReinitialiseMdpDTO
+            {
+                Email = "",
+                Code = "CODE123"
+            };
+
+            // Act
+            var result = await _controller.VerifCode(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+
+        [TestMethod]
+        public async Task VerifCode_WrongEmail()
+        {
+            // Arrange
+            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+
+            var dto = new ReinitialiseMdpDTO
+            {
+                Email = "wrongemail@mail.com",
+                Code = entity.Token
+            };
+
+            // Act
+            var result = await _controller.VerifCode(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
         }
     }
 }

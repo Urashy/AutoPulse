@@ -103,7 +103,7 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
         var dto = _mapper.Map<PieceJointeDTO>(pieceJointe);
         dto.ContenuBase64 = Convert.ToBase64String(pieceJointe.Contenu);
 
-        return Ok(dto);
+        return dto;
     }
 
     /// <summary>
@@ -178,5 +178,72 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     private bool EstExtensionAutorisee(string extension)
     {
         return TypesAutorises.Values.Any(extensions => extensions.Contains(extension));
+    }
+
+    /// <summary>
+    /// Crée une nouvelle piecejointe.
+    /// </summary>
+    /// <param name="dto">Objet <see cref="PieceJointeUploadDTO"/> contenant les informations de la piece jointe à créer.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
+    /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("Post")]
+    [HttpPost]
+    public async Task<ActionResult<PieceJointeUploadDTO>> Post([FromBody] PieceJointeUploadDTO dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var entity = _mapper.Map<PieceJointe>(dto);
+        await _manager.AddAsync(entity);
+
+        return CreatedAtAction(nameof(GetById), new { id = entity.IdPieceJointe }, entity);
+    }
+
+    /// <summary>
+    /// Récupère la liste de toutes les pieces jointes.
+    /// </summary>
+    /// <returns>
+    /// Une liste de <see cref="AdresseDTO"/> (200 OK).
+    /// </returns>
+    [ActionName("GetAll")]
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<PieceJointeDTO>>> GetAll()
+    {
+        var list = await _manager.GetAllAsync();
+        return new ActionResult<IEnumerable<PieceJointeDTO>>(_mapper.Map<IEnumerable<PieceJointeDTO>>(list));
+    }
+
+    /// <summary>
+    /// Met à jour une piece jointe existante.
+    /// </summary>
+    /// <param name="id">Identifiant unique de la piece jointe à mettre à jour.</param>
+    /// <param name="dto">Objet <see cref="PieceJointeDTO"/> contenant les nouvelles valeurs.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("Put")]
+    [HttpPut("{id}")]
+    public async Task<ActionResult> Put(int id, [FromBody] PieceJointeDTO dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
+        var toUpdate = await _manager.GetByIdAsync(id);
+
+        if (toUpdate == null)
+            return NotFound();
+
+        var updatedEntity = _mapper.Map<PieceJointe>(dto);
+        await _manager.UpdateAsync(toUpdate, updatedEntity);
+
+        return NoContent();
     }
 }

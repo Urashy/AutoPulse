@@ -29,6 +29,5 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Include(f => f.AnnonceFavoriNav)
                 .ToListAsync();
         }
-
     }
 }

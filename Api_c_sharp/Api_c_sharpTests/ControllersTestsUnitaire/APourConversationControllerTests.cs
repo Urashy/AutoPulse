@@ -14,7 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api_c_sharp.Models.Entity;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass]
     public class APourConversationControllerTests

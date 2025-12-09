@@ -12,6 +12,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IModeleService _modeleService;
         private readonly IService<Carburant> _carburantService;
         private readonly IService<Categorie> _categorieService;
+        private readonly IService<BoiteDeVitesse> _boiteService;
         private readonly ITypeCompteService _typecompteService;
 
         private Action? _refreshUI;
@@ -22,6 +23,7 @@ namespace BlazorAutoPulse.ViewModel
         public string SelectedCarburant { get; set; } = "0";
         public string SelectedCategorie { get; set; } = "0";
         public string SelectedType { get; set; } = "0";
+        public string SelectedBoite { get; set; } = "0";
         public string Nom { get; set; } = "";
         public string Departement { get; set; } = "";
         public bool IsLoading { get; set; } = true;
@@ -61,6 +63,7 @@ namespace BlazorAutoPulse.ViewModel
         public Carburant[] AllCarburants { get; private set; } = Array.Empty<Carburant>();
         public Categorie[] AllCategories { get; private set; } = Array.Empty<Categorie>();
         public TypeCompte[] AllTypeComptes { get; private set; } = Array.Empty<TypeCompte>();
+        public BoiteDeVitesse [] AllBoitesDeVitesse { get; private set; } = Array.Empty<BoiteDeVitesse>();
 
         // Propriétés calculées pour la pagination
         public string PaginationInfo => $"Page {CurrentPage} - {CurrentPageResultCount} résultat(s)";
@@ -74,6 +77,7 @@ namespace BlazorAutoPulse.ViewModel
             IModeleService modeleService,
             IService<Carburant> carburantService,
             IService<Categorie> categorieService,
+            IService<BoiteDeVitesse> boiteService,
             ITypeCompteService typecompteService)
         {
             _annonceService = annonceService;
@@ -81,6 +85,7 @@ namespace BlazorAutoPulse.ViewModel
             _modeleService = modeleService;
             _carburantService = carburantService;
             _categorieService = categorieService;
+            _boiteService= boiteService;
             _typecompteService = typecompteService;
         }
 
@@ -97,6 +102,7 @@ namespace BlazorAutoPulse.ViewModel
                 AllCarburants = (await _carburantService.GetAllAsync()).ToArray();
                 AllCategories = (await _categorieService.GetAllAsync()).ToArray();
                 AllTypeComptes = (await _typecompteService.GetTypeComptesPourChercher()).ToArray();
+                AllBoitesDeVitesse = (await _boiteService.GetAllAsync()).ToArray();
             }
             finally
             {
@@ -183,6 +189,7 @@ namespace BlazorAutoPulse.ViewModel
                 Nom = Nom ?? string.Empty,
                 KmMin = KmMinValue,
                 KmMax = KmMaxValue < 300000 ? KmMaxValue : 0,
+                IdBoitedevitesse = SelectedBoite != "0" ? int.Parse(SelectedBoite) : 0,
                 Departement = Departement ?? string.Empty,
                 PageNumber = CurrentPage,
                 PageSize = ItemsPerPage

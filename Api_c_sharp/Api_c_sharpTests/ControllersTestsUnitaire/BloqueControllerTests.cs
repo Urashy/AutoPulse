@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass]
     public class BloqueControllerTests
@@ -42,7 +42,7 @@ namespace App.ControllersUnitaires.Tests
             _manager = new BloqueManager(_context);
             _controller = new BloqueController(_manager, _mapper);
 
-            var compte1 = new Compte
+            Compte compte1 = new Compte
             {
                 IdCompte = 1,
                 Pseudo = "User1",
@@ -56,7 +56,7 @@ namespace App.ControllersUnitaires.Tests
                 IdTypeCompte = 1
             };
 
-            var compte2 = new Compte
+            Compte compte2 = new Compte
             {
                 IdCompte = 2,
                 Pseudo = "User2",
@@ -74,16 +74,24 @@ namespace App.ControllersUnitaires.Tests
             _context.Comptes.Add(compte2);
 
             // Création d'entités nécessaires
-            var entity = new Bloque()
+            Bloque entity = new Bloque()
             {
                 IdBloquant = 1,
                 IdBloque = 2,
                 DateBloque = DateTime.UtcNow
             };
 
-            
+            Bloque bloque2 = new Bloque()
+            {
+                IdBloquant = 2,
+                IdBloque = 1,
+                DateBloque = DateTime.UtcNow
+            };
+
+
 
             await _context.Bloques.AddAsync(entity);
+            await _context.Bloques.AddAsync(bloque2);
             await _context.SaveChangesAsync();
 
             _objetCommun = entity;
@@ -253,6 +261,22 @@ namespace App.ControllersUnitaires.Tests
             var result = await _controller.Put(_objetCommun.IdBloquant, _objetCommun.IdBloque, dto);
 
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+
+        [TestMethod]
+        public async Task HasBloqueFalseEstPremierTest() 
+        {
+            var result = await _controller.HasBloque(_objetCommun.IdBloquant, _objetCommun.IdBloque, false);
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Value);
+        }
+
+        [TestMethod]
+        public async Task HasBloqueTrueEstPremierTest()
+        {
+            var result = await _controller.HasBloque(_objetCommun.IdBloquant, _objetCommun.IdBloque, true);
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Value);
         }
     }
 }

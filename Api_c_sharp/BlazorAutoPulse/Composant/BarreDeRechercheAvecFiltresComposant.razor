@@ -89,6 +89,23 @@
             </select>
         </div>
 
+        <!-- Boite de vitesse -->
+        <div class="filter-group">
+            <label>Boite de vitesse</label>
+            <select value="@VM.SelectedBoite" @onchange="e => { VM.SelectedBoite = e.Value?.ToString() ?? string.Empty; }">
+                <option value="0">Toutes les boites de vitesse</option>
+                @if (VM.AllBoitesDeVitesse != null)
+                {
+                    @foreach (var boite in VM.AllBoitesDeVitesse)
+                    {
+                        <option value="@boite.IdBoiteDeVitesse">@boite.LibelleBoite</option>
+                    }
+                }
+            </select>
+        </div>
+
+
+
         <!-- Département -->
         <div class="filter-group">
             <label>Département</label>
@@ -369,7 +386,6 @@
             kmRange.style.right = (100 - percent2) + '%';
         }
 
-        // Prix Slider Min
         prixSliderMin.addEventListener('input', function () {
             let minVal = parseInt(this.value);
             let maxVal = parseInt(prixSliderMax.value);
@@ -384,7 +400,6 @@
             dotnetHelper.invokeMethodAsync('UpdatePrixMin', minVal);
         });
 
-        // Prix Slider Max
         prixSliderMax.addEventListener('input', function () {
             let minVal = parseInt(prixSliderMin.value);
             let maxVal = parseInt(this.value);
@@ -399,7 +414,6 @@
             dotnetHelper.invokeMethodAsync('UpdatePrixMax', maxVal);
         });
 
-        // Km Slider Min
         kmSliderMin.addEventListener('input', function () {
             let minVal = parseInt(this.value);
             let maxVal = parseInt(kmSliderMax.value);
@@ -414,7 +428,6 @@
             dotnetHelper.invokeMethodAsync('UpdateKmMin', minVal);
         });
 
-        // Km Slider Max
         kmSliderMax.addEventListener('input', function () {
             let minVal = parseInt(kmSliderMin.value);
             let maxVal = parseInt(this.value);
@@ -429,7 +442,6 @@
             dotnetHelper.invokeMethodAsync('UpdateKmMax', maxVal);
         });
 
-        // Initialisation
         updatePrixRange();
         updateKmRange();
     };

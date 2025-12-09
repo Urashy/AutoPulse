@@ -60,9 +60,6 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            if (idConversation != dto.IdConversation || idCompte != dto.IdCompte)
-                return BadRequest();
-
             var toUpdate = await _manager.GetAPourConversationByIDS(idCompte, idConversation);
             if (toUpdate == null)
                 return NotFound();

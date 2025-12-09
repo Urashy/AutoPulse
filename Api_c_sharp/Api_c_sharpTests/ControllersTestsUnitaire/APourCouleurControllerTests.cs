@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Api_c_sharp.Models.Entity;
 
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass]
     public class APourCouleurControllerTests
@@ -95,9 +95,7 @@ namespace App.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetByIdsTest()
         {
-            // Given : un enregistrement existant en base (_objetCommun)
 
-            // When : on appelle le contrôleur pour récupérer l'objet par son ID
             var result = await _controller.GetByIDs(_objetCommun.IdVoiture,_objetCommun.IdCouleur);
 
             // Then : l'objet est retrouvé et correspond aux valeurs attendues
@@ -110,10 +108,8 @@ namespace App.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByIdTest()
         {
-            // Given : un ID inexistant
 
-            // When : on demande un objet avec cet ID
-            var result = await _controller.GetByIDs(0,0);  // ID inexistant
+            var result = await _controller.GetByIDs(0,0);  
 
             // Then : la réponse est NotFound
             Assert.IsNotNull(result.Result);

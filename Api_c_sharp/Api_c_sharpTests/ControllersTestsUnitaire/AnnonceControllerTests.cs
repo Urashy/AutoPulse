@@ -5,7 +5,7 @@ using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using App.Controllers;
+using Api_c_sharp.Controllers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Google.Apis.Util;
@@ -20,7 +20,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass()]
     public class AnnonceControllerTests
@@ -586,7 +586,7 @@ namespace App.ControllersUnitaires.Tests
                 IdCompte = 1,
                 IdEtatAnnonce = 1,
                 IdAdresse = 1,
-                Prix = 19000,
+                Prix = 25000,
                 Description = "Description de l'annonce",
                 IdMiseEnAvant = 1,
                 IdVoiture = 1,
@@ -608,7 +608,7 @@ namespace App.ControllersUnitaires.Tests
                 KmMax = 15000
             };
             // Act
-            var result = await _controller.GetFiltered(parametreRecherche, 1, 21, 1);
+            var result = await _controller.GetFiltered(parametreRecherche, 1, 21, 2);
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);

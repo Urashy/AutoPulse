@@ -4,6 +4,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Api_c_sharp.Controllers
@@ -33,29 +34,6 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Récupère un favori spécifique par ID de compte et ID d'annonce.
-        /// </summary>
-        /// <param name="idCompte">Identifiant unique du compte.</param>
-        /// <param name="idAnnonce">Identifiant unique de l'annonce.</param>
-        /// <returns>
-        /// <list type="bullet">
-        /// <item><description><see cref="FavoriDTO"/> si le favori existe (200 OK).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucun favori ne correspond (404).</description></item>
-        /// </list>
-        /// </returns>
-        [ActionName("GetById")]
-        [HttpGet]
-        public async Task<ActionResult<FavoriDTO>> GetById([FromQuery] int idCompte, [FromQuery] int idAnnonce)
-        {
-            var result = await _manager.GetByIdAsync(idAnnonce);
-
-            if (result is null)
-                return NotFound();
-
-            return _mapper.Map<FavoriDTO>(result);
-        }
-
-        /// <summary>
         /// Ajoute une annonce aux favoris.
         /// </summary>
         /// <param name="dto">Objet <see cref="FavoriDTO"/> contenant l'ID du compte et de l'annonce.</param>
@@ -77,7 +55,7 @@ namespace Api_c_sharp.Controllers
             await _manager.AddAsync(entity);
 
             return CreatedAtAction(
-                nameof(GetById),
+                nameof(GetByIDS),
                 new { idCompte = entity.IdCompte, idAnnonce = entity.IdAnnonce },
                 _mapper.Map<FavoriDTO>(entity)
             );
@@ -184,7 +162,7 @@ namespace Api_c_sharp.Controllers
         public async Task<ActionResult<IEnumerable<FavoriDTO>>> GetByCompteId(int idCompte)
         {
             var favoris = await _manager.GetByCompteIdAsync(idCompte);
-            return Ok(_mapper.Map<IEnumerable<FavoriDTO>>(favoris));
+            return new ActionResult<IEnumerable<FavoriDTO>>(_mapper.Map<IEnumerable<FavoriDTO>>(favoris));
         }
     }
 }

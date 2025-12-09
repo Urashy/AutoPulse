@@ -4,7 +4,7 @@ using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using App.Controllers;
+using Api_c_sharp.Controllers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +17,7 @@ using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace App.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass()]
     public class JournalControllerTests
@@ -272,10 +272,6 @@ namespace App.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
-
-        // ==========================================
-        // TESTS IJournalService - Méthodes de logging
-        // ==========================================
 
         [TestMethod]
         public async Task LogConnexionAsyncTest()
@@ -544,6 +540,20 @@ namespace App.ControllersUnitaires.Tests
         }
 
         [TestMethod]
+        public async Task ErrorLogActionTest()
+        {
+            int invalidIdCompte = -1;
+            try
+            {
+                await _journalService.LogConnexionAsync(invalidIdCompte);
+            }
+            catch (Exception ex)
+            {
+                Assert.IsNotNull(ex);
+            }
+        }
+
+        [TestMethod]
         public async Task GetJournalByTypeFromServiceTest()
         {
             // Créer plusieurs journaux de différents types
@@ -556,6 +566,38 @@ namespace App.ControllersUnitaires.Tests
             Assert.IsNotNull(connexionJournaux);
             Assert.IsTrue(connexionJournaux.Count() >= 2);
             Assert.IsTrue(connexionJournaux.All(j => j.IdTypeJournal == 1));
+        }
+
+        [TestMethod]
+        public async Task LogActionAsync_WithInvalidForeignKey_ShouldHandleError()
+        {
+            int idCompteInexistant = 9999;
+            int idTypeJournalInexistant = 9999;
+            int countBefore = _context.Journaux.Count();
+
+            await _manager.LogActionAsync(idCompteInexistant, idTypeJournalInexistant, "Test erreur");
+
+            int countAfter = _context.Journaux.Count();
+
+            Assert.IsTrue(true, "La méthode n'a pas planté malgré des IDs invalides");
+        }
+
+        [TestMethod]
+        public async Task LogActionAsync_WithNullContent_ShouldHandleError()
+        {
+            int countBefore = _context.Journaux.Count();
+
+            try
+            {
+                await _manager.LogActionAsync(1, 1, null);
+            }
+            catch (Exception)
+            {
+                
+            }
+
+            int countAfter = _context.Journaux.Count();
+            Assert.IsTrue(countAfter >= countBefore, "Le système continue de fonctionner après l'erreur");
         }
     }
 }

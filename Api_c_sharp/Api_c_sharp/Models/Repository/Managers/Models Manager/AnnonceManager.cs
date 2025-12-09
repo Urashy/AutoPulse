@@ -12,7 +12,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class AnnonceManager : BaseManager<Annonce,string>, IAnnonceRepository
     {
-        private IQueryable<Annonce> ApplyIncludes()
+        private IQueryable<Annonce> Api_c_sharplyIncludes()
         {
             return context.Set<Annonce>()
                 .Include(a => a.MiseEnAvantAnnonceNav)
@@ -50,19 +50,19 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public override async Task<IEnumerable<Annonce>> GetAllAsync()
         {
-            return await ApplyIncludes().Where(a => a.IdEtatAnnonce == 1).OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
+            return await Api_c_sharplyIncludes().Where(a => a.IdEtatAnnonce == 1).OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
         }
 
         public override async Task<Annonce?> GetByNameAsync(string name)
         {
-            return await ApplyIncludes().Where(a => a.IdEtatAnnonce == 1).FirstOrDefaultAsync(a => a.Libelle == name);
+            return await Api_c_sharplyIncludes().Where(a => a.IdEtatAnnonce == 1).FirstOrDefaultAsync(a => a.Libelle == name);
         }
 
         public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId, int pageNumber, int pageSize)
         {
             int skip = Math.Max(0, (pageNumber - 1) * pageSize);
             int take = Math.Max(1, pageSize);
-            return await ApplyIncludes()
+            return await Api_c_sharplyIncludes()
                 .Where(a => a.IdMiseEnAvant == miseAvantId && a.IdEtatAnnonce == 1 && a.IdEtatAnnonce == 1)
                 .Skip(skip)
                 .Take(take)
@@ -71,9 +71,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         // Dans AnnonceManager.cs - Méthode GetFilteredAnnonces
 
-        public virtual async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderprix)
+        public virtual async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param)
         {
-            var query = ApplyIncludes();
+            var query = Api_c_sharplyIncludes();
 
             // Filtre par département
             if (!string.IsNullOrEmpty(param.Departement))
@@ -109,6 +109,11 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 query = query.Where(a => Fuzz.PartialRatio(a.Libelle.ToLower(), param.Nom.ToLower()) > 70);
             }
 
+            if (param.IdBoitedevitesse > 0)
+            {
+                query = query.Where(a => a.VoitureAnnonceNav.IdBoiteDeVitesse == param.IdBoitedevitesse);
+            }
+
             if (param.KmMin > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.Kilometrage >= param.KmMin);
             if (param.KmMax > 0)
@@ -118,15 +123,19 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             IOrderedQueryable<Annonce> orderedQuery = query.OrderByDescending(a => a.IdMiseEnAvant);
 
-            if (orderprix == 1) // Croissant
+            if (param.Order == 1)
                 orderedQuery = orderedQuery.ThenBy(a => a.Prix);
-            else if (orderprix == 2) // Décroissant
+            else if (param.Order == 2)
                 orderedQuery = orderedQuery.ThenByDescending(a => a.Prix);
+            else if (param.Order == 3)
+                orderedQuery = orderedQuery.ThenBy(a => a.DatePublication);
+            else if (param.Order == 4)
+                orderedQuery = orderedQuery.ThenByDescending(a => a.DatePublication);
 
             orderedQuery = orderedQuery.ThenByDescending(a => a.DatePublication);
 
-            int skip = Math.Max(0, (pageNumber - 1) * pageSize);
-            int take = Math.Max(1, pageSize); // Assure qu'on prend au moins 1 élément
+            int skip = Math.Max(0, (param.PageNumber - 1) * param.PageSize);
+            int take = Math.Max(1, param.PageSize);
 
             var result = await orderedQuery
                 .Skip(skip)
@@ -138,17 +147,17 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
         {
-            return await ApplyIncludes().Where(a => a.Favoris.Any(f => f.IdCompte == compteId) && a.IdEtatAnnonce == 1).ToListAsync();
+            return await Api_c_sharplyIncludes().Where(a => a.Favoris.Any(f => f.IdCompte == compteId) && a.IdEtatAnnonce == 1).ToListAsync();
         }
         public override async Task<Annonce?> GetByIdAsync(int id)
         {
-            return await ApplyIncludes()
+            return await Api_c_sharplyIncludes()
                 .FirstOrDefaultAsync(a => a.IdAnnonce == id);
         }
 
         public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId)
         {
-            return await ApplyIncludes()
+            return await Api_c_sharplyIncludes()
                 .Where(a => a.IdCompte == compteId)
                 .ToListAsync();
         }

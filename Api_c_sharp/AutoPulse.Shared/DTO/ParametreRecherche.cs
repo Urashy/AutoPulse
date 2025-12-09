@@ -16,8 +16,10 @@ namespace AutoPulse.Shared.DTO
         public int KmMin { get; set; } = 0;
         public int KmMax { get; set; } = 0;
         public string Departement { get; set; } = string.Empty;
+        public int IdBoitedevitesse { get; set; } =0;
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 21;
+        public int Order { get; set; } = 0;
 
         public string ToQueryString()
         {
@@ -35,8 +37,6 @@ namespace AutoPulse.Shared.DTO
             if (KmMin > 0) parameters.Add($"kmmin={KmMin}");
             if (KmMax > 0) parameters.Add($"kmmax={KmMax}");
             if (!string.IsNullOrEmpty(Departement)) parameters.Add($"departement={Uri.EscapeDataString(Departement)}");
-
-            // Ajout des paramètres de pagination si non par défaut
             if (PageNumber > 1) parameters.Add($"pageNumber={PageNumber}");
             if (PageSize != 21) parameters.Add($"pageSize={PageSize}");
 
