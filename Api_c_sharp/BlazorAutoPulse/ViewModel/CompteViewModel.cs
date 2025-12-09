@@ -46,31 +46,15 @@ namespace BlazorAutoPulse.ViewModel
         public bool confirmationSuppression = false;
         public string confirmationTexte = "";
         public bool suppressionReussi =  false;
-
-        public bool passerPro = false;
-        public CompteModifTypeCompteDTO compteModifType;
-        public string? erreurChangeTypeCompte = null;
         
         private Action? _refreshUI;
         public NavigationManager _nav { get; set; }
 
-        public CompteViewModel(ICompteService compteService, 
-                               IPostImageService postImageService, 
-                               IImageService imageService, 
-                               IAnnonceService annonceService, 
-                               IAdresseService adresseService, 
-                               IAvisService avisService, 
-                               ICommandeService commandeService,
-                               NotificationService notificationService)
+        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
             _imageService = imageService;
-            _annonceService = annonceService;
-            _addresseService = adresseService;
-            _avisService = avisService;
-            _commandeService = commandeService;
-            _notificationService = notificationService;
         }
         
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -107,39 +91,6 @@ namespace BlazorAutoPulse.ViewModel
                 NumeroSiret = compte.NumeroSiret ?? "",
                 RaisonSociale = compte.RaisonSociale ?? "",
             };
-
-            try
-            {
-                annonces = await _annonceService.GetByCompteID(compte.IdCompte);
-            }
-            catch
-            {
-                annonces = null;
-            }
-            try
-            {
-                avis = await _avisService.GetAvisByCompte(compte.IdCompte);
-            }
-            catch
-            {
-                avis = null;
-            }
-            try
-            {
-                adresses = await _addresseService.GetAdresseByCompte(compte.IdCompte);
-            }
-            catch
-            {
-                adresses = null;
-            }
-            try
-            {
-                commandes = await _commandeService.GetCommandeByCompte(compte.IdCompte);
-            }
-            catch
-            {
-                commandes = null;
-            }
         }
 
         public async Task UpdateProfileImage(InputFileChangeEventArgs e)

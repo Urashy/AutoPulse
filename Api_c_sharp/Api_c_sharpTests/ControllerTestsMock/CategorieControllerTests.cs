@@ -34,7 +34,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _objetcommun = new Categorie
             {
                 IdCategorie = 1,
-                LibelleCategorie = "Essence"
+                LibelleCategorie = "Hybride"
             };
 
             // Configuration AutoMapper
@@ -89,7 +89,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 new Categorie
                 {
                     IdCategorie = 2,
-                    LibelleCategorie = "Diesel"
+                    LibelleCategorie = "SUV"
                 }
             };
 

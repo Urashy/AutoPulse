@@ -71,7 +71,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         // Dans AnnonceManager.cs - Méthode GetFilteredAnnonces
 
-        public virtual async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderprix)
+        public virtual async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param)
         {
             var query = Api_c_sharplyIncludes();
 
@@ -109,6 +109,11 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 query = query.Where(a => Fuzz.PartialRatio(a.Libelle.ToLower(), param.Nom.ToLower()) > 70);
             }
 
+            if (param.IdBoitedevitesse > 0)
+            {
+                query = query.Where(a => a.VoitureAnnonceNav.IdBoiteDeVitesse == param.IdBoitedevitesse);
+            }
+
             if (param.KmMin > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.Kilometrage >= param.KmMin);
             if (param.KmMax > 0)
@@ -118,15 +123,19 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             IOrderedQueryable<Annonce> orderedQuery = query.OrderByDescending(a => a.IdMiseEnAvant);
 
-            if (orderprix == 1) // Croissant
+            if (param.Order == 1)
                 orderedQuery = orderedQuery.ThenBy(a => a.Prix);
-            else if (orderprix == 2) // Décroissant
+            else if (param.Order == 2)
                 orderedQuery = orderedQuery.ThenByDescending(a => a.Prix);
+            else if (param.Order == 3)
+                orderedQuery = orderedQuery.ThenBy(a => a.DatePublication);
+            else if (param.Order == 4)
+                orderedQuery = orderedQuery.ThenByDescending(a => a.DatePublication);
 
             orderedQuery = orderedQuery.ThenByDescending(a => a.DatePublication);
 
-            int skip = Math.Max(0, (pageNumber - 1) * pageSize);
-            int take = Math.Max(1, pageSize); // Assure qu'on prend au moins 1 élément
+            int skip = Math.Max(0, (param.PageNumber - 1) * param.PageSize);
+            int take = Math.Max(1, param.PageSize);
 
             var result = await orderedQuery
                 .Skip(skip)

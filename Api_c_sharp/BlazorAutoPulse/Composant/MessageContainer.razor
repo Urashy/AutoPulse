@@ -1,0 +1,98 @@
+@using AutoPulse.Shared.DTO
+@inject IJSRuntime JSRuntime
+
+<div class="messages-container" @ref="_messagesContainerRef">
+    @if (IsLoadingMessages)
+    {
+        <div class="messages-loading">
+            <div class="loading-spinner"></div>
+            <p>Chargement des messages...</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var msg in Messages)
+        {
+            <div class="message @(msg.IdCompte == CurrentUserId ? "sent" : "received")">
+                <div class="message-bubble">
+                    <p>@msg.ContenuMessage</p>
+
+                    @if (msg.PiecesJointes != null && msg.PiecesJointes.Any())
+                    {
+                        <div class="message-attachments">
+                            @foreach (var pj in msg.PiecesJointes)
+                            {
+                                <div class="attachment-item">
+                                    @if (pj.EstImage)
+                                    {
+                                        <a href="@pj.DataUrl" target="_blank" download="@pj.NomFichier">
+                                            <img src="@pj.DataUrl" alt="@pj.NomFichier" class="attachment-image" />
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@pj.DataUrl" class="attachment-file" download="@pj.NomFichier">
+                                            <span class="file-icon">@pj.IconeType</span>
+                                            <div class="file-details">
+                                                <span class="file-name">@pj.NomFichier</span>
+                                                <span class="file-size">@pj.TailleFormatee</span>
+                                            </div>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <div class="message-footer">
+                        <span class="message-time">@msg.DateEnvoiMessage.ToLocalTime().ToString("HH:mm")</span>
+                        @if (msg.IdCompte == CurrentUserId)
+                        {
+                            <span class="read-indicator">@(msg.EstLu ? "✓✓" : "✓")</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (IsTyping)
+        {
+            <div class="typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public List<MessageDTO> Messages { get; set; } = new();
+    [Parameter] public int CurrentUserId { get; set; }
+    [Parameter] public bool IsLoadingMessages { get; set; }
+    [Parameter] public bool IsTyping { get; set; }
+    [Parameter] public int? ConversationId { get; set; }
+
+    private ElementReference _messagesContainerRef;
+    private int? _previousConversationId;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Auto-scroll uniquement si la conversation a changé ou si c'est le premier render
+        if (ConversationId.HasValue && ConversationId != _previousConversationId)
+        {
+            _previousConversationId = ConversationId;
+            await ScrollToBottom();
+        }
+    }
+
+    public async Task ScrollToBottom()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("scrollToBottom", _messagesContainerRef);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur scroll: {ex.Message}");
+        }
+    }
+}

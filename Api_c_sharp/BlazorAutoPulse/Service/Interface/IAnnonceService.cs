@@ -16,4 +16,5 @@ namespace BlazorAutoPulse.Service.Interface
         
         Task<AnnonceDetailDTO> GetAnnonceDetailById(int id);
     }
+
 }
