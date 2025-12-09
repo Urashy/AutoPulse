@@ -251,7 +251,10 @@ public class MapperProfile : Profile
             .ForMember(
                 opt => opt.idImage,
                 cfg => cfg.MapFrom(src => src.Images.FirstOrDefault().IdImage))
+            .ForMember(dest => dest.EstSuspendu,
+                opt => opt.MapFrom(src => src.IdEtatCompte == 2))
             .ReverseMap();
+
         
         CreateMap<Compte, CompteProfilPublicDTO>()
             .ForMember(dest => dest.DateInscription, 
