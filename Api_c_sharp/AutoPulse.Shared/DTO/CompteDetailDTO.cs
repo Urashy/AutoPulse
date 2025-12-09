@@ -17,5 +17,5 @@ public class CompteDetailDTO
     public string RaisonSociale { get; set; }
     public List<AdresseDTO> Adresses { get; set; } = new List<AdresseDTO>();
     public int idImage { get; set; }
-    public int IdEtatCompte { get; set; }
+    public bool EstSuspendu{ get; set; }
 }
