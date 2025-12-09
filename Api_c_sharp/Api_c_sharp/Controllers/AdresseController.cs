@@ -29,7 +29,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
-        public async Task<ActionResult<AdresseCreateDTO>> Post([FromBody] AdresseCreateDTO dto)
+        public async Task<ActionResult<AdresseDTO>> Post([FromBody] AdresseCreateDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

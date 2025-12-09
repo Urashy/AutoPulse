@@ -114,7 +114,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// Met à jour une annonce existante.
     /// </summary>
     /// <param name="id">Identifiant unique de l'annonce à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="AnnonceDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="AnnonceUpdateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -124,7 +124,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] AnnonceCreateDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] AnnonceUpdateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest();

@@ -68,7 +68,7 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<Commande>> Post([FromBody] CommandeCreateDTO dto)
+    public async Task<ActionResult<CommandeDTO>> Post([FromBody] CommandeCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -84,7 +84,7 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// Met à jour une commande existante.
     /// </summary>
     /// <param name="id">Identifiant unique de la commande à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="CommandeCreateDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="CommandeUpdateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -94,7 +94,7 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] CommandeCreateDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] CommandeUpdateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest();
