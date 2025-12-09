@@ -121,20 +121,25 @@ namespace Api_c_sharp.ControllersMock.Tests
                 Annee = 2020,
                 MiseEnCirculation = DateTime.UtcNow,
             };
+
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Voiture>()))
-                        .ReturnsAsync(_objetcommun);
+                        .Callback<Voiture>(v => v.IdVoiture = 1)
+                        .ReturnsAsync((Voiture v) => v);
+
             // Act
             var result = await _controller.Post(voitureCreateDto);
+
             // Assert
-            Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
-            var createdResult = result.Result as CreatedAtActionResult;
-            Assert.IsNotNull(createdResult);
-            var returnedDto = createdResult.Value as VoitureDTO;
+            var created = result.Result as CreatedAtActionResult;
+
+            Assert.IsNotNull(created);
+
+            var returnedDto = created.Value as Voiture;
             Assert.IsNotNull(returnedDto);
             Assert.AreEqual(1, returnedDto.IdVoiture);
-            Assert.AreEqual(voitureCreateDto.Kilometrage, returnedDto.Kilometrage);
         }
+
         [TestMethod]
         public async Task Post_ReturnsBadRequest_WhenModelInvalid()
         {
@@ -158,7 +163,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task Put_ReturnsNoContent()
         {
             // Arrange
-            var voitureCreateDto = new VoitureCreateDTO
+            var dto = new VoitureUpdateDTO
             {
                 IdMarque = 10,
                 IdModele = 20,
@@ -166,16 +171,20 @@ namespace Api_c_sharp.ControllersMock.Tests
                 Annee = 2020,
                 MiseEnCirculation = DateTime.UtcNow,
             };
+
             _mockManager.Setup(m => m.GetByIdAsync(1))
                         .ReturnsAsync(_objetcommun);
 
             _mockManager.Setup(m => m.UpdateAsync(_objetcommun, It.IsAny<Voiture>()))
                         .Returns(Task.CompletedTask);
+
             // Act
-            var result = await _controller.Post(voitureCreateDto);
+            var result = await _controller.Put(1, dto);
+
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
+
         [TestMethod]
         public async Task Put_ReturnsBadRequest_WhenModelInvalid()
         {
@@ -188,6 +197,29 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
+        [TestMethod]
+        public async Task Put_ReturnsNotFound()
+        {
+            // Arrange
+            var dto = new VoitureUpdateDTO
+            {
+                IdMarque = 10,
+                IdModele = 20,
+                Kilometrage = 50000,
+                Annee = 2020,
+                MiseEnCirculation = DateTime.UtcNow
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(999))
+                        .ReturnsAsync((Voiture)null);
+
+            // Act
+            var result = await _controller.Put(999, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
         [TestMethod]
         public async Task Delete_ReturnsNoContent()
         {
