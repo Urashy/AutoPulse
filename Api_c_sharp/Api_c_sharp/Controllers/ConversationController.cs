@@ -70,7 +70,7 @@ public class ConversationController(
     /// </summary>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] ConversationCreateDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] ConversationUpdateDTO dto)
     {
         if(!ModelState.IsValid)
             return BadRequest();
