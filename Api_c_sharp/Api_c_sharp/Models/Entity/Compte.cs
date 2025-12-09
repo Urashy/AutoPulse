@@ -51,6 +51,14 @@ namespace Api_c_sharp.Models.Entity
         [Required]
         public int IdTypeCompte { get; set; }
 
+        [Column("com_numero_telephone")]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "Le numéro de téléphone doit contenir exactement 10 chiffres")]
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "Le numéro de téléphone doit contenir uniquement des chiffres")]
+        public string? NumeroTelephone { get; set; }
+
+        [Column("etc_id")]
+        public int IdEtatCompte { get; set; }
+
         [Column("cpr_siret")]
         [StringLength(14, MinimumLength = 14, ErrorMessage = "Le numéro SIRET doit contenir exactement 14 chiffres")]
         [RegularExpression(@"^\d{14}$", ErrorMessage = "Le SIRET doit contenir uniquement des chiffres")]
@@ -65,7 +73,11 @@ namespace Api_c_sharp.Models.Entity
         [Column("com_auth_provider")]
         public string? AuthProvider { get; set; }
 
-        [ForeignKey("IdCompte")]
+        [ForeignKey(nameof(IdEtatCompte))]
+        [InverseProperty(nameof(EtatCompte.Comptes))]
+        public virtual EtatCompte EtatCompteNav { get; set; } = null!;
+
+        [ForeignKey(nameof(IdTypeCompte))]
         [InverseProperty(nameof(TypeCompte.Comptes))]
         public virtual TypeCompte TypeCompteCompteNav { get; set; } = null!;
 

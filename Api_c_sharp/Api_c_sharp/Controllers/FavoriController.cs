@@ -6,6 +6,8 @@ using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections;
 using System.Collections.Generic;
+using Api_c_sharp.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Api_c_sharp.Controllers
 {
@@ -17,7 +19,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class FavoriController(FavoriManager _manager, IMapper _mapper,IJournalService _journalService) : ControllerBase
+    public class FavoriController(FavoriManager _manager, IMapper _mapper, IJournalService _journalService, IHubContext<MessageHub> _hubContext) : ControllerBase
     {
         /// <summary>
         /// Récupère tous les favoris.
@@ -54,6 +56,14 @@ namespace Api_c_sharp.Controllers
             await _journalService.LogMiseFavorisAsync(dto.IdCompte, dto.IdAnnonce);
             await _manager.AddAsync(entity);
 
+            // Notifier SignalR que l'utilisateur doit rejoindre le groupe de l'annonce
+            if (_hubContext != null)
+            {
+                // Note: Cette notification sera gérée côté client via un event
+                // Le client devra appeler JoinFavorisAnnonce après avoir reçu la confirmation
+                Console.WriteLine($"✅ Favori ajouté - Compte {dto.IdCompte} devrait rejoindre le groupe annonce_{dto.IdAnnonce}");
+            }
+
             return CreatedAtAction(
                 nameof(GetByIDS),
                 new { idCompte = entity.IdCompte, idAnnonce = entity.IdAnnonce },
@@ -64,18 +74,19 @@ namespace Api_c_sharp.Controllers
         /// <summary>
         /// Met à jour un favori existant.
         /// </summary>
-        /// <param name="id">Identifiant unique du favori à mettre à jour.</param>
+        /// <param name="idcompte">Identifiant du compte.</param>
+        /// <param name="idannonce">Identifiant de l'annonce.</param>
         /// <param name="dto">Objet <see cref="FavoriDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-        /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
+        /// <item><description><see cref="BadRequestResult"/> si l'ID fourni ne correspond pas à celui du DTO (400).</description></item>
         /// <item><description><see cref="NotFoundResult"/> si aucune commande ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Put")]
-        [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int idcompte,int idannonce, [FromBody] FavoriDTO dto)
+        [HttpPut("{idcompte}/{idannonce}")]
+        public async Task<ActionResult> Put(int idcompte, int idannonce, [FromBody] FavoriDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -112,6 +123,15 @@ namespace Api_c_sharp.Controllers
                 return NotFound();
 
             await _manager.DeleteAsync(entity);
+
+            // Notifier SignalR que l'utilisateur doit quitter le groupe de l'annonce
+            if (_hubContext != null)
+            {
+                // Note: Cette notification sera gérée côté client via un event
+                // Le client devra appeler LeaveFavorisAnnonce après avoir reçu la confirmation
+                Console.WriteLine($"🗑️ Favori supprimé - Compte {idCompte} devrait quitter le groupe annonce_{idAnnonce}");
+            }
+
             return NoContent();
         }
 
@@ -127,17 +147,17 @@ namespace Api_c_sharp.Controllers
         [HttpGet]
         public async Task<ActionResult<bool>> IsFavorite([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
-           var result = await _manager.ExistsAsync(idCompte, idAnnonce);
-           return result;
+            var result = await _manager.ExistsAsync(idCompte, idAnnonce);
+            return result;
         }
 
         /// <summary>
-        /// Vérifie si une annonce est en favori pour un compte.
+        /// Récupère un favori par ses identifiants.
         /// </summary>
         /// <param name="idCompte">Identifiant unique du compte.</param>
         /// <param name="idAnnonce">Identifiant unique de l'annonce.</param>
         /// <returns>
-        /// <see cref="bool"/> indiquant si l'annonce est en favori (200 OK).
+        /// <see cref="FavoriDTO"/> si le favori existe (200 OK).
         /// </returns>
         [ActionName("GetByIDS")]
         [HttpGet]
@@ -145,14 +165,11 @@ namespace Api_c_sharp.Controllers
         {
             var result = await _manager.GetFavoriByIdsAsync(idCompte, idAnnonce);
 
-
             if (result == null)
                 return NotFound();
 
             return _mapper.Map<FavoriDTO>(result);
         }
-
-
 
         /// <summary>
         /// Récupère tous les favoris d'un compte.

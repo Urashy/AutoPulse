@@ -383,17 +383,9 @@ public class MapperProfile : Profile
         CreateMap<SignalementCreateDTO, Signalement>()
             .ForMember(dest => dest.DateCreationSignalement,
                 opt => opt.MapFrom(src => DateTime.UtcNow))
-            .ForMember(dest => dest.IdEtatSignalement,
-                opt => opt.MapFrom(src => 1)) 
             .ReverseMap();
 
-        
-
          CreateMap<SignalementUpdateDTO, Signalement>()
-            .ForMember(dest => dest.DateCreationSignalement,
-                opt => opt.MapFrom(src => DateTime.UtcNow))
-            .ForMember(dest => dest.IdEtatSignalement,
-                opt => opt.MapFrom(src => 1))
             .ReverseMap();
 
         // ============================================

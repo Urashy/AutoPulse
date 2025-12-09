@@ -11,4 +11,5 @@ public class SignalementUpdateDTO
     public int? IdCompteSignale { get; set; }
 
     public int IdTypeSignalement { get; set; }
+    public int IdEtatSignalement { get; set; }
 }

@@ -45,6 +45,7 @@ public class ConversationStateService : IDisposable
         _navigation = nav;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
+        _signalR.OnPriceDropReceived += HandlePriceDrop;
     }
 
     public async Task InitializeAsync()
@@ -190,6 +191,20 @@ public class ConversationStateService : IDisposable
     public int GetTotalUnreadCount()
     {
         return Conversations.Sum(c => c.NombreNonLu);
+    }
+    
+    private void HandlePriceDrop(PriceDropNotification notification)
+    {
+        Console.WriteLine($"📉 Baisse de prix détectée: {notification.AnnonceLibelle}");
+        Console.WriteLine($"   Ancien prix: {notification.OldPrice}€");
+        Console.WriteLine($"   Nouveau prix: {notification.NewPrice}€");
+        Console.WriteLine($"   Réduction: {notification.Reduction}€");
+    
+        _notificationService.ShowInfo(
+            "💰 Baisse de prix !",
+            $"{notification.AnnonceLibelle} : {notification.OldPrice}€ → {notification.NewPrice}€ (-{notification.Reduction}€)",
+            $"/annonce/{notification.IdAnnonce}"
+        );
     }
 
     private void NotifyStateChanged() => OnStateChanged?.Invoke();

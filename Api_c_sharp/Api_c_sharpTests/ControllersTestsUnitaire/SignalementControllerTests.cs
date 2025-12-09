@@ -59,19 +59,31 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // ----- ENTITÉS -----
 
-            var etat = new EtatSignalement()
+            EtatSignalement etat = new EtatSignalement()
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "Ouvert"
             };
 
-            var type = new TypeSignalement()
+            EtatSignalement etat2 = new EtatSignalement()
+            {
+                IdEtatSignalement = 2,
+                LibelleEtatSignalement = "Traité"
+            };
+
+            EtatSignalement etat3 = new EtatSignalement()
+            {
+                IdEtatSignalement = 3,
+                LibelleEtatSignalement = "Rejeté"
+            };
+
+            TypeSignalement type = new TypeSignalement()
             {
                 IdTypeSignalement = 1,
                 LibelleTypeSignalement = "Spam"
             };
 
-            var compteSignalant = new Compte()
+            Compte compteSignalant = new Compte()
             {
                 IdCompte = 1,
                 Pseudo = "alice",
@@ -85,7 +97,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdTypeCompte = 1
             };
 
-            var compteSignale = new Compte()
+            Compte compteSignale = new Compte()
             {
                 IdCompte = 2,
                 Pseudo = "bob",
@@ -100,6 +112,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             };
 
             await _context.EtatSignalements.AddAsync(etat);
+            await _context.EtatSignalements.AddAsync(etat2);
+            await _context.EtatSignalements.AddAsync(etat3);
             await _context.TypesSignalement.AddAsync(type);
             await _context.Comptes.AddAsync(compteSignalant);
             await _context.Comptes.AddAsync(compteSignale);
@@ -317,15 +331,23 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task UpdateEtatTest()
         {
 
-            var id = _signalementCommun.IdSignalement;
-            int nouvelEtat = 2; // Traité
+            SignalementUpdateDTO dto = new SignalementUpdateDTO
+            {
+                IdSignalement = _signalementCommun.IdSignalement,
+                DescriptionSignalement = "Il a fait un truc pas bien",
+                IdCompteSignale = 1,
+                IdCompteSignalant = _signalementCommun.IdCompteSignalant,
+                IdTypeSignalement = _signalementCommun.IdTypeSignalement,
+                IdEtatSignalement = 2,
 
-            var result = await _controller.UpdateEtat(id, nouvelEtat);
+            };
+
+            var result = await _controller.UpdateEtat(_signalementCommun.IdSignalement, dto);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var signalementMisAJour = await _manager.GetByIdAsync(id);
-            Assert.AreEqual(nouvelEtat, signalementMisAJour.IdEtatSignalement);
+            var signalementMisAJour = await _manager.GetByIdAsync(_signalementCommun.IdSignalement);
+            Assert.AreEqual(dto.IdEtatSignalement, signalementMisAJour.IdEtatSignalement);
         }
 
         [TestMethod]
@@ -333,10 +355,18 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         {
 
             var idInexistant = 999;
-            int nouvelEtat = 2;
+            SignalementUpdateDTO dto = new SignalementUpdateDTO
+            {
+                IdSignalement = _signalementCommun.IdSignalement,
+                DescriptionSignalement = "Il a fait un truc pas bien",
+                IdCompteSignale = 1,
+                IdCompteSignalant = _signalementCommun.IdCompteSignalant,
+                IdTypeSignalement = _signalementCommun.IdTypeSignalement,
+                IdEtatSignalement = 2
+            };
 
 
-            var result = await _controller.UpdateEtat(idInexistant, nouvelEtat);
+            var result = await _controller.UpdateEtat(idInexistant, dto);
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
@@ -346,25 +376,21 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         {
 
             var id = _signalementCommun.IdSignalement;
-            int etatInvalide = 5; 
+            SignalementUpdateDTO dto = new SignalementUpdateDTO
+            {
+                IdSignalement = _signalementCommun.IdSignalement,
+                DescriptionSignalement = "Il a fait un truc pas bien",
+                IdCompteSignale = 1,
+                IdCompteSignalant = _signalementCommun.IdCompteSignalant,
+                IdTypeSignalement = _signalementCommun.IdTypeSignalement,
+                IdEtatSignalement = 5
+            };
 
-            var result = await _controller.UpdateEtat(id, etatInvalide);
-
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task UpdateEtatBadRequestStateZeroTest()
-        {
-
-            var id = _signalementCommun.IdSignalement;
-            int etatInvalide = 0;
-
-
-            var result = await _controller.UpdateEtat(id, etatInvalide);
+            var result = await _controller.UpdateEtat(id, dto);
 
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
+
 
         [TestMethod]
         public async Task PostBadRequestAnnonceEtCompteTest()

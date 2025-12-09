@@ -10,4 +10,5 @@ public class CompteGetDTO
     public string TypeCompte { get; set; }
     public int IdTypeCompte { get; set; }
     public DateTime DateInscription { get; set; }
+    public int IdEtatCompte { get; set; }
 }

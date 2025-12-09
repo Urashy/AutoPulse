@@ -27,6 +27,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Couleur> Couleurs { get; set; }
         public DbSet<EtatAnnonce> EtatAnnonces { get; set; }
+        public DbSet<EtatCompte> EtatComptes { get; set; }
         public DbSet<EtatSignalement> EtatSignalements { get; set; }
         public DbSet<Facture> Factures { get; set; }
         public DbSet<Favori> Favoris { get; set; }
@@ -41,6 +42,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<MoyenPaiement> MoyensPaiements { get; set; }
         public DbSet<Pays> Pays { get; set; }
         public DbSet<PieceJointe> PiecesJointes { get; set; }
+        public DbSet<Plainte> Plaintes { get; set; }
         public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
         public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
@@ -194,6 +196,10 @@ namespace Api_c_sharp.Models.Repository
                 .WithMany(t => t.Comptes)
                 .HasForeignKey(c => c.IdTypeCompte);
 
+            modelBuilder.Entity<Compte>()
+                .HasOne(c => c.EtatCompteNav)
+                .WithMany(e => e.Comptes)
+                .HasForeignKey(c => c.IdEtatCompte);
 
             modelBuilder.Entity<Compte>()
                 .HasIndex(e => e.Pseudo)
@@ -219,6 +225,10 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------EtatAnnonce-----------------------------
             modelBuilder.Entity<EtatAnnonce>()
                 .HasKey(e => e.IdEtatAnnonce);
+
+            //-----------------------------EtatCompte-----------------------------
+            modelBuilder.Entity<EtatCompte>()
+                .HasKey(e => e.IdEtatCompte);
 
             //-----------------------------EtatSignalement-----------------------------
             modelBuilder.Entity<EtatSignalement>()
@@ -330,6 +340,15 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(p => p.MessagePjNav)
                 .WithMany(m => m.PiecesJointes)
                 .HasForeignKey(p => p.IdMessage);
+
+            //-----------------------------Plainte-----------------------------
+            modelBuilder.Entity<Plainte>()
+                .HasKey(e => e.IdPlainte);
+
+            modelBuilder.Entity<Plainte>()
+                .HasOne(p => p.SignalementPainteNav)
+                .WithMany(s => s.Plaintes)
+                .HasForeignKey(p => p.IdSignalement);
 
             //-----------------------------ReinitialisationMotDePasse-----------------------------
             modelBuilder.Entity<ReinitialisationMotDePasse>()

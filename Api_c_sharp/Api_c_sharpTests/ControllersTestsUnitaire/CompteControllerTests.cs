@@ -88,6 +88,18 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Libelle = "Standard"
             };
 
+            EtatCompte etatCompte = new EtatCompte
+            {
+                IdEtatCompte = 1,
+                Libelle = "Actif"
+            };
+
+            EtatCompte etatCompteInactif = new EtatCompte
+            {
+                IdEtatCompte = 2,
+                Libelle = "Suspendu"
+            };
+
             TypeCompte typeComptepro = new TypeCompte
             {
                 IdTypeCompte = 2,
@@ -146,6 +158,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 DateNaissance = new DateTime(1990, 1, 1),
                 IdTypeCompte = typeCompte.IdTypeCompte,
                 DateDerniereConnexion = DateTime.UtcNow,
+                IdEtatCompte = etatCompte.IdEtatCompte,
                 SignalementsFaits = new List<Signalement> { signalement }
             };
 
@@ -876,6 +889,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task ToggleEtatCompteTest()
+        {
+            var result = await _controller.ToggleEtatCompte(_objetcommun.IdCompte);
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.AreEqual(2, compteModifie.IdEtatCompte);
         }
     }
 }
