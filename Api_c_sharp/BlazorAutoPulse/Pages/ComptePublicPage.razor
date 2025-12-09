@@ -1,0 +1,208 @@
+@page "/comptepublic/{IdUtilisateur:int}"
+@using BlazorAutoPulse.ViewModel
+@inject ComptePublicViewModel VM
+@inject SignalementViewModel SignalementVM
+@inject NavigationManager Navigation
+
+<PageTitle>@(VM.comptePublic?.Pseudo ?? "Profil utilisateur") - AutoPulse</PageTitle>
+
+@if (VM.isLoading)
+{
+    <div class="loading-container">
+        <div class="loader"></div>
+        <p>Chargement du profil...</p>
+    </div>
+}
+else if (VM.comptePublic == null)
+{
+    <div class="error-container">
+        <h2>Utilisateur introuvable</h2>
+        <p>L'utilisateur que vous recherchez n'existe pas.</p>
+        <button @onclick="VM.RedirectionAccueil" class="btn-back">Retour à l'accueil</button>
+    </div>
+}
+else
+{
+    <div class="compte-public-container">
+        <!-- En-tête avec retour et menu options -->
+        <div class="header-nav">
+            <button @onclick="VM.RedirectionAccueil" class="btn-back">← Retour</button>
+            
+            <div class="header-actions">
+                <!-- Menu d'options -->
+                <div class="options-menu">
+                    <button @onclick="VM.ToggleOptionsMenu" class="btn-options">
+                        <span class="menu-icon">⚙️</span>
+                    </button>
+                    
+                    @if (VM.IsOptionsMenuOpen)
+                    {
+                        <div class="options-dropdown">
+                            <button @onclick="VM.EnvoyerMessage"
+                                    @onmouseenter="() => VM.SetInfoOption(infoMessage)"
+                                    @onmouseleave="() => VM.SetInfoOption(null)"
+                                    class="option-item">
+                                <span class="option-icon">✉️</span>
+                                <span>Envoyer un message</span>
+                            </button>
+
+                            <button @onclick="() => SignalementVM.OpenModalCompte(VM.comptePublic.IdCompte)"
+                                    @onmouseenter="() => VM.SetInfoOption(infoSignaler)"
+                                    @onmouseleave="() => VM.SetInfoOption(null)"
+                                    class="option-item">
+                                <span class="option-icon">⚠️</span>
+                                <span>Signaler l'utilisateur</span>
+                            </button>
+
+                            <button @onclick="VM.EstBloque ? VM.DebloquerUtilisateur : VM.BloquerUtilisateur"
+                                    @onmouseenter="() => VM.SetInfoOption(VM.EstBloque ? infoDebloquer : infoBloquer)"
+                                    @onmouseleave="() => VM.SetInfoOption(null)"
+                                    class="option-item">
+
+                                <span class="option-icon">❗</span>
+                                <span>@(VM.EstBloque ? "Débloquer l'utilisateur" : "Bloquer l'utilisateur")</span>
+                            </button>
+                            
+                            @if (!string.IsNullOrEmpty(VM.infoOption))
+                            {
+                                <div class="option-info">
+                                    @VM.infoOption
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Section profil public -->
+        <div class="profile-header">
+            <div class="profile-left">
+                <div class="profile-photo-wrapper">
+                    <img src="@VM.imageSource" alt="Photo de Profil" class="profile-photo" />
+                </div>
+            </div>
+
+            <div class="profile-info">
+                <div class="user-header">
+                    <div>
+                        <h1 class="user-pseudo">@VM.comptePublic.Pseudo</h1>
+                        <p class="user-type">@VM.comptePublic.TypeCompte</p>
+                    </div>
+                    @if (VM.comptePublic.IdTypeCompte == 2)
+                    {
+                        <div class="pro-badge">
+                            <span class="badge-icon">💼</span>
+                            <span>Professionnel</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item bio-item">
+                        <span class="info-label">📝 Biographie</span>
+                        @if (!string.IsNullOrEmpty(VM.comptePublic.Biographie))
+                        {
+                            <span class="info-value">@VM.comptePublic.Biographie</span>
+                        }
+                    </div>
+                    @if (VM.comptePublic.IdTypeCompte == 2 && !string.IsNullOrEmpty(VM.comptePublic.RaisonSociale))
+                    {
+                        <div class="info-item">
+                            <span class="info-label">🏢 Raison sociale</span>
+                            <span class="info-value">@VM.comptePublic.RaisonSociale</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">@VM.comptePublic.NombreAnnonces</span>
+                        <span class="stat-label">Annonces</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">@VM.comptePublic.NombreAvis</span>
+                        <span class="stat-label">Avis</span>
+                    </div>
+                    @if (VM.comptePublic.NoteMoyenne != null)
+                    {
+                        <div class="stat-item">
+                            <span class="stat-value">@VM.comptePublic.NoteMoyenne ⭐</span>
+                            <span class="stat-label">Note moyenne</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Section contenu public -->
+        <div class="account-content">
+            <nav class="account-navbar">
+                <button class="nav-item @(VM.activeSection == "annonces" ? "active" : "")"
+                        @onclick="@(() => VM.SetActiveSection("annonces"))">
+                    📋 Annonces (@VM.comptePublic.NombreAnnonces)
+                </button>
+                <button class="nav-item @(VM.activeSection == "avis" ? "active" : "")"
+                        @onclick="@(() => VM.SetActiveSection("avis"))">
+                    ⭐ Avis (@VM.comptePublic.NombreAvis)
+                </button>
+            </nav>
+
+            <div class="content-section">
+                @switch(VM.activeSection)
+                {
+                    case "annonces":
+                        @if (VM.annonces != null && VM.annonces.Any())
+                        {
+                            <div class="annonces-grid">
+                                <h4>Oui y'a une annonce</h4>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <span class="empty-icon">📋</span>
+                                <p>Aucune annonce publiée</p>
+                            </div>
+                        }
+                        break;
+
+                    case "avis":
+                        @if (VM.avis != null && VM.avis.Any())
+                        {
+                            <div class="avis-list">
+                                <h4>Oui y'a un avis</h4>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <span class="empty-icon">⭐</span>
+                                <p>Aucun avis pour le moment</p>
+                            </div>
+                        }
+                        break;
+                }
+            </div>
+        </div>
+
+        <SignalementModal VM="@SignalementVM"/>
+    </div>
+}
+
+<SignalementModal VM="@SignalementVM" genreSignalement="compte"/>
+
+@code {
+    [Parameter] public int IdUtilisateur { get; set; }
+
+    private string infoMessage = "Envoyer un message privé à cet utilisateur";
+    private string infoSignaler = "Signaler cet utilisateur pour comportement inapproprié";
+    private string infoBloquer = "Bloquer cet utilisateur pour ne plus voir ses annonces";
+    private string infoDebloquer = "Débloquer cet utilisateur pour revoir ses annonces";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(IdUtilisateur, StateHasChanged, Navigation);
+        await SignalementVM.InitializeAsync(StateHasChanged);
+    }
+}

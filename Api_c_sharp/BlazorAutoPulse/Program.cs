@@ -4,6 +4,7 @@ using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Authentification;
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
+using BlazorAutoPulse.Services;
 using BlazorAutoPulse.ViewModel;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -21,21 +22,21 @@ namespace BlazorAutoPulse
 
             //----------------------- Service de base
             builder.Services.AddScoped<IService<Marque>, MarqueWebService>();
-            builder.Services.AddScoped<IService<Compte>, CompteWebService>();
+            builder.Services.AddScoped<IService<CompteDetailDTO>, CompteWebService>();
             builder.Services.AddScoped<IService<Carburant>, CarburantWebService>();
             builder.Services.AddScoped<IService<Categorie>, CategorieWebService>();
             builder.Services.AddScoped<IService<BoiteDeVitesse>, BoiteVitesseWebService>();
             builder.Services.AddScoped<IService<Motricite>, MotriciteWebService>();
             builder.Services.AddScoped<IService<Voiture>, VoitureWebService>();
             builder.Services.AddScoped<IService<APourCouleur>, APourCouleurWebService>();
-            builder.Services.AddScoped<IService<MessageDTO>, MessageWebService>();
+            builder.Services.AddScoped<IService<AvisListDTO>, AvisWebService>();
+            builder.Services.AddScoped<IService<CommandeDTO>, CommandeWebService>();
 
             //----------------------- Service avec interface spécifique
             builder.Services.AddScoped<IAnnonceService, AnnonceWebService>();
             builder.Services.AddScoped<IModeleService, ModeleWebService>();
             builder.Services.AddScoped<IServiceConnexion, ConnexionWebService>();
             builder.Services.AddScoped<IPostImageService, PostImageWebService>();
-            builder.Services.AddScoped<IAnnonceDetailService, AnnonceDetailWebService>();
             builder.Services.AddScoped<ICompteService, CompteWebService>();
             builder.Services.AddScoped<IFavorisService, FavoriWebService>();
             builder.Services.AddScoped<IImageService, ImageWebService>();
@@ -45,6 +46,13 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IConversationService, ConversationWebService>();
             builder.Services.AddScoped<ITypeCompteService, TypeCompteWebService>();
             builder.Services.AddScoped<IAdresseService, AdresseWebService>();
+            builder.Services.AddScoped<IMessageService, MessageWebService>();
+            builder.Services.AddScoped<IAvisService, AvisWebService>();
+            builder.Services.AddScoped<ICommandeService, CommandeWebService>();
+            builder.Services.AddScoped<ISignalementService, SignalementWebService>();
+            builder.Services.AddScoped<ITypeSignalementService, TypeSignalementWebService>();
+            builder.Services.AddScoped<IBloqueService, BloquerWebService>();
+            builder.Services.AddScoped<IPieceJointeService, PieceJointeWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -58,10 +66,24 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<FavorisViewModel>();
             builder.Services.AddScoped<OubliMdpViewModel>();
             builder.Services.AddScoped<CompleteProfileViewModel>();
-            builder.Services.AddScoped<ConversationsViewModel>();
+            builder.Services.AddScoped<ConversationViewModel>();
             builder.Services.AddScoped<MainLayoutViewModel>();
-
+            builder.Services.AddScoped<AdminDashboardViewModel>();
+            builder.Services.AddScoped<AdminUtilisateursViewModel>();
+            builder.Services.AddScoped<AdminAnnoncesViewModel>();
+            builder.Services.AddScoped<ToastViewModel>();
+            builder.Services.AddScoped<SignalementViewModel>();
+            builder.Services.AddScoped<ComptePublicViewModel>();
+            builder.Services.AddScoped<AdminSignalementsViewModel>();
             builder.Services.AddTransient<AnnonceComposantViewModel>();
+            builder.Services.AddTransient<FileUploadViewModel>();
+            
+            //----------------------- Singleton
+            builder.Services.AddSingleton<ISignalRService, SignalRWebService>();
+            builder.Services.AddSingleton<NotificationService>();
+            
+            //----------------------- State service
+            builder.Services.AddScoped<ConversationStateService>();
 
             builder.Services.AddScoped(sp =>
             {
@@ -69,6 +91,11 @@ namespace BlazorAutoPulse
                 {
                     BaseAddress = new Uri("http://localhost:5086/api/")
                 };
+            });
+            
+            builder.Services.AddSingleton<ISignalRService>(sp =>
+            {
+                return new SignalRWebService();
             });
 
             await builder.Build().RunAsync();

@@ -3,6 +3,7 @@ using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
 namespace Api_c_sharp.Controllers
 {

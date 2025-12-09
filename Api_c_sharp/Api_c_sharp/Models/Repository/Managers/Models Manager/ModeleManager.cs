@@ -3,7 +3,7 @@ using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Microsoft.EntityFrameworkCore;
 
-namespace Api_c_sharp.Models.Repository.Managers
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class ModeleManager : ReadableManager<Modele>, IModeleRepository
     {
@@ -17,7 +17,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.OrderBy(s => s.LibelleModele).ToListAsync();
         }
 
-        public async Task<IEnumerable<Modele>> GetModelesByMarqueIdAsync(int marqueId)
+        public virtual async Task<IEnumerable<Modele>> GetModelesByMarqueIdAsync(int marqueId)
         {
             return await dbSet.Where(m => m.IdMarque == marqueId).OrderBy(s => s.LibelleModele).ToListAsync();
         }

@@ -5,8 +5,9 @@ using Api_c_sharp.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Repository.Managers;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
 /// <summary>
 /// Contrôleur REST permettant de gérer les marques.
@@ -64,7 +65,7 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     public async Task<ActionResult<IEnumerable<ModeleDTO>>> GetAllByMarque(int marqueId)
     {
         var list = await _manager.GetModelesByMarqueIdAsync(marqueId);
-        if (list is null)
+        if (list is null || !list.Any())
         {
             return NotFound();
         }

@@ -10,10 +10,11 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
     public interface  IAnnonceRepository
     {
-        Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId);
+        Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId, int pageNumber, int pageSize);
         Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderbyprix);
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId);
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId);
+        Task<bool> EstMasque(int annonceId);
     }
 
     public interface ICompteRepository
@@ -23,21 +24,19 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<Compte> VerifMotDePasse(string email, string hash);
         Task<Compte> AuthenticateCompte(string email, string hash);
         Task UpdateAnonymise(int idcompte);
+        Task UpdateTypeCompte(Compte compteamodif,CompteModifTypeCompteDTO compteModifTypeCompteDTO, bool estpro);
+        Task<Compte> GetProfilPublic(int idcompte);
     }
 
     public interface IMessageRepository
     {
-        Task<IEnumerable<Message>> GetMessagesByConversation(int conversationId);
+        Task<int> GetUnreadMessageCount(int conversationId, int userId);
+        Task<IEnumerable<Message>> GetMessagesByConversationAndMarkAsRead(int conversationId, int userId);
     }
 
     public interface ISignalementRepository
     {
         Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId);
-    }
-
-    public interface IJournalRepository
-    {
-        Task<IEnumerable<Journal>> GetJournalByType(int typeID);
     }
 
     public interface IAvisRepository
@@ -82,10 +81,34 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     public interface ITypeCompteRepository
     {
         Task<IEnumerable<TypeCompte>> GetTypeComptesPourChercher();
+        Task<TypeCompte> GetTypeCompteByCompteId(int compteID);
     }
 
     public interface IConversationRepository
     {
         Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId);
+    }
+
+    public interface IApourConversationRepository
+    {
+        Task<APourConversation> GetAPourConversationByIDS(int conversationId, int compteId);
+    }
+
+    public interface IFavoriRepository
+    {
+        Task<Favori?> GetFavoriByIdsAsync(int idCompte, int idAnnonce);
+        Task<bool> ExistsAsync(int idCompte, int idAnnonce);
+        Task<IEnumerable<Favori>> GetByCompteIdAsync(int idCompte);
+    }
+
+    public interface IVueRepository
+    {
+        Task<Vue?> GetVueByIdsAsync(int idCompte, int idAnnonce);
+    }
+
+    public interface IBloqueRepository
+    {
+        Task<Bloque?> GetBloqueByIdsAsync(int idCompteBloqueur, int idCompteBloque);
+        Task<bool> ExistsAsync(int idCompte, int idAnnonce);
     }
 }

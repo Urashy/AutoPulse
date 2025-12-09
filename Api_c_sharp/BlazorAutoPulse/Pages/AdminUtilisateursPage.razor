@@ -1,0 +1,221 @@
+@page "/admin/utilisateurs"
+@layout AdminLayout
+@using BlazorAutoPulse.ViewModel
+@inject AdminUtilisateursViewModel VM
+
+<PageTitle>Gestion des utilisateurs - Admin</PageTitle>
+
+<div class="admin-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h1>👥 Gestion des utilisateurs</h1>
+            <p class="subtitle">@VM.TotalUtilisateurs utilisateur(s) au total</p>
+        </div>
+        <div class="header-actions">
+            <input type="text"
+                   placeholder="🔍 Rechercher un utilisateur..."
+                   @bind="VM.SearchQuery"
+                   @bind:event="oninput"
+                   @onkeyup="VM.SearchUsers"
+                   class="search-input">
+            <button class="btn-primary" @onclick="VM.ExportUsers">
+                📊 Exporter
+            </button>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <button class="filter-btn @(VM.FilterStatus == "all" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("all"))">
+            Tous (@VM.TotalUtilisateurs)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "Particuliers" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("Particuliers"))">
+            Particuliers (@VM.UtilisateursParticuliers)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "Pros" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("Pros"))">
+            Pros (@VM.UtilisateursPros)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "Admin" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("Admin"))">
+            Admins (@VM.UtilisateursAdmins)
+        </button>
+        <button class="filter-btn @(VM.FilterStatus == "Anonymes" ? "active" : "")"
+                @onclick="@(() => VM.FilterByStatus("Anonymes"))">
+            Anonymisés (@VM.UtilisateursAnonymisés)
+        </button>
+    </div>
+
+    @if (VM.IsLoading)
+    {
+        <div class="loading-state">
+            <div class="loader"></div>
+            <p>Chargement des utilisateurs...</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Utilisateur</th>
+                        <th>Type</th>
+                        <th>Inscription</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in VM.FilteredUtilisateurs.Skip((VM.CurrentPage - 1) * VM.ItemsPerPage).Take(VM.ItemsPerPage))
+                    {
+                        <tr>
+                            <td>#@user.IdCompte</td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar">@GetInitiales(user.Pseudo)</div>
+                                    <div>
+                                        <div class="user-name">@user.Pseudo</div>
+                                        <div class="user-fullname">@user.Prenom @user.Nom</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-@GetBadgeClass(user.TypeCompte)">
+                                    @user.TypeCompte
+                                </span>
+                            </td>
+                            <td>@user.DateCreation.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon"
+                                            @onclick="() => VM.ViewUserDetails(user)"
+                                            title="Voir détails">
+                                        👁️
+                                    </button>
+                                    <button class="btn-icon"
+                                            @onclick="() => VM.EditUser(user)"
+                                            title="Modifier">
+                                        ✏️
+                                    </button>
+                                    @if (user.TypeCompte == "Particulier")
+                                    {
+                                        <button class="btn-icon warning"
+                                                @onclick="() => VM.SuspendUser(user)"
+                                                title="Suspendre">
+                                            ⛔
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-icon success"
+                                                @onclick="() => VM.ActivateUser(user)"
+                                                title="Activer">
+                                            ✅
+                                        </button>
+                                    }
+                                    <button class="btn-icon danger"
+                                            @onclick="() => VM.DeleteUser(user)"
+                                            title="Supprimer">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (VM.TotalPages > 1)
+        {
+            <div class="pagination">
+                <button class="btn-page"
+                        @onclick="VM.PreviousPage"
+                        disabled="@(!VM.CanGoPrevious)">
+                    ← Précédent
+                </button>
+                <span class="page-info">
+                    Page @VM.CurrentPage sur @VM.TotalPages
+                </span>
+                <button class="btn-page"
+                        @onclick="VM.NextPage"
+                        disabled="@(!VM.CanGoNext)">
+                    Suivant →
+                </button>
+            </div>
+        }
+    }
+</div>
+
+<!-- Modal de détails utilisateur -->
+@if (VM.ShowDetailsModal && VM.SelectedUser != null)
+{
+    <div class="modal-overlay" @onclick="VM.CloseDetailsModal">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>👤 Détails de l'utilisateur</h2>
+                <button class="modal-close" @onclick="VM.CloseDetailsModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-grid">
+                    <div class="detail-section">
+                        <h3>Informations personnelles</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Pseudo :</span>
+                            <span class="detail-value">@VM.SelectedUser.Pseudo</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Nom complet :</span>
+                            <span class="detail-value">@VM.SelectedUser.Prenom @VM.SelectedUser.Nom</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Email :</span>
+                            <span class="detail-value">@VM.SelectedUser.Email</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Type de compte :</span>
+                            <span class="detail-value">@VM.SelectedUser.TypeCompte</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>Statistiques</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Date d'inscription :</span>
+                            <span class="detail-value">@VM.SelectedUser.DateCreation.ToString("dd MMMM yyyy")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+
+    private string GetInitiales(string pseudo)
+    {
+        if (string.IsNullOrWhiteSpace(pseudo))
+            return "??";
+
+        return pseudo.Substring(0, Math.Min(2, pseudo.Length)).ToUpper();
+    }
+
+    private string GetBadgeClass(string typeCompte)
+    {
+        return typeCompte switch
+        {
+            "Particulier" => "particulier",
+            "Professionnel" => "professionnel",
+            "Administrateur" => "administrateur",
+            "Anonyme" => "anonyme",
+            _ => "default"
+        };
+    }
+}

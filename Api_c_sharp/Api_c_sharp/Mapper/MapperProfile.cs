@@ -14,6 +14,7 @@ public class MapperProfile : Profile
         // ============================================
         
         CreateMap<Marque, MarqueDTO>().ReverseMap();
+        CreateMap<Bloque, BloqueDTO>().ReverseMap();
 
         CreateMap<Modele, ModeleDTO>().ReverseMap();
         CreateMap<APourConversation, APourConversationDTO>().ReverseMap();
@@ -46,6 +47,9 @@ public class MapperProfile : Profile
             .ReverseMap();
 
         CreateMap<ModeleBlender, ModeleBlenderDTO>()
+            .ReverseMap();
+
+        CreateMap<Vue, VueDTO>()
             .ReverseMap();
 
         // ============================================
@@ -216,16 +220,20 @@ public class MapperProfile : Profile
         // ============================================
         
         CreateMap<Compte, CompteGetDTO>()
-            .ForMember(dest => dest.TypeCompte, 
-                opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
+            .ForMember(dest => dest.TypeCompte,
+                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.DateInscription, 
-                opt => opt.MapFrom(src => src.DateCreation)).ReverseMap();
+                opt => opt.MapFrom(src => src.DateCreation))
+            .ForMember(dest => dest.Email,
+                opt => opt.MapFrom(src => src.Email)).ReverseMap();
         
         CreateMap<Compte, CompteDetailDTO>()
             .ForMember(dest => dest.TypeCompte, 
                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.Adresses, 
                 opt => opt.MapFrom(src => src.Adresses.Select(a => a.CompteAdresseNav)))
+            .ForMember(dest => dest.TypeCompte,
+                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(
                 opt => opt.idImage,
                 cfg => cfg.MapFrom(src => src.Images.FirstOrDefault().IdImage))
@@ -234,8 +242,6 @@ public class MapperProfile : Profile
         CreateMap<Compte, CompteProfilPublicDTO>()
             .ForMember(dest => dest.DateInscription, 
                 opt => opt.MapFrom(src => src.DateCreation))
-            .ForMember(dest => dest.TypeCompte, 
-                opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.ImageProfil, 
                 opt => opt.MapFrom(src => src.Images.Any() 
                     ? Convert.ToBase64String(src.Images.First().Fichier) 
@@ -316,7 +322,7 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault().ContenuMessage))
             .ForMember(dest => dest.DateDernierMessage, 
                 opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault().DateEnvoiMessage))
-            .ForMember(dest => dest.ParticipantsPseudos, 
+            .ForMember(dest => dest.ParticipantPseudo, 
                 opt => opt.MapFrom(src => src.ApourConversations.Select(a => a.APourConversationCompteNav.Pseudo).ToList())).ReverseMap();
         
         CreateMap<Conversation, ConversationDetailDTO>()
@@ -328,28 +334,47 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.ApourConversations.Select(a => a.APourConversationCompteNav))).ReverseMap();
         
         CreateMap<Message, MessageDTO>()
-            .ForMember(dest => dest.IdCompte, 
-                opt => opt.MapFrom(src => 0)) // À compléter selon votre logique
             .ForMember(dest => dest.PseudoCompte, 
-                opt => opt.MapFrom(src => "N/A")).ReverseMap(); // À compléter
+                opt => opt.MapFrom(src => src.MessageCompteNav.Pseudo)).ReverseMap();
         
         CreateMap<MessageCreateDTO, Message>().ReverseMap();
-        
+
         // ============================================
         // MAPPERS SIGNALEMENT
         // ============================================
-        
+
         CreateMap<Signalement, SignalementDTO>()
-            .ForMember(dest => dest.PseudoSignalant, 
+            .ForMember(dest => dest.PseudoSignalant,
                 opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
-            .ForMember(dest => dest.PseudoSignale, 
-                opt => opt.MapFrom(src => src.CompteSignaleNav.Pseudo))
-            .ForMember(dest => dest.LibelleTypeSignalement, 
-                opt => opt.MapFrom(src => src.TypeSignalementSignalementNav.LibelleTypeSignalement)).ReverseMap();
-        
+            .ForMember(dest => dest.PseudoSignale,
+                opt => opt.MapFrom(src => src.CompteSignaleNav != null ? src.CompteSignaleNav.Pseudo : null))
+            .ForMember(dest => dest.LibelleAnnonceSignale,
+                opt => opt.MapFrom(src => src.AnnonceSignaleNav != null ? src.AnnonceSignaleNav.Libelle : null))
+            .ForMember(dest => dest.LibelleTypeSignalement,
+                opt => opt.MapFrom(src => src.TypeSignalementSignalementNav.LibelleTypeSignalement))
+            .ForMember(dest => dest.LibelleEtatSignalement,
+                opt => opt.MapFrom(src => src.EtatSignalementNav.LibelleEtatSignalement))
+            .ForMember(dest => dest.PseudoSignalant,
+                opt => opt.MapFrom(src => src.CompteSignalantNav.Pseudo))
+            .ForMember(dest => dest.IdCompteSignale,
+                opt => opt.MapFrom(src => src.IdCompteSignale))
+            .ReverseMap();
+
         CreateMap<SignalementCreateDTO, Signalement>()
-            .ForMember(dest => dest.DateCreationSignalement, 
-                opt => opt.MapFrom(src => DateTime.Now)).ReverseMap();
+            .ForMember(dest => dest.DateCreationSignalement,
+                opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.IdEtatSignalement,
+                opt => opt.MapFrom(src => 1)) 
+            .ReverseMap();
+
+        
+
+         CreateMap<SignalementUpdateDTO, Signalement>()
+            .ForMember(dest => dest.DateCreationSignalement,
+                opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.IdEtatSignalement,
+                opt => opt.MapFrom(src => 1))
+            .ReverseMap();
 
         // ============================================
         // MAPPERS IMAGE
@@ -365,5 +390,33 @@ public class MapperProfile : Profile
         // ============================================
         CreateMap<ReinitialisationMotDePasse, ReinitialiseMdpDTO>()
             .ReverseMap();
+        
+        CreateMap<PieceJointe, PieceJointeDTO>()
+            .ForMember(dest => dest.ContenuBase64, opt => opt.MapFrom(src => src.Contenu)).ReverseMap();
+
+        
+        // ============================================
+        // MAPPERS PIECE JOINTE
+        // ============================================
+        CreateMap<PieceJointeUploadDTO, PieceJointe>()
+            .ForMember(dest => dest.IdPieceJointe, opt => opt.Ignore())
+            .ForMember(dest => dest.DateUpload, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.Contenu, opt => opt.MapFrom(src => Convert.FromBase64String(src.ContenuBase64)))
+            .ForMember(dest => dest.MessagePjNav, opt => opt.Ignore());
+
+        // Mapping Message avec pièces jointes
+        CreateMap<Message, MessageDTO>()
+            .ForMember(dest => dest.PiecesJointes, opt => opt.MapFrom(src => 
+                src.PiecesJointes.Select(pj => new PieceJointeDTO
+                {
+                    IdPieceJointe = pj.IdPieceJointe,
+                    IdMessage = pj.IdMessage,
+                    NomFichier = pj.NomFichier,
+                    TypeMime = pj.TypeMime,
+                    Extension = pj.Extension,
+                    TailleFichier = pj.TailleFichier,
+                    DateUpload = pj.DateUpload,
+                    ContenuBase64 = Convert.ToBase64String(pj.Contenu)
+                })));
     }
 }

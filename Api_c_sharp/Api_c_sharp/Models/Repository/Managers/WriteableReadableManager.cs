@@ -12,9 +12,9 @@ namespace Api_c_sharp.Models.Repository.Managers
         public WriteableReadableManager(AutoPulseBdContext context)
         {
             this.context = context;
-            this.dbSet = context.Set<TEntity>();
+            this.dbSet = context?.Set<TEntity>();
         }
-        public async Task<TEntity> AddAsync(TEntity entity)
+        public virtual async Task<TEntity> AddAsync(TEntity entity)
         {
             await dbSet.AddAsync(entity);
             await context.SaveChangesAsync();

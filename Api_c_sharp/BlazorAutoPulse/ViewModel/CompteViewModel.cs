@@ -2,6 +2,8 @@
 using BlazorAutoPulse.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Service;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -11,12 +13,18 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IPostImageService _postImageService;
         private readonly IImageService _imageService;
         private readonly IAnnonceService _annonceService;
-        private readonly IAdresseService _adresseService;
-        public NavigationManager _nav { get; set; }
+        private readonly IAdresseService _addresseService;
+        private readonly IAvisService _avisService;
+        private readonly ICommandeService _commandeService;
+        private readonly NotificationService _notificationService;
 
-        public Compte compte;
-        public Compte compteEdit;
-        
+        public CompteDetailDTO compte;
+        public CompteDetailDTO compteEdit;
+        public IEnumerable<AnnonceDTO> annonces;
+        public IEnumerable<AdresseDTO> adresses;
+        public IEnumerable<AvisListDTO> avis;
+        public IEnumerable<CommandeDTO> commandes;
+
         private string mimeType = "data:image/jpeg;base64,";
         public string imageSource;
         public int idImage;
@@ -38,28 +46,26 @@ namespace BlazorAutoPulse.ViewModel
         public bool confirmationSuppression = false;
         public string confirmationTexte = "";
         public bool suppressionReussi =  false;
-
-        public IEnumerable<Annonce> allAnnonces;
-
-        public IEnumerable<Adresse> allAdresses;
-
+        
         private Action? _refreshUI;
+        public NavigationManager _nav { get; set; }
 
-        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService, IAnnonceService annonceService, IAdresseService adresseService)
+        public CompteViewModel(ICompteService compteService, IPostImageService postImageService, IImageService imageService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
             _imageService = imageService;
-            _annonceService = annonceService;
-            _adresseService = adresseService;
         }
         
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
         {
             _refreshUI = refreshUI;
             _nav = nav;
-            
-            compte = new Compte();
+            compteModifType = new CompteModifTypeCompteDTO()
+            {
+                RaisonSociale = "",
+                NumeroSiret = ""
+            };
             
             try
             {
@@ -72,7 +78,7 @@ namespace BlazorAutoPulse.ViewModel
             
             await GetImageProfil(compte.IdCompte);
             
-            compteEdit = new Compte
+            compteEdit = new CompteDetailDTO
             {
                 IdCompte = compte.IdCompte,
                 Pseudo = compte.Pseudo,
@@ -82,14 +88,9 @@ namespace BlazorAutoPulse.ViewModel
                 DateNaissance = compte.DateNaissance,
                 Biographie = compte.Biographie,
                 IdTypeCompte = compte.IdTypeCompte,
-                NumeroSiret = compte.NumeroSiret,
-                RaisonSociale = compte.RaisonSociale,
-                IdImage = idImage,
+                NumeroSiret = compte.NumeroSiret ?? "",
+                RaisonSociale = compte.RaisonSociale ?? "",
             };
-
-            allAnnonces = await _annonceService.AnnonceParIdCompte(compte.IdCompte);
-
-            allAdresses = await _adresseService.AdresseParIdCompte(compte.IdCompte);
         }
 
         public async Task UpdateProfileImage(InputFileChangeEventArgs e)
@@ -151,7 +152,7 @@ namespace BlazorAutoPulse.ViewModel
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de l'affichage de l'image : {ex.Message}");
-                imageSource = "images/default-profile.png";
+                imageSource = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
                 _refreshUI?.Invoke();
             }
         }
@@ -169,10 +170,27 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task SaveProfile()
         {
-            await _compteService.UpdateAsync(compte.IdCompte, compteEdit);
-            compte = await _compteService.GetMe();
-            _refreshUI?.Invoke();
-            isEditing = false;
+            try
+            {
+                await _compteService.UpdateAsync(compte.IdCompte, compteEdit);
+                compte = await _compteService.GetMe();
+                
+                _notificationService.ShowSuccess(
+                    "Profil mis à jour",
+                    "Vos informations ont été enregistrées avec succès"
+                );
+                
+                isEditing = false;
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowError(
+                    "Erreur de sauvegarde",
+                    "Impossible de sauvegarder vos modifications"
+                );
+                Console.WriteLine($"Erreur SaveProfile: {ex.Message}");
+            }
         }
 
         public void CancelEdit()
@@ -332,9 +350,92 @@ namespace BlazorAutoPulse.ViewModel
         {
             if (compte.Pseudo == confirmationTexte)
             {
-                _compteService.Anonymisation(compte.IdCompte);
-                suppressionReussi = true;
+                try
+                {
+                    _compteService.Anonymisation(compte.IdCompte);
+                    suppressionReussi = true;
+                    
+                    _notificationService.ShowInfo(
+                        "Compte supprimé",
+                        "Votre compte a été anonymisé avec succès"
+                    );
+                    
+                    Task.Delay(1000);
+                    _nav.NavigateTo("/");
+                }
+                catch (Exception ex)
+                {
+                    _notificationService.ShowError(
+                        "Erreur de suppression",
+                        "Impossible de supprimer votre compte"
+                    );
+                    Console.WriteLine($"Erreur suppression: {ex.Message}");
+                }
             }
+        }
+
+        public async Task OpenProModal()
+        {
+            passerPro = true;
+            _refreshUI?.Invoke();
+        }
+        
+        public async Task CloseProModal()
+        {
+            passerPro = false;
+            isEditing = false;
+            compteModifType = new CompteModifTypeCompteDTO()
+            {
+                RaisonSociale = "",
+                NumeroSiret = ""
+            };
+            _refreshUI?.Invoke();
+        }
+
+        public async Task ValidateProAccount()
+        {
+            bool reussite = await _compteService.PutTypeCompte(compte.IdCompte, compteModifType);
+
+            if (reussite)
+            {
+                compte = await _compteService.GetMe();
+                compteEdit = new CompteDetailDTO
+                {
+                    IdCompte = compte.IdCompte,
+                    Pseudo = compte.Pseudo,
+                    Nom = compte.Nom,
+                    Prenom = compte.Prenom,
+                    Email = compte.Email,
+                    DateNaissance = compte.DateNaissance,
+                    Biographie = compte.Biographie,
+                    IdTypeCompte = compte.IdTypeCompte,
+                    NumeroSiret = compte.NumeroSiret ?? "",
+                    RaisonSociale = compte.RaisonSociale ?? "",
+                };
+                
+                if (compte.IdTypeCompte == 2)
+                {
+                    _notificationService.ShowSuccess(
+                        "Changement type de compte",
+                        "Vous avez maintenant accès aux fonctionnalités professionnelles"
+                    );
+                }
+                else
+                {
+                    _notificationService.ShowInfo(
+                        "Changement type de compte",
+                        "Votre compte a été converti en compte particulier"
+                    );
+                }
+                
+                CloseProModal();
+            }
+            else
+            {
+                erreurChangeTypeCompte = "Votre compte n'a pas pu être mis à jour, vérifier les informations";
+            }
+
+            _refreshUI?.Invoke();
         }
     }
 }

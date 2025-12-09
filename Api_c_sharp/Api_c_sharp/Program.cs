@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -50,9 +50,16 @@ builder.Services.AddScoped<FavoriManager>();
 builder.Services.AddScoped<ConversationManager>();
 builder.Services.AddScoped<MessageManager>();
 builder.Services.AddScoped<ReinitialisationMotDePasseManager>();
+builder.Services.AddScoped<JournalManager>();
+builder.Services.AddScoped<SignalementManager>();
+builder.Services.AddScoped<TypeSignalementManager>();
+builder.Services.AddScoped<BloqueManager>();
+builder.Services.AddScoped<PieceJointeManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
+builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalManager>());
+builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmentService>();
 
 //------------------------------Authentification------------------------------
 builder.Services.AddAuthentication(options =>
@@ -106,7 +113,8 @@ builder.Services.AddCors(options =>
             .WithOrigins("http://localhost:5296")
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials());
+            .AllowCredentials()
+            .SetIsOriginAllowed(_ => true));
 });
 
 builder.Services.AddSignalR();
@@ -123,6 +131,7 @@ app.UseHttpsRedirection();
 
 app.MapHub<MessageHub>("/messagehub");
 
+app.UseRouting();
 app.UseCors("AllowBlazor");
 app.UseAuthentication();
 app.UseAuthorization();

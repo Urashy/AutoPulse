@@ -2,7 +2,7 @@
 using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Api_c_sharp.Models.Repository.Managers
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class TypeCompteManager : ReadableManager<TypeCompte>, ITypeCompteRepository
     {
@@ -10,9 +10,17 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
-        public async Task<IEnumerable<TypeCompte>> GetTypeComptesPourChercher()
+        public virtual async Task<TypeCompte> GetTypeCompteByCompteId(int compteID)
+        {
+            return await dbSet
+                .Include(tc => tc.Comptes)
+                .FirstOrDefaultAsync(tc => tc.Comptes.Any(c => c.IdCompte == compteID));
+        }
+
+        public virtual async Task<IEnumerable<TypeCompte>> GetTypeComptesPourChercher()
         {
             return await dbSet.Where(tc => tc.Cherchable == true).ToListAsync();
         }
+
     }
 }

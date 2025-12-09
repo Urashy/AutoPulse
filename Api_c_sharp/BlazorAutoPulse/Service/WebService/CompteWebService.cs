@@ -1,17 +1,25 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service;
 
-public class CompteWebService : BaseWebService<Compte>, ICompteService
+public class CompteWebService : BaseWebService<CompteDetailDTO>, ICompteService
 {
     public CompteWebService(HttpClient httpClient) : base(httpClient)
     {
     }
 
     protected override string ApiEndpoint => "Compte";
+    public async Task<IEnumerable<CompteGetDTO>> GetAllAsync()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl("GetAll"));
+        var response = await SendWithCredentialsAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<IEnumerable<CompteGetDTO>>();
+    }
 
     public async Task<Compte> GetByNameAsync(string name)
     {
@@ -21,12 +29,49 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
         return await response.Content.ReadFromJsonAsync<Compte>();
     }
 
-    public async Task<Compte> GetMe()
+    public async Task<CompteDetailDTO> GetMe()
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl("GetMe"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<Compte>();
+        return await response.Content.ReadFromJsonAsync<CompteDetailDTO>();
+    }
+
+    public async Task<IEnumerable<CompteGetDTO>> GetByTypeCompteAsync(int idTypeCompte)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetByTypeCompte/{idTypeCompte}"));
+        var response = await SendWithCredentialsAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<IEnumerable<CompteGetDTO>>();
+    }
+
+    public async Task<int?> GetTypeCompteByCompteId(int idCompte)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetTypeCompteByCompteId/{idCompte}"));
+            var response = await SendWithCredentialsAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<int>();
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                Console.WriteLine($"Compte avec l'ID {idCompte} introuvable");
+                return null;
+            }
+
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erreur GetTypeCompteByCompteId : {error}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception GetTypeCompteByCompteId : {ex.Message}");
+            return null;
+        }
     }
 
     public async Task<bool> VerifUser(ChangementMdp changementMdp)
@@ -50,7 +95,6 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
         }
     }
 
-    // ✅ NOUVELLE MÉTHODE avec gestion d'erreur améliorée
     public async Task<ServiceResult<bool>> ChangementMdp(ChangementMdp changementMdp)
     {
         try
@@ -111,7 +155,7 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
 
     public async Task<bool> Anonymisation(int idCompte)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl($"Anonymisation/{idCompte}"));
+        var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"PutAnonymise/{idCompte}"));
         
         var response = await SendWithCredentialsAsync(request);
 
@@ -125,5 +169,34 @@ public class CompteWebService : BaseWebService<Compte>, ICompteService
             Console.WriteLine($"Erreur Post : {error}");
             return false;
         }
+    }
+
+    public async Task<bool> PutTypeCompte(int idCompte, CompteModifTypeCompteDTO compte)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"PutTypeCompte/{idCompte}"))
+        {
+            Content = JsonContent.Create(compte)
+        };
+        
+        var response = await SendWithCredentialsAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erreur Post : {error}");
+            return false;
+        }
+    }
+    
+    public async Task<CompteProfilPublicDTO> GetComptePublicById(int id)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetProfilPublic/{id}"));
+        var response = await SendWithCredentialsAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CompteProfilPublicDTO>();
     }
 }

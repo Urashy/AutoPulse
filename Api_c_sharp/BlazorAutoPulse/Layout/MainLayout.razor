@@ -1,10 +1,13 @@
 ﻿@using BlazorAutoPulse.Service.Interface
 @using BlazorAutoPulse.Service.WebService
+@using BlazorAutoPulse.Services
 @using BlazorAutoPulse.ViewModel
 @inherits LayoutComponentBase
 @inject MainLayoutViewModel VM
-@inject ISignalRService SVM
+@inject ConversationStateService CS
 @inject NavigationManager Navigation
+
+<ToastContainer />
 
 <header>
     <nav>
@@ -16,15 +19,15 @@
                 <span> Vendre </span>
             </NavLink>
             <NavLink href="favoris">
-                <span> ❤ </span>
+                <span> ❤ Favoris</span>
             </NavLink>
 
             <NavLink href="conversations" class="conversation-link">
                 <span class="conversation-btn">
                     💬 Conversations
-                    @if (unreadCount > 0)
+                    @if (VM.unreadCount > 0)
                     {
-                        <span class="notification-badge">@unreadCount</span>
+                        <span class="notification-badge">@VM.unreadCount</span>
                     }
                 </span>
             </NavLink>
@@ -40,14 +43,16 @@
                 <NavLink href="connexion">
                     <span class="btn-login"> Connexion </span>
                 </NavLink>
-                <NavLink href="creationcompte">
-                    <span class="btn-signup"> Inscription </span>
-                </NavLink>
             }
 
-            <NavLink href="admin">
-                <span class="btn-login"> Mode Admin </span>
-            </NavLink>
+            @if (VM.IsAdmin)
+            {
+                
+                <NavLink href="admin">
+                    <span class="btn-login"> Mode Admin </span>
+                </NavLink>
+            }
+                
         </ul>
     </nav>
 </header>
@@ -64,34 +69,8 @@
 </footer>
 
 @code {
-    private int unreadCount = 0;
-    
     protected override async Task OnInitializedAsync()
     {
-        await VM.InitializeAsync(StateHasChanged, Navigation);
-    }
-    
-    private void OnNewMessage(int conversationId, int senderId, string message, DateTime timestamp)
-    {
-        unreadCount++;
-        StateHasChanged();
-    }
-
-    private void OnNotification(string message)
-    {
-        Console.WriteLine($"Notification: {message}");
-    }
-
-    private async Task LoadUnreadCount()
-    {
-        // TODO: Appeler l'API pour obtenir le nombre de messages non lus
-        // unreadCount = await MessageService.GetUnreadCount();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        SVM.OnMessageReceived -= OnNewMessage;
-        SVM.OnNotificationReceived -= OnNotification;
-        await SVM.StopAsync();
+        await VM.InitializeAsync(StateHasChanged, Navigation, CS);
     }
 }

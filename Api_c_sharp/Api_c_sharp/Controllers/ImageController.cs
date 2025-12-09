@@ -3,6 +3,7 @@ using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
 namespace Api_c_sharp.Controllers
 {
@@ -28,7 +29,7 @@ namespace Api_c_sharp.Controllers
         public async Task<ActionResult<IEnumerable<ImageDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
-            return Ok(_mapper.Map<IEnumerable<ImageDTO>>(list));
+            return new ActionResult<IEnumerable<ImageDTO>>(_mapper.Map<IEnumerable<ImageDTO>>(list));
         }
 
         // POST
@@ -117,7 +118,9 @@ namespace Api_c_sharp.Controllers
         public async Task<ActionResult<IEnumerable<int>>> GetAllImagesByVoitureId(int voitureId)
         {
             var listId = await _manager.GetAllImagesByVoitureId(voitureId);
-            return listId == null ? NoContent() : Ok(listId);
+            if (listId == null || !listId.Any())
+                return NoContent();
+            return Ok(listId);
         }
 
         [ActionName("GetImageByCompte")]

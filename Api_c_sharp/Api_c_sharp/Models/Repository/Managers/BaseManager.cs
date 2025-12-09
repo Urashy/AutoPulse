@@ -13,7 +13,7 @@ namespace Api_c_sharp.Models.Repository.Managers
         public BaseManager(AutoPulseBdContext context)
         {
             this.context = context;
-            this.dbSet = context.Set<TEntity>();
+            this.dbSet = context?.Set<TEntity>();
         }
 
         public virtual async Task<TEntity> AddAsync(TEntity entity)
@@ -41,7 +41,7 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public abstract Task<TEntity?> GetByNameAsync(TKey name);
 
-        public async Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
+        public virtual async Task UpdateAsync(TEntity entityToUpdate, TEntity entity)
         {
             context.Entry(entityToUpdate).CurrentValues.SetValues(entity);
             await context.SaveChangesAsync();

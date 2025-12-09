@@ -1,23 +1,26 @@
-using System.Text;
-using Api_c_sharp.Models.Repository.Interfaces;
-using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using System.Security.Cryptography;
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Api_c_sharp.Models.Repository.Managers;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.IdentityModel.Tokens;
 using Api_c_sharp.Models.Authentification;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text.Json;
+using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
+using Api_c_sharp.Models.Repository.Managers;
+using AutoMapper;
+using AutoPulse.Shared.DTO;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Diagnostics.CodeAnalysis;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
-using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
 /// <summary>
 /// Contrôleur REST permettant de gérer les comptes.
@@ -27,7 +30,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config) : ControllerBase
+public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config, IJournalService _journalService) : ControllerBase
 {
 #region CRUD Classique
     /// <summary>
@@ -107,12 +110,14 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         if(!ModelState.IsValid)
             return BadRequest(ModelState);
 
+
         var entity = _compteMapper.Map<Compte>(dto);
         entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);
         entity.DateNaissance = DateTime.SpecifyKind(entity.DateNaissance, DateTimeKind.Utc);
         entity.DateCreation = DateTime.UtcNow;
         entity.DateDerniereConnexion = DateTime.UtcNow;
         await _manager.AddAsync(entity);
+        await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
     }
@@ -121,7 +126,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// Met à jour une compte existante.
     /// </summary>
     /// <param name="id">Identifiant unique de la compte à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="CompteDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="dto">Objet <see cref="CompteUpdateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -145,6 +150,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         updatedEntity.MotDePasse = toUpdate.MotDePasse;
         updatedEntity.DateDerniereConnexion = toUpdate.DateDerniereConnexion;
         updatedEntity.DateCreation = toUpdate.DateCreation;
+        await _journalService.LogModificationProfilAsync(id);
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
         return NoContent();
@@ -171,9 +177,49 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return NotFound();
 
         await _manager.UpdateAnonymise(id);
+        
+        Response.Cookies.Delete("access_token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        });
 
         return NoContent();
     }
+
+    /// <summary>
+    /// Met à jour un compte existante.
+    /// </summary>
+    /// <param name="id">Identifiant unique du compte à mettre à jour.</param>
+    /// <param name="dto">Objet <see cref="CompteModifTypeCompteDTO"/> contenant les nouvelles valeurs.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("PutTypeCompte")]
+    [HttpPut("{id}")]
+    public async Task<ActionResult> PutTypeCompte(int id, [FromBody] CompteModifTypeCompteDTO dto)
+    {
+        Compte compte = await _manager.GetByIdAsync(id);
+
+        if (compte == null)
+            return NotFound();
+
+        bool estpro = false;
+
+        if (compte.IdTypeCompte == 2)
+            estpro = true;
+
+        await _manager.UpdateTypeCompte(compte,dto,estpro);
+
+        return NoContent();
+    }
+
     /// <summary>
     /// Supprime une compte existante.
     /// </summary>
@@ -196,13 +242,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         await _manager.DeleteAsync(entity);
         return NoContent();
     }
-#endregion 
+    #endregion
 
 #region Autre methode
     [ActionName("GetMe")]
     [Authorize]
     [HttpGet]
-    public IActionResult GetMe()
+    public async Task<ActionResult<CompteDetailDTO>> GetMe()
     {
         var claim = User.FindFirst("idUser")?.Value;
         if (string.IsNullOrEmpty(claim))
@@ -213,8 +259,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
         if (user == null)
             return NotFound();
-
-        return Ok(user);
+        
+        CompteDetailDTO dto = _compteMapper.Map<CompteDetailDTO>(user);
+        return Ok(dto);
     }
     
     /// <summary>
@@ -260,7 +307,31 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
         return new ActionResult<IEnumerable<CompteGetDTO>>(_compteMapper.Map<IEnumerable<CompteGetDTO>>(result));
     }
-#endregion
+
+
+    /// <summary>
+    /// Récupère une profil public à partir de son identifiant.
+    /// </summary>
+    /// <param name="id">Identifiant unique de la compte recherchée.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="CompteDTO"/> si la compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("GetProfilPublic")]
+    [HttpGet("{id}")]
+    public async Task<ActionResult<CompteProfilPublicDTO>> GetProfilPublic(int id)
+    {
+        var result = await _manager.GetProfilPublic(id);
+
+        if (result is null)
+            return NotFound();
+
+        return _compteMapper.Map<CompteProfilPublicDTO>(result);
+    }
+
+    #endregion
 
 #region Authentification Classique
     //----------------------------------------------
@@ -300,12 +371,15 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 Path = "/"
             };
             
+            await _journalService.LogConnexionAsync(compte.IdCompte);
+            
             Response.Cookies.Append("access_token", tokenString, cookieOptions);
             
             return Ok(new { 
                 message = "Login OK",
                 userId = compte.IdCompte,
-                pseudo = compte.Pseudo
+                pseudo = compte.Pseudo,
+                role = compte.IdTypeCompte
             });
         }
         catch (Exception ex)
@@ -321,6 +395,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     {
         try
         {
+            await _journalService.LogDeconnexionAsync(int.Parse(User.FindFirst("idUser")?.Value));
             // Efface le cookie JWT HTTP-only
             Response.Cookies.Delete("access_token", new CookieOptions
             {
@@ -329,7 +404,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 SameSite = SameSiteMode.None,
                 Path = "/"
             });
-
             return Ok(new { message = "Logout OK" });
         }
         catch (Exception ex)
@@ -410,9 +484,10 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return StatusCode(500, $"Erreur : {ex.Message}");
         }
     }
-#endregion
+    #endregion
 
 #region Outils Authentification Google
+    [ExcludeFromCodeCoverage]
     private async Task<GoogleTokenResponse> ExchangeCodeForToken(string code)
     {
         var clientId = config["Authentication:Google:ClientId"];
@@ -433,7 +508,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var json = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<GoogleTokenResponse>(json);
     }
-
+    [ExcludeFromCodeCoverage]
     private async Task<GoogleUserInfo> GetGoogleUserInfo(string accessToken)
     {
         using var httpClient = new HttpClient();
@@ -444,7 +519,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var json = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<GoogleUserInfo>(json);
     }
-
+    [ExcludeFromCodeCoverage]
     private async Task<(bool, Compte)> GetOrCreateCompte(GoogleUserInfo userInfo)
     {
         // Cherche si un compte existe déjà avec cet email
@@ -523,19 +598,16 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <returns>Vrai si l'utilisateur avec ce mot de passe existe, sinon faux.</returns>
     [ActionName("VerifUser")]
     [HttpPost]
-    public bool VerifUser([FromBody] ChangementMdpDTO dto)
+    public async Task<bool> VerifUser([FromBody] ChangementMdpDTO dto)
     {
         string hash = ComputeSha256Hash(dto.MotDePasse);
-        var result =  _manager.VerifMotDePasse(dto.Email, hash) != null;
+        var result = await _manager.VerifMotDePasse(dto.Email, hash) is not null;
 
-        if (result != null)
+        if (result)
         {
             return true;
         }
-        else         
-        {
-            return false;
-        }
+        return false;
     }
 #endregion
     
@@ -574,6 +646,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             new Claim("role", "Authorized"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("idUser", compte.IdCompte.ToString()),
+
         };
         
         var token = new JwtSecurityToken(

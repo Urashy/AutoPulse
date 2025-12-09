@@ -60,10 +60,7 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            if (idConversation != dto.IdConversation || idCompte != dto.IdCompte)
-                return BadRequest();
-
-            var toUpdate = await _manager.GetByIdsAsync(idCompte, idConversation);
+            var toUpdate = await _manager.GetAPourConversationByIDS(idCompte, idConversation);
             if (toUpdate == null)
                 return NotFound();
 
@@ -87,7 +84,7 @@ namespace Api_c_sharp.Controllers
         [HttpDelete("{idConversation}/{idCompte}")]
         public async Task<IActionResult> Delete(int idConversation, int idCompte)
         {
-            var entity = await _manager.GetByIdsAsync(idCompte, idConversation);
+            var entity = await _manager.GetAPourConversationByIDS(idCompte, idConversation);
 
             if (entity == null)
                 return NotFound();
@@ -122,7 +119,7 @@ namespace Api_c_sharp.Controllers
         [HttpGet("{idConversation}/{idCompte}")]
         public async Task<ActionResult<APourConversationDTO>> GetByID(int idConversation, int idCompte)
         {
-            var result = await _manager.GetByIdsAsync(idCompte, idConversation);
+            var result = await _manager.GetAPourConversationByIDS(idCompte, idConversation);
 
             if (result == null)
                 return NotFound();

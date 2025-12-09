@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Api_c_sharp.Models.Entity;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
 /// <summary>
 /// Contrôleur REST permettant de gérer les journaux.
@@ -148,7 +148,7 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     {
         var result = await _manager.GetJournalByType(idtype);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<JournalDTO>>(_mapper.Map<IEnumerable<JournalDTO>>(result));

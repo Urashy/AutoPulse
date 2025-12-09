@@ -10,7 +10,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
         }
 
-        public async Task<IEnumerable<Avis>> GetAvisByCompteId(int compteId)
+        public virtual async Task<IEnumerable<Avis>> GetAvisByCompteId(int compteId)
         {
             return await dbSet.Where(c => c.IdJugeur == compteId || c.IdJugee == compteId ).OrderBy(a => a.DateAvis).ToListAsync();
         }

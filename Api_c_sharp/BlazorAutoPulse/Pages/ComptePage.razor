@@ -147,6 +147,65 @@
     </div>
 }
 
+<!-- Modal passer en compte professionnel -->
+<!-- Modal passer en compte professionnel -->
+@if (VM.passerPro)
+{
+    <div class="modal-overlay" @onclick="VM.CloseProModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>💼 Passer en compte professionnel</h3>
+                <button class="modal-close" @onclick="VM.CloseProModal">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="pro-info-box">
+                    <p class="pro-info-text">
+                        Accédez à des fonctionnalités exclusives en passant à un compte professionnel.
+                    </p>
+                </div>
+
+                @if (!string.IsNullOrEmpty(VM.erreurChangeTypeCompte))
+                {
+                    <div class="error-message-box">
+                        @VM.erreurChangeTypeCompte
+                    </div>
+                }
+
+                <form>
+                    <div class="form-group">
+                        <label>Raison sociale</label>
+                        <input type="text"
+                               placeholder="Nom de votre entreprise"
+                               @bind="VM.compteModifType.RaisonSociale"
+                               class="info-input"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Numéro SIRET</label>
+                        <input type="text"
+                               placeholder="123 456 789 00012"
+                               @bind="VM.compteModifType.NumeroSiret"
+                               class="info-input"
+                               required>
+                        <small class="input-hint">14 chiffres sans espaces</small>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" @onclick="VM.CloseProModal">
+                    Annuler
+                </button>
+                <button class="btn-pro" @onclick="VM.ValidateProAccount">
+                    Valider
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <div class="compte-container">
     <!-- Section haute - Profil et informations -->
     <div class="profile-header">
@@ -164,7 +223,11 @@
         </div>
 
         <div class="profile-info">
-            @if (!VM.isEditing)
+            @if (VM?.compte == null)
+            {
+                <p>Chargement...</p>
+            }
+            else if (!VM.isEditing)
             {
                 <div class="info-grid">
                     <div class="info-item">
@@ -191,6 +254,17 @@
                         <span class="info-label">Biographie</span>
                         <span class="info-value">@VM.compte.Biographie</span>
                     </div>
+                    @if (VM.compte.IdTypeCompte == 2)
+                    {
+                        <div class="info-item">
+                            <span class="info-label">Raison social</span>
+                            <span class="info-value">@VM.compte.RaisonSociale</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Numéro de SIRET</span>
+                            <span class="info-value">@VM.compte.NumeroSiret</span>
+                        </div>
+                    }
                 </div>
             }
             else
@@ -198,11 +272,11 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <label class="info-label">Nom</label>
-                        <input type="text" @bind="VM.compteEdit.Nom" class="info-input" />
+                        <input type="text" @bind="VM.compteEdit.Nom" class="info-input"/>
                     </div>
                     <div class="info-item">
                         <label class="info-label">Prénom</label>
-                        <input type="text" @bind="VM.compteEdit.Prenom" class="info-input" />
+                        <input type="text" @bind="VM.compteEdit.Prenom" class="info-input"/>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Date de naissance</span>
@@ -210,16 +284,27 @@
                     </div>
                     <div class="info-item">
                         <label class="info-label">Pseudo</label>
-                        <input type="text" @bind="VM.compteEdit.Pseudo" class="info-input" />
+                        <input type="text" @bind="VM.compteEdit.Pseudo" class="info-input"/>
                     </div>
                     <div class="info-item">
                         <label class="info-label">Email</label>
-                        <input type="email" @bind="VM.compteEdit.Email" class="info-input" />
+                        <input type="email" @bind="VM.compteEdit.Email" class="info-input"/>
                     </div>
                     <div class="info-item">
                         <label class="info-label">Biographie</label>
-                        <input type="email" @bind="VM.compteEdit.Biographie" class="info-input" />
+                        <input type="email" @bind="VM.compteEdit.Biographie" class="info-input"/>
                     </div>
+                    @if (VM.compte.IdTypeCompte == 2)
+                    {
+                        <div class="info-item">
+                            <label class="info-label">Raison sociale</label>
+                            <input type="email" @bind="VM.compteEdit.RaisonSociale" class="info-input"/>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Numéro de SIRET</span>
+                            <span class="info-value">@VM.compte.NumeroSiret</span>
+                        </div>
+                    }
                 </div>
             }
 
@@ -234,6 +319,7 @@
                 {
                     <button class="btn-primary" @onclick="VM.SaveProfile">Enregistrer</button>
                     <button class="btn-secondary" @onclick="VM.CancelEdit">Annuler</button>
+                    <button class="btn-primary" @onclick="(VM.compte.IdTypeCompte == 1? VM.OpenProModal : VM.ValidateProAccount)">@(VM.compte.IdTypeCompte == 1?  "Passer en compte pro": "Passer à un compte personnel")</button>
                 }
 
                 <button class="btn-danger" @onclick="ConnexionVM.DeconnexionUtilisateur">Déconnexion</button>
@@ -264,15 +350,69 @@
 
         <div class="content-section">
             <!-- Ici seront injectés les différents composants selon la section active -->
-            @if(VM.activeSection == "annonces")
-            {
-                <div class="cars-grid">
-                    @foreach (var a in VM.allAnnonces)
-                    {
-                        <AnnonceComposant Annonce="@a" />
-                    }
-                </div>
-            }
+            <div class="section-placeholder">
+                <h3>Section: @VM.activeSection</h3>
+                <p>Le contenu du composant @VM.activeSection sera affiché ici.</p>
+
+                @switch(VM.activeSection)
+                {
+                    case "annonces":
+                        if (@VM.annonces != null)
+                        {
+                            @foreach (var annonce in VM.annonces)
+                            {
+                                <p>@annonce.Libelle</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>Vous n'avez aucune annonce</p>
+                        }
+                        break;
+
+                        case "avis":
+                        if (@VM.avis != null)
+                        {
+                            @foreach (var av in VM.avis)
+                            {
+                                <p>@av.NoteAvis</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>Vous n'avez aucun avis</p>
+                        }
+                        break;
+
+                    case "adresses":
+                        if (@VM.adresses != null)
+                        {
+                            @foreach (var adresse in VM.adresses)
+                            {
+                                <p>@adresse.Nom</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>Vous n'avez aucune adresse</p>
+                        }
+                        break;
+
+                        case "commandes":
+                        if (@VM.commandes != null)
+                        {
+                            @foreach (var commande in VM.commandes)
+                            {
+                                <p>@commande.MoyenPaiement</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>Vous n'avez aucune commande</p>
+                        }
+                        break;
+                }
+            </div>
         </div>
     </div>
 </div>

@@ -8,29 +8,18 @@ using System.Collections.Generic;
 using Api_c_sharp.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
-/// <summary>
-/// Contrôleur REST permettant de gérer les messages.
-/// Les méthodes exposent ou consomment des DTO afin
-/// d’assurer la séparation entre le modèle de domaine
-/// et la couche API.
-/// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class MessageController(MessageManager _manager, IMapper _messagemapper, IHubContext<MessageHub> _hubContext = null ) : ControllerBase
+public class MessageController(
+    MessageManager _manager, 
+    IMapper _messagemapper,
+    IJournalService _journalService, 
+    IHubContext<MessageHub> _hubContext = null) : ControllerBase
 {
-    /// <summary>
-    /// Récupère un message à partir de son identifiant.
-    /// </summary>
-    /// <param name="id">Identifiant unique de la message recherchée.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="MessageDTO"/> si la message existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
     public async Task<ActionResult<MessageDTO>> GetByID(int id)
@@ -43,12 +32,6 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
         return _messagemapper.Map<MessageDTO>(result);
     }
 
-    /// <summary>
-    /// Récupère la liste de toutes les messages.
-    /// </summary>
-    /// <returns>
-    /// Une liste de <see cref="MessageDTO"/> (200 OK).
-    /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<MessageDTO>>> GetAll()
@@ -58,26 +41,23 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
     }
 
     /// <summary>
-    /// Crée une nouveau message.
+    /// Crée un nouveau message et notifie TOUS les participants via SignalR
     /// </summary>
-    /// <param name="dto">Objet <see cref="messageDTO"/> contenant les informations de la message à créer.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec la message créée (201).</description></item>
-    /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<MessageDTO>> Post([FromBody] MessageDTO dto)
+    public async Task<ActionResult<MessageCreateDTO>> Post([FromBody] MessageCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         var entity = _messagemapper.Map<Message>(dto);
+        entity.DateEnvoiMessage = DateTime.UtcNow;
+        entity.EstLu = false;
+
+        await _journalService.LogEnvoiMessageAsync(dto.IdCompte, dto.IdConversation, dto.ContenuMessage);
         await _manager.AddAsync(entity);
 
-        if (_hubContext != null)
+        if(_hubContext != null)
         {
             await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
             .SendAsync("ReceiveMessage",
@@ -90,18 +70,6 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdMessage }, entity);
     }
 
-    /// <summary>
-    /// Met à jour un message existant.
-    /// </summary>
-    /// <param name="id">Identifiant unique de la message à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="messageDTO"/> contenant les nouvelles valeurs.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] MessageDTO dto)
@@ -120,16 +88,6 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
         return NoContent();
     }
 
-    /// <summary>
-    /// Supprime un message existante.
-    /// </summary>
-    /// <param name="id">Identifiant unique de la message à supprimer.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
@@ -144,27 +102,36 @@ public class MessageController(MessageManager _manager, IMapper _messagemapper, 
     }
 
     /// <summary>
-    /// Récupère une liste de message à partir d'une conversation.
+    /// Récupère tous les messages d'une conversation et les marque automatiquement comme lus
+    /// via la fonction stockée en base de données
     /// </summary>
-    /// <param name="id">Identifiant unique de la message recherchée.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="MessageDTO"/> si la message existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune message ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
-    [ActionName("GetAllByConversation")]
-    [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<MessageDTO>>> GetByConversation(int idconversation)
+    [ActionName("GetAllByConversationAndMarkAsRead")]
+    [HttpGet("{idconversation}/{iduser}")]
+    public async Task<ActionResult<IEnumerable<MessageDTO>>> GetByConversationAndMarkAsRead(int idconversation, int iduser)
     {
-        var result = await _manager.GetMessagesByConversation(idconversation);
+        // Api_c_sharpel de la méthode qui marque les messages comme lus via la fonction BD
+        var result = await _manager.GetMessagesByConversationAndMarkAsRead(idconversation, iduser);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
+        // Notifier via SignalR que les messages ont été lus
+        if (_hubContext != null)
+        {
+            await _hubContext.Clients.Group($"conversation_{idconversation}")
+            .SendAsync("MessagesRead", idconversation, iduser);
+        }
         return new ActionResult<IEnumerable<MessageDTO>>(_messagemapper.Map<IEnumerable<MessageDTO>>(result));
-
     }
 
-
+    /// <summary>
+    /// Récupère le nombre de messages non lus pour une conversation via fonction stockée
+    /// </summary>
+    [ActionName("GetUnreadCount")]
+    [HttpGet("{conversationId}/{userId}")]
+    public async Task<ActionResult<int>> GetUnreadCount(int conversationId, int userId)
+    {
+        var count = await _manager.GetUnreadMessageCount(conversationId, userId);
+        return Ok(count);
+    }
 }

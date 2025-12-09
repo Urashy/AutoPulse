@@ -2,6 +2,7 @@ using BlazorAutoPulse.Model;
 using Microsoft.AspNetCore.Components;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.ViewModel
@@ -130,7 +131,7 @@ namespace BlazorAutoPulse.ViewModel
                 }
 
                 // Créer le DTO de mise à jour
-                Compte updateDto = new Compte()
+                CompteDetailDTO updateDto = new CompteDetailDTO()
                 {
                     IdCompte = compte.IdCompte,
                     Pseudo = compte.Pseudo,

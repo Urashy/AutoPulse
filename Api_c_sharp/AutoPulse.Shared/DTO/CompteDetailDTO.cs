@@ -12,6 +12,7 @@ public class CompteDetailDTO
     public DateTime DateNaissance { get; set; }
     public string Biographie { get; set; }
     public string TypeCompte { get; set; }
+    public int IdTypeCompte { get; set; }
     public string NumeroSiret { get; set; }
     public string RaisonSociale { get; set; }
     public List<AdresseDTO> Adresses { get; set; } = new List<AdresseDTO>();

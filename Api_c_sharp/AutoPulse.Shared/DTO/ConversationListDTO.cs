@@ -7,5 +7,8 @@ public class ConversationListDTO
     public string LibelleAnnonce { get; set; }
     public string DernierMessage { get; set; }
     public DateTime DateDernierMessage { get; set; }
-    public List<string> ParticipantsPseudos { get; set; }
+    public string ParticipantPseudo { get; set; }
+    public int IdParticipant { get; set; }
+    
+    public int NombreNonLu { get; set; }
 }

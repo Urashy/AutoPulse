@@ -10,12 +10,12 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
         }
 
-        public async Task<IEnumerable<Facture>> GetAllAsync()
+        public virtual async Task<IEnumerable<Facture>> GetAllAsync()
         {
             return await dbSet.ToListAsync();
         }
 
-        public async Task<Facture?> GetByIdAsync(int id)
+        public virtual async Task<Facture?> GetByIdAsync(int id)
         {
             return await dbSet.FindAsync(id);
         }

@@ -5,13 +5,14 @@ using FuzzySharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 
-namespace Api_c_sharp.Models.Repository.Managers
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class AnnonceManager : BaseManager<Annonce,string>, IAnnonceRepository
     {
-        private IQueryable<Annonce> ApplyIncludes()
+        private IQueryable<Annonce> Api_c_sharplyIncludes()
         {
             return context.Set<Annonce>()
                 .Include(a => a.MiseEnAvantAnnonceNav)
@@ -49,24 +50,30 @@ namespace Api_c_sharp.Models.Repository.Managers
 
         public override async Task<IEnumerable<Annonce>> GetAllAsync()
         {
-            return await ApplyIncludes().OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
+            return await Api_c_sharplyIncludes().Where(a => a.IdEtatAnnonce == 1).OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
         }
 
         public override async Task<Annonce?> GetByNameAsync(string name)
         {
-            return await ApplyIncludes().FirstOrDefaultAsync(a => a.Libelle == name);
+            return await Api_c_sharplyIncludes().Where(a => a.IdEtatAnnonce == 1).FirstOrDefaultAsync(a => a.Libelle == name);
         }
 
-        public async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId)
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByMiseEnAvant(int miseAvantId, int pageNumber, int pageSize)
         {
-            return await ApplyIncludes()
-                .Where(a => a.IdMiseEnAvant == miseAvantId)
+            int skip = Math.Max(0, (pageNumber - 1) * pageSize);
+            int take = Math.Max(1, pageSize);
+            return await Api_c_sharplyIncludes()
+                .Where(a => a.IdMiseEnAvant == miseAvantId && a.IdEtatAnnonce == 1 && a.IdEtatAnnonce == 1)
+                .Skip(skip)
+                .Take(take)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderprix)
+        // Dans AnnonceManager.cs - Méthode GetFilteredAnnonces
+
+        public virtual async Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param, int pageNumber, int pageSize, int orderprix)
         {
-            var query = ApplyIncludes();
+            var query = Api_c_sharplyIncludes();
 
             // Filtre par département
             if (!string.IsNullOrEmpty(param.Departement))
@@ -94,11 +101,9 @@ namespace Api_c_sharp.Models.Repository.Managers
             if (param.IdTypeVoiture > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.IdCategorie == param.IdTypeVoiture);
 
-            // Filtre par type de vendeur
             if (param.IdTypeVendeur > 0)
                 query = query.Where(a => a.CompteAnnonceNav.IdTypeCompte == param.IdTypeVendeur);
 
-            // Filtre par nom
             if (!string.IsNullOrEmpty(param.Nom))
             {
                 query = query.Where(a => Fuzz.PartialRatio(a.Libelle.ToLower(), param.Nom.ToLower()) > 70);
@@ -109,44 +114,70 @@ namespace Api_c_sharp.Models.Repository.Managers
             if (param.KmMax > 0)
                 query = query.Where(a => a.VoitureAnnonceNav.Kilometrage <= param.KmMax);
 
-            // Tri avec priorité : Mise en avant > Prix > Date
+            query = query.Where(a => a.IdEtatAnnonce == 1);
+
             IOrderedQueryable<Annonce> orderedQuery = query.OrderByDescending(a => a.IdMiseEnAvant);
 
-            // Tri par prix selon le paramètre orderprix
             if (orderprix == 1) // Croissant
                 orderedQuery = orderedQuery.ThenBy(a => a.Prix);
             else if (orderprix == 2) // Décroissant
                 orderedQuery = orderedQuery.ThenByDescending(a => a.Prix);
 
-            // Tri final par date de publication
             orderedQuery = orderedQuery.ThenByDescending(a => a.DatePublication);
 
-            // Logique de pagination
-            if (pageNumber > 0 && pageSize > 0)
-            {
-                orderedQuery = (IOrderedQueryable<Annonce>)orderedQuery
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize);
-            }
+            int skip = Math.Max(0, (pageNumber - 1) * pageSize);
+            int take = Math.Max(1, pageSize); // Assure qu'on prend au moins 1 élément
 
-            return await orderedQuery.ToListAsync();
+            var result = await orderedQuery
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
+
+            return result;
         }
 
-        public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId)
         {
-            return await dbSet.Where(a => a.Favoris.Any(f => f.IdCompte == compteId)).ToListAsync();
+            return await Api_c_sharplyIncludes().Where(a => a.Favoris.Any(f => f.IdCompte == compteId) && a.IdEtatAnnonce == 1).ToListAsync();
         }
         public override async Task<Annonce?> GetByIdAsync(int id)
         {
-            return await ApplyIncludes()
+            return await Api_c_sharplyIncludes()
                 .FirstOrDefaultAsync(a => a.IdAnnonce == id);
         }
 
-        public async Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId)
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId)
         {
-            return await ApplyIncludes()
+            return await Api_c_sharplyIncludes()
                 .Where(a => a.IdCompte == compteId)
                 .ToListAsync();
+        }
+
+        public override async Task<bool> DeleteAsync(Annonce entity)
+        {
+            Commande commandes = await context.Commandes.FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
+
+            if (commandes != null)
+            {
+                entity.IdEtatAnnonce = 6;
+                return false;
+            }
+            else
+                await base.DeleteAsync(entity);
+            return true;
+        }
+
+        public async Task<bool> EstMasque(int annonceId)
+        {
+            Annonce annonce = dbSet.Find(annonceId);
+            if (annonce.IdEtatAnnonce == 4)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

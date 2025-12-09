@@ -1,35 +1,27 @@
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using Api_c_sharp.Models.Entity;
+using Npgsql.Internal;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
 /// <summary>
-/// Contrôleur REST permettant de gérer les signalements.
-/// Les méthodes exposent ou consomment des DTO afin
-/// d’assurer la séparation entre le modèle de domaine
-/// et la couche API.
+/// Contrôleur REST permettant de gérer les signalements (annonces et comptes).
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class SignalementController(SignalementManager _manager, IMapper _mapper) : ControllerBase
+public class SignalementController(
+    SignalementManager _manager,
+    IMapper _mapper,
+    IJournalService _journalService) : ControllerBase
 {
     /// <summary>
     /// Récupère un signalement à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la signalement recherchée.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="SignalementDTO"/> si la signalement existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune signalement ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
     public async Task<ActionResult<SignalementDTO>> GetByID(int id)
@@ -43,59 +35,82 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Récupère la liste de toutes les signalements.
+    /// Récupère la liste de tous les signalements.
     /// </summary>
-    /// <returns>
-    /// Une liste de <see cref="SignalementDTO"/> (200 OK).
-    /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
-        return new ActionResult<IEnumerable<SignalementDTO>>(_mapper.Map<IEnumerable<SignalementDTO>>(list));
+        return new ActionResult<IEnumerable<SignalementDTO>>(
+            _mapper.Map<IEnumerable<SignalementDTO>>(list));
     }
 
     /// <summary>
-    /// Crée une nouveau signalements.
+    /// Crée un nouveau signalement (annonce ou compte).
     /// </summary>
-    /// <param name="dto">Objet <see cref="SignalementCreateDTO"/> contenant les informations de la signalement à créer.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec la signalement créée (201).</description></item>
-    /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<SignalementCreateDTO>> Post([FromBody] SignalementCreateDTO dto)
+    public async Task<ActionResult<SignalementDTO>> Post([FromBody] SignalementCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
+        // Validation : doit signaler SOIT une annonce SOIT un compte
+        if (dto.IdAnnonceSignale.HasValue && dto.IdCompteSignale.HasValue)
+            return BadRequest("Un signalement ne peut pas cibler à la fois une annonce et un compte");
+
+        if (!dto.IdAnnonceSignale.HasValue && !dto.IdCompteSignale.HasValue)
+            return BadRequest("Un signalement doit cibler soit une annonce soit un compte");
+
+        // Récupération de l'ID du compte signalant depuis le token JWT
+        string compteId = User.FindFirst("idUser")?.Value;
+        if (string.IsNullOrEmpty(compteId))
+            return Unauthorized();
+
+        dto.IdCompteSignalant = int.Parse(compteId);
+
         var entity = _mapper.Map<Signalement>(dto);
+        entity.DateCreationSignalement = DateTime.UtcNow;
+        entity.IdEtatSignalement = 1; // En attente
+
         await _manager.AddAsync(entity);
 
-        return CreatedAtAction(nameof(GetByID), new { id = entity.IdSignalement }, entity);
+        // Log dans le journal
+        if (dto.IdAnnonceSignale.HasValue)
+        {
+            await _journalService.LogSignalementAsync(
+                dto.IdCompteSignalant,
+                dto.IdAnnonceSignale.Value,
+                entity.IdSignalement,
+                dto.IdTypeSignalement,
+                dto.DescriptionSignalement);
+        }
+        else if (dto.IdCompteSignale.HasValue)
+        {
+            await _journalService.LogSignalementAsync(
+                dto.IdCompteSignalant,
+                dto.IdCompteSignale.Value,
+                entity.IdSignalement,
+                dto.IdTypeSignalement,
+                dto.DescriptionSignalement);
+        }
+
+        var signalementComplet = await _manager.GetByIdAsync(entity.IdSignalement);
+        return CreatedAtAction(
+            nameof(GetByID),
+            new { id = entity.IdSignalement },
+            _mapper.Map<SignalementDTO>(signalementComplet));
     }
 
     /// <summary>
-    /// Met à jour un signalements existant.
+    /// Met à jour un signalement existant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la signalement à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="SignalementCreateDTO"/> contenant les nouvelles valeurs.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune signalement ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] SignalementCreateDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] SignalementUpdateDTO dto)
     {
-        if (id != dto.IdSignalement)
+        if (!ModelState.IsValid)
             return BadRequest();
 
         var toUpdate = await _manager.GetByIdAsync(id);
@@ -110,15 +125,8 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Supprime un signalement existante.
+    /// Supprime un signalement existant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la signalement à supprimer.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune signalement ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
@@ -133,27 +141,52 @@ public class SignalementController(SignalementManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Récupère des signalement à partir de son état.
+    /// Récupère les signalements par état.
     /// </summary>
-    /// <param name="id">Identifiant unique de la signalement recherchée.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description><see cref="SignalementDTO"/> si la signalement existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune signalement ne correspond (404).</description></item>
-    /// </list>
-    /// </returns>
     [ActionName("GetAllByEtatSignalement")]
-    [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAllByEtatSignalement(int idconversation)
+    [HttpGet("{idetatsignalement}")]
+    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAllByEtatSignalement(int idetatsignalement)
     {
-        var result = await _manager.GetSignalementsByEtat(idconversation);
+        var result = await _manager.GetSignalementsByEtat(idetatsignalement);
 
-        if (result is null)
+        if (result is null || !result.Any())
             return NotFound();
 
-        return new ActionResult<IEnumerable<SignalementDTO>>(_mapper.Map<IEnumerable<SignalementDTO>>(result));
-
+        return new ActionResult<IEnumerable<SignalementDTO>>(
+            _mapper.Map<IEnumerable<SignalementDTO>>(result));
     }
 
+    /// <summary>
+    /// Met à jour l'état d'un signalement.
+    /// </summary>
+    /// <param name="idSignalement">ID du signalement</param>
+    /// <param name="nouvelEtat">Nouvel état (1=En attente, 2=Traité, 3=Rejeté)</param>
+    [ActionName("UpdateEtat")]
+    [HttpPut("{idSignalement}/{nouvelEtat}")]
+    public async Task<ActionResult> UpdateEtat(int idSignalement, int nouvelEtat)
+    {
+        Signalement signalement = await _manager.GetByIdAsync(idSignalement);
 
+        if (signalement == null)
+            return NotFound();
+
+        // Valider que le nouvel état est valide
+        if (nouvelEtat < 1 || nouvelEtat > 3)
+            return BadRequest("État invalide. Doit être 1 (En attente), 2 (Traité) ou 3 (Rejeté)");
+        Signalement newsignalement = new Signalement
+        {
+            IdSignalement = signalement.IdSignalement,
+            DescriptionSignalement = signalement.DescriptionSignalement,
+            DateCreationSignalement = signalement.DateCreationSignalement,
+            IdCompteSignalant = signalement.IdCompteSignalant,
+            IdCompteSignale = signalement.IdCompteSignale,
+            IdAnnonceSignale = signalement.IdAnnonceSignale,
+            IdTypeSignalement = signalement.IdTypeSignalement,
+            IdEtatSignalement = nouvelEtat
+        };
+
+        await _manager.UpdateAsync(signalement, newsignalement);
+
+        return NoContent();
+    }
 }

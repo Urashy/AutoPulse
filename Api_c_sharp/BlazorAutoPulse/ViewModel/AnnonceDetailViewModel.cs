@@ -1,17 +1,20 @@
-﻿using BlazorAutoPulse.Model;
+﻿using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.JSInterop;
-using System.Threading.Tasks;
+using BlazorAutoPulse.Service;
+using Microsoft.AspNetCore.Components;
 
 namespace BlazorAutoPulse.ViewModel
 {
     public class AnnonceDetailViewModel
     {
-        private readonly IAnnonceDetailService _annonceService;
+        private readonly IAnnonceService _annonceService;
         private readonly IPostImageService _postImageService;
         private readonly IImageService _imageService;
         private readonly IFavorisService _favorisService;
         private readonly ICompteService _compteService;
+        private readonly ICouleurService _couleurService;
+        private readonly NotificationService  _notificationService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public List<int> ImageIds { get; private set; } = new();
@@ -24,43 +27,46 @@ namespace BlazorAutoPulse.ViewModel
         public bool show3DViewer { get; private set; } = false;
         public bool is3DReady { get; private set; } = false;
         public bool isLoading3D { get; private set; } = false;
-        public string selectedColor { get; private set; } = "#ff0000";
-        public List<string> availableAnimations { get; private set; } = new();
         
-        public List<Couleur> availableColors { get; } = new()
-        {
-            new Couleur { LibelleCouleur = "Rouge", CodeHexaCouleur = "#ff0000" },
-            new Couleur { LibelleCouleur = "Bleu", CodeHexaCouleur = "#0066ff" },
-            new Couleur { LibelleCouleur = "Noir", CodeHexaCouleur = "#1a1a1a" },
-            new Couleur { LibelleCouleur = "Blanc", CodeHexaCouleur = "#ffffff" },
-            new Couleur { LibelleCouleur = "Gris", CodeHexaCouleur = "#808080" },
-            new Couleur { LibelleCouleur = "Argent", CodeHexaCouleur = "#c0c0c0" },
-            new Couleur { LibelleCouleur = "Jaune", CodeHexaCouleur = "#ffdd00" },
-            new Couleur { LibelleCouleur = "Vert", CodeHexaCouleur = "#00aa44" },
-            new Couleur { LibelleCouleur = "Orange", CodeHexaCouleur = "#ff6600" }
-        };
+        public List<CouleurDTO> couleurDisponible { get; set; }
+        public string selectedColor { get; private set; }
+
+        // Propriétés pour le menu d'options
+        public bool IsOptionsMenuOpen { get; private set; } = false;
+        public string? infoOptionAnnonce { get; private set; } = null;
+
+        public string? erreurSupprimeAnnonce = null;
+        public bool estMasquer = false;
+        
+        public string ProfileImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
 
         private Action? _refreshUI;
         private IJSRuntime? _jsRuntime;
+        private NavigationManager _nav;
 
         public AnnonceDetailViewModel(
-            IAnnonceDetailService annonceService,
+            IAnnonceService annonceService,
             IPostImageService postImageService,
             IFavorisService favorisService,
             ICompteService compteService,
-            IImageService imageService)
+            IImageService imageService,
+            ICouleurService couleurService,
+            NotificationService notificationService)
         {
             _annonceService = annonceService;
             _postImageService = postImageService;
             _favorisService = favorisService;
             _compteService = compteService;
             _imageService = imageService;
+            _couleurService = couleurService;
+            _notificationService = notificationService;
         }
 
-        public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime)
+        public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime,  NavigationManager nav)
         {
             _refreshUI = refreshUI;
             _jsRuntime = jsRuntime;
+            _nav = nav;
             IsLoading = true;
             _refreshUI?.Invoke();
 
@@ -68,7 +74,7 @@ namespace BlazorAutoPulse.ViewModel
             {
                 try
                 {
-                    Compte user = await _compteService.GetMe();
+                    CompteDetailDTO user = await _compteService.GetMe();
                     CurrentUserId = user.IdCompte;
                 }
                 catch
@@ -77,7 +83,15 @@ namespace BlazorAutoPulse.ViewModel
                 }
 
                 // Charger l'annonce
-                Annonce = await _annonceService.GetByIdAsync(idAnnonce);
+                Annonce = await _annonceService.GetAnnonceDetailById(idAnnonce);
+                
+                if (Annonce != null)
+                {
+                    await LoadVendeurProfileImage(Annonce.IdVendeur);
+                }
+                
+                couleurDisponible = await _couleurService.GetCouleursByVoitureId(Annonce.IdVoiture);
+                selectedColor = couleurDisponible?.FirstOrDefault()?.CodeHexaCouleur;
 
                 if (Annonce != null && Annonce.IdVoiture > 0)
                 {
@@ -110,6 +124,8 @@ namespace BlazorAutoPulse.ViewModel
                     });
                 }
             }
+            
+            EstMasquerAnnonce();
         }
 
         public async Task ToggleFavorite()
@@ -216,21 +232,6 @@ namespace BlazorAutoPulse.ViewModel
                 
                 await _jsRuntime.InvokeVoidAsync("car3DViewer.init", "car3DViewer", Annonce.LienModeleBlender);
                 
-                // Récupérer les animations disponibles
-                try
-                {
-                    var animations = await _jsRuntime.InvokeAsync<string[]>("car3DViewer.getAnimationNames");
-                    availableAnimations = animations?.ToList() ?? new List<string>();
-                    if (availableAnimations.Any())
-                    {
-                        Console.WriteLine($"Animations disponibles: {string.Join(", ", availableAnimations)}");
-                    }
-                }
-                catch
-                {
-                    // Pas grave si on ne peut pas récupérer les animations
-                }
-                
                 is3DReady = true;
                 Console.WriteLine("Modèle 3D préchargé avec succès (en arrière-plan)");
                 _refreshUI?.Invoke();
@@ -297,8 +298,6 @@ namespace BlazorAutoPulse.ViewModel
                 
                 // Récupérer les animations disponibles
                 var animations = await _jsRuntime.InvokeAsync<string[]>("car3DViewer.getAnimationNames");
-                availableAnimations = animations?.ToList() ?? new List<string>();
-                Console.WriteLine($"Animations disponibles: {string.Join(", ", availableAnimations)}");
                 
                 Console.WriteLine("Visualiseur 3D initialisé avec succès");
                 isLoading3D = false;
@@ -330,35 +329,111 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        public async Task ToggleAnimation(string animationName)
+        public void ToggleOptionsMenu()
         {
-            if (_jsRuntime != null)
+            IsOptionsMenuOpen = !IsOptionsMenuOpen;
+            if (!IsOptionsMenuOpen)
             {
-                try
+                infoOptionAnnonce = null;
+            }
+            _refreshUI?.Invoke();
+        }
+
+        public void SetInfoOption(string? info)
+        {
+            infoOptionAnnonce = info;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task MasquerAnnonce()
+        {
+            AnnonceCreateUpdateDTO annonceChange = new AnnonceCreateUpdateDTO()
+            {
+                IdAnnonce = Annonce.IdAnnonce,
+                Libelle = Annonce.Libelle,
+                IdCompte = Annonce.IdVendeur,
+                IdEtatAnnonce = 4,
+                IdAdresse = Annonce.IdAdresse,
+                IdVoiture = Annonce.IdVoiture,
+                IdMiseEnAvant = Annonce.IdMiseEnAvant,
+                DatePublication = Annonce.DatePublication,
+                Prix = Annonce.Prix,
+                Description = Annonce.Libelle
+            };
+            _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
+            IsOptionsMenuOpen = false;
+
+            await EstMasquerAnnonce();
+            _refreshUI?.Invoke();
+        }
+        
+        public async Task DemasquerAnnonce()
+        {
+            AnnonceCreateUpdateDTO annonceChange = new AnnonceCreateUpdateDTO()
+            {
+                IdAnnonce = Annonce.IdAnnonce,
+                Libelle = Annonce.Libelle,
+                IdCompte = Annonce.IdVendeur,
+                IdEtatAnnonce = 1,
+                IdAdresse = Annonce.IdAdresse,
+                IdVoiture = Annonce.IdVoiture,
+                IdMiseEnAvant = Annonce.IdMiseEnAvant,
+                DatePublication = Annonce.DatePublication,
+                Prix = Annonce.Prix,
+                Description = Annonce.Libelle
+            };
+            _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
+            IsOptionsMenuOpen = false;
+            
+            await EstMasquerAnnonce();
+            _refreshUI?.Invoke();
+        }
+
+        public async Task EstMasquerAnnonce()
+        {
+            estMasquer = await _annonceService.EstMasquerAsync(Annonce.IdAnnonce);
+            _refreshUI?.Invoke();
+        }
+
+        public async void SupprimerAnnonce()
+        {
+            try
+            {
+                await _annonceService.DeleteAsync(Annonce.IdAnnonce);
+                _notificationService.ShowSuccess(
+                    "Suppression d'annonce", 
+                    "Votre annonce a bien été supprimée");
+                IsOptionsMenuOpen = false;
+                _nav.NavigateTo("/compte");
+            }
+            catch
+            {
+                erreurSupprimeAnnonce = "L'annonce n'a pas pu être supprimée";
+            }
+            _refreshUI?.Invoke();
+        }
+        
+        private async Task LoadVendeurProfileImage(int idVendeur)
+        {
+            try
+            {
+                var img = await _imageService.GetImageProfil(idVendeur);
+
+                if (img != null && img.Fichier != null && img.Fichier.Length > 0)
                 {
-                    await _jsRuntime.InvokeVoidAsync("car3DViewer.toggleAnimation", animationName);
+                    var base64 = Convert.ToBase64String(img.Fichier);
+                    ProfileImageSource = $"data:image/jpeg;base64,{base64}";
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erreur lors de l'animation: {ex.Message}");
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur chargement image profil vendeur: {ex.Message}");
             }
         }
 
-        public string GetAnimationLabel(string animName)
+        public async Task VoirProfilVendeur()
         {
-            // Convertir les noms d'animation en labels lisibles
-            return animName switch
-            {
-                "DoorFrontLeft" or "door_front_left" or "PorteAvantGauche" => "🚪 Porte avant gauche",
-                "DoorFrontRight" or "door_front_right" or "PorteAvantDroite" => "🚪 Porte avant droite",
-                "DoorRearLeft" or "door_rear_left" or "PorteArriereGauche" => "🚪 Porte arrière gauche",
-                "DoorRearRight" or "door_rear_right" or "PorteArriereDroite" => "🚪 Porte arrière droite",
-                "Hood" or "hood" or "Capot" => "🔧 Capot",
-                "Trunk" or "trunk" or "Coffre" => "📦 Coffre",
-                "Window" or "window" or "Vitre" => "🪟 Vitres",
-                _ => animName // Nom par défaut si pas de correspondance
-            };
+            _nav.NavigateTo($"/comptepublic/{Annonce.IdVendeur}");
         }
 
         public async Task DisposeAsync()
@@ -369,17 +444,22 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     await _jsRuntime.InvokeVoidAsync("car3DViewer.dispose");
                 }
-                catch { }
+                catch
+                {
+                    
+                }
             }
         }
         
         public void Reset()
         {
-            CurrentImageIndex  = 0;
-            IsLoading  = true;
-            IsFavorite  = false;
-            show3DViewer  = false;
-            isLoading3D  = false;
+            CurrentImageIndex = 0;
+            IsLoading = true;
+            IsFavorite = false;
+            show3DViewer = false;
+            isLoading3D = false;
+            IsOptionsMenuOpen = false;
+            infoOptionAnnonce = null;
         }
     }
 }

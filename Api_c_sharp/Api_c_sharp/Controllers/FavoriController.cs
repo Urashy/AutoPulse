@@ -1,8 +1,10 @@
 ﻿using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Api_c_sharp.Controllers
@@ -15,7 +17,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class FavoriController(FavoriManager _manager, IMapper _mapper) : ControllerBase
+    public class FavoriController(FavoriManager _manager, IMapper _mapper,IJournalService _journalService) : ControllerBase
     {
         /// <summary>
         /// Récupère tous les favoris.
@@ -29,29 +31,6 @@ namespace Api_c_sharp.Controllers
         {
             var list = await _manager.GetAllAsync();
             return new ActionResult<IEnumerable<FavoriDTO>>(_mapper.Map<IEnumerable<FavoriDTO>>(list));
-        }
-
-        /// <summary>
-        /// Récupère un favori spécifique par ID de compte et ID d'annonce.
-        /// </summary>
-        /// <param name="idCompte">Identifiant unique du compte.</param>
-        /// <param name="idAnnonce">Identifiant unique de l'annonce.</param>
-        /// <returns>
-        /// <list type="bullet">
-        /// <item><description><see cref="FavoriDTO"/> si le favori existe (200 OK).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucun favori ne correspond (404).</description></item>
-        /// </list>
-        /// </returns>
-        [ActionName("GetById")]
-        [HttpGet]
-        public async Task<ActionResult<FavoriDTO>> GetById([FromQuery] int idCompte, [FromQuery] int idAnnonce)
-        {
-            var result = await _manager.GetByIdAsync(idAnnonce);
-
-            if (result is null)
-                return NotFound();
-
-            return _mapper.Map<FavoriDTO>(result);
         }
 
         /// <summary>
@@ -72,10 +51,11 @@ namespace Api_c_sharp.Controllers
                 return BadRequest(ModelState);
 
             var entity = _mapper.Map<Favori>(dto);
+            await _journalService.LogMiseFavorisAsync(dto.IdCompte, dto.IdAnnonce);
             await _manager.AddAsync(entity);
 
             return CreatedAtAction(
-                nameof(GetById),
+                nameof(GetByIDS),
                 new { idCompte = entity.IdCompte, idAnnonce = entity.IdAnnonce },
                 _mapper.Map<FavoriDTO>(entity)
             );
@@ -100,7 +80,7 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var toUpdate = await _manager.GetByIdAsync(idcompte, idannonce);
+            var toUpdate = await _manager.GetFavoriByIdsAsync(idcompte, idannonce);
 
             if (toUpdate == null)
                 return NotFound();
@@ -126,7 +106,7 @@ namespace Api_c_sharp.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
-            var entity = await _manager.GetByIdAsync(idCompte, idAnnonce);
+            var entity = await _manager.GetFavoriByIdsAsync(idCompte, idAnnonce);
 
             if (entity == null)
                 return NotFound();
@@ -163,7 +143,7 @@ namespace Api_c_sharp.Controllers
         [HttpGet]
         public async Task<ActionResult<FavoriDTO>> GetByIDS([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
-            var result = await _manager.GetByIdAsync(idCompte, idAnnonce);
+            var result = await _manager.GetFavoriByIdsAsync(idCompte, idAnnonce);
 
 
             if (result == null)
@@ -182,7 +162,7 @@ namespace Api_c_sharp.Controllers
         public async Task<ActionResult<IEnumerable<FavoriDTO>>> GetByCompteId(int idCompte)
         {
             var favoris = await _manager.GetByCompteIdAsync(idCompte);
-            return Ok(_mapper.Map<IEnumerable<FavoriDTO>>(favoris));
+            return new ActionResult<IEnumerable<FavoriDTO>>(_mapper.Map<IEnumerable<FavoriDTO>>(favoris));
         }
     }
 }

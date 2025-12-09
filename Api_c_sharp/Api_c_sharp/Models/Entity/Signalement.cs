@@ -21,13 +21,16 @@ namespace Api_c_sharp.Models.Entity
         [DefaultValue("DateTime.Now")]
         public DateTime DateCreationSignalement { get; set; } = DateTime.Now;
 
-        [Column("com_id_signalant")]
+        [Column("com_idsignalant")]
         [Required]
         public int IdCompteSignalant { get; set; }
 
         [Column("com_idsignale")]
-        [Required]
-        public int IdCompteSignale { get; set; }
+        public int? IdCompteSignale { get; set; }
+
+        [Column("ann_idannoncesignale")]
+        public int? IdAnnonceSignale { get; set; }
+
 
         [Column("tsi_id")]
         [Required]
@@ -49,8 +52,14 @@ namespace Api_c_sharp.Models.Entity
         [InverseProperty(nameof(Compte.SignalementsRecus))]
         public virtual Compte CompteSignaleNav { get; set; } = null!;
 
+        [ForeignKey(nameof(IdAnnonceSignale))]
+        [InverseProperty(nameof(Annonce.SignalementsRecus))]
+        public virtual Annonce AnnonceSignaleNav { get; set; } = null!;
+
         [ForeignKey(nameof(IdTypeSignalement))]
         [InverseProperty(nameof(TypeSignalement.Signalements))]
         public virtual TypeSignalement TypeSignalementSignalementNav { get; set; } = null!;
+
+
     }
 }

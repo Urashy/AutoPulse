@@ -1,6 +1,7 @@
 ﻿using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
+using AutoPulse.Shared.DTO;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -20,7 +21,6 @@ namespace BlazorAutoPulse.ViewModel
         public string SelectedModele { get; set; } = "";
         public string SelectedCarburant { get; set; } = "0";
         public string SelectedCategorie { get; set; } = "0";
-
         public string SelectedType { get; set; } = "0";
         public string Nom { get; set; } = "";
         public string Departement { get; set; } = "";
@@ -36,8 +36,8 @@ namespace BlazorAutoPulse.ViewModel
         public int CurrentPage { get; private set; } = 1;
         public int ItemsPerPage { get; private set; } = 21;
 
-        // Annonces de la page courante
-        public Annonce[] FilteredAnnonces { get; private set; } = Array.Empty<Annonce>();
+        // Annonces de la page courante (utilise maintenant AnnonceDTO)
+        public AnnonceDTO[] FilteredAnnonces { get; private set; } = Array.Empty<AnnonceDTO>();
 
         // Indicateur pour savoir s'il y a une page suivante
         private bool HasMorePages { get; set; } = true;
@@ -45,10 +45,10 @@ namespace BlazorAutoPulse.ViewModel
         // Nombre de résultats sur la page courante
         public int CurrentPageResultCount => FilteredAnnonces?.Length ?? 0;
 
-        // Estimation du nombre total de pages (basée sur les résultats actuels)
+        // Estimation du nombre total de pages
         public int EstimatedTotalPages => CalculateEstimatedTotalPages();
 
-        // Anciennes propriétés string (pour compatibilité avec le BuildQueryString)
+        // Anciennes propriétés string
         public string PrixMin => PrixMinValue > 0 ? PrixMinValue.ToString() : "";
         public string PrixMax => PrixMaxValue < 200000 ? PrixMaxValue.ToString() : "";
         public string KmMin => KmMinValue > 0 ? KmMinValue.ToString() : "";
@@ -60,14 +60,13 @@ namespace BlazorAutoPulse.ViewModel
         public Modele[] AllModeles { get; private set; } = Array.Empty<Modele>();
         public Carburant[] AllCarburants { get; private set; } = Array.Empty<Carburant>();
         public Categorie[] AllCategories { get; private set; } = Array.Empty<Categorie>();
-
         public TypeCompte[] AllTypeComptes { get; private set; } = Array.Empty<TypeCompte>();
+
         // Propriétés calculées pour la pagination
         public string PaginationInfo => $"Page {CurrentPage} - {CurrentPageResultCount} résultat(s)";
         public bool CanGoToPreviousPage => CurrentPage > 1;
         public bool CanGoToNextPage => HasMorePages && CurrentPageResultCount == ItemsPerPage;
         public bool ShowPagination => CurrentPage > 1 || CanGoToNextPage;
-        public int TotalResults => CurrentPageResultCount; // Juste pour la page courante
 
         public RechercheViewModel(
             IAnnonceService annonceService,
@@ -98,30 +97,12 @@ namespace BlazorAutoPulse.ViewModel
                 AllCarburants = (await _carburantService.GetAllAsync()).ToArray();
                 AllCategories = (await _categorieService.GetAllAsync()).ToArray();
                 AllTypeComptes = (await _typecompteService.GetTypeComptesPourChercher()).ToArray();
-
             }
             finally
             {
                 IsLoading = false;
                 _refreshUI?.Invoke();
             }
-        }
-
-        public async Task InitializeWithParams(string? marque, string? modele, string? prix)
-        {
-            SelectedMarque = marque ?? "0";
-            SelectedModele = modele ?? "";
-            if (!string.IsNullOrEmpty(prix) && int.TryParse(prix, out int prixValue))
-            {
-                PrixMaxValue = prixValue;
-            }
-
-            if (SelectedMarque != "0")
-            {
-                await FiltrerModeleParMarque(int.Parse(SelectedMarque));
-            }
-
-            await EffectuerRecherche();
         }
 
         public async Task OnMarqueChanged(ChangeEventArgs e)
@@ -173,13 +154,12 @@ namespace BlazorAutoPulse.ViewModel
                 var results = (await _annonceService.GetFilteredAnnoncesAsync(searchParams)).ToArray();
 
                 FilteredAnnonces = results;
-
                 HasMorePages = results.Length == ItemsPerPage;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de la recherche: {ex.Message}");
-                FilteredAnnonces = Array.Empty<Annonce>();
+                FilteredAnnonces = Array.Empty<AnnonceDTO>();
                 HasMorePages = false;
             }
             finally
@@ -209,16 +189,12 @@ namespace BlazorAutoPulse.ViewModel
             };
         }
 
-        // ==================== Méthodes de pagination ====================
-
+        // Méthodes de pagination
         private int CalculateEstimatedTotalPages()
         {
-            // Estimation basée sur la page courante
             if (FilteredAnnonces == null || FilteredAnnonces.Length == 0) return 1;
             if (!HasMorePages && CurrentPage == 1) return 1;
             if (!HasMorePages) return CurrentPage;
-
-            // S'il y a potentiellement plus de pages, on affiche au moins CurrentPage + 1
             return CurrentPage + 1;
         }
 
@@ -270,7 +246,7 @@ namespace BlazorAutoPulse.ViewModel
                 CanGoToPrevious = CanGoToPreviousPage,
                 CanGoToNext = CanGoToNextPage,
                 ShowFirstPage = ShouldShowFirstPage(),
-                ShowLastPage = false, // On ne peut pas savoir la dernière page
+                ShowLastPage = false,
                 ShowFirstDots = ShouldShowFirstDots(),
                 ShowLastDots = CanGoToNextPage && CurrentPage > 2,
                 VisiblePages = GetVisiblePageNumbers()
@@ -309,7 +285,7 @@ namespace BlazorAutoPulse.ViewModel
             Departement = "";
             ResetToFirstPage();
             FilteredModeles = AllModeles;
-            FilteredAnnonces = Array.Empty<Annonce>();
+            FilteredAnnonces = Array.Empty<AnnonceDTO>();
             HasMorePages = true;
             _refreshUI?.Invoke();
         }
@@ -348,7 +324,6 @@ namespace BlazorAutoPulse.ViewModel
             var typecompte = AllTypeComptes.FirstOrDefault(c => c.IdTypeCompte.ToString() == idTypeCompte);
             return typecompte?.Libelle ?? "";
         }
-
 
         public bool HasActiveFilters()
         {
@@ -400,19 +375,5 @@ namespace BlazorAutoPulse.ViewModel
 
             return queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
         }
-    }
-
-    public class PaginationData
-    {
-        public int CurrentPage { get; set; }
-        public int TotalPages { get; set; }
-        public int TotalResults { get; set; }
-        public bool CanGoToPrevious { get; set; }
-        public bool CanGoToNext { get; set; }
-        public bool ShowFirstPage { get; set; }
-        public bool ShowLastPage { get; set; }
-        public bool ShowFirstDots { get; set; }
-        public bool ShowLastDots { get; set; }
-        public int[] VisiblePages { get; set; } = Array.Empty<int>();
     }
 }

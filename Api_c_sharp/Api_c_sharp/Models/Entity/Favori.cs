@@ -9,8 +9,8 @@ public class Favori
     [Key]
     [Column("com_id")]
     public int IdCompte { get; set; }
-    
-    [Required]
+
+    [Key]
     [Column("ann_id")]
     public int IdAnnonce { get; set; }
     

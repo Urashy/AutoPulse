@@ -40,12 +40,14 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Motricite> Motricites { get; set; }
         public DbSet<MoyenPaiement> MoyensPaiements { get; set; }
         public DbSet<Pays> Pays { get; set; }
+        public DbSet<PieceJointe> PiecesJointes { get; set; }
+        public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
         public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
         public DbSet<TypeJournal> TypesJournal { get; set; }
         public DbSet<TypeSignalement> TypesSignalement { get; set; }
         public DbSet<Voiture> Voitures { get; set; }
-        public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
+        public DbSet<Vue> Vues { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -93,6 +95,7 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(a => a.MiseEnAvantAnnonceNav)
                 .WithMany(m => m.Annonces)
                 .HasForeignKey(a => a.IdMiseEnAvant);
+
 
 
             //-----------------------------APourConversation-----------------------------
@@ -145,6 +148,16 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------Bloque-----------------------------
             modelBuilder.Entity<Bloque>()
                 .HasKey(e => new { e.IdBloque, e.IdBloquant });
+
+            modelBuilder.Entity<Bloque>()
+                .HasOne(b => b.CompteBloqueNav)
+                .WithMany(c => c.ComptesBloqueurs)
+                .HasForeignKey(b => b.IdBloque);
+
+            modelBuilder.Entity<Bloque>()
+                .HasOne(b => b.CompteBloquantNav)
+                .WithMany(c => c.ComptesBloquants)
+                .HasForeignKey(b => b.IdBloquant);
 
             //-----------------------------BoiteDeVitesse-----------------------------
             modelBuilder.Entity<BoiteDeVitesse>()
@@ -308,6 +321,19 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------Pays-----------------------------
             modelBuilder.Entity<Pays>()
                 .HasKey(e => e.IdPays);
+            
+            //-----------------------------Piece jointe-----------------------------
+            modelBuilder.Entity<PieceJointe>()
+                .HasKey(e => e.IdPieceJointe);
+
+            modelBuilder.Entity<PieceJointe>()
+                .HasOne(p => p.MessagePjNav)
+                .WithMany(m => m.PiecesJointes)
+                .HasForeignKey(p => p.IdMessage);
+
+            //-----------------------------ReinitialisationMotDePasse-----------------------------
+            modelBuilder.Entity<ReinitialisationMotDePasse>()
+                .HasKey(e => e.IdReinitialisationMdp);
 
             //-----------------------------Signalement-----------------------------
             modelBuilder.Entity<Signalement>()
@@ -321,7 +347,8 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<Signalement>()
                 .HasOne(s => s.CompteSignaleNav)
                 .WithMany(c => c.SignalementsRecus)
-                .HasForeignKey(s => s.IdCompteSignale);
+                .HasForeignKey(s => s.IdCompteSignale)
+                .IsRequired(false);
 
             modelBuilder.Entity<Signalement>()
                 .HasOne(s => s.TypeSignalementSignalementNav)
@@ -332,6 +359,11 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(s => s.EtatSignalementNav)
                 .WithMany(e => e.Signalements)
                 .HasForeignKey(s => s.IdEtatSignalement);
+
+            modelBuilder.Entity<Signalement>()
+                .HasOne(s => s.AnnonceSignaleNav)
+                .WithMany(a => a.SignalementsRecus)
+                .HasForeignKey(s => s.IdAnnonceSignale);
 
             //-----------------------------TypeCompte-----------------------------
             modelBuilder.Entity<TypeCompte>()
@@ -384,6 +416,19 @@ namespace Api_c_sharp.Models.Repository
                 .WithMany(m => m.Voitures)
                 .HasForeignKey(v => v.IdModeleBlender);
 
+            //-----------------------------Vues-----------------------------
+            modelBuilder.Entity<Vue>()
+                .HasKey(e => new { e.IdCompte, e.IdAnnonce });
+
+            modelBuilder.Entity<Vue>()
+                .HasOne(v => v.AnnonceVueNav)
+                .WithMany(a => a.Vues)
+                .HasForeignKey(v => v.IdAnnonce);
+
+            modelBuilder.Entity<Vue>()
+                .HasOne(v => v.CompteVueNav)
+                .WithMany(c => c.Vues)
+                .HasForeignKey(v => v.IdCompte);
 
             //-----------------------------Indexes-----------------------------
             modelBuilder.Entity<Compte>()

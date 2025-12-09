@@ -8,6 +8,7 @@ public class AnnonceDetailDTO
     public string LibelleEtatAnnonce { get; set; }
     public DateTime DatePublication { get; set; }
     public bool EstMiseEnAvant { get; set; }
+    public int IdMiseEnAvant { get; set; }
     public string LibelleMiseEnAvant { get; set; }
 
     public int Prix { get; set; }
@@ -22,6 +23,7 @@ public class AnnonceDetailDTO
     public string TypeCompteVendeur { get; set; }
     
     // Adresse complète
+    public int IdAdresse { get; set; }
     public string NumeroRue { get; set; }
     public string Rue { get; set; }
     public string Ville { get; set; }

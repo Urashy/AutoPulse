@@ -2,7 +2,7 @@
 using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Api_c_sharp.Models.Repository.Managers
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class CouleurManager : ReadableManager<Couleur>, ICouleurRepository
     {
@@ -15,7 +15,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             return await dbSet.OrderBy(s => s.LibelleCouleur).ToListAsync();
         }
 
-        public async Task<IEnumerable<Couleur>> GetCouleursByVoitureId(int voitureId)
+        public virtual async Task<IEnumerable<Couleur>> GetCouleursByVoitureId(int voitureId)
         {
             return await dbSet.Where(c => c.APourCouleurs.Any(ac => ac.IdVoiture == voitureId)).ToListAsync();
         }

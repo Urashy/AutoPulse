@@ -25,6 +25,9 @@ namespace Api_c_sharp.Models.Entity
         [Column("com_id")]
         [Required]
         public int IdCompte { get; set; }
+        
+        [Column("mes_estlu")]
+        public bool EstLu { get; set; } = false;
 
         [ForeignKey(nameof(IdCompte))]
         [InverseProperty(nameof(Compte.Messages))]
@@ -33,5 +36,8 @@ namespace Api_c_sharp.Models.Entity
         [ForeignKey(nameof(IdConversation))]
         [InverseProperty(nameof(Conversation.Messages))]
         public virtual Conversation ConversationMessageNav { get; set; }
+        
+        [InverseProperty(nameof(PieceJointe.MessagePjNav))]
+        public virtual ICollection<PieceJointe> PiecesJointes { get; set; } = new List<PieceJointe>();
     }
 }

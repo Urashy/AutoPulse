@@ -7,8 +7,9 @@ using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
-namespace App.Controllers;
+namespace Api_c_sharp.Controllers;
 
 /// <summary>
 /// Contrôleur REST permettant de gérer les annonces.
@@ -18,7 +19,7 @@ namespace App.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) : ControllerBase
+public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, IJournalService _journalService) : ControllerBase
 {
     /// <summary>
     /// Récupère une annoncs à partir de son identifiant.
@@ -99,6 +100,11 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
         
         var entity = _annonceMapper.Map<Annonce>(dto);
         entity.DatePublication = DateTime.SpecifyKind(dto.DatePublication, DateTimeKind.Utc);
+        await _journalService.LogPublicationAnnonceAsync(
+           entity.IdCompte,
+           entity.IdAnnonce,
+           entity.Libelle
+        );
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdAnnonce }, entity);
@@ -129,6 +135,11 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             return NotFound();
 
         var updatedEntity = _annonceMapper.Map<Annonce>(dto);
+        await _journalService.LogModificationAnnonceAsync(
+            toUpdate.IdCompte,
+            id,
+            toUpdate.Libelle
+        );
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
         return NoContent();
@@ -153,7 +164,16 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
         if (entity == null)
             return NotFound();
 
-        await _manager.DeleteAsync(entity);
+        bool result = await _manager.DeleteAsync(entity);
+
+        if (!result)
+            return BadRequest("La suppression est impossible en raison d'une commande effectué sur cette annonce");
+        await _journalService.LogSuppressionAnnonceAsync(
+            entity.IdCompte,
+            id,
+            entity.Libelle
+        );
+
         return NoContent();
     }
 
@@ -170,9 +190,12 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// </returns>
     [ActionName("GetByIdMiseEnAvant")]
     [HttpGet("{idmiseenavant}")]
-    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByIdMiseEnAvant(int idmiseenavant)
+    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByIdMiseEnAvant(
+        int idmiseenavant,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 21)
     {
-        var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant);
+        var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant,pageNumber,pageSize);
 
         if (result == null || !result.Any())
             return NotFound();
@@ -232,7 +255,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
     /// </list>
     /// </returns>
     [ActionName("GetByCompteFavoris")]
-    [HttpGet("{idmiseenavant}")]
+    [HttpGet("{compteid}")]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByCompteFavoris(int compteid)
     {
         var result = await _manager.GetAnnoncesByCompteFavoris(compteid);
@@ -241,6 +264,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
+
     }
 
     /// <summary>
@@ -259,5 +283,20 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper) 
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(list));
+    }
+
+    /// <summary>
+    /// Vérifie si une annonce est masqué.
+    /// </summary>
+    /// <param name="idannonce">Identifiant de l'annonce a vérifier</param>
+    /// <returns>
+    /// <see cref="bool"/> indiquant si l'annonce est en favori (200 OK).
+    /// </returns>
+    [ActionName("HasBloque")]
+    [HttpGet("{idannonce}")]
+    public async Task<ActionResult<bool>> EstMasque(int idannonce)
+    {
+        bool result = await _manager.EstMasque(idannonce);
+        return result;
     }
 }

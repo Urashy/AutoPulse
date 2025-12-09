@@ -1,0 +1,329 @@
+@page "/admin/signalements"
+@layout AdminLayout
+@using BlazorAutoPulse.ViewModel
+@inject AdminSignalementsViewModel VM
+
+<PageTitle>Gestion des signalements - Admin</PageTitle>
+
+<div class="admin-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h1>🚩 Gestion des signalements</h1>
+            <p class="subtitle">@VM.TotalSignalements signalement(s) au total</p>
+        </div>
+        <div class="header-actions">
+            <input type="text"
+                   placeholder="🔍 Rechercher..."
+                   @bind="VM.SearchQuery"
+                   @bind:event="oninput"
+                   @onkeyup="VM.SearchSignalements"
+                   class="search-input">
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <button class="filter-btn @(VM.FilterType == "all" ? "active" : "")"
+                @onclick="@(() => VM.FilterByType("all"))">
+            Tous (@VM.TotalSignalements)
+        </button>
+        <button class="filter-btn @(VM.FilterType == "annonce" ? "active" : "")"
+                @onclick="@(() => VM.FilterByType("annonce"))">
+            Annonces (@VM.SignalementsAnnonces)
+        </button>
+        <button class="filter-btn @(VM.FilterType == "compte" ? "active" : "")"
+                @onclick="@(() => VM.FilterByType("compte"))">
+            Comptes (@VM.SignalementsComptes)
+        </button>
+        <div style="margin-left: auto; display: flex; gap: 10px;">
+            <button class="filter-btn @(VM.FilterStatus == "pending" ? "active" : "")"
+                    @onclick="@(() => VM.FilterByStatus("pending"))">
+                En attente (@VM.SignalementsEnAttente)
+            </button>
+            <button class="filter-btn @(VM.FilterStatus == "resolved" ? "active" : "")"
+                    @onclick="@(() => VM.FilterByStatus("resolved"))">
+                Traités (@VM.SignalementsTraites)
+            </button>
+            <button class="filter-btn @(VM.FilterStatus == "rejected" ? "active" : "")"
+                    @onclick="@(() => VM.FilterByStatus("rejected"))">
+                Rejetés (@VM.SignalementsRejetes)
+            </button>
+        </div>
+    </div>
+
+    @if (VM.IsLoading)
+    {
+        <div class="loading-state">
+            <div class="loader"></div>
+            <p>Chargement des signalements...</p>
+        </div>
+    }
+    else
+    {
+        <div class="signalements-grid">
+            @foreach (var signalement in VM.GetPagedSignalements())
+            {
+                <div class="signalement-card @GetCardClass(signalement)">
+                    <div class="signalement-header">
+                        <div class="signalement-type">
+                            <span class="type-icon">@GetTypeIcon(signalement)</span>
+                            <span class="type-text">@signalement.TypeSignalement</span>
+                        </div>
+                        <span class="signalement-badge badge-@signalement.Statut.ToLower()">
+                            @signalement.Statut
+                        </span>
+                    </div>
+
+                    <div class="signalement-content">
+                        <div class="signalement-info">
+                            <div class="info-row">
+                                <span class="info-label">Signalé par:</span>
+                                <span class="info-value">@signalement.PseudoSignalant</span>
+                            </div>
+                            @if (signalement.TypeCible == "Annonce")
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Annonce:</span>
+                                    <span class="info-value">@signalement.TitreCible</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Compte signalé:</span>
+                                    <span class="info-value">@signalement.PseudoCible</span>
+                                </div>
+                            }
+                            <div class="info-row">
+                                <span class="info-label">Date:</span>
+                                <span class="info-value">@signalement.DateSignalement.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(signalement.Description))
+                        {
+                            <div class="signalement-description">
+                                <p class="description-label">Description:</p>
+                                <p class="description-text">@signalement.Description</p>
+                            </div>
+                        }
+                    </div>
+
+                    @if (signalement.IdStatut == 1) @* CORRIGÉ : Utiliser l'ID 1 pour 'En attente' *@
+                    {
+                        <div class="signalement-actions">
+                            <button class="btn-action primary"
+                                    @onclick="() => VM.ViewDetails(signalement)"
+                                    title="Voir détails">
+                                👁️ Voir
+                            </button>
+                            <button class="btn-action success"
+                                    @onclick="() => VM.AcceptSignalement(signalement)"
+                                    title="Accepter et agir">
+                                ✅ Accepter
+                            </button>
+                            <button class="btn-action danger"
+                                    @onclick="() => VM.RejectSignalement(signalement)"
+                                    title="Rejeter">
+                                ❌ Rejeter
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="signalement-actions">
+                            <button class="btn-action primary"
+                                    @onclick="() => VM.ViewDetails(signalement)"
+                                    title="Voir détails">
+                                👁️ Voir détails
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (VM.TotalPages > 1)
+        {
+            <div class="pagination">
+                <button class="btn-page"
+                        @onclick="VM.PreviousPage"
+                        disabled="@(!VM.CanGoPrevious)">
+                    ← Précédent
+                </button>
+                <span class="page-info">
+                    Page @VM.CurrentPage sur @VM.TotalPages
+                </span>
+                <button class="btn-page"
+                        @onclick="VM.NextPage"
+                        disabled="@(!VM.CanGoNext)">
+                    Suivant →
+                </button>
+            </div>
+        }
+    }
+</div>
+
+@if (VM.ShowActionModal)
+{
+    <div class="modal-overlay" @onclick="VM.CloseActionModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>⚠️ Confirmation</h2>
+                <button class="modal-close" @onclick="VM.CloseActionModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message">@VM.ActionMessage</p>
+
+                @if (VM.ActionType == "accept" && VM.SelectedSignalement?.TypeCible == "Annonce")
+                {
+                    <div class="action-options">
+                        <label class="action-option">
+                            <input type="radio"
+                                   name="action"
+                                   value="delete"
+                                   @onchange="@(() => VM.SetAction("delete"))"
+                                   checked="@(VM.SelectedAction == "delete")" />
+                            <span>🗑️ Supprimer l'annonce</span>
+                        </label>
+                        <label class="action-option">
+                            <input type="radio"
+                                   name="action"
+                                   value="suspend"
+                                   @onchange="@(() => VM.SetAction("suspend"))"
+                                   checked="@(VM.SelectedAction == "suspend")" />
+                            <span>🔒 Suspendre l'annonce</span>
+                        </label>
+                    </div>
+                }
+
+                @if (VM.ActionType == "accept" && VM.SelectedSignalement?.TypeCible == "Compte")
+                {
+                    <div class="action-options">
+                        <label class="action-option">
+                            <input type="radio"
+                                   name="action"
+                                   value="anonymize"
+                                   @onchange="@(() => VM.SetAction("anonymize"))"
+                                   checked="@(VM.SelectedAction == "anonymize")" />
+                            <span>👤 Anonymiser le compte</span>
+                        </label>
+                        <label class="action-option">
+                            <input type="radio"
+                                   name="action"
+                                   value="suspend"
+                                   @onchange="@(() => VM.SetAction("suspend"))"
+                                   checked="@(VM.SelectedAction == "suspend")" />
+                            <span>🔒 Suspendre le compte</span>
+                        </label>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" @onclick="VM.CloseActionModal">
+                    Annuler
+                </button>
+                <button class="btn-danger" @onclick="VM.ConfirmAction">
+                    Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (VM.ShowDetailsModal && VM.SelectedSignalement != null)
+{
+    <div class="modal-overlay" @onclick="VM.CloseDetailsModal">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>📋 Détails du signalement</h2>
+                <button class="modal-close" @onclick="VM.CloseDetailsModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="details-grid">
+                    <div class="detail-section">
+                        <h3>Informations générales</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Type:</span>
+                            <span class="detail-value">@VM.SelectedSignalement.TypeSignalement</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Statut:</span>
+                            <span class="detail-value">
+                                <span class="badge badge-@VM.SelectedSignalement.Statut.ToLower()">
+                                    @VM.SelectedSignalement.Statut
+                                </span>
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Date:</span>
+                            <span class="detail-value">@VM.SelectedSignalement.DateSignalement.ToString("dd/MM/yyyy à HH:mm")</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>Signalant</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Pseudo:</span>
+                            <span class="detail-value">@VM.SelectedSignalement.PseudoSignalant</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>Cible du signalement</h3>
+                        @if (VM.SelectedSignalement.TypeCible == "Annonce")
+                        {
+                            <div class="detail-row">
+                                <span class="detail-label">Type:</span>
+                                <span class="detail-value">Annonce</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Titre:</span>
+                                <span class="detail-value">@VM.SelectedSignalement.TitreCible</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="detail-row">
+                                <span class="detail-label">Type:</span>
+                                <span class="detail-value">Compte utilisateur</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Pseudo:</span>
+                                <span class="detail-value">@VM.SelectedSignalement.PseudoCible</span>
+                            </div>
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(VM.SelectedSignalement.Description))
+                    {
+                        <div class="detail-section full-width">
+                            <h3>Description</h3>
+                            <p class="description-full">@VM.SelectedSignalement.Description</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+
+    private string GetCardClass(AdminSignalement signalement)
+    {
+        // 1 = En attente (pending)
+        return signalement.IdStatut == 1 &&
+               (signalement.TypeSignalement.Contains("Violence") ||
+                signalement.TypeSignalement.Contains("Illégal"))
+            ? "urgent" : "";
+    }
+
+    private string GetTypeIcon(AdminSignalement signalement)
+    {
+        return signalement.TypeCible == "Annonce" ? "🚗" : "👤";
+    }
+}

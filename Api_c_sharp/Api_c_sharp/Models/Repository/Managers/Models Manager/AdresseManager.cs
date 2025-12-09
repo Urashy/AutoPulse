@@ -2,7 +2,7 @@
 using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Api_c_sharp.Models.Repository.Managers
+namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
     public class AdresseManager : WriteableReadableManager<Adresse>, IAdresseRepository
     {
@@ -10,7 +10,7 @@ namespace Api_c_sharp.Models.Repository.Managers
         {
         }
 
-        public async Task<IEnumerable<Adresse>> GetAdresseByCompteID(int compteId)
+        public virtual async Task<IEnumerable<Adresse>> GetAdresseByCompteID(int compteId)
         {
            return await dbSet.Where(a => a.IdCompte == compteId).ToListAsync();
         }

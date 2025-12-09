@@ -1,0 +1,433 @@
+﻿using Api_c_sharp.Mapper;
+using Api_c_sharp.Models;
+using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository;
+using Api_c_sharp.Models.Repository.Interfaces;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using Api_c_sharp.Controllers;
+using AutoMapper;
+using AutoPulse.Shared.DTO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Api_c_sharp.ControllersUnitaires.Tests
+{
+    [TestClass]
+    public class SignalementControllerTests
+    {
+        private SignalementController _controller;
+        private AutoPulseBdContext _context;
+        private SignalementManager _manager;
+        private IMapper _mapper;
+        private Signalement _signalementCommun;
+        private IJournalService _journalService;
+
+        [TestInitialize]
+        public async Task Initialize()
+        {
+            var options = new DbContextOptionsBuilder<AutoPulseBdContext>()
+                .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+                .Options;
+
+            _context = new AutoPulseBdContext(options);
+
+            // AutoMapper
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<MapperProfile>();
+            });
+            _mapper = config.CreateMapper();
+
+            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
+            _manager = new SignalementManager(_context);
+            _controller = new SignalementController(_manager, _mapper, _journalService);
+
+            // Reset DB
+            _context.Signalements.RemoveRange(_context.Signalements);
+            await _context.SaveChangesAsync();
+
+
+
+
+            // ----- ENTITÉS -----
+
+            var etat = new EtatSignalement()
+            {
+                IdEtatSignalement = 1,
+                LibelleEtatSignalement = "Ouvert"
+            };
+
+            var type = new TypeSignalement()
+            {
+                IdTypeSignalement = 1,
+                LibelleTypeSignalement = "Spam"
+            };
+
+            var compteSignalant = new Compte()
+            {
+                IdCompte = 1,
+                Pseudo = "alice",
+                MotDePasse = "pw",
+                Nom = "Doe",
+                Prenom = "Alice",
+                Email = "alice@test.com",
+                DateCreation = DateTime.UtcNow,
+                DateDerniereConnexion = DateTime.UtcNow,
+                DateNaissance = new DateTime(1990, 1, 1),
+                IdTypeCompte = 1
+            };
+
+            var compteSignale = new Compte()
+            {
+                IdCompte = 2,
+                Pseudo = "bob",
+                MotDePasse = "pw",
+                Nom = "Smith",
+                Prenom = "Bob",
+                Email = "bob@test.com",
+                DateCreation = DateTime.UtcNow,
+                DateDerniereConnexion = DateTime.UtcNow,
+                DateNaissance = new DateTime(1990, 1, 1),
+                IdTypeCompte = 1
+            };
+
+            await _context.EtatSignalements.AddAsync(etat);
+            await _context.TypesSignalement.AddAsync(type);
+            await _context.Comptes.AddAsync(compteSignalant);
+            await _context.Comptes.AddAsync(compteSignale);
+
+            // --------------------------
+            // Signalement commun
+            // --------------------------
+
+            _signalementCommun = new Signalement()
+            {
+                IdSignalement = 1,
+                DescriptionSignalement = "Comportement suspect",
+                IdCompteSignalant = 1,
+                IdCompteSignale = 2,
+                IdEtatSignalement = 1,
+                IdTypeSignalement = 1,
+                DateCreationSignalement = DateTime.UtcNow
+            };
+
+            await _context.Signalements.AddAsync(_signalementCommun);
+            await _context.SaveChangesAsync();
+        }
+
+        // -------------------------------------------------------------
+        // GET BY ID
+        // -------------------------------------------------------------
+        [TestMethod]
+        public async Task GetByIdTest()
+        {
+            // Given : Une Signalement existante
+            var id = _signalementCommun.IdSignalement;
+
+            // When : On appelle GetById
+            var result = await _controller.GetByID(id);
+
+            // Then : Le résultat doit être un DTO valide
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(SignalementDTO));
+            Assert.AreEqual(id, result.Value.IdSignalement);
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByIdTest()
+        {
+            // Given : Un ID inexistant
+            var idInexistant = 0;
+
+            // When : On appelle GetById
+            var result = await _controller.GetByID(idInexistant);
+
+            // Then : On doit obtenir 404
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        // -------------------------------------------------------------
+        // GET ALL
+        // -------------------------------------------------------------
+        [TestMethod]
+        public async Task GetAllTest()
+        {
+            // Given : Une base contenant au moins une signalement
+
+            // When : On appelle GetAll
+            var result = await _controller.GetAll();
+
+            // Then : La liste doit être non vide
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+        }
+
+        // -------------------------------------------------------------
+        // POST
+        // -------------------------------------------------------------
+        [TestMethod]
+        public async Task PostSignalementTest()
+        {
+            SignalementCreateDTO signalementCreateDTO = new SignalementCreateDTO
+            {
+                DescriptionSignalement = "Il a fait un truc pas bien",
+                IdCompteSignale = 1,
+                IdCompteSignalant = _signalementCommun.IdCompteSignalant,
+                IdTypeSignalement = _signalementCommun.IdTypeSignalement
+            };
+            ClaimCookie(1);
+
+            var result = await _controller.Post(signalementCreateDTO);
+
+            Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
+        }
+
+        [TestMethod]
+        public async Task BadRequestPostSignalementTest()
+        {
+            SignalementCreateDTO dto = new SignalementCreateDTO();
+
+            _controller.ModelState.AddModelError("Erreur", "Required");
+
+            // When : On appelle Post
+            var result = await _controller.Post(dto);
+
+            // Then : On récupère un 400
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+        }
+
+        // -------------------------------------------------------------
+        // PUT
+        // -------------------------------------------------------------
+        [TestMethod]
+        public async Task PutSignalementTest()
+        {
+            // Given : Un DTO valide avec un ID correspondant
+            SignalementUpdateDTO dto = new SignalementUpdateDTO
+            {
+                IdSignalement = _signalementCommun.IdSignalement,
+                DescriptionSignalement = "Il a fait un truc pas bien",
+                IdCompteSignale = 1,
+                IdCompteSignalant = _signalementCommun.IdCompteSignalant,
+                IdTypeSignalement = _signalementCommun.IdTypeSignalement
+            };
+
+            // When : On appelle Put
+            var result = await _controller.Put(_signalementCommun.IdSignalement, dto);
+
+            // Then : La mise à jour doit renvoyer 204
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        }
+
+        [TestMethod]
+        public async Task PutBadRequestTest()
+        {
+            // Given : un DTO dont la validation doit échouer
+            SignalementUpdateDTO dto = new SignalementUpdateDTO 
+            { 
+                IdSignalement = _signalementCommun.IdSignalement,
+                DescriptionSignalement = null,
+            };
+
+            _controller.ModelState.AddModelError("DescriptionSignalement", "Required");
+
+            // When
+            var result = await _controller.Put(1, dto);
+
+            // Then
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+
+
+        [TestMethod]
+        public async Task PutNotFoundTest()
+        {
+            // Given : Une signalement inexistante
+            var dto = new SignalementUpdateDTO() { IdSignalement = 10 };
+
+            // When : On appelle Put
+            var result = await _controller.Put(10, dto);
+
+            // Then : 404 NotFound
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        // -------------------------------------------------------------
+        // DELETE
+        // -------------------------------------------------------------
+        [TestMethod]
+        public async Task DeleteSignalementTest()
+        {
+            // Given : Une signalement existante
+            var id = _signalementCommun.IdSignalement;
+
+            // When : On appelle Delete
+            var result = await _controller.Delete(id);
+
+            // Then : La signalement doit être supprimée
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            Assert.IsNull(await _manager.GetByIdAsync(id));
+        }
+
+        [TestMethod]
+        public async Task NotFoundDeleteSignalementTest()
+        {
+            // Given : Un ID inexistant
+            var id = 0;
+
+            // When : On appelle Delete
+            var result = await _controller.Delete(id);
+
+            // Then : 404
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        // -------------------------------------------------------------
+        // GET ALL BY TYPE
+        // -------------------------------------------------------------
+        [TestMethod]
+        public async Task GetAllByTypeTest()
+        {
+            
+            var result = await _controller.GetAllByEtatSignalement(_signalementCommun.IdEtatSignalement);
+
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAllbyEtatSignalementTest()
+        {
+
+            var result = await _controller.GetAllByEtatSignalement(0);
+
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateEtatTest()
+        {
+
+            var id = _signalementCommun.IdSignalement;
+            int nouvelEtat = 2; // Traité
+
+            var result = await _controller.UpdateEtat(id, nouvelEtat);
+
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            var signalementMisAJour = await _manager.GetByIdAsync(id);
+            Assert.AreEqual(nouvelEtat, signalementMisAJour.IdEtatSignalement);
+        }
+
+        [TestMethod]
+        public async Task UpdateEtatNotFoundTest()
+        {
+
+            var idInexistant = 999;
+            int nouvelEtat = 2;
+
+
+            var result = await _controller.UpdateEtat(idInexistant, nouvelEtat);
+
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateEtatBadRequestInvalidStateTest()
+        {
+
+            var id = _signalementCommun.IdSignalement;
+            int etatInvalide = 5; 
+
+            var result = await _controller.UpdateEtat(id, etatInvalide);
+
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task UpdateEtatBadRequestStateZeroTest()
+        {
+
+            var id = _signalementCommun.IdSignalement;
+            int etatInvalide = 0;
+
+
+            var result = await _controller.UpdateEtat(id, etatInvalide);
+
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task PostBadRequestAnnonceEtCompteTest()
+        {
+
+            SignalementCreateDTO dto = new SignalementCreateDTO
+            {
+                DescriptionSignalement = "Description test",
+                IdAnnonceSignale = 1,
+                IdCompteSignale = 2,
+                IdTypeSignalement = 1
+            };
+            ClaimCookie(1);
+
+
+            var result = await _controller.Post(dto);
+
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.AreEqual("Un signalement ne peut pas cibler à la fois une annonce et un compte",
+                            badRequestResult.Value);
+        }
+
+        [TestMethod]
+        public async Task PostBadRequestAucuneCibleTest()
+        {
+
+            SignalementCreateDTO dto = new SignalementCreateDTO
+            {
+                DescriptionSignalement = "Description test",
+                IdAnnonceSignale = null,
+                IdCompteSignale = null,
+                IdTypeSignalement = 1
+            };
+            ClaimCookie(1);
+
+            var result = await _controller.Post(dto);
+
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.AreEqual("Un signalement doit cibler soit une annonce soit un compte",
+                            badRequestResult.Value);
+        }
+
+        private void ClaimCookie(int userId)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", userId.ToString())
+            };
+
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            var httpContext = new DefaultHttpContext
+            {
+                User = claimsPrincipal
+            };
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+        }
+    }
+}
