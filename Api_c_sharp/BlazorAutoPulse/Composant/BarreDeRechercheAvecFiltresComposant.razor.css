@@ -264,6 +264,7 @@
     background: rgba(255, 255, 255, 0.03);
     border-radius: 10px;
     align-items: center;
+    clear: both; /* AJOUT : Assure que l'élément n'est pas remonté par des flottants */
 }
 
     .active-filters > span:first-child {
