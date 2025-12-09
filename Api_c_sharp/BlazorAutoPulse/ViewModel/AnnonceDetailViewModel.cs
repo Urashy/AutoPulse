@@ -359,7 +359,7 @@ namespace BlazorAutoPulse.ViewModel
                 Prix = Annonce.Prix,
                 Description = Annonce.Libelle
             };
-            _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
+            await _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
             IsOptionsMenuOpen = false;
 
             await EstMasquerAnnonce();
