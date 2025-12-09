@@ -1,0 +1,89 @@
+﻿@using AutoPulse.Shared.DTO
+@using BlazorAutoPulse.ViewModel
+@inject CommandeComposantViewModel CommandeVM
+@inject NavigationManager Navigation
+
+<div class="commande-card">
+    <div class="commande-header">
+        <div class="commande-icon">
+            📍
+        </div>
+        <h3 class="commande-title">@Commande.LibelleAnnonce</h3>
+    </div>
+
+    <div class="commande-content">
+        <div class="commande-row">
+            <div class="commande-details">
+                <span class="commande-label">Adresse complète</span>
+                <span class="commande-value">
+                    @Commande.
+                </span>
+            </div>
+        </div>
+
+        <div class="commande-row">
+            <span class="commande-row-icon">📮</span>
+            <div class="commande-details">
+                <span class="commande-label">Ville</span>
+                <span class="commande-value">
+                    @Commande.
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @if (ShowActions)
+    {
+        <div class="commande-actions">
+            <button class="commande-btn" @onclick="EditAddress" @onclick:stopPropagation="true">
+                <span>✏️</span>
+                <span>Modifier</span>
+            </button>
+            <button class="commande-btn danger" @onclick="DeleteAddress" @onclick:stopPropagation="true">
+                <span>🗑️</span>
+                <span>Supprimer</span>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public CommandeDTO Commande { get; set; }
+
+    [Parameter]
+    public bool ShowActions { get; set; } = false;
+
+    [Parameter]
+    public bool IsPrincipal { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<AdresseDTO> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<AdresseDTO> OnDelete { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Commande != null)
+        {
+            await CommandeVM.InitializeAsync(Commande, StateHasChanged);
+        }
+    }
+
+    private async Task EditAddress()
+    {
+        if (OnEdit.HasDelegate)
+        {
+            // await OnEdit.InvokeAsync(Adresse);
+        }
+    }
+
+    private async Task DeleteAddress()
+    {
+        if (OnDelete.HasDelegate)
+        {
+            // await OnDelete.InvokeAsync(Adresse);
+        }
+    }
+}
