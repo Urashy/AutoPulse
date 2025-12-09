@@ -59,6 +59,14 @@ public class MapperProfile : Profile
         CreateMap<Vue, VueDTO>()
             .ReverseMap();
 
+        CreateMap<Plainte, PlainteDTO>()
+            .ReverseMap();
+
+        CreateMap<PlainteCreateDTO, Plainte>()
+            .ReverseMap();
+
+        CreateMap<PlainteUpdateDTO, Plainte>().ReverseMap();
+
         // ============================================
         // MAPPERS ADRESSE
         // ============================================
