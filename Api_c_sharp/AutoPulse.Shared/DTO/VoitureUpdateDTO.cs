@@ -1,7 +1,8 @@
 namespace AutoPulse.Shared.DTO;
 
-public class VoitureCreateDTO
+public class VoitureUpdateDTO
 {
+    public int IdVoiture { get; set; }
     public int IdMarque { get; set; }
     public int IdModele { get; set; }
     public int IdMotricite { get; set; }

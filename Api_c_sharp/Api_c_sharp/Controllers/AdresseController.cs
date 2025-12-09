@@ -20,7 +20,7 @@ namespace Api_c_sharp.Controllers
         /// <summary>
         /// Crée une nouvelle adresse.
         /// </summary>
-        /// <param name="dto">Objet <see cref="AdresseDTO"/> contenant les informations de l'adresse à créer.</param>
+        /// <param name="dto">Objet <see cref="AdresseCreateDTO"/> contenant les informations de l'adresse à créer.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
@@ -29,7 +29,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
-        public async Task<ActionResult<AdresseDTO>> Post([FromBody] AdresseDTO dto)
+        public async Task<ActionResult<AdresseCreateDTO>> Post([FromBody] AdresseCreateDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -44,7 +44,7 @@ namespace Api_c_sharp.Controllers
         /// Met à jour une Adresse existante.
         /// </summary>
         /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
-        /// <param name="dto">Objet <see cref="AdresseDTO"/> contenant les nouvelles valeurs.</param>
+        /// <param name="dto">Objet <see cref="AdresseUpdateDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -54,7 +54,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] AdresseDTO dto)
+        public async Task<ActionResult> Put(int id, [FromBody] AdresseUpdateDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest();

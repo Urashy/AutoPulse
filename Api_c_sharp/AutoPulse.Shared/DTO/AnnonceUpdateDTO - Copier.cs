@@ -1,6 +1,6 @@
 namespace AutoPulse.Shared.DTO;
 
-public class AnnonceCreateUpdateDTO
+public class AnnonceUpdateDTO
 {
     public int IdAnnonce { get; set; }
     public string Libelle { get; set; }
