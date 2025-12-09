@@ -67,6 +67,8 @@ public class MapperProfile : Profile
 
         CreateMap<PlainteUpdateDTO, Plainte>().ReverseMap();
 
+        CreateMap<EtatCompte, EtatCompteDTO>().ReverseMap();
+
         // ============================================
         // MAPPERS ADRESSE
         // ============================================
@@ -262,7 +264,6 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.EstSuspendu,
                 opt => opt.MapFrom(src => src.IdEtatCompte == 2))
             .ReverseMap();
-
         
         CreateMap<Compte, CompteProfilPublicDTO>()
             .ForMember(dest => dest.DateInscription, 
@@ -279,17 +280,26 @@ public class MapperProfile : Profile
                     : 0))
             .ForMember(dest => dest.NombreAvis, 
                 opt => opt.MapFrom(src => src.AvisJugees.Count)).ReverseMap();
-        
+
         CreateMap<CompteCreateDTO, Compte>()
-            .ReverseMap();
-        
+            .ForMember(dest => dest.IdEtatCompte,
+                opt => opt.MapFrom(src => src.EstSuspendu ? 2 : 1));
+
+        CreateMap<Compte, CompteCreateDTO>();
+            
+
+
         CreateMap<CompteUpdateDTO, Compte>()
-            .ReverseMap();
-        
+            .ForMember(dest => dest.IdEtatCompte,
+                opt => opt.MapFrom(src => src.EstSuspendu ? 2 : 1));
+
+        CreateMap<Compte, CompteUpdateDTO>();
+
+
         // ============================================
         // MAPPERS AVIS
         // ============================================
-        
+
         CreateMap<Avis, AvisListDTO>()
             .ForMember(dest => dest.PseudoJugeur, 
                 opt => opt.MapFrom(src => src.CompteJugeurNav.Pseudo)).ReverseMap();

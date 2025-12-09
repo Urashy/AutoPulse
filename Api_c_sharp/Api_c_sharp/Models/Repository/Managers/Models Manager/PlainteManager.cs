@@ -9,5 +9,10 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public PlainteManager(AutoPulseBdContext context) : base(context)
         {
         }
+
+        public override async Task<IEnumerable<Plainte>> GetAllAsync()
+        {
+            return await dbSet.OrderBy(p => p.DateCreation).ToListAsync();
+        }
     }
 }

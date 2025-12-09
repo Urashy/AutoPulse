@@ -346,9 +346,14 @@ namespace Api_c_sharp.Models.Repository
                 .HasKey(e => e.IdPlainte);
 
             modelBuilder.Entity<Plainte>()
-                .HasOne(p => p.SignalementPainteNav)
+                .HasOne(p => p.SignalementPlainteNav)
                 .WithMany(s => s.Plaintes)
                 .HasForeignKey(p => p.IdSignalement);
+
+            modelBuilder.Entity<Plainte>()
+                .HasOne(p => p.ComptePlainteNav)
+                .WithMany(c => c.Plaintes)
+                .HasForeignKey(p => p.IdCompte);
 
             //-----------------------------ReinitialisationMotDePasse-----------------------------
             modelBuilder.Entity<ReinitialisationMotDePasse>()

@@ -226,6 +226,15 @@
         {
             <span class="filter-tag">Département: @VM.Departement</span>
         }
+        @if (VM.SelectedOrder != 0)
+        {
+            <span class="filter-tag">Trier par: @VM.GetOrderLibelle(VM.SelectedOrder)</span>
+        }
+        @if (VM.SelectedBoite != "0")
+        {
+            <span class="filter-tag">Boîte de vitesse: @VM.GetBoiteLibelle(VM.SelectedBoite)</span>
+        }
+
     </div>
 }
 
