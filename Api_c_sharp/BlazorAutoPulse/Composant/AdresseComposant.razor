@@ -1,0 +1,27 @@
+@using AutoPulse.Shared.DTO
+@using BlazorAutoPulse.ViewModel
+@inject AdresseComposantViewModel AdresseVM
+@inject NavigationManager Navigation
+
+<div class="car-card">
+    <div class="car-info">
+        <h3 class="car-title">@Adresse.Nom</h3>
+        <div class="car-specs">
+            <span> @Adresse.Numero @Adresse.Rue, @Adresse.LibelleVille @Adresse.CodePostal</span>
+        </div>
+        @* <button class="car-btn" @onclick="NavigateToDetail" @onclick:stopPropagation="true">Voir Détails</button> *@
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public AdresseDTO Adresse { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Adresse != null)
+        {
+            await AdresseVM.InitializeAsync(Adresse, StateHasChanged);
+        }
+    }
+}
