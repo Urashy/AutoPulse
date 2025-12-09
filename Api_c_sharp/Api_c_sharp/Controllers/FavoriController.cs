@@ -19,7 +19,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class FavoriController(FavoriManager _manager, IMapper _mapper, IJournalService _journalService, IHubContext<MessageHub> _hubContext) : ControllerBase
+    public class FavoriController(FavoriManager _manager, IMapper _mapper, IJournalService _journalService) : ControllerBase
     {
         /// <summary>
         /// Récupère tous les favoris.
@@ -55,14 +55,6 @@ namespace Api_c_sharp.Controllers
             var entity = _mapper.Map<Favori>(dto);
             await _journalService.LogMiseFavorisAsync(dto.IdCompte, dto.IdAnnonce);
             await _manager.AddAsync(entity);
-
-            // Notifier SignalR que l'utilisateur doit rejoindre le groupe de l'annonce
-            if (_hubContext != null)
-            {
-                // Note: Cette notification sera gérée côté client via un event
-                // Le client devra appeler JoinFavorisAnnonce après avoir reçu la confirmation
-                Console.WriteLine($"✅ Favori ajouté - Compte {dto.IdCompte} devrait rejoindre le groupe annonce_{dto.IdAnnonce}");
-            }
 
             return CreatedAtAction(
                 nameof(GetByIDS),
@@ -123,14 +115,6 @@ namespace Api_c_sharp.Controllers
                 return NotFound();
 
             await _manager.DeleteAsync(entity);
-
-            // Notifier SignalR que l'utilisateur doit quitter le groupe de l'annonce
-            if (_hubContext != null)
-            {
-                // Note: Cette notification sera gérée côté client via un event
-                // Le client devra appeler LeaveFavorisAnnonce après avoir reçu la confirmation
-                Console.WriteLine($"🗑️ Favori supprimé - Compte {idCompte} devrait quitter le groupe annonce_{idAnnonce}");
-            }
 
             return NoContent();
         }
