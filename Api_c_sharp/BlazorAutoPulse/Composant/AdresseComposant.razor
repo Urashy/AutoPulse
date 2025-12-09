@@ -3,25 +3,88 @@
 @inject AdresseComposantViewModel AdresseVM
 @inject NavigationManager Navigation
 
-<div class="car-card">
-    <div class="car-info">
-        <h3 class="car-title">@Adresse.Nom</h3>
-        <div class="car-specs">
-            <span> @Adresse.Numero @Adresse.Rue, @Adresse.LibelleVille @Adresse.CodePostal</span>
+<div class="address-card">
+    <div class="address-header">
+        <div class="address-icon">
+            📍
         </div>
-        @* <button class="car-btn" @onclick="NavigateToDetail" @onclick:stopPropagation="true">Voir Détails</button> *@
+        <h3 class="address-title">@Adresse.Nom</h3>
     </div>
+
+    <div class="address-content">
+        <div class="address-row">
+            <span class="address-row-icon">🏠</span>
+            <div class="address-details">
+                <span class="address-label">Adresse complète</span>
+                <span class="address-value">
+                    @Adresse.Numero @Adresse.Rue
+                </span>
+            </div>
+        </div>
+
+        <div class="address-row">
+            <span class="address-row-icon">📮</span>
+            <div class="address-details">
+                <span class="address-label">Ville</span>
+                <span class="address-value">
+                    @Adresse.CodePostal @Adresse.LibelleVille
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @if (ShowActions)
+    {
+        <div class="address-actions">
+            <button class="address-btn" @onclick="EditAddress" @onclick:stopPropagation="true">
+                <span>✏️</span>
+                <span>Modifier</span>
+            </button>
+            <button class="address-btn danger" @onclick="DeleteAddress" @onclick:stopPropagation="true">
+                <span>🗑️</span>
+                <span>Supprimer</span>
+            </button>
+        </div>
+    }
 </div>
 
 @code {
     [Parameter]
     public AdresseDTO Adresse { get; set; }
 
+    [Parameter]
+    public bool ShowActions { get; set; } = false;
+
+    [Parameter]
+    public bool IsPrincipal { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<AdresseDTO> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<AdresseDTO> OnDelete { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if (Adresse != null)
         {
             await AdresseVM.InitializeAsync(Adresse, StateHasChanged);
+        }
+    }
+
+    private async Task EditAddress()
+    {
+        if (OnEdit.HasDelegate)
+        {
+            await OnEdit.InvokeAsync(Adresse);
+        }
+    }
+
+    private async Task DeleteAddress()
+    {
+        if (OnDelete.HasDelegate)
+        {
+            await OnDelete.InvokeAsync(Adresse);
         }
     }
 }

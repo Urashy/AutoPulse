@@ -165,7 +165,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 TypeMime = "text/plain",
                 Extension = ".txt",
                 TailleFichier = 100,
-                DateUpload = DateTime.Now,
                 IdMessage = 1
             };
 
@@ -187,7 +186,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 TypeMime = "text/plain",
                 Extension = ".txt",
                 TailleFichier = 100,
-                DateUpload = DateTime.Now,
                 IdMessage = 1
             };
 
@@ -205,7 +203,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 TypeMime = "text/plain",
                 Extension = ".txt",
                 TailleFichier = 100,
-                DateUpload = DateTime.Now,
                 IdMessage = 1
             };
 

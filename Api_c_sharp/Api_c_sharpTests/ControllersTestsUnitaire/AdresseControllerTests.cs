@@ -131,14 +131,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PostAdresseTest_Entity()
         {
-            var adresse = new AdresseDTO()
+            AdresseCreateDTO adresse = new AdresseCreateDTO()
             {
                 Nom = "Travail",
                 LibelleVille = "Annecy",
                 CodePostal = "74000",
                 Rue = "Route de test",
                 Numero = 15,
-                IdPays = 1,       // clé étrangère vers Pays
+                IdPays = 1,       
                 IdCompte = 1
             }
             ;
@@ -174,7 +174,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutAdresseTest()
         {
-            var adresse = new AdresseDTO()
+            AdresseUpdateDTO adresse = new AdresseUpdateDTO()
             {
                 IdAdresse = _objetcommun.IdAdresse,
                 Nom = "Domicile",
@@ -197,8 +197,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutAdresseTest()
         {
-            var adresse = new AdresseDTO()
+            AdresseUpdateDTO adresse = new AdresseUpdateDTO()
             {
+                IdAdresse = _objetcommun.IdAdresse,
                 Nom = "Domicile",
                 LibelleVille = "Annecy",
                 CodePostal = "74000",
@@ -215,8 +216,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPutAdresseTest()
         {
-            var adresse = new AdresseDTO()
+            AdresseUpdateDTO adresse = new AdresseUpdateDTO()
             {
+                IdAdresse = _objetcommun.IdAdresse,
                 Nom = "Domicile",
                 LibelleVille = "Annecy",
                 CodePostal = "74000",
@@ -240,7 +242,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPostAdresseTest()
         {
-            var adresse = new AdresseDTO
+            AdresseCreateDTO adresse = new AdresseCreateDTO
             {
                 Nom = null,
             };

@@ -84,7 +84,7 @@
                         {
                             <div class="file-preview-item">
                                 <span class="file-name">📎 @file.Name</span>
-                                <button @onclick="() => RemoveFile(file)" class="remove-file-btn">✕</button>
+                                <button @onclick="() => VM.RemoveFile(file)" class="remove-file-btn">✕</button>
                             </div>
                         }
                     </div>
@@ -95,7 +95,7 @@
                     <input type="text"
                            placeholder="Tapez votre message..."
                            value="@VM.NewMessage"
-                           @oninput="OnInputChanged"
+                           @oninput="VM.OnInputChanged"
                            @onkeyup="VM.HandleTyping"
                            @onkeydown="VM.HandleKeyPress"
                            class="message-input"
@@ -126,19 +126,6 @@
     {
         VM._refreshUI += StateHasChanged;
         await VM.InitializeAsync();
-    }
-
-    // ✅ CRITIQUE : Mettre à jour la valeur SANS StateHasChanged
-    private void OnInputChanged(ChangeEventArgs e)
-    {
-        VM.NewMessage = e.Value?.ToString() ?? "";
-        // PAS de StateHasChanged() ici !
-    }
-
-    private void RemoveFile(IBrowserFile file)
-    {
-        VM.SelectedFiles.Remove(file);
-        StateHasChanged();
     }
 
     public void Dispose()
