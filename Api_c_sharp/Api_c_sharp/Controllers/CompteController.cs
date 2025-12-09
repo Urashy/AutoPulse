@@ -343,14 +343,14 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </returns>
     [ActionName("ToggleEtatCompte")]
     [HttpPut("{type}")]
-    public async Task<ActionResult<bool>> ToggleEtatCompte(int type)
+    public async Task<ActionResult> ToggleEtatCompte(int type, bool estretirer = false)
     {
         Compte compte = await _manager.GetByIdAsync(type);
 
         if (compte is null)
             return NotFound();
 
-        await _manager.ToggleEtatCompte(type);
+        await _manager.ToggleEtatCompte(type, estretirer);
 
         return NoContent();
     }

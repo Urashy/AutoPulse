@@ -228,6 +228,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             };
 
             // ✅ Ajouter TypeSignalement au contexte
+            await _context.EtatComptes.AddAsync(etatCompte);
+            await _context.EtatComptes.AddAsync(etatCompteInactif);
             await _context.TypesSignalement.AddAsync(typeSignalement);
             await _context.Signalements.AddAsync(signalement);
             await _context.Pays.AddAsync(pays);
@@ -897,8 +899,32 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _controller.ToggleEtatCompte(_objetcommun.IdCompte);
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Compte compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
             Assert.AreEqual(2, compteModifie.IdEtatCompte);
+        }
+
+
+        [TestMethod]
+        public async Task NotFoundToggleEtatCompteTest()
+        {
+            var result = await _controller.ToggleEtatCompte(0);
+
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+
+        [TestMethod]
+        public async Task ToggleEtatCompteEstRetirerTest()
+        {
+            _objetcommun.IdEtatCompte = 2;
+            _context.SaveChanges();
+
+            var result = await _controller.ToggleEtatCompte(_objetcommun.IdCompte,true);
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            Compte compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.AreEqual(1, compteModifie.IdEtatCompte);
         }
     }
 }
