@@ -352,7 +352,6 @@
             <!-- Ici seront injectés les différents composants selon la section active -->
             <div class="section-placeholder">
                 <h3>Section: @VM.activeSection</h3>
-                <p>Le contenu du composant @VM.activeSection sera affiché ici.</p>
 
                 @switch(VM.activeSection)
                 {
@@ -361,7 +360,7 @@
                         {
                             @foreach (var annonce in VM.annonces)
                             {
-                                <p>@annonce.Libelle</p>
+                                <AnnonceComposant Annonce="annonce"/>
                             }
                         }
                         else
@@ -375,7 +374,7 @@
                         {
                             @foreach (var av in VM.avis)
                             {
-                                <p>@av.NoteAvis</p>
+                                <AvisComposant Avis="av"/>
                             }
                         }
                         else
@@ -403,7 +402,7 @@
                         {
                             @foreach (var commande in VM.commandes)
                             {
-                                <p>@commande.MoyenPaiement</p>
+                                <CommandeComposant Commande="commande"/>
                             }
                         }
                         else

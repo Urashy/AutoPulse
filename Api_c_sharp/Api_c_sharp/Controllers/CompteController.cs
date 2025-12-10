@@ -512,7 +512,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     #endregion
 
 #region Outils Authentification Google
-    [ExcludeFromCodeCoverage]
     private async Task<GoogleTokenResponse> ExchangeCodeForToken(string code)
     {
         var clientId = config["Authentication:Google:ClientId"];
@@ -533,7 +532,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var json = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<GoogleTokenResponse>(json);
     }
-    [ExcludeFromCodeCoverage]
     private async Task<GoogleUserInfo> GetGoogleUserInfo(string accessToken)
     {
         using var httpClient = new HttpClient();
@@ -544,7 +542,6 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var json = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<GoogleUserInfo>(json);
     }
-    [ExcludeFromCodeCoverage]
     private async Task<(bool, Compte)> GetOrCreateCompte(GoogleUserInfo userInfo)
     {
         // Cherche si un compte existe déjà avec cet email
