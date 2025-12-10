@@ -2,9 +2,8 @@
 
 namespace BlazorAutoPulse.Service.Interface
 {
-    public interface IPlainteService
+    public interface IPlainteService : IService<PlainteCreateDTO>
     {
-        Task<PlainteDTO> CreatePlainteAsync(PlainteCreateDTO entity);
 
     }
 }

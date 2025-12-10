@@ -116,7 +116,7 @@ namespace BlazorAutoPulse.ViewModel
                 // Trouver un signalement en attente pour ce compte
                 var signalement = signalements.FirstOrDefault(s =>
                     s.IdCompteSignale == _currentUserId &&
-                    s.IdEtatSignalement == 1); // 1 = En attente
+                    s.IdEtatSignalement == 1);
 
                 if (signalement != null)
                 {
@@ -218,14 +218,13 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // Si pas de signalement actif, en créer un
                 if (!_signalementId.HasValue)
                 {
                     var signalementDto = new SignalementCreateDTO
                     {
                         IdCompteSignalant = _currentUserId.Value,
                         IdCompteSignale = _currentUserId.Value,
-                        IdTypeSignalement = 10, // Type "Autre" ou "Contestation suspension"
+                        IdTypeSignalement = 10, 
                         DescriptionSignalement = "Contestation de suspension de compte"
                     };
 
@@ -260,7 +259,7 @@ namespace BlazorAutoPulse.ViewModel
                     Description = PlainteContenu
                 };
 
-                var result = await _plainteService.CreatePlainteAsync(plainteDto);
+                var result = await _plainteService.PostWithErrorHandlingAsync(plainteDto);
 
                 if (result != null)
                 {

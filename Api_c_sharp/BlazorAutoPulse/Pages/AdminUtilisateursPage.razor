@@ -99,7 +99,7 @@
                                             title="Modifier">
                                         ✏️
                                     </button>
-                                    @if (user.TypeCompte == "Particulier")
+                                    @if (!user.EstSuspendu)
                                     {
                                         <button class="btn-icon warning"
                                                 @onclick="() => VM.SuspendUser(user)"
