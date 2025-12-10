@@ -37,6 +37,7 @@ builder.Services.AddScoped<ModeleManager>();
 builder.Services.AddScoped<BoiteDeVitesseManager>();
 builder.Services.AddScoped<CarburantManager>();
 builder.Services.AddScoped<CategorieManager>();
+builder.Services.AddScoped<CommandeManager>();
 builder.Services.AddScoped<MiseEnAvantManager>();
 builder.Services.AddScoped<MotriciteManager>();
 builder.Services.AddScoped<PaysManager>();
@@ -61,6 +62,7 @@ builder.Services.AddScoped<PieceJointeManager>();
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
 builder.Services.AddScoped<IAvisRepository>(sp => sp.GetRequiredService<AvisManager>());
 builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalManager>());
+builder.Services.AddScoped<ICommandeRepository>(sp => sp.GetRequiredService<CommandeManager>());
 builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmentService>();
 
 //------------------------------Authentification------------------------------

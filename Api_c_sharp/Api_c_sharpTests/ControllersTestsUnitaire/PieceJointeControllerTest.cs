@@ -554,5 +554,39 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(piecesJointes);
             Assert.AreEqual(0, piecesJointes.Count());
         }
+
+        [TestMethod]
+        public async Task UploadTest_ExceptionDuringAdd()
+        {
+            // Arrange
+            // Dispose du context pour forcer une exception lors de l'AddAsync
+            _context.Dispose();
+
+            var uploadDtos = new List<PieceJointeUploadDTO>
+            {
+                new PieceJointeUploadDTO
+                {
+                    NomFichier = "file1.txt",
+                    TypeMime = "text/plain",
+                    Extension = ".txt",
+                    TailleFichier = 100,
+                    IdMessage = 1,
+                    ContenuBase64 = Convert.ToBase64String(new byte[] { 0x0, 0x1, 0x2 })
+                }
+            };
+
+            // Act
+            var result = await _controller.Upload(uploadDtos);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+
+            var okResult = (OkObjectResult)result.Result;
+            var uploadedFiles = (List<PieceJointeDTO>)okResult.Value;
+
+            // Aucun fichier ne doit être uploadé car l'exception est capturée
+            Assert.AreEqual(0, uploadedFiles.Count);
+        }
     }
 }
