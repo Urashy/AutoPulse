@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+var connectionString = builder.Configuration.GetConnectionString("AzureConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -57,6 +57,7 @@ builder.Services.AddScoped<SignalementManager>();
 builder.Services.AddScoped<TypeSignalementManager>();
 builder.Services.AddScoped<BloqueManager>();
 builder.Services.AddScoped<PieceJointeManager>();
+builder.Services.AddScoped<PlainteManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
