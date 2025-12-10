@@ -59,7 +59,7 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     Console.WriteLine("⚠️ La réponse est null !");
                     AllUtilisateurs = new List<CompteDetailDTO>();
-                    FilteredUtilisateurs = new List<CompteDetailDTO>(); // ✅ Ajouter
+                    FilteredUtilisateurs = new List<CompteDetailDTO>();
                 }
                 else
                 {
@@ -122,7 +122,6 @@ namespace BlazorAutoPulse.ViewModel
                     AllUtilisateurs = ConvertToDetailDTO(allResponse);
                 }
 
-                // ✅ Maintenant charger les données filtrées
                 IEnumerable<CompteGetDTO> response;
 
                 if (status == "all")
@@ -176,6 +175,7 @@ namespace BlazorAutoPulse.ViewModel
                 Prenom = c.Prenom,
                 Email = "",
                 TypeCompte = c.TypeCompte,
+                EstSuspendu = (c.IdEtatCompte == 1),
                 DateCreation = c.DateInscription,
                 IdTypeCompte = c.IdTypeCompte
             }).ToList();
@@ -242,7 +242,7 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task SuspendUser(CompteDetailDTO user)
         {
-            // TODO: Implémenter la suspension
+            await _compteService.ToggleSuspention(user.IdCompte);
             Console.WriteLine($"Suspension de l'utilisateur {user.Pseudo}");
         }
 
