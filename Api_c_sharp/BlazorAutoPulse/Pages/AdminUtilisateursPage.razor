@@ -2,6 +2,7 @@
 @layout AdminLayout
 @using BlazorAutoPulse.ViewModel
 @inject AdminUtilisateursViewModel VM
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrateur")] 
 
 <PageTitle>Gestion des utilisateurs - Admin</PageTitle>
 
