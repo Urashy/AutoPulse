@@ -112,4 +112,19 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<Bloque?> GetBloqueByIdsAsync(int idCompteBloqueur, int idCompteBloque);
         Task<bool> ExistsAsync(int idCompte, int idAnnonce);
     }
+    
+    public interface INotificationRepository
+    {
+        Task<IEnumerable<Notification>> GetNotificationsByCompteAsync(int idCompte);
+        Task<IEnumerable<Notification>> GetUnreadNotificationsByCompteAsync(int idCompte);
+        Task<int> GetUnreadCountAsync(int idCompte);
+        Task MarkAsReadAsync(int idNotification);
+        Task MarkAllAsReadAsync(int idCompte);
+        Task DeleteOldNotificationsAsync(int daysOld = 30);
+    }
+
+    public interface IPlainteRepository
+    {
+        Task<IEnumerable<Plainte>> GetPlainteByCompteID(int idCompte);
+    }
 }

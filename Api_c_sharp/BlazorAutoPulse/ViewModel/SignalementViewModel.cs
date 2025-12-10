@@ -138,7 +138,6 @@ public class SignalementViewModel
             return;
         }
 
-        // Si c'est "Autre" (ID 10), la description est obligatoire
         if (SelectedTypeSignalement == 10 && string.IsNullOrWhiteSpace(Description))
         {
             ErrorMessage = "La description est obligatoire pour le type 'Autre'";

@@ -77,11 +77,6 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // 🔥 Scroll si :
-        // 1. La conversation a changé
-        // 2. De nouveaux messages sont arrivés
-        // 3. Le typing indicator apparaît
-        
         bool conversationChanged = ConversationId.HasValue && ConversationId != _previousConversationId;
         bool newMessagesAdded = Messages.Count > _previousMessageCount;
         
@@ -104,4 +99,4 @@
             Console.WriteLine($"Erreur scroll: {ex.Message}");
         }
     }
-}p
+}

@@ -11,7 +11,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             
         }
 
-        public async Task<bool> ExistsAsync(int idComptebloque, int idcomptebloquant)
+        public virtual async Task<bool> ExistsAsync(int idComptebloque, int idcomptebloquant)
         {
             return await dbSet.AnyAsync(b => b.IdBloque == idComptebloque && b.IdBloquant == idcomptebloquant);
         }
