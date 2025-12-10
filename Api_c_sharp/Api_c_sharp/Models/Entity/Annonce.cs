@@ -80,4 +80,7 @@ public class Annonce
 
     [InverseProperty(nameof(Signalement.AnnonceSignaleNav))]
     public virtual ICollection<Signalement> SignalementsRecus { get; set; } = new List<Signalement>();
+    
+    [InverseProperty(nameof(Notification.AnnonceNotificationNav))]
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }
