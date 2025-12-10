@@ -8,7 +8,7 @@ namespace BlazorAutoPulse.Service.Interface
     {
         Task<IEnumerable<AnnonceDTO>> GetByIdMiseEnAvant(int id, int pageNumber = 1, int pageSize = 21);
         Task<AnnonceDTO> CreateAnnonceAsync(AnnonceCreateDTO entity);
-        Task UpdateAnnonceAsync(int id, AnnonceCreateDTO entity);
+        Task UpdateAnnonceAsync(int id, AnnonceUpdateDTO entity);
         Task<IEnumerable<AnnonceDTO>> GetFilteredAnnoncesAsync(ParametreRecherche searchParams);
         Task<IEnumerable<AnnonceDTO>> GetByCompteID(int id);
         Task<IEnumerable<AnnonceDTO>> GetAnnoncesFavoritesByCompteId(int compteId);

@@ -21,6 +21,62 @@ public class CompteWebService : BaseWebService<CompteDetailDTO>, ICompteService
         return await response.Content.ReadFromJsonAsync<IEnumerable<CompteGetDTO>>();
     }
 
+    public async Task<ServiceResult<CompteCreateDTO>> PostWithErrorHandlingAsync(CompteCreateDTO compte)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("Post"))
+            {
+                Content = JsonContent.Create(compte)
+            };
+
+            var response = await SendWithCredentialsAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<CompteCreateDTO>();
+                return ServiceResult<CompteCreateDTO>.SuccessResult(result);
+            }
+
+            // Gestion des erreurs de validation (400)
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                
+                try
+                {
+                    var validationError = JsonSerializer.Deserialize<ValidationErrorResponse>(
+                        errorContent,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+
+                    if (validationError?.Errors != null && validationError.Errors.Any())
+                    {
+                        var errorMessages = validationError.Errors
+                            .SelectMany(e => e.Value)
+                            .ToList();
+                        
+                        return ServiceResult<CompteCreateDTO>.ErrorResult(
+                            string.Join("\n", errorMessages),
+                            validationError.Errors
+                        );
+                    }
+                }
+                catch (JsonException)
+                {
+                    return ServiceResult<CompteCreateDTO>.ErrorResult("Erreur de validation : " + errorContent);
+                }
+            }
+
+            return ServiceResult<CompteCreateDTO>.ErrorResult($"Erreur {response.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception PostWithErrorHandlingAsync : {ex.Message}");
+            return ServiceResult<CompteCreateDTO>.ErrorResult("Une erreur s'est produite");
+        }
+    }
+
     public async Task<Compte> GetByNameAsync(string name)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetByString/{name}"));

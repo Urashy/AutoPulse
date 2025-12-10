@@ -44,7 +44,7 @@ namespace BlazorAutoPulse.Service
             }
         }
 
-        public async Task UpdateAnnonceAsync(int id, AnnonceCreateDTO entity)
+        public async Task UpdateAnnonceAsync(int id, AnnonceUpdateDTO entity)
         {
             var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
             {
