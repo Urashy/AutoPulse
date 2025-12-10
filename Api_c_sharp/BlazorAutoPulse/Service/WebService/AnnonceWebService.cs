@@ -16,7 +16,7 @@ namespace BlazorAutoPulse.Service
 
         public async Task<IEnumerable<AnnonceDTO>> GetByCompteID(int id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"/GetAnnoncesByCompteId/{id}"));
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetAnnoncesByCompteId/{id}"));
             var response = await SendWithCredentialsAsync(request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IEnumerable<AnnonceDTO>>()

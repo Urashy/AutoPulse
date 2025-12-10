@@ -14,7 +14,7 @@ namespace BlazorAutoPulse.Service.WebService
 
         public async Task<IEnumerable<AvisListDTO>> GetAvisByCompte(int id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"/GetAvisByCompteID/{id}"));
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetAvisByCompteID/{id}"));
             var response = await SendWithCredentialsAsync(request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IEnumerable<AvisListDTO>>();

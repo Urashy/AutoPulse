@@ -13,7 +13,7 @@ namespace BlazorAutoPulse.Service.WebService
 
         public async Task<IEnumerable<CommandeDTO>> GetCommandeByCompte(int id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"/GetCommandeByCompteID/{id}"));
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetCommandeByCompteID/{id}"));
             var response = await SendWithCredentialsAsync(request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IEnumerable<CommandeDTO>>();
