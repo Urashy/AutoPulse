@@ -40,6 +40,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<ModeleBlender> ModelesBlender { get; set; }
         public DbSet<Motricite> Motricites { get; set; }
         public DbSet<MoyenPaiement> MoyensPaiements { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         public DbSet<Pays> Pays { get; set; }
         public DbSet<PieceJointe> PiecesJointes { get; set; }
         public DbSet<Plainte> Plaintes { get; set; }
@@ -327,6 +328,20 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------MoyenPaiement-----------------------------
             modelBuilder.Entity<MoyenPaiement>()
                 .HasKey(e => e.IdMoyenPaiement);
+
+            //-----------------------------Notification-----------------------------
+            modelBuilder.Entity<Notification>()
+                .HasKey(e => e.IdNotification);
+
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.CompteNotificationNav)
+                .WithMany(c => c.Notifications)
+                .HasForeignKey(n => n.IdCompte);
+
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.AnnonceNotificationNav)
+                .WithMany(s => s.Notifications)
+                .HasForeignKey(n => n.IdAnnonce);
 
             //-----------------------------Pays-----------------------------
             modelBuilder.Entity<Pays>()

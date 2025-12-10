@@ -122,4 +122,9 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task MarkAllAsReadAsync(int idCompte);
         Task DeleteOldNotificationsAsync(int daysOld = 30);
     }
+
+    public interface IPlainteRepository
+    {
+        Task<IEnumerable<Plainte>> GetPlainteByCompteID(int idCompte);
+    }
 }

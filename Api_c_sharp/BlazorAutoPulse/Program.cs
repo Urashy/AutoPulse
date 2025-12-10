@@ -83,6 +83,8 @@ namespace BlazorAutoPulse
             builder.Services.AddTransient<FileUploadViewModel>();
             builder.Services.AddScoped<AdresseComposantViewModel>();
             builder.Services.AddScoped<AdminLayoutViewModel>();
+            builder.Services.AddScoped<CommandeComposantViewModel>();
+            builder.Services.AddScoped<AvisComposantViewModel>();
 
 
 

@@ -14,7 +14,7 @@ public class NotificationDTO
     // Données spécifiques aux baisses de prix
     public int? IdAnnonce { get; set; }
     public string? LibelleAnnonce { get; set; }
-    public decimal? AncienPrix { get; set; }
-    public decimal? NouveauPrix { get; set; }
-    public decimal? Reduction { get; set; }
+    public double? AncienPrix { get; set; }
+    public double? NouveauPrix { get; set; }
+    public double? Reduction { get; set; }
 }

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Authentification;
 using BlazorAutoPulse.Service.Interface;
@@ -8,12 +9,12 @@ namespace BlazorAutoPulse.ViewModel;
 
 public class CreationCompteViewModel
 {
-    private readonly IService<Compte> _compteService;
+    private readonly ICompteService _compteService;
     private readonly IServiceConnexion _connexionService;
 
     public bool pro = false;
     
-    public Compte compte { get; set; }
+    public CompteCreateDTO compte { get; set; }
     public string motDePasse { get; set; }
     
     public bool memeMotDePasse { get; set; }
@@ -24,13 +25,14 @@ public class CreationCompteViewModel
     public bool showPopUp { get; set; }
     public int seconds { get; set; }
 
-    public CreationCompteViewModel(IService<Compte> compteService, IServiceConnexion connexionService)
+    public CreationCompteViewModel(ICompteService compteService, IServiceConnexion connexionService)
     {
         _compteService  = compteService;
         _connexionService = connexionService;
-        compte = new Compte();
+        compte = new CompteCreateDTO();
         compte.IdTypeCompte = 1;
         compte.DateNaissance = new DateTime(2000, 1, 1);
+        compte.EstSuspendu = false;
         memeMotDePasse = true;
         showPopUp = false;
         seconds = 3;

@@ -309,7 +309,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// <returns>
     /// <see cref="bool"/> indiquant si l'annonce est en favori (200 OK).
     /// </returns>
-    [ActionName("HasBloque")]
+    [ActionName("EstMasquer")]
     [HttpGet("{idannonce}")]
     public async Task<ActionResult<bool>> EstMasque(int idannonce)
     {

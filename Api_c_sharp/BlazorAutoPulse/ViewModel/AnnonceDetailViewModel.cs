@@ -347,8 +347,9 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task MasquerAnnonce()
         {
-            AnnonceCreateDTO annonceChange = new AnnonceCreateDTO()
+            AnnonceUpdateDTO annonceChange = new AnnonceUpdateDTO()
             {
+                IdAnnonce = Annonce.IdAnnonce,
                 Libelle = Annonce.Libelle,
                 IdCompte = Annonce.IdVendeur,
                 IdEtatAnnonce = 4,
@@ -368,8 +369,9 @@ namespace BlazorAutoPulse.ViewModel
         
         public async Task DemasquerAnnonce()
         {
-            AnnonceCreateDTO annonceChange = new AnnonceCreateDTO()
+            AnnonceUpdateDTO annonceChange = new AnnonceUpdateDTO()
             {
+                IdAnnonce = Annonce.IdAnnonce,
                 Libelle = Annonce.Libelle,
                 IdCompte = Annonce.IdVendeur,
                 IdEtatAnnonce = 1,

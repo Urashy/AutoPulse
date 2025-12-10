@@ -5,6 +5,7 @@ namespace BlazorAutoPulse.Service.Interface;
 
 public interface ICompteService: IService<CompteDetailDTO>
 {
+    Task<ServiceResult<CompteCreateDTO>>PostWithErrorHandlingAsync(CompteCreateDTO compte);
     Task<Compte> GetByNameAsync(string name);
     Task<CompteDetailDTO> GetMe();
     Task<bool> VerifUser(ChangementMdp changementMdp);

@@ -359,6 +359,32 @@ public class MapperProfile : Profile
 
         CreateMap<MoyenPaiement, MoyenPaiementDTO>().ReverseMap();
 
+        //---------------------------------Notification---------------------------------
+        CreateMap<Notification, NotificationDTO>()
+            .ForMember(dest => dest.IdAnnonce, opt => opt.MapFrom(src => src.AnnonceNotificationNav.IdAnnonce))
+            .ForMember(dest => dest.LibelleAnnonce, opt => opt.MapFrom(src => src.AnnonceNotificationNav.Libelle))
+            .ForMember(dest => dest.Reduction, opt => opt.MapFrom(src => src.NouveauPrix - src.AncienPrix))
+            .ReverseMap();
+        
+        CreateMap<Notification, NotificationCreateDTO>()
+            .ForMember(dest => dest.IdAnnonce, opt => opt.MapFrom(src => src.AnnonceNotificationNav.IdAnnonce))
+            .ReverseMap();
+        
+        CreateMap<Notification, NotificationMarkReadDTO>()
+            .ReverseMap();
+        
+        CreateMap<IEnumerable<Notification>, NotificationStatsDTO>()
+            .ForMember(dest => dest.TotalNonLues,
+                opt => opt.MapFrom(src => src.Count(n => !n.EstLue)))
+            .ForMember(dest => dest.TotalPriceDrops,
+                opt => opt.MapFrom(src => src.Count(n => n.Type == "pricedrop")))
+            .ForMember(dest => dest.TotalMessages,
+                opt => opt.MapFrom(src => src.Count()))
+            .ReverseMap();
+        
+        CreateMap<Notification, NotificationUpdateDTO>()
+            .ReverseMap();
+        
         //---------------------------------Pays---------------------------------
 
         CreateMap<Pays, PaysDTO>().ReverseMap();
