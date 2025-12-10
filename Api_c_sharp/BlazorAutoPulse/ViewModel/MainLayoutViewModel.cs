@@ -263,15 +263,22 @@ namespace BlazorAutoPulse.ViewModel
 
                 if (result != null)
                 {
-                    PlainteSuccess = "Votre plainte a été envoyée avec succès. Nos équipes l'examineront dans les plus brefs délais.";
-                    PlainteContenu = "";
+                    _notificationService.ShowSuccess(
+                        "Plainte envoyée",
+                        "Votre plainte a été transmise avec succès. Nos équipes l'examineront dans les plus brefs délais."
+                    );
 
-                    await Task.Delay(3000);
-                    CancelPlainte();
+                    PlainteContenu = "";
+                    PlainteSuccess = "Votre plainte a été envoyée avec succès.";
+                    ShowPlainteForm = false;
+
                 }
                 else
                 {
                     PlainteError = "Une erreur est survenue lors de l'envoi de votre plainte";
+                    _notificationService.ShowError(
+                        "Plainte non envoyée",
+                        PlainteError);
                 }
             }
             catch (Exception ex)
