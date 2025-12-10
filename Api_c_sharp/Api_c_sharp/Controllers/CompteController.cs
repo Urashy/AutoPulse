@@ -335,7 +335,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <summary>
     /// Récupère un compte à partir d'un id de type de compte.
     /// </summary>
-    /// <param name="type">Identifiant unique de la compte recherchée.</param>
+    /// <param name="idcompte">Identifiant unique du compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="CompteGetDTO"/> si les compte existe (200 OK).</description></item>
@@ -343,15 +343,15 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </list>
     /// </returns>
     [ActionName("ToggleEtatCompte")]
-    [HttpPut("{type}")]
-    public async Task<ActionResult> ToggleEtatCompte(int type, bool estretirer = false)
+    [HttpPut("{idcompte}")]
+    public async Task<ActionResult> ToggleEtatCompte(int idcompte, bool estretirer = false)
     {
-        Compte compte = await _manager.GetByIdAsync(type);
+        Compte compte = await _manager.GetByIdAsync(idcompte);
 
         if (compte is null)
             return NotFound();
 
-        await _manager.ToggleEtatCompte(type, estretirer);
+        await _manager.ToggleEtatCompte(idcompte, estretirer);
 
         return NoContent();
     }
