@@ -14,9 +14,9 @@
     <div class="commande-content">
         <div class="commande-row">
             <div class="commande-details">
-                <span class="commande-label">Adresse complète</span>
+                <span class="commande-label">Moyen de paiement</span>
                 <span class="commande-value">
-                    @Commande.
+                    @Commande.MoyenPaiement
                 </span>
             </div>
         </div>
@@ -24,9 +24,9 @@
         <div class="commande-row">
             <span class="commande-row-icon">📮</span>
             <div class="commande-details">
-                <span class="commande-label">Ville</span>
+                <span class="commande-label">Vendeur</span>
                 <span class="commande-value">
-                    @Commande.
+                    @Commande.PseudoVendeur
                 </span>
             </div>
         </div>
@@ -58,10 +58,10 @@
     public bool IsPrincipal { get; set; } = false;
 
     [Parameter]
-    public EventCallback<AdresseDTO> OnEdit { get; set; }
+    public EventCallback<CommandeDTO> OnEdit { get; set; }
 
     [Parameter]
-    public EventCallback<AdresseDTO> OnDelete { get; set; }
+    public EventCallback<CommandeDTO> OnDelete { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,7 +75,7 @@
     {
         if (OnEdit.HasDelegate)
         {
-            // await OnEdit.InvokeAsync(Adresse);
+            await OnEdit.InvokeAsync(Commande);
         }
     }
 
@@ -83,7 +83,7 @@
     {
         if (OnDelete.HasDelegate)
         {
-            // await OnDelete.InvokeAsync(Adresse);
+            await OnDelete.InvokeAsync(Commande);
         }
     }
 }
