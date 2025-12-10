@@ -118,8 +118,8 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<IEnumerable<Notification>> GetNotificationsByCompteAsync(int idCompte);
         Task<IEnumerable<Notification>> GetUnreadNotificationsByCompteAsync(int idCompte);
         Task<int> GetUnreadCountAsync(int idCompte);
-        Task<bool> MarkAsReadAsync(int idNotification);
-        Task<bool> MarkAllAsReadAsync(int idCompte);
-        Task<bool> DeleteOldNotificationsAsync(int daysOld = 30);
+        Task MarkAsReadAsync(int idNotification);
+        Task MarkAllAsReadAsync(int idCompte);
+        Task DeleteOldNotificationsAsync(int daysOld = 30);
     }
 }
