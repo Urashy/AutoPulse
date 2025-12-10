@@ -7,13 +7,14 @@ namespace BlazorAutoPulse.ViewModel
     public class AdminLayoutViewModel
     {
         private readonly ICompteService _compteService;
-        private NavigationManager? _nav;
+        private readonly NavigationManager _nav; 
 
         private Action? _refreshUI;
-        public AdminLayoutViewModel(ICompteService compteService)
+        public AdminLayoutViewModel(ICompteService compteService, NavigationManager nav)
         {
             _compteService = compteService;
-        }   
+            _nav = nav;
+        }
 
         public async Task InitializeAsync(Action refreshUI)
         {
@@ -30,14 +31,14 @@ namespace BlazorAutoPulse.ViewModel
             {
                 compte = await _compteService.GetMe();
 
-                if(compte.IdTypeCompte != 1)
+                if (compte.IdTypeCompte != 1)
                 {
-                    _nav.NavigateTo("login");
+                    _nav.NavigateTo("connexion"); 
                 }
             }
             catch
             {
-                _nav.NavigateTo("login");
+                _nav.NavigateTo("connexion");
             }
         }
     }
