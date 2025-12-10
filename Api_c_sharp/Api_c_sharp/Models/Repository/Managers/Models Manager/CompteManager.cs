@@ -146,13 +146,13 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             Compte compte = await dbSet.Include(c => c.EtatCompteNav).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
             if (compte.IdEtatCompte== 1)
             {
-                compte.IdEtatCompte = 2; // Normalement "Suspendu"
-                context.SaveChanges();
+                compte.IdEtatCompte = 2;
+                await context.SaveChangesAsync();
             }
             else if(estretirer)
             {
-                compte.IdEtatCompte = 1; // Normalement "Normal"
-                context.SaveChanges();
+                compte.IdEtatCompte = 1;
+                await context.SaveChangesAsync();
             }
         }
     }
