@@ -46,10 +46,10 @@ namespace Api_c_sharp.Models.Entity
         public int? IdAnnonce { get; set; }
 
         [Column("not_ancien_prix")]
-        public decimal? AncienPrix { get; set; }
+        public double? AncienPrix { get; set; }
 
         [Column("not_nouveau_prix")]
-        public decimal? NouveauPrix { get; set; }
+        public double? NouveauPrix { get; set; }
 
         // Navigation properties
         [ForeignKey(nameof(IdCompte))]
