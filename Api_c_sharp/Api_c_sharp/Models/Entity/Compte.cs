@@ -131,5 +131,8 @@ namespace Api_c_sharp.Models.Entity
 
         [InverseProperty(nameof(Plainte.ComptePlainteNav))]
         public virtual ICollection<Plainte> Plaintes { get; set; } = new List<Plainte>();
+        
+        [InverseProperty(nameof(Notification.CompteNotificationNav))]
+        public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     }
 }

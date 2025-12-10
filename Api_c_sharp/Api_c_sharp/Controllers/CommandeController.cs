@@ -144,7 +144,7 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// </list>
     /// </returns>
     [ActionName("GetCommandeByCompteID")]
-    [HttpGet("{id}")]
+    [HttpGet("{idCompte}")]
     public async Task<ActionResult<IEnumerable<CommandeDTO>>> GetCommandeByCompteID(int idCompte)
     {
         var result = await _manager.GetCommandesByCompteId(idCompte);

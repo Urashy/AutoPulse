@@ -52,7 +52,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             {
                 {"Jwt:SecretKey", "UneSuperCleSecreteTresLonguePourLeTestJWT123456789"},
                 {"Jwt:Issuer", "TestIssuer"},
-                {"Jwt:Audience", "TestAudience"}
+                {"Jwt:Audience", "TestAudience"},
+                {"Authentication:Google:ClientId", "test-client-id"},
+                {"Authentication:Google:ClientSecret", "test-client-secret"},
+                {"Authentication:Google:RedirectUri", "http://localhost:5000/api/compte/googlecallback"}
             };
             _config = new ConfigurationBuilder()
                 .AddInMemoryCollection(inMemorySettings)
@@ -926,5 +929,145 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Compte compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
             Assert.AreEqual(1, compteModifie.IdEtatCompte);
         }
+
+        #region Tests Google Login
+
+        [TestMethod]
+        public void GoogleLogin_ReturnsOkResult()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public void GoogleLogin_ReturnsUrlInResponse()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+
+            // Assert
+            var okResult = result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+            Assert.IsNotNull(okResult.Value);
+
+            // Extraire l'URL de la réponse anonyme
+            var responseType = okResult.Value.GetType();
+            var urlProperty = responseType.GetProperty("url");
+            Assert.IsNotNull(urlProperty);
+
+            string url = urlProperty.GetValue(okResult.Value)?.ToString();
+            Assert.IsNotNull(url);
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsGoogleAuthEndpoint()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+
+            // Assert
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            Assert.IsTrue(url.Contains("accounts.google.com/o/oauth2/v2/auth"),
+                "L'URL devrait contenir l'endpoint d'authentification Google");
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsClientId()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+
+            // Assert
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            Assert.IsTrue(url.Contains("client_id="),
+                "L'URL devrait contenir le paramètre client_id");
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsRedirectUri()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+
+            // Assert
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            Assert.IsTrue(url.Contains("redirect_uri="),
+                "L'URL devrait contenir le paramètre redirect_uri");
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsResponseType()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+
+            // Assert
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            Assert.IsTrue(url.Contains("response_type=code"),
+                "L'URL devrait contenir response_type=code");
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsRequiredScopes()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+
+            // Assert
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            Assert.IsTrue(url.Contains("scope="),
+                "L'URL devrait contenir le paramètre scope");
+            Assert.IsTrue(url.Contains("openid"),
+                "L'URL devrait contenir le scope openid");
+            Assert.IsTrue(url.Contains("profile"),
+                "L'URL devrait contenir le scope profile");
+            Assert.IsTrue(url.Contains("email"),
+                "L'URL devrait contenir le scope email");
+        }
+
+        [TestMethod]
+        public async Task GoogleCallback_WithoutCode_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GoogleCallback(null);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task GoogleCallback_WithEmptyCode_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GoogleCallback("");
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+
+            var badRequest = result as BadRequestObjectResult;
+            Assert.AreEqual("Code manquant", badRequest.Value);
+        }
+        #endregion
     }
 }

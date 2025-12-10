@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+var connectionString = builder.Configuration.GetConnectionString("AzureConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -37,6 +37,7 @@ builder.Services.AddScoped<ModeleManager>();
 builder.Services.AddScoped<BoiteDeVitesseManager>();
 builder.Services.AddScoped<CarburantManager>();
 builder.Services.AddScoped<CategorieManager>();
+builder.Services.AddScoped<CommandeManager>();
 builder.Services.AddScoped<MiseEnAvantManager>();
 builder.Services.AddScoped<MotriciteManager>();
 builder.Services.AddScoped<PaysManager>();
@@ -62,6 +63,7 @@ builder.Services.AddScoped<PlainteManager>();
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
 builder.Services.AddScoped<IAvisRepository>(sp => sp.GetRequiredService<AvisManager>());
 builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalManager>());
+builder.Services.AddScoped<ICommandeRepository>(sp => sp.GetRequiredService<CommandeManager>());
 builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmentService>();
 
 //------------------------------Authentification------------------------------

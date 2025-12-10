@@ -63,6 +63,7 @@ public class MapperProfile : Profile
             .ReverseMap();
 
         CreateMap<PlainteCreateDTO, Plainte>()
+            .ForMember(dest => dest.DateCreation, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ReverseMap();
 
         CreateMap<PlainteUpdateDTO, Plainte>().ReverseMap();
