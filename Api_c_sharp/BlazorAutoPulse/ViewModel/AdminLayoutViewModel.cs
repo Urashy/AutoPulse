@@ -31,9 +31,9 @@ namespace BlazorAutoPulse.ViewModel
             {
                 compte = await _compteService.GetMe();
 
-                if (compte.IdTypeCompte != 1)
+                if (compte.IdTypeCompte != 3)
                 {
-                    _nav.NavigateTo("connexion"); 
+                    _nav.NavigateTo(""); 
                 }
             }
             catch
