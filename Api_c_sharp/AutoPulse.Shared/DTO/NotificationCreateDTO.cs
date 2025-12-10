@@ -8,6 +8,6 @@ public class NotificationCreateDTO
     public string Type { get; set; } = "info";
     public string? UrlNavigation { get; set; }
     public int? IdAnnonce { get; set; }
-    public decimal? AncienPrix { get; set; }
-    public decimal? NouveauPrix { get; set; }
+    public double? AncienPrix { get; set; }
+    public double? NouveauPrix { get; set; }
 }
