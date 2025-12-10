@@ -43,17 +43,16 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .CountAsync();
         }
 
-        public virtual async Task<bool> MarkAsReadAsync(int idNotification)
+        public virtual async Task MarkAsReadAsync(int idNotification)
         {
             var notification = await dbSet.FindAsync(idNotification);
-            if (notification == null) return false;
+            if (notification == null);
 
             notification.EstLue = true;
             await context.SaveChangesAsync();
-            return true;
         }
 
-        public virtual async Task<bool> MarkAllAsReadAsync(int idCompte)
+        public virtual async Task MarkAllAsReadAsync(int idCompte)
         {
             var notifications = await dbSet
                 .Where(n => n.IdCompte == idCompte && !n.EstLue)
@@ -65,10 +64,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             }
 
             await context.SaveChangesAsync();
-            return true;
         }
 
-        public virtual async Task<bool> DeleteOldNotificationsAsync(int daysOld = 30)
+        public virtual async Task DeleteOldNotificationsAsync(int daysOld = 30)
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-daysOld);
             var oldNotifications = await dbSet
@@ -77,7 +75,6 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             dbSet.RemoveRange(oldNotifications);
             await context.SaveChangesAsync();
-            return true;
         }
     }
 }
