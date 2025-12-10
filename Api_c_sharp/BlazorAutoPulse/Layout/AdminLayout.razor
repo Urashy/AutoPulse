@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@using BlazorAutoPulse.ViewModel
+@inherits LayoutComponentBase
+@inject AdminLayoutViewModel VM
 
 <div class="admin-layout">
     <!-- Sidebar -->
@@ -44,3 +46,10 @@
         @Body
     </main>
 </div>
+
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+}
