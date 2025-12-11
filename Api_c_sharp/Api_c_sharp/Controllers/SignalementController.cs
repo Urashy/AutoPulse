@@ -79,7 +79,7 @@ public class SignalementController(
         // Log dans le journal
         if (dto.IdAnnonceSignale.HasValue)
         {
-            await _journalService.LogSignalementAsync(
+            await _journalService.LogSignalementAnnonceAsync(
                 dto.IdCompteSignalant,
                 dto.IdAnnonceSignale.Value,
                 entity.IdSignalement,
@@ -88,7 +88,7 @@ public class SignalementController(
         }
         else if (dto.IdCompteSignale.HasValue)
         {
-            await _journalService.LogSignalementAsync(
+            await _journalService.LogSignalementCompteAsync(
                 dto.IdCompteSignalant,
                 dto.IdCompteSignale.Value,
                 entity.IdSignalement,
@@ -145,7 +145,7 @@ public class SignalementController(
     /// </summary>
     [ActionName("GetFilteredSignalement")]
     [HttpGet("{etatId}/{typeId}")]
-    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAllByEtatSignalement(int etatId, int typeId, [FromQuery] string recherche)
+    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetFilteredSignalement(int etatId, int typeId, [FromQuery] string recherche)
     {
         var result = await _manager.GetSignalementsByEtatAndType(etatId,typeId,recherche);
 

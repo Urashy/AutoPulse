@@ -106,10 +106,12 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Select(f => f.IdCompte)
                 .Distinct()
                 .ToListAsync();
+            
+            Annonce annonce = await context.Annonces.FirstOrDefaultAsync(a => idannonce == a.IdAnnonce);
 
             string url = $"/annonce/{idannonce}";
-            string titre = "Mise ï¿½ jour de l'annonce";
-            string message = $"Le prix de l'annonce #{idannonce} a ï¿½tï¿½ modifiï¿½ de {prixold} ï¿½ {prixnew}.";
+            string titre = "Mise Ã  jour de l'annonce";
+            string message = $"Le prix de l'annonce #{annonce.Libelle} a Ã©tÃ© modifiÃ© de {prixold} Ã  {prixnew}.";
             string type = "information";
 
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type, prixold, prixnew);
@@ -128,8 +130,8 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .FirstOrDefaultAsync(a => a.IdAnnonce == idannonce);
 
             string url = $"/annonces";
-            string titre = "Annonce supprimée";
-            string message = $"Votre annonce a été supprimé par un modérateur : " + annonce.Libelle;
+            string titre = "Annonce supprimï¿½e";
+            string message = $"Votre annonce a ï¿½tï¿½ supprimï¿½ par un modï¿½rateur : " + annonce.Libelle;
             string type = "information";
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
         }

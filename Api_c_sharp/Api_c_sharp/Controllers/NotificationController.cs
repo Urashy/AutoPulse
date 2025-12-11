@@ -237,7 +237,7 @@ namespace Api_c_sharp.Controllers
         /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
         /// </list>
         /// </returns>
-        [ActionName("Delete")]
+        [ActionName("DeleteOldNotification")]
         [HttpDelete("{daysold}")]
         public async Task<IActionResult> DeleteOldNotification(int daysold)
         {

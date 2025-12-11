@@ -334,10 +334,6 @@
                     @onclick="@(() => VM.SetActiveSection("annonces"))">
                 Annonces
             </button>
-            <button class="nav-item @(VM.activeSection == "avis" ? "active" : "")"
-                    @onclick="@(() => VM.SetActiveSection("avis"))">
-                Avis
-            </button>
             <button class="nav-item @(VM.activeSection == "adresses" ? "active" : "")"
                     @onclick="@(() => VM.SetActiveSection("adresses"))">
                 Adresses
@@ -346,13 +342,15 @@
                     @onclick="@(() => VM.SetActiveSection("commandes"))">
                 Commandes
             </button>
+            <button class="nav-item @(VM.activeSection == "avis" ? "active" : "")"
+                    @onclick="@(() => VM.SetActiveSection("avis"))">
+                Avis
+            </button>
         </nav>
 
         <div class="content-section">
             <!-- Ici seront injectés les différents composants selon la section active -->
             <div class="section-placeholder">
-                <h3>Section: @VM.activeSection</h3>
-
                 @switch(VM.activeSection)
                 {
                     case "annonces":

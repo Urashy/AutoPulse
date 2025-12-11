@@ -94,22 +94,27 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             await LogActionAsync(idCompteAcheteur, 8, contenu);
         }
 
-        public virtual async Task LogSignalementAsync(int idCompteSignalant, int idCompteSignale, int idSignalement, int idTypeSignalement, string description)
+        public virtual async Task LogSignalementCompteAsync(int idCompteSignalant, int idCompteSignale, int idSignalement, int idTypeSignalement, string description)
         {
             var contenu = $"Signalement effectué (#{idSignalement}) envers le compte #{idCompteSignale}. De type {idTypeSignalement} pour le motif {description}";
             await LogActionAsync(idCompteSignalant, 9, contenu);
+        }
+        public virtual async Task LogSignalementAnnonceAsync(int idCompteSignalant, int idAnnonceSignale, int idSignalement, int idTypeSignalement, string description)
+        {
+            var contenu = $"Signalement effectué (#{idSignalement}) envers l'annonce #{idAnnonceSignale}. De type {idTypeSignalement} pour le motif {description}";
+            await LogActionAsync(idCompteSignalant, 10, contenu);
         }
 
         public virtual async Task LogDepotAvisAsync(int idCompteJugeur, int idCompteJuge, int idAvis, int note, string description)
         {
             var contenu = $"Dépôt d'un avis (#{idAvis}) avec la note {note}/5 pour le compte #{idCompteJuge}, avec le message suivant {description}";
-            await LogActionAsync(idCompteJugeur, 10, contenu);
+            await LogActionAsync(idCompteJugeur, 11, contenu);
         }
 
         public virtual async Task LogMiseFavorisAsync(int idCompte, int idAnnonce)
         {
             var contenu = $"Ajout de l'annonce #{idAnnonce} aux favoris";
-            await LogActionAsync(idCompte, 11, contenu);
+            await LogActionAsync(idCompte, 12, contenu);
         }
 
         public virtual async Task LogEnvoiMessageAsync(int idCompte, int idConversation, string message, int? idAnnonce = null)
@@ -117,19 +122,19 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             var contenu = idAnnonce.HasValue
                 ? $"Envoi d'un message dans la conversation #{idConversation} concernant l'annonce #{idAnnonce} : {message}"
                 : $"Envoi d'un message dans la conversation #{idConversation} : {message}";
-            await LogActionAsync(idCompte, 12, contenu);
+            await LogActionAsync(idCompte, 13, contenu);
         }
 
         public virtual async Task LogGenerationFactureAsync(int idCompte, int idFacture, int idCommande)
         {
             var contenu = $"Génération de la facture #{idFacture} pour la commande #{idCommande}";
-            await LogActionAsync(idCompte, 13, contenu);
+            await LogActionAsync(idCompte, 14, contenu);
         }
 
         public virtual async Task LogBlocageUtilisateurAsync(int idCompteBloquer, int idCompteBloque)
         {
             var contenu = $"Blocage de l'utilisateur #{idCompteBloque}";
-            await LogActionAsync(idCompteBloquer, 14, contenu);
+            await LogActionAsync(idCompteBloquer, 15, contenu);
         }
     }
 }
