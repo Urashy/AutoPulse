@@ -21,7 +21,7 @@ namespace Api_c_sharp.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, IJournalService _journalService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
+public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, IJournalService _journalService, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
 {
     /// <summary>
     /// Récupère une annoncs à partir de son identifiant.
@@ -153,7 +153,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
         {
             if (newPrice < oldPrice)
             {
-        
+                await _notifService.NotifAnnonce(updatedEntity.IdAnnonce, oldPrice, newPrice);
+                
                 await MessageHub.NotifyPriceDrop(
                     _hubContext,
                     id,

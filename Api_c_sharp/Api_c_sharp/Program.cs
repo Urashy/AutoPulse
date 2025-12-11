@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -50,6 +50,7 @@ builder.Services.AddScoped<VoitureManager>();
 builder.Services.AddScoped<APourCouleurManager>();
 builder.Services.AddScoped<FavoriManager>();
 builder.Services.AddScoped<ConversationManager>();
+builder.Services.AddScoped<NotificationManager>();
 builder.Services.AddScoped<MessageManager>();
 builder.Services.AddScoped<ReinitialisationMotDePasseManager>();
 builder.Services.AddScoped<JournalManager>();
@@ -63,6 +64,7 @@ builder.Services.AddScoped<PlainteManager>();
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
 builder.Services.AddScoped<IAvisRepository>(sp => sp.GetRequiredService<AvisManager>());
 builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalManager>());
+builder.Services.AddScoped<INotificationService>(sp => sp.GetRequiredService<NotificationManager>());
 builder.Services.AddScoped<ICommandeRepository>(sp => sp.GetRequiredService<CommandeManager>());
 builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmentService>();
 

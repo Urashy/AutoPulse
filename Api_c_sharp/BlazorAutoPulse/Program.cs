@@ -55,8 +55,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IPieceJointeService, PieceJointeWebService>();
             builder.Services.AddScoped<IAdresseService, AdresseWebService>();
             builder.Services.AddScoped<IPlainteService, PlainteWebService>();
-
-
+            builder.Services.AddScoped<INotificationService, NotificationWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -85,12 +84,15 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<AdminLayoutViewModel>();
             builder.Services.AddScoped<CommandeComposantViewModel>();
             builder.Services.AddScoped<AvisComposantViewModel>();
-
-
-
+            builder.Services.AddScoped<NotificationViewModel>();
+            
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService, SignalRWebService>();
             builder.Services.AddSingleton<NotificationService>();
+            builder.Services.AddSingleton<ISignalRService>(sp =>
+            {
+                return new SignalRWebService();
+            });
             
             //----------------------- State service
             builder.Services.AddScoped<ConversationStateService>();
@@ -103,10 +105,6 @@ namespace BlazorAutoPulse
                 };
             });
             
-            builder.Services.AddSingleton<ISignalRService>(sp =>
-            {
-                return new SignalRWebService();
-            });
 
             await builder.Build().RunAsync();
         }
