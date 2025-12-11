@@ -784,3 +784,34 @@
     margin-top: 8px;
     font-style: italic;
 }
+
+.section-placeholder {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    padding: 30px 20px;
+}
+
+/* Message quand il n'y a pas de contenu */
+.section-placeholder p {
+    grid-column: 1 / -1; /* Prend toute la largeur */
+    text-align: center;
+    color: #aaa;
+    font-size: 18px;
+}
+
+/* Responsive : 1 colonne sur mobile */
+@media (max-width: 768px) {
+    .section-placeholder {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+/* Responsive : 1 colonne sur très petits écrans */
+@media (max-width: 480px) {
+    .section-placeholder {
+        padding: 20px 10px;
+        gap: 15px;
+    }
+}
