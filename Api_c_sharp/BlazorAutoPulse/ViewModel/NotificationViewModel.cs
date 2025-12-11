@@ -1,4 +1,5 @@
 using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
 using Microsoft.AspNetCore.Components;
@@ -8,6 +9,7 @@ namespace BlazorAutoPulse.ViewModel
     public class NotificationViewModel : IDisposable
     {
         private readonly INotificationService _notificationService;
+        private readonly ICompteService _compteService;
         private readonly ISignalRService _signalRService;
         private readonly NavigationManager _navigation;
 
@@ -18,26 +20,36 @@ namespace BlazorAutoPulse.ViewModel
         
         private int _currentUserId;
         private Action? _refreshUI;
+        
+        public event Action? OnNotificationCountChanged;
 
         public NotificationViewModel(
             INotificationService notificationService,
+            ICompteService compteService,
             ISignalRService signalRService,
             NavigationManager navigation)
         {
             _notificationService = notificationService;
+            _compteService = compteService;
             _signalRService = signalRService;
             _navigation = navigation;
         }
 
-        public async Task InitializeAsync(int userId, Action refreshUI)
+        public async Task InitializeAsync(Action refreshUI)
         {
-            _currentUserId = userId;
             _refreshUI = refreshUI;
+            try
+            {
+                var compte = await _compteService.GetMe();
+                _currentUserId = compte.IdCompte;
+                _signalRService.OnPriceDropReceived += HandlePriceDropNotification;
             
-            // S'abonner aux notifications en temps réel
-            _signalRService.OnPriceDropReceived += HandlePriceDropNotification;
-            
-            await LoadNotifications();
+                await LoadNotifications();
+            }
+            catch
+            {
+                _navigation.NavigateTo("/connexion");
+            }
         }
 
         public async Task LoadNotifications()
@@ -81,6 +93,7 @@ namespace BlazorAutoPulse.ViewModel
                 await _notificationService.MarkAsReadAsync(notification.IdNotification);
                 notification.EstLue = true;
                 UnreadCount = Math.Max(0, UnreadCount - 1);
+                OnNotificationCountChanged?.Invoke();
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)
@@ -101,6 +114,7 @@ namespace BlazorAutoPulse.ViewModel
                 }
                 
                 UnreadCount = 0;
+                OnNotificationCountChanged?.Invoke();
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)
@@ -121,6 +135,7 @@ namespace BlazorAutoPulse.ViewModel
                     UnreadCount = Math.Max(0, UnreadCount - 1);
                 }
                 
+                OnNotificationCountChanged?.Invoke();
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)
@@ -145,13 +160,13 @@ namespace BlazorAutoPulse.ViewModel
             await LoadNotifications();
         }
 
-        private void HandlePriceDropNotification(BlazorAutoPulse.Model.PriceDropNotification priceDropData)
+        private void HandlePriceDropNotification(PriceDropNotification priceDropData)
         {
-            // Rafraîchir les notifications quand une nouvelle arrive
             _ = Task.Run(async () =>
             {
-                await Task.Delay(1000); // Petit délai pour que l'API enregistre la notification
+                await Task.Delay(1000);
                 await LoadNotifications();
+                OnNotificationCountChanged?.Invoke();
             });
         }
 

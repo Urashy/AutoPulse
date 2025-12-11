@@ -11,4 +11,5 @@ public interface INotificationService
     Task MarkAllAsReadAsync(int idCompte);
     Task DeleteOldNotificationsAsync(int daysOld = 30);
     Task NotifAnnonce(int idannonce, double prixold, double prixnew);
+    Task NotifSuppressionAnnonce(int idannonce);
 }

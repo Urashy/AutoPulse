@@ -19,6 +19,7 @@ namespace BlazorAutoPulse.ViewModel
 
         public bool IsConnected { get; private set; }
         public bool IsAdmin { get; private set; }
+        private int _currentId;
         public string ImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
 
         public int unreadCount = 0;
@@ -64,6 +65,7 @@ namespace BlazorAutoPulse.ViewModel
             try
             {
                 CompteDetailDTO compte = await _compteService.GetMe();
+                _currentId = compte.IdCompte;
                 IsConnected = compte != null;
 
                 if (IsConnected)
@@ -71,15 +73,12 @@ namespace BlazorAutoPulse.ViewModel
                     IsAdmin = compte.TypeCompte == "Administrateur";
                     await LoadProfileImage(compte.IdCompte);
                     
-                    // Initialiser les conversations
                     await _conversationStateService.InitializeAsync();
                     unreadCount = _conversationStateService.GetTotalUnreadCount();
                     _conversationStateService.OnStateChanged += UpdateUnreadCount;
                     
-                    // ✅ Rejoindre les hubs SignalR pour les favoris
                     await JoinFavorisHubs(compte.IdCompte);
                     
-                    // ✅ S'abonner aux notifications de baisse de prix
                     _signalRService.OnPriceDropReceived += HandlePriceDropNotification;
                     notificationsCount = await _notificationService.GetUnreadCountAsync(compte.IdCompte);
                 }
@@ -116,6 +115,12 @@ namespace BlazorAutoPulse.ViewModel
         {
             Console.WriteLine($"🔔 Baisse de prix détectée: {notif.AnnonceLibelle} ({notif.OldPrice}€ → {notif.NewPrice}€)");
             notificationsCount++;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task RefreshNotificationCount()
+        {
+            notificationsCount = await _notificationService.GetUnreadCountAsync(_currentId);
             _refreshUI?.Invoke();
         }
 
