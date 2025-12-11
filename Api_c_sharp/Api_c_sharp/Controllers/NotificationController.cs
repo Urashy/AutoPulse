@@ -44,7 +44,7 @@ namespace Api_c_sharp.Controllers
         /// Met à jour une Adresse existante.
         /// </summary>
         /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
-        /// <param name="dto">Objet <see cref="NotificationCreateDTO"/> contenant les nouvelles valeurs.</param>
+        /// <param name="dto">Objet <see cref="NotificationUpdateDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -54,7 +54,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] NotificationCreateDTO dto)
+        public async Task<ActionResult> Put(int id, [FromBody] NotificationUpdateDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest();

@@ -176,7 +176,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public async Task<bool> EstMasque(int annonceId)
         {
-            Annonce annonce = dbSet.Find(annonceId);
+            Annonce annonce = await GetByIdAsync(annonceId);
             if (annonce.IdEtatAnnonce == 4)
             {
                 return true;
