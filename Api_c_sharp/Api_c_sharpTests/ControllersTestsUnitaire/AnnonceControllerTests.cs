@@ -121,6 +121,11 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 LibelleEtatAnnonce = "Disponible"
             };
 
+            EtatAnnonce etatAnnonceMasque = new EtatAnnonce()
+            {
+                IdEtatAnnonce = 4,
+                LibelleEtatAnnonce = "Masque"
+            };
             Pays pays = new Pays()
             {
                 IdPays = 1,
@@ -168,6 +173,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.Pays.AddAsync(pays);
             await _context.Adresses.AddAsync(adresse);
             await _context.EtatAnnonces.AddAsync(etatAnnonce);
+            await _context.EtatAnnonces.AddAsync(etatAnnonceMasque);
             await _context.TypesCompte.AddAsync(typeCompte);
             await _context.Comptes.AddAsync(compte);
             await _context.Voitures.AddAsync(voiture);
