@@ -15,6 +15,7 @@ public class ConversationViewModel : IDisposable
     private readonly ISignalRService _signalR;
     private readonly IMessageService _messageService;
     private readonly IPieceJointeService _pieceJointeService;
+    private readonly IBloqueService _bloqueService;
     private readonly IJSRuntime _jsRuntime;
 
     public List<MessageDTO> Messages { get; private set; } = new();
@@ -43,18 +44,23 @@ public class ConversationViewModel : IDisposable
     public int CurrentUserId => _conversationState.CurrentUserId;
     public bool IsLoading => _conversationState.IsLoading;
     public Dictionary<int, string> ImageSources => _conversationState.ImageSources;
+    
+    public bool EstBloquer { get; set; }
+    public string BlocageType { get; set; }
 
     public ConversationViewModel(
         ConversationStateService conversationState,
         ISignalRService signalR,
         IMessageService msgService,
         IPieceJointeService pieceJointeService,
+        IBloqueService bloqueService,
         IJSRuntime jsRuntime)
     {
         _conversationState = conversationState;
         _signalR = signalR;
         _messageService = msgService;
         _pieceJointeService = pieceJointeService;
+        _bloqueService = bloqueService;
         _jsRuntime = jsRuntime;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
@@ -72,6 +78,7 @@ public class ConversationViewModel : IDisposable
     {
         SelectedConversation = conv;
         await LoadMessages(conv.IdConversation);
+        await ABloquer(true);
         NotifyStateChanged();
     }
 
@@ -308,6 +315,46 @@ public class ConversationViewModel : IDisposable
     {
         SelectedFiles.Remove(file);
         NotifyStateChanged();
+    }
+    
+    public async Task ABloquer(bool premierBloque)
+    {
+        EstBloquer = await _bloqueService.ABloque(CurrentUserId, SelectedConversation.IdParticipant, premierBloque);
+        Console.WriteLine($"EstBloquer: {EstBloquer}, premierBloque: {premierBloque}");
+    
+        if (EstBloquer)
+        {
+            if (premierBloque)
+            {
+                BlocageType = "je suis bloquer";
+            }
+            else
+            {
+                BlocageType = "est bloquer";
+            }
+        }
+        else
+        {
+            if (premierBloque)
+            {
+                EstBloquer = await _bloqueService.ABloque(CurrentUserId, SelectedConversation.IdParticipant, false);
+            
+                if (EstBloquer)
+                {
+                    BlocageType = "est bloquer";
+                }
+                else
+                {
+                    BlocageType = "";
+                }
+            }
+            else
+            {
+                BlocageType = "";
+            }
+        }
+
+        _refreshUI?.Invoke();
     }
     
     public void OnInputChanged(ChangeEventArgs e)

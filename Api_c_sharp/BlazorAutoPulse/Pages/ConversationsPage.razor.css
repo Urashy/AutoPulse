@@ -113,6 +113,8 @@
     border-bottom: 1px solid #333;
     background: #0a0a0a;
     flex-shrink: 0;
+    
+    display: flex;
 }
 
 .conversation-header h3 {
@@ -278,5 +280,110 @@
 
     .conversations-sidebar {
         display: none;
+    }
+}
+
+/* ========== PARTICIPANT LINK ========== */
+.participant-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 153, 255, 0.1));
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #00d4ff;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.participant-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.participant-link:hover::before {
+    left: 100%;
+}
+
+.participant-link:hover {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 153, 255, 0.2));
+    border-color: rgba(0, 212, 255, 0.5);
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+}
+
+.participant-link:active {
+    transform: translateX(2px) scale(0.98);
+}
+
+.participant-name {
+    position: relative;
+    z-index: 1;
+}
+
+.link-arrow {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.participant-link:hover .link-arrow {
+    transform: translateX(4px);
+}
+
+.conversation-info-header{
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+}
+
+/* ========== VARIANT COMPACT ========== */
+.participant-link.compact {
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+.participant-link.compact .link-arrow {
+    width: 16px;
+    height: 16px;
+}
+
+/* ========== VARIANT MINIMAL ========== */
+.participant-link.minimal {
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+    gap: 6px;
+}
+
+.participant-link.minimal:hover {
+    background: rgba(0, 212, 255, 0.1);
+    box-shadow: none;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .participant-link {
+        padding: 8px 14px;
+        font-size: 14px;
+    }
+
+    .link-arrow {
+        width: 16px;
+        height: 16px;
     }
 }

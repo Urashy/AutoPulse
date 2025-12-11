@@ -343,6 +343,9 @@ namespace BlazorAutoPulse.ViewModel
 
                     // Fermer le modal après 2 secondes
                     await Task.Delay(2000);
+                    _notificationService.ShowSuccess(
+                            "Modification MDP", 
+                        "Votre mot de passe à bien été mis a jour");
                     ClosePasswordModal();
                 }
                 else

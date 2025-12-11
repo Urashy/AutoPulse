@@ -65,16 +65,39 @@
         else
         {
             <div class="conversation-header">
-                <h3>@VM.SelectedConversation.LibelleAnnonce</h3>
-                <p>@VM.SelectedConversation.ParticipantPseudo</p>
+                <div class="conversation-avatar">
+                    @if (VM.ImageSources.ContainsKey(VM.SelectedConversation.IdParticipant) &&
+                         !string.IsNullOrEmpty(VM.ImageSources[VM.SelectedConversation.IdParticipant]))
+                    {
+                        <img src="@VM.ImageSources[VM.SelectedConversation.IdParticipant]"
+                             alt="Profile"
+                             class="avatar-img" />
+                    }
+                    else
+                    {
+                        <span>👤</span>
+                    }
+                </div>
+                <div class="conversation-info-header">
+                    <h3>@VM.SelectedConversation.LibelleAnnonce</h3>
+
+                    <NavLink href="@($"/comptepublic/{VM.SelectedConversation.IdParticipant}")" class="participant-link">
+                        <span class="participant-name">@VM.SelectedConversation.ParticipantPseudo</span>
+                        <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </NavLink>
+                </div>
             </div>
 
             <MessageContainer
                 Messages="@VM.Messages"
                 CurrentUserId="@VM.CurrentUserId"
+                ParticipantId="@VM.SelectedConversation.IdParticipant"
                 IsLoadingMessages="@VM.IsLoadingMessages"
                 IsTyping="@VM.IsTyping"
-                ConversationId="@VM.SelectedConversation.IdConversation" />
+                ConversationId="@VM.SelectedConversation.IdConversation"
+                BlocageType="@VM.BlocageType"/>
 
             <div class="message-input-area">
                 @if (VM.SelectedFiles.Any())
@@ -99,7 +122,7 @@
                            @onkeyup="VM.HandleTyping"
                            @onkeydown="VM.HandleKeyPress"
                            class="message-input"
-                           disabled="@VM.IsUploadingFiles" />
+                           disabled="@(VM.IsUploadingFiles || VM.EstBloquer) " />
 
                     <FileUploadComponent OnFilesSelected="@VM.OnFilesSelected" />
 

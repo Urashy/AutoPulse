@@ -13,6 +13,40 @@
         <p>Chargement du profil...</p>
     </div>
 }
+else if (VM.EstBloque && VM.comptePublic != null)
+{
+    <!-- NOUVEAU : Affichage quand l'utilisateur est bloqué -->
+    <div class="blocked-user-container">
+        <div class="blocked-card">
+            <div class="blocked-icon-wrapper">
+                <svg class="blocked-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                </svg>
+                <div class="blocked-pulse"></div>
+            </div>
+            
+            <h2 class="blocked-title">Utilisateur bloqué</h2>
+            <p class="blocked-username">@VM.comptePublic.Pseudo</p>
+            
+            <p class="blocked-message">
+                Vous avez bloqué cet utilisateur. Vous ne pouvez plus voir son profil ni ses annonces.
+            </p>
+            
+            <div class="blocked-divider"></div>
+            
+            <div class="blocked-actions">
+                <button @onclick="VM.DebloquerUtilisateur" class="btn-unblock-primary">
+                    <span class="btn-icon">🔓</span>
+                    Débloquer l'utilisateur
+                </button>
+                <button @onclick="VM.RedirectionAccueil" class="btn-back-secondary">
+                    ← Retour à l'accueil
+                </button>
+            </div>
+        </div>
+    </div>
+}
 else if (VM.comptePublic == null)
 {
     <div class="error-container">

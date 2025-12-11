@@ -602,6 +602,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             Prenom = entityToUpdate.Prenom,
             Email = entityToUpdate.Email,
             DateCreation = entityToUpdate.DateCreation,
+            IdEtatCompte = entityToUpdate.IdEtatCompte,
             DateDerniereConnexion = entityToUpdate.DateDerniereConnexion,
             DateNaissance = entityToUpdate.DateNaissance,
             Biographie = entityToUpdate.Biographie,
