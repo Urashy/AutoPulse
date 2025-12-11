@@ -132,7 +132,7 @@ namespace BlazorAutoPulse.ViewModel
 
                 Console.WriteLine($"Signalements mappés: {AllSignalements.Count}");
 
-                ApplyFilters();
+                await ApplyFilters();
             }
             catch (Exception ex)
             {
@@ -158,7 +158,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             FilterType = type;
             CurrentPage = 1;
-            ApplyFilters();
+            await ApplyFilters(); 
             _refreshUI?.Invoke();
             await Task.CompletedTask;
         }
@@ -167,20 +167,21 @@ namespace BlazorAutoPulse.ViewModel
         {
             FilterStatus = status;
             CurrentPage = 1;
-            ApplyFilters();
+            await ApplyFilters(); 
             _refreshUI?.Invoke();
             await Task.CompletedTask;
         }
 
         public async Task SearchSignalements()
         {
-            ApplyFilters();
+            await ApplyFilters(); 
             CurrentPage = 1;
             _refreshUI?.Invoke();
             await Task.CompletedTask;
         }
 
-        private void ApplyFilters()
+        // Correction: Passage à async Task (Correction de CS4033)
+        private async Task ApplyFilters()
         {
             if (AllSignalements == null)
             {
@@ -193,9 +194,10 @@ namespace BlazorAutoPulse.ViewModel
             if (FilterStatus != "all" || !string.IsNullOrWhiteSpace(SearchQuery) || FilterType != "all")
             {
 
-
-                FilteredSignalements = await _signalementService.GetFiltered(FilterStatus,FilterType,SearchQuery)
+                // Correction: Ajout de ; (Correction de CS1002)
+                FilteredSignalements = await _signalementService.GetFiltered(FilterStatus, FilterType, SearchQuery);
             }
+            _refreshUI?.Invoke();
 
             Console.WriteLine($"Après filtres: {FilteredSignalements?.Count ?? 0} signalements");
         }
@@ -309,20 +311,20 @@ namespace BlazorAutoPulse.ViewModel
                         }
                         else if (SelectedAction == "suspend")
                         {
-                            await _compteService.ToggleSuspention(SelectedSignalement.IdCible,false);
+                            await _compteService.ToggleSuspention(SelectedSignalement.IdCible, false);
                             Console.WriteLine($"Compte {SelectedSignalement.IdCible} suspendu");
                         }
                     }
 
                     nouvelEtat = 2;
                     SelectedSignalement.Statut = "Traité";
-                    SelectedSignalement.IdStatut = 2; 
+                    SelectedSignalement.IdStatut = 2;
                 }
                 else if (ActionType == "reject")
                 {
                     nouvelEtat = 3;
                     SelectedSignalement.Statut = "Rejeté";
-                    SelectedSignalement.IdStatut = 3; 
+                    SelectedSignalement.IdStatut = 3;
                 }
                 else
                 {
@@ -342,7 +344,7 @@ namespace BlazorAutoPulse.ViewModel
                 }
 
                 CloseActionModal();
-                ApplyFilters();
+                await ApplyFilters(); 
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)
@@ -350,23 +352,5 @@ namespace BlazorAutoPulse.ViewModel
                 Console.WriteLine($"Erreur lors de la confirmation de l'action: {ex.Message}");
             }
         }
-    }
-
-    /// <summary>
-    /// Classe représentant un signalement pour l'interface admin
-    /// </summary>
-    public class AdminSignalement
-    {
-        public int Id { get; set; }
-        public string TypeSignalement { get; set; } = "";
-        public string TypeCible { get; set; } = "";
-        public int IdCible { get; set; }
-        public string PseudoSignalant { get; set; } = "";
-        public string? PseudoCible { get; set; }
-        public string? TitreCible { get; set; } 
-        public string? Description { get; set; }
-        public DateTime DateSignalement { get; set; }
-        public string Statut { get; set; } = "";
-        public int IdStatut { get; set; }
     }
 }
