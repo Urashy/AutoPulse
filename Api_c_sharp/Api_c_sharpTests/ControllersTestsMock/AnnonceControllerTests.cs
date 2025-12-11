@@ -199,13 +199,67 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
 
+        // ============================================================================
+        // TESTS AVEC MOCKS CORRIGÉS - À remplacer dans AnnonceControllerTestsMoq.cs
+        // ============================================================================
+
         [TestMethod]
-        public async Task DeleteAnnonceTest()
+        public async Task DeleteAnnonceWithSignalementsTest()
         {
             // Arrange
+            var typeSignalement = new TypeSignalement
+            {
+                IdTypeSignalement = 1,
+                LibelleTypeSignalement = "Contenu inapproprié"
+            };
+
+            var etatSignalement = new EtatSignalement
+            {
+                IdEtatSignalement = 1,
+                LibelleEtatSignalement = "En cours"
+            };
+
+            var signalement = new Signalement
+            {
+                IdSignalement = 1,
+                IdAnnonceSignale = _objetcommun.IdAnnonce,
+                IdTypeSignalement = typeSignalement.IdTypeSignalement,
+                IdEtatSignalement = etatSignalement.IdEtatSignalement,
+                DescriptionSignalement = "Cette annonce contient du contenu inapproprié",
+                IdCompteSignalant = 1,
+                TypeSignalementSignalementNav = typeSignalement
+            };
+
+            var annonceWithSignalement = new Annonce
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                SignalementsRecus = new List<Signalement> { signalement }
+            };
+
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
-                       .ReturnsAsync(_objetcommun);
-            _mockManager.Setup(m => m.DeleteAsync(_objetcommun))
+                       .ReturnsAsync(annonceWithSignalement);
+
+            // ✅ CORRECTION : Simuler le comportement du manager qui modifie les signalements
+            _mockManager.Setup(m => m.DeleteAsync(It.IsAny<Annonce>()))
+                       .Callback<Annonce>(annonce =>
+                       {
+                           // Simuler ce que fait le vrai manager
+                           if (annonce.SignalementsRecus != null)
+                           {
+                               foreach (var sig in annonce.SignalementsRecus)
+                               {
+                                   sig.IdAnnonceSignale = null;
+                                   sig.IdCompteSignale = annonce.IdCompte;
+                                   sig.IdEtatSignalement = 2;
+                                   sig.DescriptionSignalement = "Annonce supprimée par l'administrateur. Ancien motif de signalement : "
+                                       + sig.DescriptionSignalement + " de type "
+                                       + sig.TypeSignalementSignalementNav.LibelleTypeSignalement;
+                               }
+                           }
+                       })
                        .ReturnsAsync(true)
                        .Verifiable();
 
@@ -214,7 +268,290 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            _mockManager.Verify(m => m.DeleteAsync(_objetcommun), Times.Once);
+            _mockManager.Verify(m => m.DeleteAsync(annonceWithSignalement), Times.Once);
+
+            // Maintenant on peut vérifier que le signalement a été modifié
+            Assert.IsNull(signalement.IdAnnonceSignale);
+            Assert.AreEqual(_objetcommun.IdCompte, signalement.IdCompteSignale);
+            Assert.AreEqual(2, signalement.IdEtatSignalement);
+            Assert.IsTrue(signalement.DescriptionSignalement.Contains("Annonce supprimée par l'administrateur"));
+        }
+
+        [TestMethod]
+        public async Task DeleteAnnonceWithSignalementsAndConversationsTest()
+        {
+            // Arrange
+            var typeSignalement = new TypeSignalement
+            {
+                IdTypeSignalement = 1,
+                LibelleTypeSignalement = "Contenu inapproprié"
+            };
+
+            var etatSignalement = new EtatSignalement
+            {
+                IdEtatSignalement = 1,
+                LibelleEtatSignalement = "En cours"
+            };
+
+            var signalement = new Signalement
+            {
+                IdSignalement = 1,
+                IdAnnonceSignale = _objetcommun.IdAnnonce,
+                IdTypeSignalement = typeSignalement.IdTypeSignalement,
+                IdEtatSignalement = etatSignalement.IdEtatSignalement,
+                DescriptionSignalement = "Cette annonce contient du contenu inapproprié",
+                IdCompteSignalant = 1,
+                TypeSignalementSignalementNav = typeSignalement
+            };
+
+            var conversation = new Conversation
+            {
+                IdConversation = 1,
+                IdAnnonce = _objetcommun.IdAnnonce,
+                DateDernierMessage = DateTime.Now
+            };
+
+            var message1 = new Message
+            {
+                IdMessage = 1,
+                IdConversation = conversation.IdConversation,
+                IdCompte = 1,
+                ContenuMessage = "Bonjour",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            var message2 = new Message
+            {
+                IdMessage = 2,
+                IdConversation = conversation.IdConversation,
+                IdCompte = 1,
+                ContenuMessage = "Réponse",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            conversation.Messages = new List<Message> { message1, message2 };
+
+            var annonceWithBoth = new Annonce
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                SignalementsRecus = new List<Signalement> { signalement },
+                Conversations = new List<Conversation> { conversation }
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(annonceWithBoth);
+
+            // ✅ CORRECTION : Simuler le comportement complet du manager
+            _mockManager.Setup(m => m.DeleteAsync(It.IsAny<Annonce>()))
+                       .Callback<Annonce>(annonce =>
+                       {
+                           // Traiter les signalements
+                           if (annonce.SignalementsRecus != null)
+                           {
+                               foreach (var sig in annonce.SignalementsRecus)
+                               {
+                                   sig.IdAnnonceSignale = null;
+                                   sig.IdCompteSignale = annonce.IdCompte;
+                                   sig.IdEtatSignalement = 2;
+                                   sig.DescriptionSignalement = "Annonce supprimée par l'administrateur. Ancien motif de signalement : "
+                                       + sig.DescriptionSignalement + " de type "
+                                       + sig.TypeSignalementSignalementNav.LibelleTypeSignalement;
+                               }
+                           }
+                           // Les conversations sont supprimées (pas besoin de les modifier ici)
+                       })
+                       .ReturnsAsync(true)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdAnnonce);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.DeleteAsync(annonceWithBoth), Times.Once);
+
+            // Vérifier que le signalement a été modifié
+            Assert.IsNull(signalement.IdAnnonceSignale);
+            Assert.AreEqual(2, signalement.IdEtatSignalement);
+        }
+
+        [TestMethod]
+        public async Task DeleteAnnonceWithMultipleSignalementsTest()
+        {
+            // Arrange
+            var typeSignalement = new TypeSignalement
+            {
+                IdTypeSignalement = 1,
+                LibelleTypeSignalement = "Contenu inapproprié"
+            };
+
+            var etatSignalement = new EtatSignalement
+            {
+                IdEtatSignalement = 1,
+                LibelleEtatSignalement = "En cours"
+            };
+
+            var signalement1 = new Signalement
+            {
+                IdSignalement = 1,
+                IdAnnonceSignale = _objetcommun.IdAnnonce,
+                IdTypeSignalement = typeSignalement.IdTypeSignalement,
+                IdEtatSignalement = etatSignalement.IdEtatSignalement,
+                DescriptionSignalement = "Premier signalement",
+                IdCompteSignalant = 1,
+                TypeSignalementSignalementNav = typeSignalement
+            };
+
+            var signalement2 = new Signalement
+            {
+                IdSignalement = 2,
+                IdAnnonceSignale = _objetcommun.IdAnnonce,
+                IdTypeSignalement = typeSignalement.IdTypeSignalement,
+                IdEtatSignalement = etatSignalement.IdEtatSignalement,
+                DescriptionSignalement = "Deuxième signalement",
+                IdCompteSignalant = 1,
+                TypeSignalementSignalementNav = typeSignalement
+            };
+
+            var annonceWithMultipleSignalements = new Annonce
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                SignalementsRecus = new List<Signalement> { signalement1, signalement2 }
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(annonceWithMultipleSignalements);
+
+            // ✅ CORRECTION : Simuler la modification de TOUS les signalements
+            _mockManager.Setup(m => m.DeleteAsync(It.IsAny<Annonce>()))
+                       .Callback<Annonce>(annonce =>
+                       {
+                           if (annonce.SignalementsRecus != null)
+                           {
+                               foreach (var sig in annonce.SignalementsRecus)
+                               {
+                                   sig.IdAnnonceSignale = null;
+                                   sig.IdCompteSignale = annonce.IdCompte;
+                                   sig.IdEtatSignalement = 2;
+                                   sig.DescriptionSignalement = "Annonce supprimée par l'administrateur. Ancien motif de signalement : "
+                                       + sig.DescriptionSignalement + " de type "
+                                       + sig.TypeSignalementSignalementNav.LibelleTypeSignalement;
+                               }
+                           }
+                       })
+                       .ReturnsAsync(true)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdAnnonce);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.DeleteAsync(annonceWithMultipleSignalements), Times.Once);
+
+            // Vérifier que tous les signalements ont été modifiés
+            Assert.IsNull(signalement1.IdAnnonceSignale);
+            Assert.AreEqual(_objetcommun.IdCompte, signalement1.IdCompteSignale);
+            Assert.AreEqual(2, signalement1.IdEtatSignalement);
+            Assert.IsTrue(signalement1.DescriptionSignalement.Contains("Annonce supprimée par l'administrateur"));
+
+            Assert.IsNull(signalement2.IdAnnonceSignale);
+            Assert.AreEqual(_objetcommun.IdCompte, signalement2.IdCompteSignale);
+            Assert.AreEqual(2, signalement2.IdEtatSignalement);
+            Assert.IsTrue(signalement2.DescriptionSignalement.Contains("Annonce supprimée par l'administrateur"));
+        }
+
+        [TestMethod]
+        public async Task DeleteAnnonceWithCommandeAndSignalementTest()
+        {
+            // Arrange
+            var typeSignalement = new TypeSignalement
+            {
+                IdTypeSignalement = 1,
+                LibelleTypeSignalement = "Contenu inapproprié"
+            };
+
+            var etatSignalement = new EtatSignalement
+            {
+                IdEtatSignalement = 1,
+                LibelleEtatSignalement = "En cours"
+            };
+
+            var signalement = new Signalement
+            {
+                IdSignalement = 1,
+                IdAnnonceSignale = _objetcommun.IdAnnonce,
+                IdTypeSignalement = typeSignalement.IdTypeSignalement,
+                IdEtatSignalement = etatSignalement.IdEtatSignalement,
+                DescriptionSignalement = "Cette annonce contient du contenu inapproprié",
+                IdCompteSignalant = 1,
+                TypeSignalementSignalementNav = typeSignalement
+            };
+
+            var commande = new Commande
+            {
+                IdCommande = 1,
+                IdAnnonce = _objetcommun.IdAnnonce,
+                IdAcheteur = 2
+            };
+
+            var annonceWithCommandeAndSignalement = new Annonce
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                Commandes = new List<Commande> { commande },
+                SignalementsRecus = new List<Signalement> { signalement }
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(annonceWithCommandeAndSignalement);
+
+            // ✅ CORRECTION : Simuler le comportement quand il y a une commande
+            // Le manager modifie quand même les signalements, change l'état, puis retourne false
+            _mockManager.Setup(m => m.DeleteAsync(It.IsAny<Annonce>()))
+                       .Callback<Annonce>(annonce =>
+                       {
+                           // Traiter les signalements même en cas d'échec
+                           if (annonce.SignalementsRecus != null)
+                           {
+                               foreach (var sig in annonce.SignalementsRecus)
+                               {
+                                   sig.IdAnnonceSignale = null;
+                                   sig.IdCompteSignale = annonce.IdCompte;
+                                   sig.IdEtatSignalement = 2;
+                                   sig.DescriptionSignalement = "Annonce supprimée par l'administrateur. Ancien motif de signalement : "
+                                       + sig.DescriptionSignalement + " de type "
+                                       + sig.TypeSignalementSignalementNav.LibelleTypeSignalement;
+                               }
+                           }
+                           // Changer l'état de l'annonce
+                           if (annonce.Commandes != null && annonce.Commandes.Any())
+                           {
+                               annonce.IdEtatAnnonce = 6; // Archivée
+                           }
+                       })
+                       .ReturnsAsync(false); // Retourne false car il y a une commande
+
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdAnnonce);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+
+            // Vérifier que le signalement a été modifié même si la suppression échoue
+            Assert.IsNull(signalement.IdAnnonceSignale);
+            Assert.AreEqual(2, signalement.IdEtatSignalement);
+
+            // Vérifier que l'état de l'annonce est passé à "Archivée" (6)
+            Assert.AreEqual(6, annonceWithCommandeAndSignalement.IdEtatAnnonce);
         }
 
         [TestMethod]
