@@ -365,11 +365,12 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.LibelleAnnonce, opt => opt.MapFrom(src => src.AnnonceNotificationNav.Libelle))
             .ForMember(dest => dest.Reduction, opt => opt.MapFrom(src => src.NouveauPrix - src.AncienPrix))
             .ReverseMap();
-        
-        CreateMap<Notification, NotificationCreateDTO>()
-            .ForMember(dest => dest.IdAnnonce, opt => opt.MapFrom(src => src.AnnonceNotificationNav.IdAnnonce))
+
+        CreateMap<NotificationCreateDTO, Notification>()
+            .ForMember(dest => dest.DateCreation, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.EstLue, opt => opt.MapFrom(src => false))
             .ReverseMap();
-        
+
         CreateMap<Notification, NotificationMarkReadDTO>()
             .ReverseMap();
         

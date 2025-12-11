@@ -15,5 +15,5 @@ public interface ICompteService: IService<CompteDetailDTO>
     new Task<IEnumerable<CompteGetDTO>> GetAllAsync();
     Task<IEnumerable<CompteGetDTO>> GetByTypeCompteAsync(int idTypeCompte);
     Task<CompteProfilPublicDTO> GetComptePublicById(int id);
-    Task <bool> ToggleSuspention(int idCompte);
+    Task <bool> ToggleSuspention(int idCompte,bool e);
 }

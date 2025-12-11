@@ -37,7 +37,6 @@ public class AdminLayoutViewModel
                 _nav.NavigateTo("", forceLoad: true);
                 return;
             }
-
             IsVerified = true;
         }
         catch (Exception ex)

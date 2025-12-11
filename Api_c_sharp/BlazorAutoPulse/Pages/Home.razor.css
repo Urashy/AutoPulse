@@ -6,23 +6,24 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    margin-bottom: 40px; /* AJOUT : Espace sous le hero */
 }
 
-.hero::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background:
-            radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 80% 50%, rgba(0, 153, 255, 0.1) 0%, transparent 50%);
-}
+    .hero::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(0, 153, 255, 0.1) 0%, transparent 50%);
+    }
 
 .hero-content {
     text-align: center;
     z-index: 1;
-    max-width: 800px;
+    max-width: 1200px;
     padding: 0 20px;
+    width: 100%;
+    margin-bottom: 0; /* AJOUT : Pas d'espace en bas */
 }
 
 .hero h1 {
@@ -40,47 +41,13 @@
     margin-bottom: 40px;
 }
 
-.search-bar {
-    display: flex;
-    gap: 10px;
-    max-width: 700px;
-    margin: 0 auto;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 10px;
-    border-radius: 50px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.search-bar input, .search-bar select {
-    flex: 1;
-    padding: 15px 25px;
-    border: none;
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    border-radius: 30px;
-    outline: none;
-}
-
-.search-bar button {
-    padding: 15px 40px;
-    background: linear-gradient(135deg, #00d4ff, #0099ff);
-    border: none;
-    color: #fff;
-    border-radius: 30px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: transform 0.3s;
-}
-
-.search-bar button:hover {
-    transform: scale(1.05);
-}
+/* SUPPRIMÉ : Les anciens styles search-bar car ils sont dans BarreDeRechercheAvecFiltresComposant */
 
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 80px 40px;
+    padding: 40px; /* MODIFIÉ : Réduit de 80px à 40px */
+    clear: both; /* AJOUT : Important pour éviter les chevauchements */
 }
 
 .section-title {
@@ -93,6 +60,160 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 30px;
+    margin-top: 30px; /* AJOUT : Espace au-dessus de la grille */
+}
+
+/* AJOUT : Styles pour les résultats et la pagination */
+.results-info {
+    margin-bottom: 30px;
+    padding: 15px 20px;
+    background: rgba(0, 212, 255, 0.05);
+    border-left: 4px solid #00d4ff;
+    border-radius: 8px;
+}
+
+.pagination-info {
+    color: #aaa;
+    font-size: 14px;
+    margin: 0;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 50px;
+    padding: 30px 0;
+}
+
+.pagination-btn {
+    padding: 12px 24px;
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid #00d4ff;
+    color: #00d4ff;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+    .pagination-btn:hover:not(:disabled) {
+        background: rgba(0, 212, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .pagination-btn.active {
+        background: linear-gradient(135deg, #00d4ff, #0099ff);
+        color: #fff;
+        border-color: transparent;
+    }
+
+.pagination-dots {
+    color: #666;
+    font-size: 18px;
+}
+
+/* AJOUT : Loading state */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 40px;
+}
+
+.loader {
+    border: 4px solid rgba(0, 212, 255, 0.1);
+    border-top: 4px solid #00d4ff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading p {
+    color: #aaa;
+    font-size: 18px;
+}
+
+.no-results {
+    text-align: center;
+    padding: 80px 40px;
+}
+
+    .no-results h2 {
+        font-size: 32px;
+        margin-bottom: 20px;
+        color: #fff;
+    }
+
+    .no-results p {
+        font-size: 18px;
+        color: #aaa;
+    }
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .cars-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        height: auto;
+        padding: 60px 0;
+    }
+
+        .hero h1 {
+            font-size: 36px;
+        }
+
+        .hero p {
+            font-size: 16px;
+        }
+
+    .container {
+        padding: 20px;
+    }
+
+    .section-title {
+        font-size: 28px;
+        margin-bottom: 30px;
+    }
+
+    .cars-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .pagination-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
 }
 
 option {

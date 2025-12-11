@@ -234,21 +234,17 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        public async Task EditUser(CompteDetailDTO user)
-        {
-            // TODO: Implémenter l'édition
-            Console.WriteLine($"Édition de l'utilisateur {user.Pseudo}");
-        }
 
         public async Task SuspendUser(CompteDetailDTO user)
         {
-            await _compteService.ToggleSuspention(user.IdCompte);
+            await _compteService.ToggleSuspention(user.IdCompte,false);
             Console.WriteLine($"Suspension de l'utilisateur {user.Pseudo}");
         }
 
         public async Task ActivateUser(CompteDetailDTO user)
         {
-            // TODO: Implémenter l'activation
+            await _compteService.ToggleSuspention(user.IdCompte,true);
+
             Console.WriteLine($"Activation de l'utilisateur {user.Pseudo}");
         }
 
@@ -258,7 +254,7 @@ namespace BlazorAutoPulse.ViewModel
             {
                 try
                 {
-                    await _compteService.DeleteAsync(user.IdCompte);
+                    await _compteService.Anonymisation(user.IdCompte);
                     await LoadUsers();
                 }
                 catch (Exception ex)
@@ -271,7 +267,7 @@ namespace BlazorAutoPulse.ViewModel
         private async Task<bool> ConfirmDelete(CompteDetailDTO user)
         {
             // TODO: Afficher une modale de confirmation
-            return true; // Pour l'instant
+            return true;
         }
 
         public async Task ExportUsers()

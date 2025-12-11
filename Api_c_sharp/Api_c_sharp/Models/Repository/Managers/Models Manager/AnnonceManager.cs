@@ -164,6 +164,18 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             Commande commandes = await context.Commandes.FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
 
+            Signalement signalements = await context.Signalements.FirstOrDefaultAsync(s => s.IdAnnonceSignale == entity.IdAnnonce);
+
+            if (signalements != null)
+            {
+                signalements.IdAnnonceSignale = null;
+                signalements.IdEtatSignalement = 2;
+                await context.SaveChangesAsync();
+                await base.DeleteAsync(entity);
+                return true;
+            }
+            else
+
             if (commandes != null)
             {
                 entity.IdEtatAnnonce = 6;
@@ -176,7 +188,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public async Task<bool> EstMasque(int annonceId)
         {
-            Annonce annonce = dbSet.Find(annonceId);
+            Annonce annonce = await GetByIdAsync(annonceId);
             if (annonce.IdEtatAnnonce == 4)
             {
                 return true;
