@@ -14,6 +14,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IImageService _imageService;
         private readonly IAnnonceService _annonceService;
         private readonly ISignalRService _signalRService;
+        private readonly INotificationService _notificationService;
         private ConversationStateService _conversationStateService;
 
         public bool IsConnected { get; private set; }
@@ -31,11 +32,13 @@ namespace BlazorAutoPulse.ViewModel
             ICompteService compteService, 
             IImageService imageService,
             IAnnonceService annonceService,
+            INotificationService notificationService,
             ISignalRService signalRService)
         {
             _compteService = compteService;
             _imageService = imageService;
             _annonceService = annonceService;
+            _notificationService = notificationService;
             _signalRService = signalRService;
         }
 
@@ -78,6 +81,7 @@ namespace BlazorAutoPulse.ViewModel
                     
                     // ✅ S'abonner aux notifications de baisse de prix
                     _signalRService.OnPriceDropReceived += HandlePriceDropNotification;
+                    notificationsCount = await _notificationService.GetUnreadCountAsync(compte.IdCompte);
                 }
             }
             catch
@@ -147,7 +151,6 @@ namespace BlazorAutoPulse.ViewModel
 
         public void NavigateToNotifications()
         {
-            notificationsCount = 0;
             _nav?.NavigateTo("/notifications");
             _refreshUI?.Invoke();
         }
