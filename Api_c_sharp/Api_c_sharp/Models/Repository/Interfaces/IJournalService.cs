@@ -26,7 +26,8 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
         Task LogAchatAsync(int idCompteAcheteur,int idCompteVendeur, int idCommande, int idAnnonce, int idMoyenPaiement);
 
-        Task LogSignalementAsync(int idCompteSignalant, int idCompteSignale, int idSignalement,int idTypeSignalement, string description);
+        Task LogSignalementCompteAsync(int idCompteSignalant, int idCompteSignale, int idSignalement,int idTypeSignalement, string description);
+        Task LogSignalementAnnonceAsync(int idCompteSignalant, int idAnnonceSignale, int idSignalement,int idTypeSignalement, string description);
 
         Task LogDepotAvisAsync(int idCompteJugeur, int idCompteJuge, int idAvis, int note, string description);
 

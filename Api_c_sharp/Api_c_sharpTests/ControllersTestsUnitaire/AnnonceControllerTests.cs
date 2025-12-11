@@ -31,6 +31,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private IMapper _mapper;
         private Annonce _objetcommun;
         private IJournalService _journalService;
+        private INotificationService _notificationService;
 
         [TestInitialize]
         public async Task Initialize()
@@ -48,8 +49,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _mapper = config.CreateMapper();
 
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
+            _notificationService = new NotificationManager(_context);
             _manager = new AnnonceManager(_context);
-            _controller = new AnnonceController(_manager, _mapper, _journalService);
+            _controller = new AnnonceController(_manager, _mapper, _journalService,_notificationService);
 
             _context.Annonces.RemoveRange(_context.Annonces);
             await _context.SaveChangesAsync();

@@ -24,6 +24,7 @@ namespace Api_c_sharp.ControllersMock.Tests
     {
         private Mock<AnnonceManager> _mockManager;
         private Mock<IJournalService> _mockJournalService;
+        private Mock<INotificationService> _mockNotificationService;
         private Mock<IHubContext<MessageHub>> _mockHubContext;
         private Mock<IHubClients> _mockClients;
         private Mock<IClientProxy> _mockClientProxy;
@@ -37,6 +38,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Création des mocks
             _mockManager = new Mock<AnnonceManager>(null);
             _mockJournalService = new Mock<IJournalService>();
+            _mockNotificationService = new Mock<INotificationService>();
             _mockHubContext = new Mock<IHubContext<MessageHub>>();
             _mockClients = new Mock<IHubClients>();
             _mockClientProxy = new Mock<IClientProxy>();
@@ -68,7 +70,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mapper = config.CreateMapper();
 
             // Injection dans le controller
-            _controller = new AnnonceController(_mockManager.Object, _mapper, _mockJournalService.Object, _mockHubContext.Object);
+            _controller = new AnnonceController(_mockManager.Object, _mapper, _mockJournalService.Object,_mockNotificationService.Object, _mockHubContext.Object);
         }
 
         [TestMethod]

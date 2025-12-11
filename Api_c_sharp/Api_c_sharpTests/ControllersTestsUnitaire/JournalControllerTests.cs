@@ -82,12 +82,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 new TypeJournal { IdTypeJournaux = 6, LibelleTypeJournaux = "Modification d'annonce" },
                 new TypeJournal { IdTypeJournaux = 7, LibelleTypeJournaux = "Suppression d'annonce" },
                 new TypeJournal { IdTypeJournaux = 8, LibelleTypeJournaux = "Achat" },
-                new TypeJournal { IdTypeJournaux = 9, LibelleTypeJournaux = "Signalement" },
-                new TypeJournal { IdTypeJournaux = 10, LibelleTypeJournaux = "Dépôt avis" },
-                new TypeJournal { IdTypeJournaux = 11, LibelleTypeJournaux = "Mise en favoris" },
-                new TypeJournal { IdTypeJournaux = 12, LibelleTypeJournaux = "Envoyer un message/offre" },
-                new TypeJournal { IdTypeJournaux = 13, LibelleTypeJournaux = "Génération de facture" },
-                new TypeJournal { IdTypeJournaux = 14, LibelleTypeJournaux = "Utilisateur bloque un autre utilisateur" }
+                new TypeJournal { IdTypeJournaux = 9, LibelleTypeJournaux = "Signalement Compte" },
+                new TypeJournal { IdTypeJournaux = 10, LibelleTypeJournaux = "Signalement Annonce" },
+                new TypeJournal { IdTypeJournaux = 11, LibelleTypeJournaux = "Dépôt avis" },
+                new TypeJournal { IdTypeJournaux = 12, LibelleTypeJournaux = "Mise en favoris" },
+                new TypeJournal { IdTypeJournaux = 13, LibelleTypeJournaux = "Envoyer un message/offre" },
+                new TypeJournal { IdTypeJournaux = 14, LibelleTypeJournaux = "Génération de facture" },
+                new TypeJournal { IdTypeJournaux = 15, LibelleTypeJournaux = "Utilisateur bloque un autre utilisateur" }
             );
 
             Journal journal = new Journal
@@ -423,7 +424,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task LogSignalementAsyncTest()
+        public async Task LogSignalementCompteAsyncTest()
         {
             int idSignalant = 1;
             int idSignale = 2;
@@ -432,7 +433,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             string description = "Comportement inapproprié";
             int countBefore = _context.Journaux.Count();
 
-            await _journalService.LogSignalementAsync(idSignalant, idSignale, idSignalement, idTypeSignalement, description);
+            await _journalService.LogSignalementCompteAsync(idSignalant, idSignale, idSignalement, idTypeSignalement, description);
 
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
@@ -440,6 +441,27 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var lastJournal = await _context.Journaux.OrderByDescending(j => j.IdJournal).FirstOrDefaultAsync();
             Assert.IsNotNull(lastJournal);
             Assert.AreEqual(9, lastJournal.IdTypeJournal);
+            Assert.IsTrue(lastJournal.ContenuJournal.Contains("Signalement"));
+        }
+
+        [TestMethod]
+        public async Task LogSignalementAnnonceAsyncTest()
+        {
+            int idSignalant = 1;
+            int idAnnoncesignale = 2;
+            int idSignalement = 10;
+            int idTypeSignalement = 1;
+            string description = "Photo inapproprié";
+            int countBefore = _context.Journaux.Count();
+
+            await _journalService.LogSignalementAnnonceAsync(idSignalant, idAnnoncesignale, idSignalement, idTypeSignalement, description);
+
+            int countAfter = _context.Journaux.Count();
+            Assert.AreEqual(countBefore + 1, countAfter);
+
+            var lastJournal = await _context.Journaux.OrderByDescending(j => j.IdJournal).FirstOrDefaultAsync();
+            Assert.IsNotNull(lastJournal);
+            Assert.AreEqual(10, lastJournal.IdTypeJournal);
             Assert.IsTrue(lastJournal.ContenuJournal.Contains("Signalement"));
         }
 
@@ -460,7 +482,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             var lastJournal = await _context.Journaux.OrderByDescending(j => j.IdJournal).FirstOrDefaultAsync();
             Assert.IsNotNull(lastJournal);
-            Assert.AreEqual(10, lastJournal.IdTypeJournal);
+            Assert.AreEqual(11, lastJournal.IdTypeJournal);
             Assert.IsTrue(lastJournal.ContenuJournal.Contains("avis"));
             Assert.IsTrue(lastJournal.ContenuJournal.Contains(note.ToString()));
         }
@@ -479,7 +501,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             var lastJournal = await _context.Journaux.OrderByDescending(j => j.IdJournal).FirstOrDefaultAsync();
             Assert.IsNotNull(lastJournal);
-            Assert.AreEqual(11, lastJournal.IdTypeJournal);
+            Assert.AreEqual(12, lastJournal.IdTypeJournal);
             Assert.IsTrue(lastJournal.ContenuJournal.Contains("favoris"));
         }
 
@@ -498,7 +520,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             var lastJournal = await _context.Journaux.OrderByDescending(j => j.IdJournal).FirstOrDefaultAsync();
             Assert.IsNotNull(lastJournal);
-            Assert.AreEqual(12, lastJournal.IdTypeJournal);
+            Assert.AreEqual(13, lastJournal.IdTypeJournal);
             Assert.IsTrue(lastJournal.ContenuJournal.Contains("message"));
         }
 
@@ -517,7 +539,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             var lastJournal = await _context.Journaux.OrderByDescending(j => j.IdJournal).FirstOrDefaultAsync();
             Assert.IsNotNull(lastJournal);
-            Assert.AreEqual(13, lastJournal.IdTypeJournal);
+            Assert.AreEqual(14, lastJournal.IdTypeJournal);
             Assert.IsTrue(lastJournal.ContenuJournal.Contains("facture"));
         }
 
@@ -535,7 +557,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             var lastJournal = await _context.Journaux.OrderByDescending(j => j.IdJournal).FirstOrDefaultAsync();
             Assert.IsNotNull(lastJournal);
-            Assert.AreEqual(14, lastJournal.IdTypeJournal);
+            Assert.AreEqual(15, lastJournal.IdTypeJournal);
             Assert.IsTrue(lastJournal.ContenuJournal.Contains("Blocage"));
         }
 

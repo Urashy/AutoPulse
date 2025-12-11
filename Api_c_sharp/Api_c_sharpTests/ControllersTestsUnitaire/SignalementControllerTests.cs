@@ -311,7 +311,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task GetAllByTypeTest()
         {
             
-            var result = await _controller.GetAllByEtatSignalement(_signalementCommun.IdEtatSignalement);
+            var result = await _controller.GetFilteredSignalement(_signalementCommun.IdEtatSignalement,_signalementCommun.IdTypeSignalement, "suspect");
 
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
@@ -321,7 +321,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task NotFoundGetAllbyEtatSignalementTest()
         {
 
-            var result = await _controller.GetAllByEtatSignalement(0);
+            var result = await _controller.GetFilteredSignalement(0,0,"existe pas");
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
