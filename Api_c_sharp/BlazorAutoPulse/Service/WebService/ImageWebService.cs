@@ -22,9 +22,30 @@ namespace BlazorAutoPulse.Service.WebService
             return $"{_httpClient.BaseAddress}{ApiEndpoint}/GetFirstImage/{id}";
         }
 
-        public string GetAllIdImage(int id)
+        public async Task<List<int>> GetAllImageIdsByVoitureId(int voitureId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var request = new HttpRequestMessage(
+                    HttpMethod.Get,
+                    BuildUrl($"GetAllImagesByVoitureId/{voitureId}")
+                );
+
+                var response = await SendWithCredentialsAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var imageIds = await response.Content.ReadFromJsonAsync<List<int>>();
+                    return imageIds ?? new List<int>();
+                }
+
+                return new List<int>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur GetAllImageIdsByVoitureId: {ex.Message}");
+                return new List<int>();
+            }
         }
 
         public async Task<Image?> GetImageProfil(int id)
