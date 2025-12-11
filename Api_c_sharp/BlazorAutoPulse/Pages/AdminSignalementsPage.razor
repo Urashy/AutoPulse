@@ -35,17 +35,25 @@
                 @onclick="@(() => VM.FilterByType("compte"))">
             Comptes (@VM.SignalementsComptes)
         </button>
+
         <div style="margin-left: auto; display: flex; gap: 10px;">
-            <button class="filter-btn @(VM.FilterStatus == "pending" ? "active" : "")"
-                    @onclick="@(() => VM.FilterByStatus("pending"))">
+            <button class="filter-btn @(VM.FilterStatus == 0 ? "active" : "")"
+                    @onclick="@(() => VM.FilterByStatus(0))">
+                Tous
+            </button>
+
+            <button class="filter-btn @(VM.FilterStatus == 1 ? "active" : "")"
+                    @onclick="@(() => VM.FilterByStatus(1))">
                 En attente (@VM.SignalementsEnAttente)
             </button>
-            <button class="filter-btn @(VM.FilterStatus == "resolved" ? "active" : "")"
-                    @onclick="@(() => VM.FilterByStatus("resolved"))">
+
+            <button class="filter-btn @(VM.FilterStatus == 2 ? "active" : "")"
+                    @onclick="@(() => VM.FilterByStatus(2))">
                 Traités (@VM.SignalementsTraites)
             </button>
-            <button class="filter-btn @(VM.FilterStatus == "rejected" ? "active" : "")"
-                    @onclick="@(() => VM.FilterByStatus("rejected"))">
+
+            <button class="filter-btn @(VM.FilterStatus == 3 ? "active" : "")"
+                    @onclick="@(() => VM.FilterByStatus(3))">
                 Rejetés (@VM.SignalementsRejetes)
             </button>
         </div>
@@ -109,7 +117,7 @@
                         }
                     </div>
 
-                    @if (signalement.IdStatut == 1) @* CORRIGÉ : Utiliser l'ID 1 pour 'En attente' *@
+                    @if (signalement.IdStatut == 1)
                     {
                         <div class="signalement-actions">
                             <button class="btn-action primary"
@@ -146,17 +154,13 @@
         @if (VM.TotalPages > 1)
         {
             <div class="pagination">
-                <button class="btn-page"
-                        @onclick="VM.PreviousPage"
-                        disabled="@(!VM.CanGoPrevious)">
+                <button class="btn-page" @onclick="VM.PreviousPage" disabled="@(!VM.CanGoPrevious)">
                     ← Précédent
                 </button>
                 <span class="page-info">
                     Page @VM.CurrentPage sur @VM.TotalPages
                 </span>
-                <button class="btn-page"
-                        @onclick="VM.NextPage"
-                        disabled="@(!VM.CanGoNext)">
+                <button class="btn-page" @onclick="VM.NextPage" disabled="@(!VM.CanGoNext)">
                     Suivant →
                 </button>
             </div>
@@ -164,6 +168,8 @@
     }
 </div>
 
+@* Le reste des Modales (ActionModal et DetailsModal) reste identique, 
+   car elles utilisent déjà les propriétés du ViewModel *@
 @if (VM.ShowActionModal)
 {
     <div class="modal-overlay" @onclick="VM.CloseActionModal">
@@ -179,17 +185,13 @@
                 {
                     <div class="action-options">
                         <label class="action-option">
-                            <input type="radio"
-                                   name="action"
-                                   value="delete"
+                            <input type="radio" name="action" value="delete"
                                    @onchange="@(() => VM.SetAction("delete"))"
                                    checked="@(VM.SelectedAction == "delete")" />
                             <span>🗑️ Supprimer l'annonce</span>
                         </label>
                         <label class="action-option">
-                            <input type="radio"
-                                   name="action"
-                                   value="suspend"
+                            <input type="radio" name="action" value="suspend"
                                    @onchange="@(() => VM.SetAction("suspend"))"
                                    checked="@(VM.SelectedAction == "suspend")" />
                             <span>🔒 Suspendre l'annonce</span>
@@ -201,17 +203,13 @@
                 {
                     <div class="action-options">
                         <label class="action-option">
-                            <input type="radio"
-                                   name="action"
-                                   value="anonymize"
+                            <input type="radio" name="action" value="anonymize"
                                    @onchange="@(() => VM.SetAction("anonymize"))"
                                    checked="@(VM.SelectedAction == "anonymize")" />
                             <span>👤 Anonymiser le compte</span>
                         </label>
                         <label class="action-option">
-                            <input type="radio"
-                                   name="action"
-                                   value="suspend"
+                            <input type="radio" name="action" value="suspend"
                                    @onchange="@(() => VM.SetAction("suspend"))"
                                    checked="@(VM.SelectedAction == "suspend")" />
                             <span>🔒 Suspendre le compte</span>
@@ -220,12 +218,8 @@
                 }
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" @onclick="VM.CloseActionModal">
-                    Annuler
-                </button>
-                <button class="btn-danger" @onclick="VM.ConfirmAction">
-                    Confirmer
-                </button>
+                <button class="btn-secondary" @onclick="VM.CloseActionModal">Annuler</button>
+                <button class="btn-danger" @onclick="VM.ConfirmAction">Confirmer</button>
             </div>
         </div>
     </div>
@@ -260,7 +254,6 @@
                             <span class="detail-value">@VM.SelectedSignalement.DateSignalement.ToString("dd/MM/yyyy à HH:mm")</span>
                         </div>
                     </div>
-
                     <div class="detail-section">
                         <h3>Signalant</h3>
                         <div class="detail-row">
@@ -268,7 +261,6 @@
                             <span class="detail-value">@VM.SelectedSignalement.PseudoSignalant</span>
                         </div>
                     </div>
-
                     <div class="detail-section">
                         <h3>Cible du signalement</h3>
                         @if (VM.SelectedSignalement.TypeCible == "Annonce")
@@ -294,7 +286,6 @@
                             </div>
                         }
                     </div>
-
                     @if (!string.IsNullOrWhiteSpace(VM.SelectedSignalement.Description))
                     {
                         <div class="detail-section full-width">
@@ -316,7 +307,7 @@
 
     private string GetCardClass(AdminSignalement signalement)
     {
-        // 1 = En attente (pending)
+        // Utilisation de l'ID 1 pour En attente
         return signalement.IdStatut == 1 &&
                (signalement.TypeSignalement.Contains("Violence") ||
                 signalement.TypeSignalement.Contains("Illégal"))

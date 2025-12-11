@@ -13,8 +13,13 @@ namespace BlazorAutoPulse.ViewModel
         public List<AdminSignalement> FilteredSignalements { get; private set; } = new();
 
         public string SearchQuery { get; set; } = "";
+
+        // On garde string ici car l'UI filtre par CIBLE (Annonce vs Compte) et non par MOTIF (1-10)
         public string FilterType { get; private set; } = "all";
-        public string FilterStatus { get; private set; } = "all";
+
+        // CORRECTION : Passage en int pour correspondre aux IDs de la BDD
+        // 0 = Tous, 1 = En attente, 2 = Résolu, 3 = Rejeté
+        public int FilterStatus { get; private set; } = 0;
 
         public int CurrentPage { get; private set; } = 1;
         public int ItemsPerPage { get; private set; } = 9;
@@ -25,6 +30,8 @@ namespace BlazorAutoPulse.ViewModel
         public int TotalSignalements => AllSignalements?.Count ?? 0;
         public int SignalementsAnnonces => AllSignalements?.Count(s => s.TypeCible == "Annonce") ?? 0;
         public int SignalementsComptes => AllSignalements?.Count(s => s.TypeCible == "Compte") ?? 0;
+
+        // Utilisation des IDs constants
         public int SignalementsEnAttente => AllSignalements?.Count(s => s.IdStatut == 1) ?? 0;
         public int SignalementsTraites => AllSignalements?.Count(s => s.IdStatut == 2) ?? 0;
         public int SignalementsRejetes => AllSignalements?.Count(s => s.IdStatut == 3) ?? 0;
@@ -78,15 +85,10 @@ namespace BlazorAutoPulse.ViewModel
         {
             try
             {
-                Console.WriteLine("Début du chargement des signalements...");
-
                 var signalements = await _signalementService.GetAllSignalementsAsync();
-
-                Console.WriteLine($"Signalements récupérés: {signalements?.Count() ?? 0}");
 
                 if (signalements == null)
                 {
-                    Console.WriteLine("Aucun signalement récupéré (null)");
                     AllSignalements = new List<AdminSignalement>();
                     FilteredSignalements = new List<AdminSignalement>();
                     return;
@@ -100,28 +102,19 @@ namespace BlazorAutoPulse.ViewModel
                         {
                             Id = s.IdSignalement,
                             TypeSignalement = s.LibelleTypeSignalement ?? "Type inconnu",
-
                             TypeCible = s.TypeCible,
-
                             IdCible = s.IdAnnonceSignale ?? s.IdCompteSignale ?? 0,
-
                             PseudoSignalant = s.PseudoSignalant ?? "Utilisateur inconnu",
-
                             PseudoCible = s.PseudoSignale,
                             TitreCible = s.LibelleAnnonceSignale,
-
                             Description = s.DescriptionSignalement ?? "",
                             DateSignalement = s.DateCreationSignalement,
-
-
                             Statut = s.LibelleEtatSignalement ?? "En attente",
-
                             IdStatut = s.IdEtatSignalement
                         };
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        Console.WriteLine($"Erreur mapping signalement {s.IdSignalement}: {ex.Message}");
                         return null;
                     }
                 })
@@ -130,14 +123,11 @@ namespace BlazorAutoPulse.ViewModel
                 .OrderByDescending(s => s.DateSignalement)
                 .ToList();
 
-                Console.WriteLine($"Signalements mappés: {AllSignalements.Count}");
-
                 await ApplyFilters();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur LoadSignalements: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 AllSignalements = new List<AdminSignalement>();
                 FilteredSignalements = new List<AdminSignalement>();
             }
@@ -158,29 +148,26 @@ namespace BlazorAutoPulse.ViewModel
         {
             FilterType = type;
             CurrentPage = 1;
-            await ApplyFilters(); 
+            await ApplyFilters();
             _refreshUI?.Invoke();
-            await Task.CompletedTask;
         }
 
-        public async Task FilterByStatus(string status)
+        // CORRECTION : Accepte maintenant un int (0, 1, 2, 3)
+        public async Task FilterByStatus(int statusId)
         {
-            FilterStatus = status;
+            FilterStatus = statusId;
             CurrentPage = 1;
-            await ApplyFilters(); 
+            await ApplyFilters();
             _refreshUI?.Invoke();
-            await Task.CompletedTask;
         }
 
         public async Task SearchSignalements()
         {
-            await ApplyFilters(); 
+            await ApplyFilters();
             CurrentPage = 1;
             _refreshUI?.Invoke();
-            await Task.CompletedTask;
         }
 
-        // Correction: Passage à async Task (Correction de CS4033)
         private async Task ApplyFilters()
         {
             if (AllSignalements == null)
@@ -189,67 +176,54 @@ namespace BlazorAutoPulse.ViewModel
                 return;
             }
 
-            FilteredSignalements = AllSignalements.ToList();
+            // Filtrage initial en mémoire (ou appel service si optimisé)
+            var query = AllSignalements.AsEnumerable();
 
-            if (FilterStatus != "all" || !string.IsNullOrWhiteSpace(SearchQuery) || FilterType != "all")
+            // Filtre par statut (ID)
+            if (FilterStatus != 0) // 0 = All
             {
-
-                // Correction: Ajout de ; (Correction de CS1002)
-                FilteredSignalements = await _signalementService.GetFiltered(FilterStatus, FilterType, SearchQuery);
+                query = query.Where(s => s.IdStatut == FilterStatus);
             }
-            _refreshUI?.Invoke();
 
-            Console.WriteLine($"Après filtres: {FilteredSignalements?.Count ?? 0} signalements");
-        }
-
-        public void NextPage()
-        {
-            if (CanGoNext)
+            // Filtre par type cible (String : Annonce/Compte)
+            if (FilterType != "all")
             {
-                CurrentPage++;
-                _refreshUI?.Invoke();
+                // Note : Assure-toi que TypeCible dans la BDD correspond bien à "Annonce" ou "Compte"
+                // Sinon utilise StringComparison.OrdinalIgnoreCase
+                query = query.Where(s => s.TypeCible?.ToLower() == FilterType.ToLower());
             }
-        }
 
-        public void PreviousPage()
-        {
-            if (CanGoPrevious)
+            // Filtre recherche
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
-                CurrentPage--;
-                _refreshUI?.Invoke();
-            }
-        }
+                // Si tu veux continuer à utiliser le service filtré backend :
+                // await _signalementService.GetFiltered(FilterStatus, FilterType, SearchQuery);
+                // Mais attention, il faut mettre à jour la méthode du service pour accepter un INT pour le statut.
 
-        public void ViewDetails(AdminSignalement signalement)
-        {
-            SelectedSignalement = signalement;
-            ShowDetailsModal = true;
+                // Filtrage mémoire simple pour l'exemple :
+                query = query.Where(s =>
+                   (s.PseudoSignalant?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                   (s.PseudoCible?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                   (s.TitreCible?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false)
+                );
+            }
+
+            FilteredSignalements = query.ToList();
             _refreshUI?.Invoke();
         }
 
-        public void CloseDetailsModal()
-        {
-            ShowDetailsModal = false;
-            SelectedSignalement = null;
-            _refreshUI?.Invoke();
-        }
+        public void NextPage() { if (CanGoNext) { CurrentPage++; _refreshUI?.Invoke(); } }
+        public void PreviousPage() { if (CanGoPrevious) { CurrentPage--; _refreshUI?.Invoke(); } }
+
+        public void ViewDetails(AdminSignalement signalement) { SelectedSignalement = signalement; ShowDetailsModal = true; _refreshUI?.Invoke(); }
+        public void CloseDetailsModal() { ShowDetailsModal = false; SelectedSignalement = null; _refreshUI?.Invoke(); }
 
         public void AcceptSignalement(AdminSignalement signalement)
         {
             SelectedSignalement = signalement;
             ActionType = "accept";
-
-            if (signalement.TypeCible == "Annonce")
-            {
-                ActionMessage = "Quelle action souhaitez-vous effectuer sur cette annonce ?";
-                SelectedAction = "delete";
-            }
-            else
-            {
-                ActionMessage = "Quelle action souhaitez-vous effectuer sur ce compte ?";
-                SelectedAction = "anonymize";
-            }
-
+            if (signalement.TypeCible == "Annonce") { ActionMessage = "Action sur l'annonce ?"; SelectedAction = "delete"; }
+            else { ActionMessage = "Action sur le compte ?"; SelectedAction = "anonymize"; }
             ShowActionModal = true;
             _refreshUI?.Invoke();
         }
@@ -258,98 +232,52 @@ namespace BlazorAutoPulse.ViewModel
         {
             SelectedSignalement = signalement;
             ActionType = "reject";
-            ActionMessage = $"Êtes-vous sûr de vouloir rejeter ce signalement ?";
+            ActionMessage = $"Rejeter ce signalement ?";
             ShowActionModal = true;
             _refreshUI?.Invoke();
         }
 
-        public void SetAction(string action)
-        {
-            SelectedAction = action;
-            _refreshUI?.Invoke();
-        }
-
-        public void CloseActionModal()
-        {
-            ShowActionModal = false;
-            SelectedSignalement = null;
-            ActionType = "";
-            SelectedAction = "";
-            ActionMessage = "";
-            _refreshUI?.Invoke();
-        }
+        public void SetAction(string action) { SelectedAction = action; _refreshUI?.Invoke(); }
+        public void CloseActionModal() { ShowActionModal = false; SelectedSignalement = null; _refreshUI?.Invoke(); }
 
         public async Task ConfirmAction()
         {
             if (SelectedSignalement == null) return;
-
             try
             {
                 int nouvelEtat;
-
                 if (ActionType == "accept")
                 {
                     if (SelectedSignalement.TypeCible == "Annonce")
                     {
-                        if (SelectedAction == "delete")
-                        {
-                            await _annonceService.DeleteAsync(SelectedSignalement.IdCible);
-                            Console.WriteLine($"Annonce {SelectedSignalement.IdCible} supprimée");
-                        }
-                        else if (SelectedAction == "suspend")
-                        {
-                            await _annonceService.UpdateAnnonceAsync(SelectedSignalement.IdCible, new AnnonceUpdateDTO { IdEtatAnnonce = 3 });
-                            Console.WriteLine($"Annonce {SelectedSignalement.IdCible} suspendue");
-                        }
+                        if (SelectedAction == "delete") await _annonceService.DeleteAsync(SelectedSignalement.IdCible);
+                        else if (SelectedAction == "suspend") await _annonceService.UpdateAnnonceAsync(SelectedSignalement.IdCible, new AnnonceUpdateDTO { IdEtatAnnonce = 3 });
                     }
                     else
                     {
-                        if (SelectedAction == "anonymize")
-                        {
-                            await _compteService.Anonymisation(SelectedSignalement.IdCible);
-                            Console.WriteLine($"Compte {SelectedSignalement.IdCible} anonymisé");
-                        }
-                        else if (SelectedAction == "suspend")
-                        {
-                            await _compteService.ToggleSuspention(SelectedSignalement.IdCible, false);
-                            Console.WriteLine($"Compte {SelectedSignalement.IdCible} suspendu");
-                        }
+                        if (SelectedAction == "anonymize") await _compteService.Anonymisation(SelectedSignalement.IdCible);
+                        else if (SelectedAction == "suspend") await _compteService.ToggleSuspention(SelectedSignalement.IdCible, false);
                     }
-
                     nouvelEtat = 2;
                     SelectedSignalement.Statut = "Traité";
-                    SelectedSignalement.IdStatut = 2;
                 }
                 else if (ActionType == "reject")
                 {
-                    nouvelEtat = 3;
+                    nouvelEtat = 3; // ID Rejeté
                     SelectedSignalement.Statut = "Rejeté";
-                    SelectedSignalement.IdStatut = 3;
                 }
-                else
-                {
-                    CloseActionModal();
-                    return;
-                }
+                else { CloseActionModal(); return; }
 
-                bool success = await _signalementService.UpdateEtatAsync(SelectedSignalement.Id, nouvelEtat);
-
-                if (success)
-                {
-                    Console.WriteLine($"Signalement {SelectedSignalement.Id} mis à jour avec succès");
-                }
-                else
-                {
-                    Console.WriteLine($"Erreur lors de la mise à jour du signalement {SelectedSignalement.Id}");
-                }
+                SelectedSignalement.IdStatut = nouvelEtat;
+                await _signalementService.UpdateEtatAsync(SelectedSignalement.Id, nouvelEtat);
 
                 CloseActionModal();
-                await ApplyFilters(); 
+                await ApplyFilters();
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur lors de la confirmation de l'action: {ex.Message}");
+                Console.WriteLine($"Erreur: {ex.Message}");
             }
         }
     }
