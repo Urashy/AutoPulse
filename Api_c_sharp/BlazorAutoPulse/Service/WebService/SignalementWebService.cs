@@ -13,7 +13,8 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
     protected override string ApiEndpoint => "Signalement";
 
     /// <summary>
-    /// Récupère tous les signalements avec leurs détails
+    /// Récupère tous les signalements avec leurs détails.
+    /// URL générée : api/Signalement/GetAll
     /// </summary>
     public async Task<IEnumerable<SignalementDTO>> GetAllSignalementsAsync()
     {
@@ -33,12 +34,14 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
     }
 
     /// <summary>
-    /// Met à jour l'état d'un signalement (1=En attente, 2=Traité, 3=Rejeté)
+    /// Met à jour l'état d'un signalement.
+    /// URL générée : api/Signalement/Put/{id}
     /// </summary>
     public async Task UpdateSignalementAsync(int id, SignalementUpdateDTO entity)
     {
         try
         {
+            // Attention : Assure-toi que ton contrôleur a bien une action [ActionName("Put")]
             var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
             {
                 Content = JsonContent.Create(entity)
@@ -54,7 +57,8 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
     }
 
     /// <summary>
-    /// Crée un signalement (annonce ou compte)
+    /// Crée un signalement.
+    /// URL générée : api/Signalement/Post
     /// </summary>
     public override async Task<SignalementCreateDTO> CreateAsync(SignalementCreateDTO entity)
     {
@@ -86,7 +90,8 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
     }
 
     /// <summary>
-    /// Récupère les signalements filtrés par état, type (dans le chemin de l'URL) et recherche textuelle (en query string).
+    /// CORRECTION ICI : Ajout du nom de l'action "GetFilteredSignalement" dans l'URL.
+    /// URL générée : api/Signalement/GetFilteredSignalement/{idetat}/{idtype}?recherche=...
     /// </summary>
     public async Task<IEnumerable<SignalementDTO>> GetFiltered(int idetat, int idtype, string recherche)
     {
@@ -94,8 +99,9 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
         {
             var rechercheEncoded = Uri.EscapeDataString(recherche ?? string.Empty);
 
-            // L'URL est de la forme: Signalement/{idetat}/{idtype}?recherche=...
-            var url = $"{idetat}/{idtype}";
+            // CORRECTION : On ajoute "GetFilteredSignalement/" avant les paramètres
+            var url = $"GetFilteredSignalement/{idetat}/{idtype}";
+
             if (!string.IsNullOrEmpty(rechercheEncoded))
             {
                 url += $"?recherche={rechercheEncoded}";
@@ -103,22 +109,18 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
 
             var request = new HttpRequestMessage(
                 HttpMethod.Get,
-                // Utilise BuildUrl pour ajouter le préfixe de l'API (Signalement)
                 BuildUrl(url)
             );
 
             var response = await SendWithCredentialsAsync(request);
 
-            // Lance une exception pour les codes d'état HTTP non réussis (4xx ou 5xx)
             response.EnsureSuccessStatusCode();
 
-            // Désérialiser la réponse en IEnumerable<SignalementDTO>
             return await response.Content.ReadFromJsonAsync<IEnumerable<SignalementDTO>>()
                    ?? Enumerable.Empty<SignalementDTO>();
         }
         catch (Exception ex)
         {
-            // Gérer les erreurs de désérialisation, de connexion, ou de code d'état HTTP non réussi
             Console.WriteLine($"Exception GetFiltered : {ex.Message}");
             return Enumerable.Empty<SignalementDTO>();
         }

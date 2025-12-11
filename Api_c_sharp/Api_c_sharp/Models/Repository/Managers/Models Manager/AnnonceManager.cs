@@ -78,7 +78,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             // Filtre par département
             if (!string.IsNullOrEmpty(param.Departement))
-                query = query.Where(a => a.AdresseAnnonceNav.CodePostal == param.Departement);
+                query = query.Where(a => a.AdresseAnnonceNav.CodePostal.StartsWith(param.Departement));
 
             // Filtre par carburant
             if (param.IdCarburant > 0)
@@ -107,7 +107,8 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             if (!string.IsNullOrEmpty(param.Nom))
             {
-                query = query.Where(a => Fuzz.PartialRatio(a.Libelle.ToLower(), param.Nom.ToLower()) > 70);
+                string nomRecherche = param.Nom.ToLower();
+                query = query.Where(a => a.Libelle.ToLower().Contains(nomRecherche));
             }
 
             if (param.IdBoitedevitesse > 0)

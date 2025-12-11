@@ -9,36 +9,45 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IAnnonceService _annonceService;
         private readonly ICompteService _compteService;
 
-        private List<AdminSignalement> AllSignalements { get; set; } = new();
+        // Liste contenant les données brutes chargées depuis l'API (filtrées par TYPE uniquement)
+        private List<AdminSignalement> LoadedSignalements { get; set; } = new();
+
+        // Liste affichée dans la grille (filtrée par TYPE + STATUT pour la pagination)
         public List<AdminSignalement> FilteredSignalements { get; private set; } = new();
 
         public string SearchQuery { get; set; } = "";
 
-        // On garde string ici car l'UI filtre par CIBLE (Annonce vs Compte) et non par MOTIF (1-10)
+        // Filtre de Cible : "all", "annonce", "compte"
         public string FilterType { get; private set; } = "all";
 
-        // CORRECTION : Passage en int pour correspondre aux IDs de la BDD
-        // 0 = Tous, 1 = En attente, 2 = Résolu, 3 = Rejeté
+        // Filtre de Statut : 0 = Tous, 1 = En attente, 2 = Traité, 3 = Rejeté
         public int FilterStatus { get; private set; } = 0;
 
+        // --- COMPTEURS FIXES (Onglets du haut) ---
+        // Ils sont calculés au chargement initial ("All") et ne changent pas quand on filtre.
+        public int FixedTotalAnnonces { get; private set; } = 0;
+        public int FixedTotalComptes { get; private set; } = 0;
+        public int FixedTotal => FixedTotalAnnonces + FixedTotalComptes;
+
+        // --- COMPTEURS DYNAMIQUES (Onglets du bas) ---
+        // Ils dépendent de LoadedSignalements, donc du TYPE sélectionné.
+        public int SignalementsEnAttente => LoadedSignalements.Count(s => s.IdStatut == 1);
+        public int SignalementsTraites => LoadedSignalements.Count(s => s.IdStatut == 2);
+        public int SignalementsRejetes => LoadedSignalements.Count(s => s.IdStatut == 3);
+
+        // Total affiché (dépend du type sélectionné)
+        public int TotalSignalements => LoadedSignalements.Count;
+
+        // Pagination
         public int CurrentPage { get; private set; } = 1;
         public int ItemsPerPage { get; private set; } = 9;
         public int TotalPages => FilteredSignalements.Count == 0 ? 1 : (int)Math.Ceiling((double)FilteredSignalements.Count / ItemsPerPage);
         public bool CanGoPrevious => CurrentPage > 1;
         public bool CanGoNext => CurrentPage < TotalPages;
 
-        public int TotalSignalements => AllSignalements?.Count ?? 0;
-        public int SignalementsAnnonces => AllSignalements?.Count(s => s.TypeCible == "Annonce") ?? 0;
-        public int SignalementsComptes => AllSignalements?.Count(s => s.TypeCible == "Compte") ?? 0;
-
-        // Utilisation des IDs constants
-        public int SignalementsEnAttente => AllSignalements?.Count(s => s.IdStatut == 1) ?? 0;
-        public int SignalementsTraites => AllSignalements?.Count(s => s.IdStatut == 2) ?? 0;
-        public int SignalementsRejetes => AllSignalements?.Count(s => s.IdStatut == 3) ?? 0;
-
         public bool IsLoading { get; private set; } = true;
 
-        // Modal de confirmation
+        // --- Modales ---
         public bool ShowActionModal { get; private set; }
         public bool ShowDetailsModal { get; private set; }
         public AdminSignalement? SelectedSignalement { get; private set; }
@@ -61,17 +70,71 @@ namespace BlazorAutoPulse.ViewModel
         public async Task InitializeAsync(Action refreshUI)
         {
             _refreshUI = refreshUI;
+            // Au démarrage, on charge TOUT ("all") pour pouvoir initialiser les compteurs fixes
+            FilterType = "all";
+            await LoadSignalementsFromApi();
+        }
+
+        /// <summary>
+        /// Charge les signalements depuis l'API selon le FilterType (Annonce/Compte/All)
+        /// Met à jour les compteurs fixes si nécessaire.
+        /// </summary>
+        private async Task LoadSignalementsFromApi()
+        {
             IsLoading = true;
             _refreshUI?.Invoke();
 
             try
             {
-                await LoadSignalements();
+                // 1. Conversion du filtre UI vers ID API
+                int typeIdApi = FilterType switch
+                {
+                    "annonce" => 1,
+                    "compte" => 2,
+                    _ => 0
+                };
+
+                // 2. Appel API : On demande le statut 0 (Tous) pour le Type donné
+                // Cela nous permet de calculer localement les compteurs En Attente/Traité/Rejeté
+                var signalementsDTO = await _signalementService.GetFiltered(0, typeIdApi, SearchQuery);
+
+                if (signalementsDTO == null)
+                {
+                    LoadedSignalements = new List<AdminSignalement>();
+                }
+                else
+                {
+                    // 3. Mapping
+                    LoadedSignalements = signalementsDTO.Select(s => new AdminSignalement
+                    {
+                        Id = s.IdSignalement,
+                        TypeSignalement = s.LibelleTypeSignalement ?? "Type inconnu",
+                        TypeCible = s.TypeCible,
+                        IdCible = s.IdAnnonceSignale ?? s.IdCompteSignale ?? 0,
+                        PseudoSignalant = s.PseudoSignalant ?? "Utilisateur inconnu",
+                        PseudoCible = s.PseudoSignale,
+                        TitreCible = s.LibelleAnnonceSignale,
+                        Description = s.DescriptionSignalement ?? "",
+                        DateSignalement = s.DateCreationSignalement,
+                        Statut = s.LibelleEtatSignalement ?? "En attente",
+                        IdStatut = s.IdEtatSignalement
+                    }).ToList();
+
+                    // 4. Mémorisation des totaux fixes (uniquement quand on est sur "Tous" sans recherche)
+                    if (FilterType == "all" && string.IsNullOrWhiteSpace(SearchQuery))
+                    {
+                        FixedTotalAnnonces = LoadedSignalements.Count(s => s.TypeCible == "Annonce");
+                        FixedTotalComptes = LoadedSignalements.Count(s => s.TypeCible == "Compte");
+                    }
+                }
+
+                // 5. Application du filtre de statut local pour l'affichage
+                ApplyLocalStatusFilter();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur InitializeAsync: {ex.Message}");
-                AllSignalements = new List<AdminSignalement>();
+                Console.WriteLine($"Erreur LoadSignalementsFromApi: {ex.Message}");
+                LoadedSignalements = new List<AdminSignalement>();
                 FilteredSignalements = new List<AdminSignalement>();
             }
             finally
@@ -81,56 +144,20 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        private async Task LoadSignalements()
+        /// <summary>
+        /// Applique le filtre de statut (onglets du bas) sur les données déjà chargées en mémoire.
+        /// </summary>
+        private void ApplyLocalStatusFilter()
         {
-            try
+            var query = LoadedSignalements.AsEnumerable();
+
+            if (FilterStatus != 0) // 0 = Tous
             {
-                var signalements = await _signalementService.GetAllSignalementsAsync();
-
-                if (signalements == null)
-                {
-                    AllSignalements = new List<AdminSignalement>();
-                    FilteredSignalements = new List<AdminSignalement>();
-                    return;
-                }
-
-                AllSignalements = signalements.Select(s =>
-                {
-                    try
-                    {
-                        return new AdminSignalement
-                        {
-                            Id = s.IdSignalement,
-                            TypeSignalement = s.LibelleTypeSignalement ?? "Type inconnu",
-                            TypeCible = s.TypeCible,
-                            IdCible = s.IdAnnonceSignale ?? s.IdCompteSignale ?? 0,
-                            PseudoSignalant = s.PseudoSignalant ?? "Utilisateur inconnu",
-                            PseudoCible = s.PseudoSignale,
-                            TitreCible = s.LibelleAnnonceSignale,
-                            Description = s.DescriptionSignalement ?? "",
-                            DateSignalement = s.DateCreationSignalement,
-                            Statut = s.LibelleEtatSignalement ?? "En attente",
-                            IdStatut = s.IdEtatSignalement
-                        };
-                    }
-                    catch
-                    {
-                        return null;
-                    }
-                })
-                .Where(s => s != null)
-                .Cast<AdminSignalement>()
-                .OrderByDescending(s => s.DateSignalement)
-                .ToList();
-
-                await ApplyFilters();
+                query = query.Where(s => s.IdStatut == FilterStatus);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur LoadSignalements: {ex.Message}");
-                AllSignalements = new List<AdminSignalement>();
-                FilteredSignalements = new List<AdminSignalement>();
-            }
+
+            FilteredSignalements = query.OrderByDescending(s => s.DateSignalement).ToList();
+            _refreshUI?.Invoke();
         }
 
         public List<AdminSignalement> GetPagedSignalements()
@@ -144,86 +171,68 @@ namespace BlazorAutoPulse.ViewModel
                 .ToList();
         }
 
+        // --- Gestion des Filtres ---
+
         public async Task FilterByType(string type)
         {
-            FilterType = type;
-            CurrentPage = 1;
-            await ApplyFilters();
-            _refreshUI?.Invoke();
+            if (FilterType != type)
+            {
+                FilterType = type;
+                CurrentPage = 1;
+                await LoadSignalementsFromApi(); // Appel API nécessaire car on change de scope de données
+            }
         }
 
-        // CORRECTION : Accepte maintenant un int (0, 1, 2, 3)
         public async Task FilterByStatus(int statusId)
         {
-            FilterStatus = statusId;
-            CurrentPage = 1;
-            await ApplyFilters();
-            _refreshUI?.Invoke();
+            if (FilterStatus != statusId)
+            {
+                FilterStatus = statusId;
+                CurrentPage = 1;
+                ApplyLocalStatusFilter(); // Filtre local suffisant
+                await Task.CompletedTask;
+            }
         }
 
         public async Task SearchSignalements()
         {
-            await ApplyFilters();
             CurrentPage = 1;
-            _refreshUI?.Invoke();
+            await LoadSignalementsFromApi(); // La recherche passe par l'API
         }
 
-        private async Task ApplyFilters()
-        {
-            if (AllSignalements == null)
-            {
-                FilteredSignalements = new List<AdminSignalement>();
-                return;
-            }
-
-            // Filtrage initial en mémoire (ou appel service si optimisé)
-            var query = AllSignalements.AsEnumerable();
-
-            // Filtre par statut (ID)
-            if (FilterStatus != 0) // 0 = All
-            {
-                query = query.Where(s => s.IdStatut == FilterStatus);
-            }
-
-            // Filtre par type cible (String : Annonce/Compte)
-            if (FilterType != "all")
-            {
-                // Note : Assure-toi que TypeCible dans la BDD correspond bien à "Annonce" ou "Compte"
-                // Sinon utilise StringComparison.OrdinalIgnoreCase
-                query = query.Where(s => s.TypeCible?.ToLower() == FilterType.ToLower());
-            }
-
-            // Filtre recherche
-            if (!string.IsNullOrWhiteSpace(SearchQuery))
-            {
-                // Si tu veux continuer à utiliser le service filtré backend :
-                // await _signalementService.GetFiltered(FilterStatus, FilterType, SearchQuery);
-                // Mais attention, il faut mettre à jour la méthode du service pour accepter un INT pour le statut.
-
-                // Filtrage mémoire simple pour l'exemple :
-                query = query.Where(s =>
-                   (s.PseudoSignalant?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                   (s.PseudoCible?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                   (s.TitreCible?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false)
-                );
-            }
-
-            FilteredSignalements = query.ToList();
-            _refreshUI?.Invoke();
-        }
-
+        // --- Pagination ---
         public void NextPage() { if (CanGoNext) { CurrentPage++; _refreshUI?.Invoke(); } }
         public void PreviousPage() { if (CanGoPrevious) { CurrentPage--; _refreshUI?.Invoke(); } }
 
-        public void ViewDetails(AdminSignalement signalement) { SelectedSignalement = signalement; ShowDetailsModal = true; _refreshUI?.Invoke(); }
-        public void CloseDetailsModal() { ShowDetailsModal = false; SelectedSignalement = null; _refreshUI?.Invoke(); }
+        // --- Modales ---
+        public void ViewDetails(AdminSignalement signalement)
+        {
+            SelectedSignalement = signalement;
+            ShowDetailsModal = true;
+            _refreshUI?.Invoke();
+        }
+
+        public void CloseDetailsModal()
+        {
+            ShowDetailsModal = false;
+            SelectedSignalement = null;
+            _refreshUI?.Invoke();
+        }
 
         public void AcceptSignalement(AdminSignalement signalement)
         {
             SelectedSignalement = signalement;
             ActionType = "accept";
-            if (signalement.TypeCible == "Annonce") { ActionMessage = "Action sur l'annonce ?"; SelectedAction = "delete"; }
-            else { ActionMessage = "Action sur le compte ?"; SelectedAction = "anonymize"; }
+            if (signalement.TypeCible == "Annonce")
+            {
+                ActionMessage = "Action sur l'annonce ?";
+                SelectedAction = "delete";
+            }
+            else
+            {
+                ActionMessage = "Action sur le compte ?";
+                SelectedAction = "anonymize";
+            }
             ShowActionModal = true;
             _refreshUI?.Invoke();
         }
@@ -238,7 +247,13 @@ namespace BlazorAutoPulse.ViewModel
         }
 
         public void SetAction(string action) { SelectedAction = action; _refreshUI?.Invoke(); }
-        public void CloseActionModal() { ShowActionModal = false; SelectedSignalement = null; _refreshUI?.Invoke(); }
+
+        public void CloseActionModal()
+        {
+            ShowActionModal = false;
+            SelectedSignalement = null;
+            _refreshUI?.Invoke();
+        }
 
         public async Task ConfirmAction()
         {
@@ -247,7 +262,7 @@ namespace BlazorAutoPulse.ViewModel
             {
                 int nouvelEtat = SelectedSignalement.IdStatut; // Par défaut
 
-                // 1. Logique pour déterminer le nouvel état et les actions annexes
+                // 1. Logique métier spécifique
                 if (ActionType == "accept")
                 {
                     if (SelectedSignalement.TypeCible == "Annonce")
@@ -260,12 +275,10 @@ namespace BlazorAutoPulse.ViewModel
                         else if (SelectedAction == "suspend") await _compteService.ToggleSuspention(SelectedSignalement.IdCible, false);
                     }
                     nouvelEtat = 2; // Traité
-                    SelectedSignalement.Statut = "Traité";
                 }
                 else if (ActionType == "reject")
                 {
                     nouvelEtat = 3; // Rejeté
-                    SelectedSignalement.Statut = "Rejeté";
                 }
                 else
                 {
@@ -273,14 +286,11 @@ namespace BlazorAutoPulse.ViewModel
                     return;
                 }
 
-                // --- CORRECTION MAJEURE ICI ---
-
-                // 2. Récupérer l'objet complet depuis l'API pour ne pas perdre de données
+                // 2. Mise à jour du signalement via l'API
                 var signalementComplet = await _signalementService.GetByIdAsync(SelectedSignalement.Id);
 
                 if (signalementComplet != null)
                 {
-                    // 3. Mapper vers le UpdateDTO
                     var updateDto = new SignalementUpdateDTO
                     {
                         IdSignalement = SelectedSignalement.Id,
@@ -289,25 +299,20 @@ namespace BlazorAutoPulse.ViewModel
                         IdAnnonceSignale = signalementComplet.IdAnnonceSignale,
                         IdCompteSignale = signalementComplet.IdCompteSignale,
                         IdTypeSignalement = signalementComplet.IdTypeSignalement,
-
-                        // 4. Appliquer le nouvel état
                         IdEtatSignalement = nouvelEtat
                     };
 
-                    // 5. Appeler le service corrigé
                     await _signalementService.UpdateSignalementAsync(SelectedSignalement.Id, updateDto);
-
-                    // Mettre à jour l'affichage local
-                    SelectedSignalement.IdStatut = nouvelEtat;
                 }
 
                 CloseActionModal();
-                await ApplyFilters();
-                _refreshUI?.Invoke();
+
+                // 3. Rechargement des données
+                await LoadSignalementsFromApi();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur: {ex.Message}");
+                Console.WriteLine($"Erreur ConfirmAction: {ex.Message}");
             }
         }
     }

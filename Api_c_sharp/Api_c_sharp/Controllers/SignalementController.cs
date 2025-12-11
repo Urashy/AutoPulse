@@ -141,19 +141,15 @@ public class SignalementController(
     }
 
     /// <summary>
-    /// Récupère les signalements par état.
+    /// Récupère les signalements par état, type et recherche.
     /// </summary>
     [ActionName("GetFilteredSignalement")]
     [HttpGet("{etatId}/{typeId}")]
-    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetFilteredSignalement(int etatId, int typeId, [FromQuery] string recherche)
+    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetFilteredSignalement(int etatId, int typeId, [FromQuery] string? recherche)
     {
-        var result = await _manager.GetSignalementsByEtatAndType(etatId,typeId,recherche);
+        var result = await _manager.GetSignalementsByEtatAndType(etatId, typeId, recherche ?? "");
 
-        if (result is null || !result.Any())
-            return NotFound();
-
-        return new ActionResult<IEnumerable<SignalementDTO>>(
-            _mapper.Map<IEnumerable<SignalementDTO>>(result));
+        return Ok(_mapper.Map<IEnumerable<SignalementDTO>>(result));
     }
 
     /// <summary>
