@@ -118,9 +118,12 @@ namespace BlazorAutoPulse.ViewModel
 
         private int[] GetVisiblePageNumbers()
         {
+            var totalPages = CalculateEstimatedTotalPages();
+
             var pages = new List<int>();
             var startPage = Math.Max(1, CurrentPage - 2);
-            var endPage = CurrentPage + 2;
+
+            var endPage = Math.Min(totalPages, CurrentPage + 2);
 
             for (int i = startPage; i <= endPage; i++)
             {
