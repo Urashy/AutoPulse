@@ -1,6 +1,7 @@
 @using BlazorAutoPulse.Model
 @using BlazorAutoPulse.ViewModel
 @inject ToastViewModel VM
+@implements IDisposable
 
 <div class="toast-wrapper">
     @foreach (var notification in VM.ActiveNotifications)

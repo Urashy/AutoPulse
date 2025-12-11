@@ -805,6 +805,71 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_moyenpaiement_mop", "public");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Notification", b =>
+                {
+                    b.Property<int>("IdNotification")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("not_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdNotification"));
+
+                    b.Property<double?>("AncienPrix")
+                        .HasColumnType("double precision")
+                        .HasColumnName("not_ancien_prix");
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_date_creation");
+
+                    b.Property<bool>("EstLue")
+                        .HasColumnType("boolean")
+                        .HasColumnName("not_est_lue");
+
+                    b.Property<int?>("IdAnnonce")
+                        .HasColumnType("integer")
+                        .HasColumnName("ann_id");
+
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("not_message");
+
+                    b.Property<double?>("NouveauPrix")
+                        .HasColumnType("double precision")
+                        .HasColumnName("not_nouveau_prix");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("not_titre");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("not_type");
+
+                    b.Property<string>("UrlNavigation")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("not_url_navigation");
+
+                    b.HasKey("IdNotification");
+
+                    b.HasIndex("IdAnnonce");
+
+                    b.HasIndex("IdCompte");
+
+                    b.ToTable("t_e_notification_not", "public");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Pays", b =>
                 {
                     b.Property<int>("IdPays")
@@ -1408,11 +1473,13 @@ namespace Api_c_sharp.Migrations
                 {
                     b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteImageNav")
                         .WithMany("Images")
-                        .HasForeignKey("IdCompte");
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Api_c_sharp.Models.Entity.Voiture", "VoitureImageNav")
                         .WithMany("Images")
-                        .HasForeignKey("IdVoiture");
+                        .HasForeignKey("IdVoiture")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("CompteImageNav");
 
@@ -1466,6 +1533,23 @@ namespace Api_c_sharp.Migrations
                         .IsRequired();
 
                     b.Navigation("MarqueModeleNavigation");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Notification", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Annonce", "AnnonceNotificationNav")
+                        .WithMany("Notifications")
+                        .HasForeignKey("IdAnnonce");
+
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteNotificationNav")
+                        .WithMany("Notifications")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AnnonceNotificationNav");
+
+                    b.Navigation("CompteNotificationNav");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.PieceJointe", b =>
@@ -1626,6 +1710,8 @@ namespace Api_c_sharp.Migrations
 
                     b.Navigation("Favoris");
 
+                    b.Navigation("Notifications");
+
                     b.Navigation("SignalementsRecus");
 
                     b.Navigation("Vues");
@@ -1680,6 +1766,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("Journaux");
 
                     b.Navigation("Messages");
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("Plaintes");
 
