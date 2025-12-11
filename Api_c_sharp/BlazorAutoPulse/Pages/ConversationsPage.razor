@@ -122,7 +122,7 @@
                            @onkeyup="VM.HandleTyping"
                            @onkeydown="VM.HandleKeyPress"
                            class="message-input"
-                           disabled="@(VM.IsUploadingFiles || VM.EstBloquer) " />
+                           disabled="@( (VM.IsUploadingFiles || VM.EstBloquer) ? true : (bool?)null )" />
 
                     <FileUploadComponent OnFilesSelected="@VM.OnFilesSelected" />
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
-    public class NotificationManager : WriteableReadableManager<Notification>, INotificationRepository
+    public class NotificationManager : WriteableReadableManager<Notification>, INotificationService
     {
         public NotificationManager(AutoPulseBdContext context) : base(context)
         {
@@ -108,8 +108,8 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .ToListAsync();
 
             string url = $"/annonce/{idannonce}";
-            string titre = "Mise à jour de l'annonce";
-            string message = $"Le prix de l'annonce #{idannonce} a été modifié de {prixold} à {prixnew}.";
+            string titre = "Mise ï¿½ jour de l'annonce";
+            string message = $"Le prix de l'annonce #{idannonce} a ï¿½tï¿½ modifiï¿½ de {prixold} ï¿½ {prixnew}.";
             string type = "information";
 
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type, prixold, prixnew);
