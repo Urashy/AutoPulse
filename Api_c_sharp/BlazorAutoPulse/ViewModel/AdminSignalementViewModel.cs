@@ -251,7 +251,16 @@ namespace BlazorAutoPulse.ViewModel
                     if (SelectedSignalement.TypeCible == "Annonce")
                     {
                         if (SelectedAction == "delete") await _annonceService.DeleteAsync(SelectedSignalement.IdCible);
-                        else if (SelectedAction == "suspend") await _annonceService.UpdateAnnonceAsync(SelectedSignalement.IdCible, new AnnonceUpdateDTO { IdEtatAnnonce = 3 });
+                        else if (SelectedAction == "suspend")
+                        {
+                            AnnonceDTO apres;
+                            apres = await _annonceService.GetByIdAsync(SelectedSignalement.IdCible);
+                            AnnonceUpdateDTO apresapres;
+                            apresapres.Prix = (int)apres.Prix;
+
+
+                            await _annonceService.UpdateAnnonceAsync(SelectedSignalement.IdCible, apres);
+                        }
                     }
                     else
                     {
