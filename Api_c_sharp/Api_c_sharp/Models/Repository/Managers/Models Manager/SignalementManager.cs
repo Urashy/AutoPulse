@@ -20,9 +20,15 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Include(s => s.EtatSignalementNav).ToListAsync();
         }
 
-        public virtual async Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId)
+        public virtual async Task<IEnumerable<Signalement>> GetSignalementsByEtatAndType(int etatId,int typeId,string recherche)
         {
-            return await dbSet.Where(s => s.IdEtatSignalement == etatId)
+            return await dbSet.Where(s => s.IdEtatSignalement == etatId 
+            && s.IdTypeSignalement == typeId 
+            && (s.DescriptionSignalement.Contains(recherche)
+            || s.CompteSignalantNav.Pseudo.Contains(recherche)
+            || s.CompteSignaleNav.Pseudo.Contains(recherche)
+            || s.TypeSignalementSignalementNav.LibelleTypeSignalement.Contains(recherche)
+            || s.AnnonceSignaleNav.Libelle.Contains(recherche)))
                 .Include(s => s.CompteSignalantNav)
                 .Include(s => s.CompteSignaleNav)
                 .Include(s => s.AnnonceSignaleNav)

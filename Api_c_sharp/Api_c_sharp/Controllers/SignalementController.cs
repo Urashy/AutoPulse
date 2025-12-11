@@ -144,10 +144,10 @@ public class SignalementController(
     /// Récupère les signalements par état.
     /// </summary>
     [ActionName("GetAllByEtatSignalement")]
-    [HttpGet("{idetatsignalement}")]
-    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAllByEtatSignalement(int idetatsignalement)
+    [HttpGet("{etatId}/{typeId}")]
+    public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAllByEtatSignalement(int etatId, int typeId, [FromQuery] string recherche)
     {
-        var result = await _manager.GetSignalementsByEtat(idetatsignalement);
+        var result = await _manager.GetSignalementsByEtatAndType(etatId,typeId,recherche);
 
         if (result is null || !result.Any())
             return NotFound();

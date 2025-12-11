@@ -266,12 +266,14 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<Image>()
                 .HasOne(i => i.VoitureImageNav)
                 .WithMany(a => a.Images)
-                .HasForeignKey(i => i.IdVoiture);
+                .HasForeignKey(i => i.IdVoiture)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Image>()
                 .HasOne(i => i.CompteImageNav)
                 .WithMany(a => a.Images)
-                .HasForeignKey(i => i.IdCompte);
+                .HasForeignKey(i => i.IdCompte)
+                .OnDelete(DeleteBehavior.Cascade);
 
             //-----------------------------Journal-----------------------------
             modelBuilder.Entity<Journal>()
