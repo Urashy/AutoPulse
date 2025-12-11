@@ -95,4 +95,33 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
             return null;
         }
     }
+
+    public override async Task<IEnumerable<SignalementDTO>> GetFiltered(int idetat, int idtype, string recherche)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(
+                HttpMethod.Put,
+                BuildUrl($"UpdateEtat/{idetat}/{idtype}")
+            );
+
+            var response = await SendWithCredentialsAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                //return await response.Content.ReadFromJsonAsync<SignalementDTO>();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Erreur CreateAsync : {error}");
+                return null;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception UpdateEtatAsync : {ex.Message}");
+        }
+    }
 }

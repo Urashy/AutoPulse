@@ -143,7 +143,7 @@ public class SignalementController(
     /// <summary>
     /// Récupère les signalements par état.
     /// </summary>
-    [ActionName("GetAllByEtatSignalement")]
+    [ActionName("GetFilteredSignalement")]
     [HttpGet("{etatId}/{typeId}")]
     public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAllByEtatSignalement(int etatId, int typeId, [FromQuery] string recherche)
     {

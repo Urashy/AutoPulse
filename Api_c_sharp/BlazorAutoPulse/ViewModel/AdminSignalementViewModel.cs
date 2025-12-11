@@ -192,27 +192,23 @@ namespace BlazorAutoPulse.ViewModel
 
             if (FilterType != "all")
             {
-                FilteredSignalements = FilterStatus switch
-                {
-                    "pending" => FilteredSignalements.Where(s => s.IdStatut == 1).ToList(), 
-                    "resolved" => FilteredSignalements.Where(s => s.IdStatut == 2).ToList(), 
-                    "rejected" => FilteredSignalements.Where(s => s.IdStatut == 3).ToList(), 
-                    _ => FilteredSignalements
-                };
+                FilteredSignalements = FilteredSignalements.Where(s =>
+                    s.TypeCible.Equals(FilterType, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
             }
 
             if (FilterStatus != "all")
             {
                 FilteredSignalements = FilterStatus switch
                 {
-                    "pending" => FilteredSignalements.Where(s => s.Statut == "En attente").ToList(),
-                    "resolved" => FilteredSignalements.Where(s => s.Statut == "Traité").ToList(),
-                    "rejected" => FilteredSignalements.Where(s => s.Statut == "Rejeté").ToList(),
+                    "pending" => FilteredSignalements.Where(s => s.IdStatut == 1).ToList(),
+                    "resolved" => FilteredSignalements.Where(s => s.IdStatut == 2).ToList(),
+                    "rejected" => FilteredSignalements.Where(s => s.IdStatut == 3).ToList(),
                     _ => FilteredSignalements
                 };
+                //FilteredSignalements = await _signalementService.get
             }
 
-            // Recherche
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
                 var query = SearchQuery.ToLower();
@@ -223,6 +219,7 @@ namespace BlazorAutoPulse.ViewModel
                     (s.TitreCible?.ToLower().Contains(query) ?? false) ||
                     (s.Description?.ToLower().Contains(query) ?? false)
                 ).ToList();
+                //FilteredSignalements = await  _signalementService.get
             }
 
             Console.WriteLine($"Après filtres: {FilteredSignalements?.Count ?? 0} signalements");
