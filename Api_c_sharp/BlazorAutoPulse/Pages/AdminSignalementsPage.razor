@@ -190,12 +190,6 @@
                                    checked="@(VM.SelectedAction == "delete")" />
                             <span>🗑️ Supprimer l'annonce</span>
                         </label>
-                        <label class="action-option">
-                            <input type="radio" name="action" value="suspend"
-                                   @onchange="@(() => VM.SetAction("suspend"))"
-                                   checked="@(VM.SelectedAction == "suspend")" />
-                            <span>🔒 Suspendre l'annonce</span>
-                        </label>
                     </div>
                 }
 

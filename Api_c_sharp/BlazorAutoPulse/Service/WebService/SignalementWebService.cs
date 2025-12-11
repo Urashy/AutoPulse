@@ -35,32 +35,21 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
     /// <summary>
     /// Met à jour l'état d'un signalement (1=En attente, 2=Traité, 3=Rejeté)
     /// </summary>
-    public async Task<bool> UpdateEtatAsync(int idSignalement, int nouvelEtat)
+    public async Task UpdateSignalementAsync(int id, SignalementUpdateDTO entity)
     {
         try
         {
-            var request = new HttpRequestMessage(
-                HttpMethod.Put,
-                BuildUrl($"UpdateEtat/{idSignalement}/{nouvelEtat}")
-            );
+            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"{id}"))
+            {
+                Content = JsonContent.Create(entity)
+            };
 
             var response = await SendWithCredentialsAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return true;
-            }
-            else
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Erreur UpdateEtat : {error}");
-                return false;
-            }
+            response.EnsureSuccessStatusCode();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Exception UpdateEtatAsync : {ex.Message}");
-            return false;
+            Console.WriteLine($"Erreur UpdateSignalementAsync : {ex.Message}");
         }
     }
 
