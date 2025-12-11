@@ -14,7 +14,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IFavorisService _favorisService;
         private readonly ICompteService _compteService;
         private readonly ICouleurService _couleurService;
-        private readonly NotificationService  _notificationService;
+        private readonly NotificationService _notificationService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public List<int> ImageIds { get; private set; } = new();
@@ -22,12 +22,13 @@ namespace BlazorAutoPulse.ViewModel
         public bool IsLoading { get; private set; } = true;
         public bool IsFavorite { get; private set; } = false;
         public int? CurrentUserId { get; private set; }
+        public bool IsLoadingImages { get; private set; } = false;
 
         // Propriétés pour le visualiseur 3D
         public bool show3DViewer { get; private set; } = false;
         public bool is3DReady { get; private set; } = false;
         public bool isLoading3D { get; private set; } = false;
-        
+
         public List<CouleurDTO> couleurDisponible { get; set; }
         public string selectedColor { get; private set; }
 
@@ -37,7 +38,7 @@ namespace BlazorAutoPulse.ViewModel
 
         public string? erreurSupprimeAnnonce = null;
         public bool estMasquer = false;
-        
+
         public string ProfileImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
 
         private Action? _refreshUI;
@@ -62,7 +63,7 @@ namespace BlazorAutoPulse.ViewModel
             _notificationService = notificationService;
         }
 
-        public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime,  NavigationManager nav)
+        public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime, NavigationManager nav)
         {
             _refreshUI = refreshUI;
             _jsRuntime = jsRuntime;
@@ -84,24 +85,22 @@ namespace BlazorAutoPulse.ViewModel
 
                 // Charger l'annonce
                 Annonce = await _annonceService.GetAnnonceDetailById(idAnnonce);
-                
+
                 if (Annonce != null)
                 {
                     await LoadVendeurProfileImage(Annonce.IdVendeur);
+
+                    // ✅ Charger TOUS les IDs d'images
+                    await LoadAllImages();
                 }
-                
+
                 couleurDisponible = await _couleurService.GetCouleursByVoitureId(Annonce.IdVoiture);
                 selectedColor = couleurDisponible?.FirstOrDefault()?.CodeHexaCouleur;
 
-                if (Annonce != null && Annonce.IdVoiture > 0)
+                // Vérifier si l'annonce est en favoris
+                if (Annonce != null && CurrentUserId.HasValue)
                 {
-                    ImageIds = new List<int> { Annonce.IdVoiture };
-
-                    // Vérifier si l'annonce est en favoris
-                    if (CurrentUserId.HasValue)
-                    {
-                        IsFavorite = await _favorisService.IsFavorite(CurrentUserId.Value, idAnnonce);
-                    }
+                    IsFavorite = await _favorisService.IsFavorite(CurrentUserId.Value, idAnnonce);
                 }
             }
             catch (Exception ex)
@@ -113,19 +112,53 @@ namespace BlazorAutoPulse.ViewModel
             {
                 IsLoading = false;
                 _refreshUI?.Invoke();
-                
+
                 // Charger le modèle 3D automatiquement après le chargement de l'annonce
                 if (Annonce != null && !string.IsNullOrEmpty(Annonce.LienModeleBlender))
                 {
                     _ = Task.Run(async () =>
                     {
-                        await Task.Delay(500); // Petit délai pour s'assurer que le DOM est prêt
+                        await Task.Delay(500);
                         await Initialize3DViewer();
                     });
                 }
             }
-            
+
             EstMasquerAnnonce();
+        }
+
+        // ✅ Nouvelle méthode pour charger tous les IDs d'images
+        private async Task LoadAllImages()
+        {
+            if (Annonce == null) return;
+
+            IsLoadingImages = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                ImageIds = await _imageService.GetAllImageIdsByVoitureId(Annonce.IdVoiture);
+
+                if (!ImageIds.Any())
+                {
+                    Console.WriteLine("⚠️ Aucune image trouvée pour cette voiture");
+                    ImageIds = new List<int>();
+                }
+                else
+                {
+                    Console.WriteLine($"✅ {ImageIds.Count} image(s) chargée(s)");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erreur lors du chargement des images: {ex.Message}");
+                ImageIds = new List<int>();
+            }
+            finally
+            {
+                IsLoadingImages = false;
+                _refreshUI?.Invoke();
+            }
         }
 
         public async Task ToggleFavorite()
@@ -147,19 +180,19 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        // Méthodes pour les images
+        // ✅ Méthodes améliorées pour les images
         public string GetCurrentImage()
         {
             if (CurrentImageIndex >= 0 && CurrentImageIndex < ImageIds.Count)
             {
-                return _imageService.GetFirstImage(ImageIds[CurrentImageIndex]);
+                return _imageService.GetImage(ImageIds[CurrentImageIndex]);
             }
-            return "";
+            return "https://via.placeholder.com/800x600?text=Aucune+image";
         }
 
         public string GetImageUrl(int imageId)
         {
-            return _imageService.GetFirstImage(imageId);
+            return _imageService.GetImage(imageId);
         }
 
         public void NextImage()
@@ -197,61 +230,14 @@ namespace BlazorAutoPulse.ViewModel
         {
             show3DViewer = !show3DViewer;
             _refreshUI?.Invoke();
-            
-            // Si on active le 3D et qu'il n'est pas encore chargé
+
             if (show3DViewer && !is3DReady)
             {
                 isLoading3D = true;
                 _refreshUI?.Invoke();
-                
-                await Task.Delay(300); // Attendre que le DOM soit prêt
+
+                await Task.Delay(300);
                 await Initialize3DViewer();
-            }
-        }
-
-        private async Task Preload3DViewer()
-        {
-            if (_jsRuntime == null || Annonce == null)
-            {
-                Console.WriteLine("JSRuntime ou Annonce est null");
-                return;
-            }
-            
-            if (string.IsNullOrEmpty(Annonce.LienModeleBlender))
-            {
-                Console.WriteLine("Pas de lien vers le modèle 3D");
-                return;
-            }
-
-            try
-            {
-                Console.WriteLine("Préchargement du modèle 3D en arrière-plan...");
-                
-                // Vérifier que le conteneur existe (créé même si pas visible)
-                await EnsureHiddenContainerExists();
-                
-                await _jsRuntime.InvokeVoidAsync("car3DViewer.init", "car3DViewer", Annonce.LienModeleBlender);
-                
-                is3DReady = true;
-                Console.WriteLine("Modèle 3D préchargé avec succès (en arrière-plan)");
-                _refreshUI?.Invoke();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur lors du préchargement du modèle 3D: {ex.Message}");
-            }
-        }
-
-        private async Task EnsureHiddenContainerExists()
-        {
-            // Créer temporairement le conteneur s'il n'existe pas
-            var containerExists = await _jsRuntime.InvokeAsync<bool>("eval",
-                "document.getElementById('car3DViewer') !== null");
-
-            if (!containerExists)
-            {
-                // Le conteneur sera créé lors de l'affichage
-                await Task.Delay(100);
             }
         }
 
@@ -266,22 +252,20 @@ namespace BlazorAutoPulse.ViewModel
             try
             {
                 Console.WriteLine("Début de l'initialisation du visualiseur 3D");
-                
-                // Vérifier que le conteneur existe
-                var containerExists = await _jsRuntime.InvokeAsync<bool>("eval", 
+
+                var containerExists = await _jsRuntime.InvokeAsync<bool>("eval",
                     "document.getElementById('car3DViewer') !== null");
-                
+
                 Console.WriteLine($"Le conteneur existe: {containerExists}");
-                
+
                 if (!containerExists)
                 {
                     Console.WriteLine("Le conteneur n'existe pas encore, on réessaie dans 500ms...");
                     await Task.Delay(500);
-                    
-                    // Deuxième tentative
-                    containerExists = await _jsRuntime.InvokeAsync<bool>("eval", 
+
+                    containerExists = await _jsRuntime.InvokeAsync<bool>("eval",
                         "document.getElementById('car3DViewer') !== null");
-                    
+
                     if (!containerExists)
                     {
                         Console.WriteLine("Le conteneur n'existe toujours pas !");
@@ -290,15 +274,15 @@ namespace BlazorAutoPulse.ViewModel
                         return;
                     }
                 }
+
                 string modelUrl = Annonce.LienModeleBlender;
 
                 Console.WriteLine($"Chargement du modèle: {modelUrl}");
-                
+
                 await _jsRuntime.InvokeVoidAsync("car3DViewer.init", "car3DViewer", modelUrl);
-                
-                // Récupérer les animations disponibles
+
                 var animations = await _jsRuntime.InvokeAsync<string[]>("car3DViewer.getAnimationNames");
-                
+
                 Console.WriteLine("Visualiseur 3D initialisé avec succès");
                 isLoading3D = false;
                 _refreshUI?.Invoke();
@@ -315,7 +299,7 @@ namespace BlazorAutoPulse.ViewModel
         public async Task ChangeCouleur(string hexColor)
         {
             selectedColor = hexColor;
-            
+
             if (show3DViewer && _jsRuntime != null)
             {
                 try
@@ -366,7 +350,7 @@ namespace BlazorAutoPulse.ViewModel
             await EstMasquerAnnonce();
             _refreshUI?.Invoke();
         }
-        
+
         public async Task DemasquerAnnonce()
         {
             AnnonceUpdateDTO annonceChange = new AnnonceUpdateDTO()
@@ -384,7 +368,7 @@ namespace BlazorAutoPulse.ViewModel
             };
             _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
             IsOptionsMenuOpen = false;
-            
+
             await EstMasquerAnnonce();
             _refreshUI?.Invoke();
         }
@@ -401,7 +385,7 @@ namespace BlazorAutoPulse.ViewModel
             {
                 await _annonceService.DeleteAsync(Annonce.IdAnnonce);
                 _notificationService.ShowSuccess(
-                    "Suppression d'annonce", 
+                    "Suppression d'annonce",
                     "Votre annonce a bien été supprimée");
                 IsOptionsMenuOpen = false;
                 _nav.NavigateTo("/compte");
@@ -412,7 +396,7 @@ namespace BlazorAutoPulse.ViewModel
             }
             _refreshUI?.Invoke();
         }
-        
+
         private async Task LoadVendeurProfileImage(int idVendeur)
         {
             try
@@ -446,11 +430,11 @@ namespace BlazorAutoPulse.ViewModel
                 }
                 catch
                 {
-                    
+
                 }
             }
         }
-        
+
         public void Reset()
         {
             CurrentImageIndex = 0;
