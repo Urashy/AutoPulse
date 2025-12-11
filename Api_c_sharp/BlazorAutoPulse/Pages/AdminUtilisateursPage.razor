@@ -2,7 +2,6 @@
 @layout AdminLayout
 @using BlazorAutoPulse.ViewModel
 @inject AdminUtilisateursViewModel VM
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrateur")] 
 
 <PageTitle>Gestion des utilisateurs - Admin</PageTitle>
 
@@ -94,11 +93,6 @@
                                             @onclick="() => VM.ViewUserDetails(user)"
                                             title="Voir détails">
                                         👁️
-                                    </button>
-                                    <button class="btn-icon"
-                                            @onclick="() => VM.EditUser(user)"
-                                            title="Modifier">
-                                        ✏️
                                     </button>
                                     @if (!user.EstSuspendu)
                                     {

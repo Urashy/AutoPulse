@@ -38,13 +38,22 @@ namespace BlazorAutoPulse.ViewModel
             {
                 var me = await _compteService.GetMe();
 
-                AnnoncesFavoris = (await _annonceService.GetAnnoncesFavoritesByCompteId(me.IdCompte)).ToList();
-                
-                foreach (var annonce in AnnoncesFavoris)
+                try
                 {
-                    await _signalRService.JoinFavorisAnnonce(annonce.IdAnnonce);
-                }
 
+
+                    AnnoncesFavoris = (await _annonceService.GetAnnoncesFavoritesByCompteId(me.IdCompte)).ToList();
+
+                    foreach (var annonce in AnnoncesFavoris)
+                    {
+                        await _signalRService.JoinFavorisAnnonce(annonce.IdAnnonce);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AnnoncesFavoris = new List<AnnonceDTO>();
+                    refreshUI?.Invoke();
+                }
                 refreshUI?.Invoke();
             }
             catch (Exception ex)

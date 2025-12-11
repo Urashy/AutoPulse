@@ -256,11 +256,11 @@ public class CompteWebService : BaseWebService<CompteDetailDTO>, ICompteService
         return await response.Content.ReadFromJsonAsync<CompteProfilPublicDTO>();
     }
 
-    public async Task<bool> ToggleSuspention(int idCompte)
+    public async Task<bool> ToggleSuspention(int idCompte,bool e)
     {
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"ToggleEtatCompte/{idCompte}"));
+            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"ToggleEtatCompte/{idCompte}/{e}"));
 
             var response = await SendWithCredentialsAsync(request);
 

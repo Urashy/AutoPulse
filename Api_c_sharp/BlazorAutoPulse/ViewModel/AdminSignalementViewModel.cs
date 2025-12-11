@@ -336,7 +336,7 @@ namespace BlazorAutoPulse.ViewModel
                         }
                         else if (SelectedAction == "suspend")
                         {
-                            await _compteService.ToggleSuspention(SelectedSignalement.IdCible);
+                            await _compteService.ToggleSuspention(SelectedSignalement.IdCible,);
                             Console.WriteLine($"Compte {SelectedSignalement.IdCible} suspendu");
                         }
                     }
