@@ -324,6 +324,7 @@ namespace BlazorAutoPulse.ViewModel
                         }
                         else if (SelectedAction == "suspend")
                         {
+                            await _annonceService.UpdateAnnonceAsync(SelectedSignalement.IdCible, new AnnonceUpdateDTO { IdEtatAnnonce = 3 });
                             Console.WriteLine($"Annonce {SelectedSignalement.IdCible} suspendue");
                         }
                     }
