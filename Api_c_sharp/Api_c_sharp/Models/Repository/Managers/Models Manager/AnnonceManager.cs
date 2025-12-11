@@ -165,7 +165,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             Commande commandes = await context.Commandes.FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
 
-            List<Signalement> signalements = await context.Signalements.Where(s => s.IdAnnonceSignale == entity.IdAnnonce).ToListAsync();
+            List<Signalement> signalements = await context.Signalements.Include(s => s.TypeSignalementSignalementNav).Where(s => s.IdAnnonceSignale == entity.IdAnnonce).ToListAsync();
 
             List<Conversation> conversations = await context.Conversations.Where(s => s.IdAnnonce == entity.IdAnnonce).ToListAsync();
 
