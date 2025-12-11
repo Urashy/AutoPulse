@@ -96,11 +96,14 @@
 
 /* ========== SIGNALEMENT CARD ========== */
 .signalement-card {
+    display: flex;
+    flex-direction: column;
     background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
     border: 1px solid #333;
     border-radius: 15px;
     overflow: hidden;
     transition: all 0.3s;
+    height: 100%;
 }
 
     .signalement-card:hover {
@@ -220,10 +223,14 @@
 .signalement-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     padding: 15px;
     background: rgba(0, 0, 0, 0.3);
     border-top: 1px solid #333;
+    margin-top: auto;
+    display: flex;
+    padding-top: 15px;
+    border-top: 1px solid #eee; 
 }
 
 .btn-action {

@@ -10,7 +10,7 @@
     <div class="page-header">
         <div class="header-left">
             <h1>🚩 Gestion des signalements</h1>
-            <p class="subtitle">@VM.TotalSignalements signalement(s) au total</p>
+            <p class="subtitle">@VM.TotalSignalements signalement(s) affiché(s)</p>
         </div>
         <div class="header-actions">
             <input type="text"
@@ -25,15 +25,15 @@
     <div class="filters-bar">
         <button class="filter-btn @(VM.FilterType == "all" ? "active" : "")"
                 @onclick="@(() => VM.FilterByType("all"))">
-            Tous (@VM.TotalSignalements)
+            Tous (@VM.FixedTotal)
         </button>
         <button class="filter-btn @(VM.FilterType == "annonce" ? "active" : "")"
                 @onclick="@(() => VM.FilterByType("annonce"))">
-            Annonces (@VM.SignalementsAnnonces)
+            Annonces (@VM.FixedTotalAnnonces)
         </button>
         <button class="filter-btn @(VM.FilterType == "compte" ? "active" : "")"
                 @onclick="@(() => VM.FilterByType("compte"))">
-            Comptes (@VM.SignalementsComptes)
+            Comptes (@VM.FixedTotalComptes)
         </button>
 
         <div style="margin-left: auto; display: flex; gap: 10px;">
@@ -168,8 +168,6 @@
     }
 </div>
 
-@* Le reste des Modales (ActionModal et DetailsModal) reste identique, 
-   car elles utilisent déjà les propriétés du ViewModel *@
 @if (VM.ShowActionModal)
 {
     <div class="modal-overlay" @onclick="VM.CloseActionModal">
