@@ -4,6 +4,7 @@ using AutoPulse.Shared.DTO;
 using FuzzySharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using System.Collections.Generic;
 using System.Drawing.Printing;
 using System.Linq;
@@ -164,25 +165,41 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             Commande commandes = await context.Commandes.FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
 
-            Signalement signalements = await context.Signalements.FirstOrDefaultAsync(s => s.IdAnnonceSignale == entity.IdAnnonce);
+            List<Signalement> signalements = await context.Signalements.Where(s => s.IdAnnonceSignale == entity.IdAnnonce).ToListAsync();
 
-            if (signalements != null)
+            List<Conversation> conversations = await context.Conversations.Where(s => s.IdAnnonce == entity.IdAnnonce).ToListAsync();
+
+            if (signalements != null || !signalements.Any())
             {
-                signalements.IdAnnonceSignale = null;
-                signalements.IdEtatSignalement = 2;
+                foreach (Signalement signalement in signalements)
+                {
+                    signalement.IdAnnonceSignale = null;
+                    signalement.IdCompteSignale = entity.IdCompte;
+                    signalement.DescriptionSignalement = "Annonce supprimée par l'administrateur. Ancien motid de signalement : " + signalement.DescriptionSignalement + " de type " + signalement.EtatSignalementNav.LibelleEtatSignalement;
+                    signalement.IdEtatSignalement = 2;
+                }
                 await context.SaveChangesAsync();
-                await base.DeleteAsync(entity);
-                return true;
+             
             }
-            else
+            if (conversations != null || !conversations.Any())
+            {
+                foreach (Conversation conversation in conversations)
+                {
+                    context.Messages.RemoveRange(context.Messages.Where(m => m.IdConversation == conversation.IdConversation));
+                    context.APourConversations.RemoveRange(context.APourConversations.Where(a => a.IdConversation == conversation.IdConversation));
+                }
+                context.Conversations.RemoveRange(conversations);
+                await context.SaveChangesAsync();
+            }
+            
 
             if (commandes != null)
             {
                 entity.IdEtatAnnonce = 6;
                 return false;
             }
-            else
-                await base.DeleteAsync(entity);
+
+            await base.DeleteAsync(entity);
             return true;
         }
 

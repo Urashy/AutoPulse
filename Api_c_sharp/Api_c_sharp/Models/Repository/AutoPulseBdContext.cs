@@ -354,7 +354,8 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<PieceJointe>()
                 .HasOne(p => p.MessagePjNav)
                 .WithMany(m => m.PiecesJointes)
-                .HasForeignKey(p => p.IdMessage);
+                .HasForeignKey(p => p.IdMessage)
+                .OnDelete(DeleteBehavior.Cascade);
 
             //-----------------------------Plainte-----------------------------
             modelBuilder.Entity<Plainte>()

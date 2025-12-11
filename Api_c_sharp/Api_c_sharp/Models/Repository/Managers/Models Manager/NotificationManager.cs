@@ -76,5 +76,43 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             dbSet.RemoveRange(oldNotifications);
             await context.SaveChangesAsync();
         }
+
+        public virtual async Task NotifCreationAutoAsync(List<int> idcomptes, string url,string titre,string message,int idannonce, string type, double prix = 0, double prixnew = 0)
+        {
+            foreach (var idcompte in idcomptes)
+            {
+                Notification notif = new Notification
+                {
+                    IdCompte = idcompte,
+                    Titre = titre,
+                    Message = message,
+                    Type = type,
+                    UrlNavigation = url,
+                    EstLue = false,
+                    DateCreation = DateTime.UtcNow,
+                    IdAnnonce = idannonce,
+                    AncienPrix = prix == 0 ? null : prix,
+                    NouveauPrix = prixnew == 0 ? null : prixnew
+                };
+
+                await AddAsync(notif);
+            }
+        }
+
+        public virtual async Task NotifAnnonce(int idannonce, double prixold, double prixnew)
+        {
+            List<int> idcomptes = await context.Favoris
+                .Where(f => f.IdAnnonce == idannonce)
+                .Select(f => f.IdCompte)
+                .Distinct()
+                .ToListAsync();
+
+            string url = $"/annonce/{idannonce}";
+            string titre = "Mise à jour de l'annonce";
+            string message = $"Le prix de l'annonce #{idannonce} a été modifié de {prixold} à {prixnew}.";
+            string type = "information";
+
+            await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type, prixold, prixnew);
+        }
     }
 }
