@@ -175,7 +175,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 {
                     signalement.IdAnnonceSignale = null;
                     signalement.IdCompteSignale = entity.IdCompte;
-                    signalement.DescriptionSignalement = "Annonce supprimée par l'administrateur. Ancien motid de signalement : " + signalement.DescriptionSignalement + " de type " + signalement.EtatSignalementNav.LibelleEtatSignalement;
+                    signalement.DescriptionSignalement = "Annonce supprimée par l'administrateur. Ancien motif de signalement : " + signalement.DescriptionSignalement + " de type " + signalement.TypeSignalementSignalementNav.LibelleTypeSignalement;
                     signalement.IdEtatSignalement = 2;
                 }
                 await context.SaveChangesAsync();

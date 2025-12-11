@@ -37,7 +37,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
     public interface ISignalementRepository
     {
-        Task<IEnumerable<Signalement>> GetSignalementsByEtat(int etatId);
+        Task<IEnumerable<Signalement>> GetSignalementsByEtatAndType(int etatId,int typeId,string recherche);
     }
 
     public interface IAvisRepository

@@ -114,5 +114,24 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type, prixold, prixnew);
         }
+
+        public virtual async Task NotifSuppressionAnnonce(int idannonce)
+        {
+
+
+            List <int> idcomptes = await context.Annonces
+                .Where(a => a.IdAnnonce == idannonce)
+                .Select(a => a.IdCompte)
+                .ToListAsync();
+
+            Annonce annonce = await context.Annonces
+                .FirstOrDefaultAsync(a => a.IdAnnonce == idannonce);
+
+            string url = $"/annonces";
+            string titre = "Annonce supprimée";
+            string message = $"Votre annonce a été supprimé par un modérateur : " + annonce.Libelle;
+            string type = "information";
+            await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
+        }
     }
 }

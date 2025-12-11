@@ -13,7 +13,6 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             _logger = logger;
         }
 
-        // Méthode existante
         public virtual async Task<IEnumerable<Journal>> GetJournalByType(int typeID)
         {
             return await dbSet.Where(journal => journal.IdTypeJournal == typeID).OrderBy(j => j.DateJournal).ToListAsync();
