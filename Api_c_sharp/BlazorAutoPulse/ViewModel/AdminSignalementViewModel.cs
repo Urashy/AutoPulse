@@ -190,36 +190,11 @@ namespace BlazorAutoPulse.ViewModel
 
             FilteredSignalements = AllSignalements.ToList();
 
-            if (FilterType != "all")
+            if (FilterStatus != "all" || !string.IsNullOrWhiteSpace(SearchQuery) || FilterType != "all")
             {
-                FilteredSignalements = FilteredSignalements.Where(s =>
-                    s.TypeCible.Equals(FilterType, StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-            }
 
-            if (FilterStatus != "all")
-            {
-                FilteredSignalements = FilterStatus switch
-                {
-                    "pending" => FilteredSignalements.Where(s => s.IdStatut == 1).ToList(),
-                    "resolved" => FilteredSignalements.Where(s => s.IdStatut == 2).ToList(),
-                    "rejected" => FilteredSignalements.Where(s => s.IdStatut == 3).ToList(),
-                    _ => FilteredSignalements
-                };
-                //FilteredSignalements = await _signalementService.get
-            }
 
-            if (!string.IsNullOrWhiteSpace(SearchQuery))
-            {
-                var query = SearchQuery.ToLower();
-                FilteredSignalements = FilteredSignalements.Where(s =>
-                    (s.TypeSignalement?.ToLower().Contains(query) ?? false) ||
-                    (s.PseudoSignalant?.ToLower().Contains(query) ?? false) ||
-                    (s.PseudoCible?.ToLower().Contains(query) ?? false) ||
-                    (s.TitreCible?.ToLower().Contains(query) ?? false) ||
-                    (s.Description?.ToLower().Contains(query) ?? false)
-                ).ToList();
-                //FilteredSignalements = await  _signalementService.get
+                FilteredSignalements = await _signalementService.GetFiltered(FilterStatus,FilterType,SearchQuery)
             }
 
             Console.WriteLine($"Après filtres: {FilteredSignalements?.Count ?? 0} signalements");

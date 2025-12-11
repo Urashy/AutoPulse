@@ -96,32 +96,42 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
         }
     }
 
-    public override async Task<IEnumerable<SignalementDTO>> GetFiltered(int idetat, int idtype, string recherche)
+    /// <summary>
+    /// Récupère les signalements filtrés par état, type (dans le chemin de l'URL) et recherche textuelle (en query string).
+    /// </summary>
+    public async Task<IEnumerable<SignalementDTO>> GetFiltered(int idetat, int idtype, string recherche)
     {
         try
         {
+            var rechercheEncoded = Uri.EscapeDataString(recherche ?? string.Empty);
+
+            // L'URL est de la forme: Signalement/{idetat}/{idtype}?recherche=...
+            var url = $"{idetat}/{idtype}";
+            if (!string.IsNullOrEmpty(rechercheEncoded))
+            {
+                url += $"?recherche={rechercheEncoded}";
+            }
+
             var request = new HttpRequestMessage(
-                HttpMethod.Put,
-                BuildUrl($"UpdateEtat/{idetat}/{idtype}")
+                HttpMethod.Get,
+                // Utilise BuildUrl pour ajouter le préfixe de l'API (Signalement)
+                BuildUrl(url)
             );
 
             var response = await SendWithCredentialsAsync(request);
 
-            if (response.IsSuccessStatusCode)
-            {
-                //return await response.Content.ReadFromJsonAsync<SignalementDTO>();
-            }
-            else
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Erreur CreateAsync : {error}");
-                return null;
-            }
+            // Lance une exception pour les codes d'état HTTP non réussis (4xx ou 5xx)
+            response.EnsureSuccessStatusCode();
 
+            // Désérialiser la réponse en IEnumerable<SignalementDTO>
+            return await response.Content.ReadFromJsonAsync<IEnumerable<SignalementDTO>>()
+                   ?? Enumerable.Empty<SignalementDTO>();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Exception UpdateEtatAsync : {ex.Message}");
+            // Gérer les erreurs de désérialisation, de connexion, ou de code d'état HTTP non réussi
+            Console.WriteLine($"Exception GetFiltered : {ex.Message}");
+            return Enumerable.Empty<SignalementDTO>();
         }
     }
 }
