@@ -245,31 +245,61 @@ namespace BlazorAutoPulse.ViewModel
             if (SelectedSignalement == null) return;
             try
             {
-                int nouvelEtat;
+                int nouvelEtat = SelectedSignalement.IdStatut; // Par défaut
+
+                // 1. Logique pour déterminer le nouvel état et les actions annexes
                 if (ActionType == "accept")
                 {
                     if (SelectedSignalement.TypeCible == "Annonce")
                     {
                         if (SelectedAction == "delete") await _annonceService.DeleteAsync(SelectedSignalement.IdCible);
-                        else if (SelectedAction == "suspend") await _annonceService.UpdateAnnonceAsync(SelectedSignalement.IdCible, new AnnonceUpdateDTO { IdEtatAnnonce = 3 });
                     }
-                    else
+                    else // Compte
                     {
                         if (SelectedAction == "anonymize") await _compteService.Anonymisation(SelectedSignalement.IdCible);
                         else if (SelectedAction == "suspend") await _compteService.ToggleSuspention(SelectedSignalement.IdCible, false);
                     }
-                    nouvelEtat = 2;
+                    nouvelEtat = 2; // Traité
                     SelectedSignalement.Statut = "Traité";
                 }
                 else if (ActionType == "reject")
                 {
-                    nouvelEtat = 3; // ID Rejeté
+                    nouvelEtat = 3; // Rejeté
                     SelectedSignalement.Statut = "Rejeté";
                 }
-                else { CloseActionModal(); return; }
+                else
+                {
+                    CloseActionModal();
+                    return;
+                }
 
-                SelectedSignalement.IdStatut = nouvelEtat;
-                await _signalementService.UpdateEtatAsync(SelectedSignalement.Id, nouvelEtat);
+                // --- CORRECTION MAJEURE ICI ---
+
+                // 2. Récupérer l'objet complet depuis l'API pour ne pas perdre de données
+                var signalementComplet = await _signalementService.GetByIdAsync(SelectedSignalement.Id);
+
+                if (signalementComplet != null)
+                {
+                    // 3. Mapper vers le UpdateDTO
+                    var updateDto = new SignalementUpdateDTO
+                    {
+                        IdSignalement = SelectedSignalement.Id,
+                        DescriptionSignalement = signalementComplet.DescriptionSignalement,
+                        IdCompteSignalant = signalementComplet.IdCompteSignalant,
+                        IdAnnonceSignale = signalementComplet.IdAnnonceSignale,
+                        IdCompteSignale = signalementComplet.IdCompteSignale,
+                        IdTypeSignalement = signalementComplet.IdTypeSignalement,
+
+                        // 4. Appliquer le nouvel état
+                        IdEtatSignalement = nouvelEtat
+                    };
+
+                    // 5. Appeler le service corrigé
+                    await _signalementService.UpdateSignalementAsync(SelectedSignalement.Id, updateDto);
+
+                    // Mettre à jour l'affichage local
+                    SelectedSignalement.IdStatut = nouvelEtat;
+                }
 
                 CloseActionModal();
                 await ApplyFilters();

@@ -441,6 +441,8 @@ public class MapperProfile : Profile
             .ReverseMap();
 
         CreateMap<SignalementUpdateDTO, Signalement>()
+            .ForMember(dest => dest.DateCreationSignalement,
+                opt => opt.MapFrom(src => DateTime.UtcNow))
            .ReverseMap();
 
         //---------------------------------TypeCompte---------------------------------
