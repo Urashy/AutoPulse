@@ -131,7 +131,8 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             string url = $"/annonces";
             string titre = "Annonce supprimée";
-            string message = $"Votre annonce a été supprimé par un modérateur : {annonce.Libelle}\nPour la raison: '{signalement.DescriptionSignalement}'";
+            string raison = signalement?.DescriptionSignalement ?? "Raison non spécifiée";
+            string message = $"Votre annonce a été supprimée par un modérateur : {annonce.Libelle}\nPour la raison: '{raison}'";
             string type = "error";
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
         }

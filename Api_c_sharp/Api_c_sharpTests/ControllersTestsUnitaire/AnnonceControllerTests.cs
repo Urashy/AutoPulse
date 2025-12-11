@@ -331,8 +331,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task DeleteAnnonceTest()
         {
-            // Arrange - Retirer les dépendances pour ce test simple
-            _context.Signalements.Remove(_signalement);
             _context.Messages.RemoveRange(_message1, _message2);
             _context.APourConversations.Remove(_aPourConversation);
             _context.Conversations.Remove(_conversation);

@@ -304,27 +304,101 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
-        // -------------------------------------------------------------
-        // GET ALL BY TYPE
-        // -------------------------------------------------------------
         [TestMethod]
-        public async Task GetAllByTypeTest()
+        public async Task GetFilteredCompte()
         {
-            
-            var result = await _controller.GetFilteredSignalement(_signalementCommun.IdEtatSignalement,_signalementCommun.IdTypeSignalement, "suspect");
+            // Given: Un signalement existant avec "suspect" dans la description
 
+            // When: On filtre par état, type et recherche "suspect"
+            var result = await _controller.GetFilteredSignalement(
+                _signalementCommun.IdEtatSignalement,
+                2,
+                "suspect");
+
+            // Then: On doit obtenir une liste avec des résultats
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any(), "Devrait trouver au moins un signalement");
+        }
+
+        [TestMethod]
+        public async Task GetFilteredAnnonce()
+        {
+            _signalementCommun.IdCompteSignale = null;
+            _signalementCommun.IdAnnonceSignale = 1;
+            await _context.SaveChangesAsync();
+            var result = await _controller.GetFilteredSignalement(
+                _signalementCommun.IdEtatSignalement,
+                1,
+                "suspect");
+
+            // Then: On doit obtenir une liste avec des résultats
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any(), "Devrait trouver au moins un signalement");
+        }
+
+        [TestMethod]
+        public async Task EmptyResultGetFilteredSignalementTest()
+        {
+            // Given: Des paramètres qui ne matchent aucun signalement
+
+            // When: On filtre avec des critères qui ne donnent aucun résultat
+            var result = await _controller.GetFilteredSignalement(0, 0, "existe pas");
+
+            // Then: On doit obtenir une liste vide (pas une erreur)
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsFalse(result.Value.Any(), "Ne devrait trouver aucun signalement");
+        }
+
+        [TestMethod]
+        public async Task GetFilteredSignalement_FilterByEtatOnlyTest()
+        {
+            // When: Filtre uniquement par état (typeId=0 = pas de filtre type)
+            var result = await _controller.GetFilteredSignalement(
+                _signalementCommun.IdEtatSignalement,
+                0,
+                null);
+
+            // Then
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.All(s => s.IdEtatSignalement == _signalementCommun.IdEtatSignalement));
+        }
+
+        [TestMethod]
+        public async Task GetFilteredSignalement_CaseInsensitiveSearchTest()
+        {
+            // When: Recherche avec casse mixte
+            var result = await _controller.GetFilteredSignalement(0, 0, "CoMpOrTeMeNt");
+
+            // Then: Devrait trouver "Comportement suspect" malgré la casse différente
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
         }
 
         [TestMethod]
-        public async Task NotFoundGetAllbyEtatSignalementTest()
+        public async Task GetFilteredSignalement_NoFiltersTest()
         {
+            // When: Aucun filtre (etatId=0, typeId=0, recherche=null)
+            var result = await _controller.GetFilteredSignalement(0, 0, null);
 
-            var result = await _controller.GetFilteredSignalement(0,0,"existe pas");
+            // Then: Devrait retourner tous les signalements
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+        }
 
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        [TestMethod]
+        public async Task GetFilteredSignalement_SearchInPseudoTest()
+        {
+            // When: Recherche par pseudo du compte signalant
+            var result = await _controller.GetFilteredSignalement(0, 0, "alice");
+
+            // Then: Devrait trouver le signalement créé par alice
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(s => s.PseudoSignalant == "alice"));
         }
 
         [TestMethod]

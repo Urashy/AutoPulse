@@ -1,11 +1,12 @@
-using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
-using Api_c_sharp.Models.Entity;
 using Npgsql.Internal;
+using System.Collections.Generic;
 
 namespace Api_c_sharp.Controllers;
 
@@ -149,7 +150,8 @@ public class SignalementController(
     {
         var result = await _manager.GetSignalementsByEtatAndType(etatId, typeId, recherche ?? "");
 
-        return Ok(_mapper.Map<IEnumerable<SignalementDTO>>(result));
+        return new ActionResult<IEnumerable<SignalementDTO>>(
+            _mapper.Map<IEnumerable<SignalementDTO>>(result));
     }
 
     /// <summary>
