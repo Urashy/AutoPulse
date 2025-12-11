@@ -40,12 +40,11 @@ namespace BlazorAutoPulse.ViewModel
 
                 try
                 {
-
-
                     AnnoncesFavoris = (await _annonceService.GetAnnoncesFavoritesByCompteId(me.IdCompte)).ToList();
 
                     foreach (var annonce in AnnoncesFavoris)
                     {
+                        Console.WriteLine("Test");
                         await _signalRService.JoinFavorisAnnonce(annonce.IdAnnonce);
                     }
                 }

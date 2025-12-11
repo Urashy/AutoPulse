@@ -1,0 +1,117 @@
+@page "/notifications"
+@using BlazorAutoPulse.ViewModel
+@inject NotificationViewModel VM
+@inject NavigationManager Navigation
+@inject BlazorAutoPulse.Service.Interface.ICompteService CompteService
+@implements IDisposable
+
+<PageTitle>Notifications - AutoPulse</PageTitle>
+
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1>📬 Notifications</h1>
+        
+        <div class="header-actions">
+            @if (VM.UnreadCount > 0)
+            {
+                <button class="btn-mark-all" @onclick="VM.MarkAllAsRead">
+                    ✓ Tout marquer comme lu
+                </button>
+            }
+            
+            <button class="btn-filter @(VM.ShowOnlyUnread ? "active" : "")" 
+                    @onclick="VM.ToggleFilter">
+                @(VM.ShowOnlyUnread ? "📭 Toutes" : "📬 Non lues")
+            </button>
+        </div>
+    </div>
+
+    @if (VM.IsLoading)
+    {
+        <div class="loading-container">
+            <div class="loader"></div>
+            <p>Chargement des notifications...</p>
+        </div>
+    }
+    else if (!VM.Notifications.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h2>@(VM.ShowOnlyUnread ? "Aucune notification non lue" : "Aucune notification")</h2>
+            <p>@(VM.ShowOnlyUnread ? "Vous êtes à jour !" : "Vous n'avez encore reçu aucune notification")</p>
+        </div>
+    }
+    else
+    {
+        <div class="notifications-list">
+            @foreach (var notification in VM.Notifications)
+            {
+                <div class="notification-item @(notification.EstLue ? "read" : "unread")" 
+                     @onclick="() => VM.NavigateToNotification(notification)">
+                    
+                    <div class="notification-icon">
+                        @VM.GetNotificationIcon(notification.Type)
+                    </div>
+                    
+                    <div class="notification-content">
+                        <div class="notification-header-row">
+                            <h3 class="notification-title">@notification.Titre</h3>
+                            <span class="notification-time">@VM.GetRelativeTime(notification.DateCreation)</span>
+                        </div>
+                        
+                        <p class="notification-message">@notification.Message</p>
+                        
+                        @if (notification.Type == "pricedrop" && notification.Reduction.HasValue)
+                        {
+                            <div class="price-drop-details">
+                                <span class="old-price">@notification.AncienPrix?.ToString("N0")€</span>
+                                <span class="arrow">→</span>
+                                <span class="new-price">@notification.NouveauPrix?.ToString("N0")€</span>
+                                <span class="reduction">-@notification.Reduction?.ToString("N0")€</span>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="notification-actions">
+                        @if (!notification.EstLue)
+                        {
+                            <button class="btn-mark-read" 
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => VM.MarkAsRead(notification)"
+                                    title="Marquer comme lu">
+                                ✓
+                            </button>
+                        }
+                        
+                        <button class="btn-delete" 
+                                @onclick:stopPropagation="true"
+                                @onclick="() => VM.DeleteNotification(notification)"
+                                title="Supprimer">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var compte = await CompteService.GetMe();
+            await VM.InitializeAsync(compte.IdCompte, StateHasChanged);
+        }
+        catch
+        {
+            Navigation.NavigateTo("/connexion");
+        }
+    }
+
+    public void Dispose()
+    {
+        VM.Dispose();
+    }
+}
