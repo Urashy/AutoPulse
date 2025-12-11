@@ -39,7 +39,7 @@ public class SignalementWebService : BaseWebService<SignalementCreateDTO>, ISign
     {
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"{id}"))
+            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
             {
                 Content = JsonContent.Create(entity)
             };
