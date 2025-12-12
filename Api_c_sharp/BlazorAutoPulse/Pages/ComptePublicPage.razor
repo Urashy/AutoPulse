@@ -154,16 +154,25 @@ else
                         <span class="stat-value">@VM.comptePublic.NombreAnnonces</span>
                         <span class="stat-label">Annonces</span>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-value">@VM.comptePublic.NombreAvis</span>
-                        <span class="stat-label">Avis</span>
-                    </div>
-                    @if (VM.comptePublic.NoteMoyenne != null)
+                    @if (VM.comptePublic.NombreAnnonces == 0)
                     {
                         <div class="stat-item">
-                            <span class="stat-value">@VM.comptePublic.NoteMoyenne ⭐</span>
-                            <span class="stat-label">Note moyenne</span>
+                            <span class="stat-none">Aucun avis</span>
                         </div>
+                    }
+                    else
+                    {
+                        <div class="stat-item">
+                            <span class="stat-value">@VM.comptePublic.NombreAvis</span>
+                            <span class="stat-label">Avis</span>
+                        </div>
+                        @if (VM.comptePublic.NoteMoyenne != null)
+                        {
+                            <div class="stat-item">
+                                <span class="stat-value">@VM.comptePublic.NoteMoyenne ⭐</span>
+                                <span class="stat-label">Note moyenne</span>
+                            </div>
+                        }
                     }
                 </div>
             </div>
@@ -188,9 +197,10 @@ else
                     case "annonces":
                         @if (VM.annonces != null && VM.annonces.Any())
                         {
-                            <div class="annonces-grid">
-                                <h4>Oui y'a une annonce</h4>
-                            </div>
+                            @foreach (var annonce in VM.annonces)
+                            {
+                                <AnnonceComposant Annonce="annonce"/>
+                            }
                         }
                         else
                         {

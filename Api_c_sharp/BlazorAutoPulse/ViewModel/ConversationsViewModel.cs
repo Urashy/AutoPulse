@@ -169,6 +169,7 @@ public class ConversationViewModel : IDisposable
                         Console.WriteLine($"✅ {uploadedFiles.Count} fichier(s) uploadé(s)");
                         
                         // Rafraîchir seulement après l'upload
+                        Task.Delay(200);
                         NotifyStateChanged();
                     }
                     catch (Exception ex)
