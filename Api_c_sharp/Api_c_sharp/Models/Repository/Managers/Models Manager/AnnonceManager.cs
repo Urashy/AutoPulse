@@ -51,7 +51,11 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public override async Task<IEnumerable<Annonce>> GetAllAsync()
         {
-            return await Api_c_sharplyIncludes().Where(a => a.IdEtatAnnonce == 1).OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
+            return await dbSet
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.Images)
+                .Include(a => a.MiseEnAvantAnnonceNav)
+                .Where(a => a.IdEtatAnnonce == 1).OrderByDescending(a => a.IdMiseEnAvant).ToListAsync();
         }
 
         public override async Task<Annonce?> GetByNameAsync(string name)
@@ -63,7 +67,10 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             int skip = Math.Max(0, (pageNumber - 1) * pageSize);
             int take = Math.Max(1, pageSize);
-            return await Api_c_sharplyIncludes()
+            return await dbSet
+                .Include(a => a.VoitureAnnonceNav)
+                    .ThenInclude(v => v.Images)
+                .Include(a => a.MiseEnAvantAnnonceNav)
                 .Where(a => a.IdMiseEnAvant == miseAvantId && a.IdEtatAnnonce == 1 && a.IdEtatAnnonce == 1)
                 .Skip(skip)
                 .Take(take)
