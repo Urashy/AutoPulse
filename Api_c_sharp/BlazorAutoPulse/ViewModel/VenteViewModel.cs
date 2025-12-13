@@ -12,7 +12,7 @@ namespace BlazorAutoPulse.ViewModel
         //-------------------------------- Service
         private readonly IAnnonceService _annonceService;
         private readonly IService<Voiture> _voitureService;
-        private readonly IService<Adresse> _adresseService;
+        private readonly IAdresseService _adresseService;
         private readonly IPostImageService _postImageService;
         private readonly IService<APourCouleur> _aPourCouleurService;
 
@@ -38,7 +38,7 @@ namespace BlazorAutoPulse.ViewModel
             IAnnonceService annonceService, 
             IService<Voiture> voitureService, 
             IPostImageService postImageService,
-            IService<Adresse> adresseService,
+            IAdresseService adresseService,
             IService<APourCouleur> aPourCouleurService)
         {
             _annonceService = annonceService;

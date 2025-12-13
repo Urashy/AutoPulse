@@ -4,6 +4,7 @@ using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
 using Api_c_sharp.Models.Authentification;
 using Api_c_sharp.Models.Repository;
+using Api_c_sharp.Models.Repository.AI;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
@@ -20,7 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -67,6 +68,16 @@ builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalM
 builder.Services.AddScoped<INotificationService>(sp => sp.GetRequiredService<NotificationManager>());
 builder.Services.AddScoped<ICommandeRepository>(sp => sp.GetRequiredService<CommandeManager>());
 builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmentService>();
+
+// Enregistrement du service IA avec HttpClient
+builder.Services.AddHttpClient<IIAService, IAService>(client =>
+{
+    var pythonApiUrl = builder.Configuration["PythonAPI:BaseUrl"] ?? "http://localhost:8000";
+    var timeout = builder.Configuration.GetValue<int>("PythonAPI:Timeout", 120);
+    
+    client.BaseAddress = new Uri(pythonApiUrl);
+    client.Timeout = TimeSpan.FromSeconds(timeout);
+});
 
 //------------------------------Authentification------------------------------
 builder.Services.AddAuthentication(options =>

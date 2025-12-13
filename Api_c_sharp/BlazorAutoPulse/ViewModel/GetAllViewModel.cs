@@ -1,3 +1,4 @@
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
@@ -12,7 +13,7 @@ public class GetAllViewModel
     private readonly IService<Categorie> _categorieService;
     private readonly IService<Motricite> _motriciteService;
     private readonly IService<BoiteDeVitesse> _boiteVitesseService;
-    private readonly IService<Couleur> _couleurService;
+    private readonly ICouleurService _couleurService;
     
     public Marque[] allMarques;
     public Modele[] allModeles;
@@ -21,7 +22,7 @@ public class GetAllViewModel
     public Motricite[] allMotricite;
     public Categorie[] allCategories;
     public BoiteDeVitesse[] allBoiteDeVitesse;
-    public Couleur[] allCouleurs;
+    public CouleurDTO[] allCouleurs;
     
     public GetAllViewModel(
         IService<Marque> marqueService,
@@ -30,7 +31,7 @@ public class GetAllViewModel
         IService<Categorie> categorieService,
         IService<Motricite> motriciteService,
         IService<BoiteDeVitesse> boiteVitesseService,
-        IService<Couleur> couleurService)
+        ICouleurService couleurService)
     {
         _marqueService = marqueService;
         _modeleService = modeleService;
