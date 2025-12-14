@@ -297,3 +297,132 @@ textarea:disabled {
     border-radius: 3px;
     border: 1px solid #ccc;
 }
+
+/* Section adresse avec layout deux colonnes */
+.address-section {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+/* Colonne de gauche - Boutons d'adresses */
+.saved-addresses-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.saved-addresses-label {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 5px;
+    font-weight: normal;
+}
+
+.address-quick-button {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #333;
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    position: relative;
+}
+
+.address-quick-button:hover {
+    border-color: #00d4ff;
+    background: rgba(0, 212, 255, 0.05);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
+}
+
+.address-quick-button.active {
+    border-color: #00d4ff;
+    background: rgba(0, 212, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+}
+
+.address-quick-button.active::before {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #00d4ff;
+    color: #000;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.address-quick-button.reset {
+    background: rgba(255, 68, 68, 0.08);
+    border-color: #ff4444;
+}
+
+.address-quick-button.reset:hover {
+    border-color: #ff6666;
+    background: rgba(255, 68, 68, 0.12);
+    box-shadow: 0 4px 12px rgba(255, 68, 68, 0.2);
+}
+
+.address-quick-button.reset.active {
+    border-color: #ff4444;
+    background: rgba(255, 68, 68, 0.15);
+    box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.2);
+}
+
+.address-quick-button.reset.active::before {
+    background: #ff4444;
+    color: #fff;
+    content: '✕';
+}
+
+.address-btn-name {
+    font-weight: bold;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.address-btn-location {
+    color: #888;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.reset-icon {
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 14px;
+}
+
+.address-form-fields {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .address-section {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .saved-addresses-sidebar {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .address-quick-button {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 140px;
+    }
+}

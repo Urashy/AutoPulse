@@ -10,6 +10,7 @@ namespace BlazorAutoPulse.ViewModel
     public class VenteViewModel
     {
         //-------------------------------- Service
+        private readonly ICompteService _compteService;
         private readonly IAnnonceService _annonceService;
         private readonly IService<Voiture> _voitureService;
         private readonly IAdresseService _adresseService;
@@ -18,10 +19,12 @@ namespace BlazorAutoPulse.ViewModel
 
         //-------------------------------- Modele
         public List<ImageUpload> imageUpload;
+        public List<AdresseDTO> compteAdresses;
         
         public AnnonceCreateDTO annonce;
         public Voiture voiture;
         public Adresse adresse;
+        public int? selectedAddressId { get; set; } = null;
         
         public List<string> nomPhotos { get; set; } = new();
         public List<int> selectedCouleurs { get; set; } = new();
@@ -35,12 +38,14 @@ namespace BlazorAutoPulse.ViewModel
         private NavigationManager _nav;
 
         public VenteViewModel(
+            ICompteService compteService,
             IAnnonceService annonceService, 
             IService<Voiture> voitureService, 
             IPostImageService postImageService,
             IAdresseService adresseService,
             IService<APourCouleur> aPourCouleurService)
         {
+            _compteService = compteService;
             _annonceService = annonceService;
             _voitureService = voitureService;
             _postImageService = postImageService;
@@ -78,6 +83,16 @@ namespace BlazorAutoPulse.ViewModel
         {
             _refreshUI = refreshUI;
             _nav = nav;
+
+            try
+            {
+                CompteDetailDTO compte = await _compteService.GetMe();
+                compteAdresses = (await _adresseService.GetAdresseByCompte(compte.IdCompte)).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'initialisation des variables: {ex.Message}");
+            }
         }
 
         public async Task UploadImage(InputFileChangeEventArgs e)
@@ -253,6 +268,32 @@ namespace BlazorAutoPulse.ViewModel
         public string GetError(string fieldName)
         {
             return errors.ContainsKey(fieldName) ? errors[fieldName] : "";
+        }
+        
+        public void LoadAddress(AdresseDTO addr)
+        {
+            selectedAddressId = addr.IdAdresse;
+            adresse.Nom = addr.Nom;
+            adresse.Numero = addr.Numero;
+            adresse.Rue = addr.Rue;
+            adresse.CodePostal = addr.CodePostal;
+            adresse.LibelleVille = addr.LibelleVille;
+    
+            // Effacer les erreurs d'adresse si présentes
+            if (errors.ContainsKey("nomadresse")) errors.Remove("nomadresse");
+            if (errors.ContainsKey("numeroadresse")) errors.Remove("numeroadresse");
+            if (errors.ContainsKey("rueadresse")) errors.Remove("rueadresse");
+            if (errors.ContainsKey("codepostal")) errors.Remove("codepostal");
+            if (errors.ContainsKey("ville")) errors.Remove("ville");
+    
+            _refreshUI?.Invoke();
+        }
+
+        public void ResetAddress()
+        {
+            selectedAddressId = null;
+            adresse = new Adresse();
+            _refreshUI?.Invoke();
         }
 
         public async Task CreateAnnonce()

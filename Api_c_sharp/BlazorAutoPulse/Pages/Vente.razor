@@ -316,41 +316,81 @@
                     }
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group @(VM.HasError("numeroadresse") ? "has-error" : "")">
-                        <label>Numéro de rue</label>
-                        <input type="number" placeholder="12" @bind="VM.adresse.Numero" required>
-                        @if (VM.HasError("numeroadresse"))
-                        {
-                            <span class="error-message">@VM.GetError("numeroadresse")</span>
-                        }
-                    </div>
-                    <div class="form-group @(VM.HasError("rueadresse") ? "has-error" : "")">
-                        <label>Rue</label>
-                        <input type="text" placeholder="Rue de l'exemple" @bind="VM.adresse.Rue" required>
-                        @if (VM.HasError("rueadresse"))
-                        {
-                            <span class="error-message">@VM.GetError("rueadresse")</span>
-                        }
-                    </div>
-                </div>
+                <h3 style="margin-top: 40px; margin-bottom: 30px; color: #00d4ff;">Adresse de vente</h3>
 
-                <div class="form-row">
-                    <div class="form-group @(VM.HasError("codepostal") ? "has-error" : "")">
-                        <label>Code postal</label>
-                        <input type="text" placeholder="73000" @bind="VM.adresse.CodePostal" required>
-                        @if (VM.HasError("codepostal"))
+                <div class="address-section">
+                    <div class="saved-addresses-sidebar">
+                        
+                        <div class="saved-addresses-label">Adresses enregistrées</div>
+                        <div class="address-quick-button reset @(VM.selectedAddressId == null ? "active" : "")" @onclick="VM.ResetAddress">
+                            <span class="address-btn-name">
+                                <span class="reset-icon">🔄</span>
+                                Nouvelle adresse
+                            </span>
+                            <div class="address-btn-location">Vider les champs</div>
+                        </div>
+
+                        @if (VM.compteAdresses != null && VM.compteAdresses.Any())
                         {
-                            <span class="error-message">@VM.GetError("codepostal")</span>
+                            @foreach (var addr in VM.compteAdresses)
+                            {
+                                <div class="address-quick-button @(VM.selectedAddressId == addr.IdAdresse ? "active" : "")"
+                                     @onclick="() => VM.LoadAddress(addr)">
+                                    <span class="address-btn-name">@addr.Nom</span>
+                                    <div class="address-btn-location">@addr.CodePostal @addr.LibelleVille</div>
+                                </div>
+                            }
                         }
                     </div>
-                    <div class="form-group @(VM.HasError("ville") ? "has-error" : "")">
-                        <label>Ville</label>
-                        <input type="text" placeholder="Chambéry" @bind="VM.adresse.LibelleVille" required>
-                        @if (VM.HasError("ville"))
-                        {
-                            <span class="error-message">@VM.GetError("ville")</span>
-                        }
+
+                    <!-- Colonne de droite - Formulaire d'adresse -->
+                    <div class="address-form-fields">
+                        <div class="form-group @(VM.HasError("nomadresse") ? "has-error" : "")">
+                            <label>Nom de l'adresse</label>
+                            <input type="text" placeholder="Ex: Domicile, Bureau, Garage..." @bind="VM.adresse.Nom" required>
+                            @if (VM.HasError("nomadresse"))
+                            {
+                                <span class="error-message">@VM.GetError("nomadresse")</span>
+                            }
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group @(VM.HasError("numeroadresse") ? "has-error" : "")">
+                                <label>Numéro de rue</label>
+                                <input type="number" placeholder="12" @bind="VM.adresse.Numero" required>
+                                @if (VM.HasError("numeroadresse"))
+                                {
+                                    <span class="error-message">@VM.GetError("numeroadresse")</span>
+                                }
+                            </div>
+                            <div class="form-group @(VM.HasError("rueadresse") ? "has-error" : "")">
+                                <label>Rue</label>
+                                <input type="text" placeholder="Rue de l'exemple" @bind="VM.adresse.Rue" required>
+                                @if (VM.HasError("rueadresse"))
+                                {
+                                    <span class="error-message">@VM.GetError("rueadresse")</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group @(VM.HasError("codepostal") ? "has-error" : "")">
+                                <label>Code postal</label>
+                                <input type="text" placeholder="73000" @bind="VM.adresse.CodePostal" required>
+                                @if (VM.HasError("codepostal"))
+                                {
+                                    <span class="error-message">@VM.GetError("codepostal")</span>
+                                }
+                            </div>
+                            <div class="form-group @(VM.HasError("ville") ? "has-error" : "")">
+                                <label>Ville</label>
+                                <input type="text" placeholder="Chambéry" @bind="VM.adresse.LibelleVille" required>
+                                @if (VM.HasError("ville"))
+                                {
+                                    <span class="error-message">@VM.GetError("ville")</span>
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
 
