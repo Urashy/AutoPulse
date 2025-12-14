@@ -41,13 +41,14 @@
     margin-bottom: 40px;
 }
 
-/* SUPPRIMÉ : Les anciens styles search-bar car ils sont dans BarreDeRechercheAvecFiltresComposant */
+/* SUPPRIMï¿½ : Les anciens styles search-bar car ils sont dans BarreDeRechercheAvecFiltresComposant */
 
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 40px; /* MODIFIÉ : Réduit de 80px à 40px */
-    clear: both; /* AJOUT : Important pour éviter les chevauchements */
+    padding: 40px;
+    padding-top: 0;
+    clear: both;
 }
 
 .section-title {
@@ -63,7 +64,7 @@
     margin-top: 30px; /* AJOUT : Espace au-dessus de la grille */
 }
 
-/* AJOUT : Styles pour les résultats et la pagination */
+/* AJOUT : Styles pour les rï¿½sultats et la pagination */
 .results-info {
     margin-bottom: 30px;
     padding: 15px 20px;

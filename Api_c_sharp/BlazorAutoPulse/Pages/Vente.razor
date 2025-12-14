@@ -307,15 +307,6 @@
                     </div>
                 </div>
 
-                <div class="form-group @(VM.HasError("nomadresse") ? "has-error" : "")">
-                    <label>Nom de l'adresse</label>
-                    <input type="text" placeholder="123 rue de l'Exemple" @bind="VM.adresse.Nom" required>
-                    @if (VM.HasError("nomadresse"))
-                    {
-                        <span class="error-message">@VM.GetError("nomadresse")</span>
-                    }
-                </div>
-
                 <h3 style="margin-top: 40px; margin-bottom: 30px; color: #00d4ff;">Adresse de vente</h3>
 
                 <div class="address-section">
