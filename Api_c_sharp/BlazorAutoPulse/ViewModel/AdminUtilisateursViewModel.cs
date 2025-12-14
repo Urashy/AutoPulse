@@ -76,7 +76,9 @@ namespace BlazorAutoPulse.ViewModel
                             Email = "",
                             TypeCompte = c.TypeCompte,
                             DateCreation = c.DateInscription,
-                            IdTypeCompte = c.IdTypeCompte
+                            IdTypeCompte = c.IdTypeCompte,
+                            EstSuspendu = (c.IdEtatCompte == 2)
+
                         }).ToList();
 
                         Console.WriteLine($"✅ {AllUtilisateurs.Count} utilisateurs chargés");
@@ -126,7 +128,6 @@ namespace BlazorAutoPulse.ViewModel
 
                 if (status == "all")
                 {
-                    // Si "all", FilteredUtilisateurs = AllUtilisateurs
                     FilteredUtilisateurs = new List<CompteDetailDTO>(AllUtilisateurs);
                 }
                 else
@@ -175,7 +176,7 @@ namespace BlazorAutoPulse.ViewModel
                 Prenom = c.Prenom,
                 Email = "",
                 TypeCompte = c.TypeCompte,
-                EstSuspendu = (c.IdEtatCompte == 1),
+                EstSuspendu = (c.IdEtatCompte == 2),
                 DateCreation = c.DateInscription,
                 IdTypeCompte = c.IdTypeCompte
             }).ToList();
@@ -200,7 +201,6 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        // Pagination
         public void NextPage()
         {
             if (CanGoNext)
@@ -219,7 +219,6 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        // Actions utilisateur
         public void ViewUserDetails(CompteDetailDTO user)
         {
             SelectedUser = user;
@@ -239,13 +238,14 @@ namespace BlazorAutoPulse.ViewModel
         {
             await _compteService.ToggleSuspention(user.IdCompte,false);
             Console.WriteLine($"Suspension de l'utilisateur {user.Pseudo}");
+            _refreshUI?.Invoke();
         }
 
         public async Task ActivateUser(CompteDetailDTO user)
         {
             await _compteService.ToggleSuspention(user.IdCompte,true);
-
             Console.WriteLine($"Activation de l'utilisateur {user.Pseudo}");
+            _refreshUI?.Invoke();
         }
 
         public async Task DeleteUser(CompteDetailDTO user)
@@ -261,6 +261,7 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     Console.WriteLine($"Erreur lors de la suppression: {ex.Message}");
                 }
+                _refreshUI?.Invoke();
             }
         }
 
