@@ -76,7 +76,7 @@ namespace Api_c_sharp.Controllers
         /// <item><description>L'ID du type de compte si le compte existe (200 OK).</description></item>
         /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
         /// </returns>
-        [HttpGet("GetTypeCompteByCompteId/{idCompte}")]
+        [HttpGet("{idCompte}")]
         public async Task<ActionResult<TypeCompteDTO>> GetTypeCompteByCompteId(int idCompte)
         {
             TypeCompte compte = await _manager.GetTypeCompteByCompteId(idCompte);
