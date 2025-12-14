@@ -16,7 +16,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class TypeCompteControllerTestsMock
+    public class TypeCompteControllerTests
     {
         private Mock<TypeCompteManager> _mockManager;
         private TypeCompteController _controller;

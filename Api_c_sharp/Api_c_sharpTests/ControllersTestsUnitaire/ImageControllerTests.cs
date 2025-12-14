@@ -58,9 +58,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.SaveChangesAsync();
         }
 
-        // -----------------------------------------
-        // GET BY ID
-        // -----------------------------------------
         [TestMethod]
         public async Task GetById_OK()
         {
@@ -77,9 +74,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
-        // -----------------------------------------
-        // GET ALL
-        // -----------------------------------------
         [TestMethod]
         public async Task GetAll_OK()
         {
@@ -89,9 +83,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
         }
 
-        // -----------------------------------------
-        // POST
-        // -----------------------------------------
         [TestMethod]
         public async Task Post_OK()
         {
@@ -116,9 +107,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
         }
 
-        // -----------------------------------------
-        // PUT
-        // -----------------------------------------
         [TestMethod]
         public async Task Put_OK()
         {
@@ -172,9 +160,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
-        // -----------------------------------------
-        // DELETE
-        // -----------------------------------------
         [TestMethod]
         public async Task Delete_OK()
         {
@@ -191,9 +176,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
-        // -----------------------------------------
-        // GET FIRST IMAGE BY VOITURE
-        // -----------------------------------------
         [TestMethod]
         public async Task GetImagesByVoitureID_OK()
         {
@@ -210,9 +192,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
-        // -----------------------------------------
-        // GET ALL IMAGES BY VOITURE
-        // -----------------------------------------
         [TestMethod]
         public async Task GetAllImagesByVoiture_OK()
         {
@@ -229,9 +208,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result.Result, typeof(NoContentResult));
         }
 
-        // -----------------------------------------
-        // GET IMAGE BY COMPTE
-        // -----------------------------------------
         [TestMethod]
         public async Task GetImageByCompteID_OK()
         {

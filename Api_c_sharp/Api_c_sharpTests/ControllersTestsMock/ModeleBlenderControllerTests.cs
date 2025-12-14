@@ -16,7 +16,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class ModeleBlenderControllerTestsMock
+    public class ModeleBlenderControllerTests
     {
         private Mock<ModeleBlenderManager> _mockManager;
         private ModeleBlenderController _controller;

@@ -18,7 +18,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class ConversationControllerTestsMoq
+    public class ConversationControllerTests
     {
         private Mock<ConversationManager> _mockManager;
         private Mock<IConversationEnrichmentService> _mockEnrichmentService;

@@ -16,7 +16,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class TypeSignalementControllerTestsMock
+    public class TypeSignalementControllerTests
     {
         private Mock<TypeSignalementManager> _mockManager;
         private TypeSignalementController _controller;

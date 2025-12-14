@@ -16,7 +16,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class MiseEnAvantControllerTestsMock
+    public class MiseEnAvantControllerTests
     {
         private Mock<MiseEnAvantManager> _mockManager;
         private MiseEnAvantController _controller;

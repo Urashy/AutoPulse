@@ -16,7 +16,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class MoyenPaiementControllerTestsMock
+    public class MoyenPaiementControllerTests
     {
         private Mock<MoyenPaiementManager> _mockManager;
         private MoyenPaiementController _controller;

@@ -18,7 +18,7 @@ using Api_c_sharp.Models.Entity;
 namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass()]
-    public class TypeSignlaementControllerTests
+    public class TypeSignalementControllerTests
     {
         private TypeSignalementController _controller;
         private AutoPulseBdContext _context;

@@ -188,12 +188,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         // POST
         // -------------------------------------------------------------
         [TestMethod]
-        public async Task PostSignalementTest()
+        public async Task PostSignalementCompteTest()
         {
             SignalementCreateDTO signalementCreateDTO = new SignalementCreateDTO
             {
                 DescriptionSignalement = "Il a fait un truc pas bien",
                 IdCompteSignale = 1,
+                IdCompteSignalant = _signalementCommun.IdCompteSignalant,
+                IdTypeSignalement = _signalementCommun.IdTypeSignalement
+            };
+            ClaimCookie(1);
+
+            var result = await _controller.Post(signalementCreateDTO);
+
+            Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
+        }
+
+        [TestMethod]
+        public async Task PostSignalementAnnonceTest()
+        {
+            SignalementCreateDTO signalementCreateDTO = new SignalementCreateDTO
+            {
+                DescriptionSignalement = "Il a fait un truc pas bien",
+                IdAnnonceSignale = 1,
                 IdCompteSignalant = _signalementCommun.IdCompteSignalant,
                 IdTypeSignalement = _signalementCommun.IdTypeSignalement
             };

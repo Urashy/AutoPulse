@@ -33,9 +33,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new APourCouleurController(_mockManager.Object, _mapper);
         }
 
-        // ---------------------------
-        //       GET BY ID
-        // ---------------------------
 
         [TestMethod]
         public async Task GetById_ReturnsOk_WhenExists()
@@ -60,9 +57,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
-        // ---------------------------
-        //       GET ALL
-        // ---------------------------
 
         [TestMethod]
         public async Task GetAll_ReturnsList()
@@ -83,10 +77,6 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             Assert.AreEqual(2, ((List<APourCouleurDTO>)list).Count);
         }
-
-        // ---------------------------
-        //       POST
-        // ---------------------------
 
         [TestMethod]
         public async Task Post_ReturnsCreated()
@@ -114,10 +104,6 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
         }
-
-        // ---------------------------
-        //       PUT
-        // ---------------------------
 
         [TestMethod]
         public async Task Put_ReturnsNoContent_WhenOk()
@@ -158,10 +144,6 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
-
-        // ---------------------------
-        //       DELETE
-        // ---------------------------
 
         [TestMethod]
         public async Task Delete_ReturnsNoContent_WhenOk()
