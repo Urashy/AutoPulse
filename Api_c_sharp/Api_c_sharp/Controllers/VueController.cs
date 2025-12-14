@@ -34,7 +34,13 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            Vue vue = await _manager.GetVueByIdsAsync(dto.IdCompte, dto.IdAnnonce);
+
             var entity = _vuemapper.Map<Vue>(dto);
+
+            if (vue != null)
+                return _vuemapper.Map<VueDTO>(vue);
+
             await _manager.AddAsync(entity);
 
             // Retourne bien les deux clés

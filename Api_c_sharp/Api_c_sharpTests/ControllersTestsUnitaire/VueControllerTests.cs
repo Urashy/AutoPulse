@@ -211,7 +211,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task PostTest()
+        public async Task PostNonExistantTest()
         {
 
             VueDTO dto = new VueDTO
@@ -229,6 +229,25 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             Assert.AreEqual(dto.IdAnnonce, createdEntity.IdAnnonce);
             Assert.AreEqual(dto.IdCompte, createdEntity.IdCompte);
+        }
+
+
+        [TestMethod]
+        public async Task PostExistantTest()
+        {
+
+            VueDTO dto = new VueDTO
+            {
+                IdCompte = 1,
+                IdAnnonce = 1
+            };
+
+            var actionResult = await _controller.Post(dto);
+
+            Assert.IsInstanceOfType(actionResult.Value, typeof(VueDTO));
+
+            Assert.AreEqual(dto.IdAnnonce, actionResult.Value.IdAnnonce);
+            Assert.AreEqual(dto.IdCompte, actionResult.Value.IdCompte);
         }
 
         [TestMethod]
