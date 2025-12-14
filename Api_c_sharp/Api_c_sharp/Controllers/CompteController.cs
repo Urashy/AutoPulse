@@ -343,7 +343,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </list>
     /// </returns>
     [ActionName("ToggleEtatCompte")]
-    [HttpPut("{idcompte}")]
+    [HttpPut("{idcompte}/{estretirer}")]
     public async Task<ActionResult> ToggleEtatCompte(int idcompte, bool estretirer = false)
     {
         Compte compte = await _manager.GetByIdAsync(idcompte);
