@@ -17,7 +17,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class CouleurControllerTestsMock
+    public class CouleurControllerTests
     {
         private Mock<CouleurManager> _mockManager;
         private CouleurController _controller;

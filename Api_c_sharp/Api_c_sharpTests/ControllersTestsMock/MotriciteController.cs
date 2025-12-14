@@ -16,7 +16,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class MotriciteControllerTestsMock
+    public class MotriciteControllerTests
     {
         private Mock<MotriciteManager> _mockManager;
         private MotriciteController _controller;

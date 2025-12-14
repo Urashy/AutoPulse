@@ -16,7 +16,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class TypeJournalControllerTestsMock
+    public class TypeJournalControllerTests
     {
         private Mock<TypeJournalManager> _mockManager;
         private TypeJournalController _controller;

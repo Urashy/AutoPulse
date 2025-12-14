@@ -16,7 +16,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class AdresseControllerTestsMoq
+    public class AdresseControllerTests
     {
         private Mock<AdresseManager> _mockManager;
         private AdresseController _controller;

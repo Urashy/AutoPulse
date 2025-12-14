@@ -20,7 +20,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class AnnonceControllerTestsMoq
+    public class AnnonceControllerTests
     {
         private Mock<AnnonceManager> _mockManager;
         private Mock<IJournalService> _mockJournalService;
