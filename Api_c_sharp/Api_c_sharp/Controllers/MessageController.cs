@@ -74,7 +74,7 @@ public class MessageController(
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] MessageUpdateDTO dto)
     {
-        if (id != dto.IdMessage)
+        if (!ModelState.IsValid)
             return BadRequest();
 
         var toUpdate = await _manager.GetByIdAsync(id);

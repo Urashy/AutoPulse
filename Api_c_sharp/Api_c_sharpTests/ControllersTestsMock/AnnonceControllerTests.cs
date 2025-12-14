@@ -199,9 +199,31 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
 
-        // ============================================================================
-        // TESTS AVEC MOCKS CORRIGÉS - À remplacer dans AnnonceControllerTestsMoq.cs
-        // ============================================================================
+        [TestMethod]
+        public async Task DeleteAnnonceTest()
+        {
+            // Arrange - Annonce simple sans signalements ni conversations
+            var annonceSimple = new Annonce
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(annonceSimple);
+            _mockManager.Setup(m => m.DeleteAsync(annonceSimple))
+                       .Returns(Task.FromResult(true))
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdAnnonce);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.DeleteAsync(annonceSimple), Times.Once);
+        }
 
         [TestMethod]
         public async Task DeleteAnnonceWithSignalementsTest()
