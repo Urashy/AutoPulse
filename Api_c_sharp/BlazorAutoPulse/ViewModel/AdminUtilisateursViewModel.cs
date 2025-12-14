@@ -238,6 +238,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             await _compteService.ToggleSuspention(user.IdCompte,false);
             Console.WriteLine($"Suspension de l'utilisateur {user.Pseudo}");
+            await LoadUsers();
             _refreshUI?.Invoke();
         }
 
@@ -245,6 +246,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             await _compteService.ToggleSuspention(user.IdCompte,true);
             Console.WriteLine($"Activation de l'utilisateur {user.Pseudo}");
+            await LoadUsers();
             _refreshUI?.Invoke();
         }
 

@@ -60,6 +60,7 @@ builder.Services.AddScoped<TypeSignalementManager>();
 builder.Services.AddScoped<BloqueManager>();
 builder.Services.AddScoped<PieceJointeManager>();
 builder.Services.AddScoped<PlainteManager>();
+builder.Services.AddScoped<VueManager>();
 
 // Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
