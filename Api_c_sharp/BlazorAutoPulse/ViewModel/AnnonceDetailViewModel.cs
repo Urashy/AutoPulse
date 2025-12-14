@@ -3,6 +3,7 @@ using BlazorAutoPulse.Service.Interface;
 using Microsoft.JSInterop;
 using BlazorAutoPulse.Service;
 using Microsoft.AspNetCore.Components;
+using BlazorAutoPulse.Service.WebService;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -15,6 +16,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly ICompteService _compteService;
         private readonly ICouleurService _couleurService;
         private readonly NotificationService _notificationService;
+        private readonly IService<VueDTO> _vueService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public List<int> ImageIds { get; private set; } = new();
@@ -52,6 +54,7 @@ namespace BlazorAutoPulse.ViewModel
             ICompteService compteService,
             IImageService imageService,
             ICouleurService couleurService,
+            IService<VueDTO> vueService,
             NotificationService notificationService)
         {
             _annonceService = annonceService;
@@ -61,6 +64,7 @@ namespace BlazorAutoPulse.ViewModel
             _imageService = imageService;
             _couleurService = couleurService;
             _notificationService = notificationService;
+            _vueService = vueService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime, NavigationManager nav)
@@ -90,9 +94,14 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     await LoadVendeurProfileImage(Annonce.IdVendeur);
 
-                    // ✅ Charger TOUS les IDs d'images
                     await LoadAllImages();
                 }
+
+                await _vueService.CreateAsync(new VueDTO
+                {
+                    IdAnnonce = idAnnonce,
+                    IdCompte = CurrentUserId ?? 0
+                });
 
                 couleurDisponible = await _couleurService.GetCouleursByVoitureId(Annonce.IdVoiture);
                 selectedColor = couleurDisponible?.FirstOrDefault()?.CodeHexaCouleur;

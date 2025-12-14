@@ -31,6 +31,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IService<APourCouleur>, APourCouleurWebService>();
             builder.Services.AddScoped<IService<AvisListDTO>, AvisWebService>();
             builder.Services.AddScoped<IService<CommandeDTO>, CommandeWebService>();
+            builder.Services.AddScoped<IService<VueDTO>, VueWebService>();
 
             //----------------------- Service avec interface spécifique
             builder.Services.AddScoped<IAnnonceService, AnnonceWebService>();

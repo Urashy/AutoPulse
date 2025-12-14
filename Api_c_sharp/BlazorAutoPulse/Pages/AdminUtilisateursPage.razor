@@ -94,27 +94,31 @@
                                             title="Voir détails">
                                         👁️
                                     </button>
-                                    @if (!user.EstSuspendu)
+                                    @if (user.TypeCompte!= "Administrateur")
                                     {
-                                        <button class="btn-icon warning"
-                                                @onclick="() => VM.SuspendUser(user)"
-                                                title="Suspendre">
-                                            ⛔
+                                        @if (!user.EstSuspendu)
+                                        {
+                                            <button class="btn-icon warning"
+                                                    @onclick="() => VM.SuspendUser(user)"
+                                                    title="Suspendre">
+                                                ⛔
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn-icon success"
+                                                    @onclick="() => VM.ActivateUser(user)"
+                                                    title="Activer">
+                                                ✅
+                                            </button>
+                                        }
+
+                                        <button class="btn-icon danger"
+                                                @onclick="() => VM.DeleteUser(user)"
+                                                title="Supprimer">
+                                            🗑️
                                         </button>
                                     }
-                                    else
-                                    {
-                                        <button class="btn-icon success"
-                                                @onclick="() => VM.ActivateUser(user)"
-                                                title="Activer">
-                                            ✅
-                                        </button>
-                                    }
-                                    <button class="btn-icon danger"
-                                            @onclick="() => VM.DeleteUser(user)"
-                                            title="Supprimer">
-                                        🗑️
-                                    </button>
                                 </div>
                             </td>
                         </tr>
