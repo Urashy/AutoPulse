@@ -114,7 +114,7 @@ namespace Api_c_sharp.Controllers
         /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
         /// </list>
         /// </returns>
-        [ActionName("GetById")]
+        [ActionName("GetByIds")]
         [HttpGet("{idannonce}/{idCompte}")]
         public async Task<ActionResult<VueDTO>> GetByIDs(int idannonce, int idCompte)
         {
