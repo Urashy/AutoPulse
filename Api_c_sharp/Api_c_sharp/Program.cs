@@ -117,6 +117,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization(config =>
 {
     config.AddPolicy(Policies.Authorized, Policies.Logged());
+    config.AddPolicy(Policies.Admin, Policies.AdminLogged());
 });
 
 builder.Services.AddControllers().AddJsonOptions(opt =>
