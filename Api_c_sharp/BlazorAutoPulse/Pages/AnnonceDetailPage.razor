@@ -9,6 +9,118 @@
 
 <PageTitle>@(VM.Annonce?.Libelle ?? "Détail de l'annonce") - AutoPulse</PageTitle>
 
+@* Popup Warning Prix *@
+@if (VM.showPriceWarningPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3>⚠️ Champs manquants</h3>
+            </div>
+            <div class="popup-content">
+                <p>Les champs suivants ne sont pas disponibles :</p>
+                <ul class="missing-fields-list">
+                    @foreach (var field in VM.missingFields)
+                    {
+                        <li>• @field</li>
+                    }
+                </ul>
+                <p><strong>L'IA risque d'être moins précise. Voulez-vous continuer ?</strong></p>
+            </div>
+            <div class="popup-actions">
+                <button class="btn-cancel" @onclick="VM.ClosePriceWarningPopup">Annuler</button>
+                <button class="btn-confirm" @onclick="VM.ExecutePricePrediction">Continuer quand même</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Popup Loading Prix *@
+@if (VM.showPriceLoadingPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container popup-loading">
+            <div class="loading-spinner"></div>
+            <p>Prédiction du prix en cours...</p>
+        </div>
+    </div>
+}
+
+@* Popup Warning Ajustement *@
+@if (VM.showAdjustmentWarningPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3>⚠️ Ajustement par IA</h3>
+            </div>
+            <div class="popup-content">
+                <p>L'IA va analyser la description de l'annonce pour détecter d'éventuels défauts et estimer un prix ajusté.</p>
+                <p><strong>⚠️ Attention :</strong> L'IA peut faire des erreurs, cette estimation est indicative.</p>
+            </div>
+            <div class="popup-actions">
+                <button class="btn-cancel" @onclick="VM.CloseAdjustmentWarningPopup">Annuler</button>
+                <button class="btn-confirm" @onclick="VM.ExecuteAdjustment">Analyser</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Popup Loading Ajustement *@
+@if (VM.showAdjustmentLoadingPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container popup-loading">
+            <div class="loading-spinner"></div>
+            <p>Analyse de la description en cours...</p>
+        </div>
+    </div>
+}
+
+@* Popup Résultat Ajustement *@
+@if (VM.showAdjustmentResultPopup && VM.adjustmentResult != null)
+{
+    <div class="popup-overlay">
+        <div class="popup-container popup-large">
+            <div class="popup-header">
+                <h3>📊 Résultat de l'analyse</h3>
+            </div>
+            <div class="popup-content">
+                <div class="adjustment-result">
+                    <div class="adjustment-category">
+                        <strong>Catégorie :</strong> @VM.adjustmentResult.Category
+                    </div>
+
+                    <div class="price-comparison">
+                        <div class="price-item">
+                            <span class="price-label">Prix actuel</span>
+                            <span class="price-value">@VM.adjustmentResult.BasePrice.ToString("N0") €</span>
+                        </div>
+                        <div class="price-arrow">→</div>
+                        <div class="price-item">
+                            <span class="price-label">Prix ajusté estimé</span>
+                            <span class="price-value adjusted">@VM.adjustmentResult.AdjustedPrice.ToString("N0") €</span>
+                        </div>
+                    </div>
+
+                    <div class="reduction-info">
+                        <p><strong>Différence :</strong> @VM.adjustmentResult.ReductionAmount.ToString("N0") € (@(VM.adjustmentResult.ReductionPercent >= 0 ? "-" : "+")@Math.Abs(VM.adjustmentResult.ReductionPercent).ToString("N2")%)</p>
+                        <p><strong>Coefficient de qualité :</strong> @VM.adjustmentResult.QualityCoefficient.ToString("N2")</p>
+                    </div>
+
+                    <div class="description-analyzed">
+                        <p><strong>Description analysée :</strong></p>
+                        <p class="description-text">@VM.adjustmentResult.DescriptionAnalyzed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-actions">
+                <button class="btn-confirm" @onclick="VM.CloseAdjustmentResultPopup">OK</button>
+            </div>
+        </div>
+    </div>
+}
+
 @if (VM.IsLoading)
 {
     <div class="loading-container">
@@ -287,6 +399,92 @@ else
             </div>
         </div>
 
+        @if (VM.Annonce != null)
+        {
+            <!-- Section IA - Estimation de prix -->
+            <div class="ia-section">
+                <h2>🤖 Estimations par Intelligence Artificielle</h2>
+                <p class="ia-disclaimer">
+                    Ces estimations sont générées par IA et sont fournies à titre indicatif uniquement.
+                </p>
+
+                <div class="ia-actions">
+                    <button class="btn-ia btn-ia-price" @onclick="VM.CheckAndPredictPrice">
+                        <span class="ia-icon">✨</span>
+                        <div class="ia-btn-content">
+                            <span class="ia-btn-title">Estimer le prix du marché</span>
+                            <span class="ia-btn-desc">Prédiction basée sur les caractéristiques</span>
+                        </div>
+                    </button>
+
+                    <button class="btn-ia btn-ia-adjustment"
+                            disabled="@(!VM.CanUseAdjustment)"
+                            @onclick="VM.OpenAdjustmentWarningPopup">
+                        <span class="ia-icon">🔍</span>
+                        <div class="ia-btn-content">
+                            <span class="ia-btn-title">Analyser la description</span>
+                            <span class="ia-btn-desc">Ajustement selon l'état décrit</span>
+                        </div>
+                    </button>
+                </div>
+
+                @* Affichage du résultat de prédiction *@
+                @if (VM.priceResult != null && VM.priceResult.Success)
+                {
+                    <div class="ia-price-result">
+                        <div class="ia-result-header">
+                            <span class="ia-result-icon">💰</span>
+                            <h3>Prix estimé par l'IA</h3>
+                        </div>
+                        <div class="predicted-price">
+                            @VM.priceResult.PredictedPrice.ToString("N0") @VM.priceResult.Currency
+                            <span class="confidence-badge">
+                        Confiance: @((VM.priceResult.ConfidenceScore * 100).ToString("N0"))%
+                    </span>
+                        </div>
+
+                        @if (VM.priceResult.TopInfluencingFactors?.Any() == true)
+                        {
+                            <div class="influencing-factors">
+                                <p class="factors-title">Facteurs les plus influents :</p>
+                                @foreach (var factor in VM.priceResult.TopInfluencingFactors.Take(3))
+                                {
+                                    <div class="factor-item">
+                                        <span class="factor-name">@factor.Feature</span>
+                                        <div class="factor-bar">
+                                            <div class="factor-fill" style="width: @((factor.Importance * 100).ToString("F0"))%"></div>
+                                        </div>
+                                        <span class="factor-value">@((factor.Importance * 100).ToString("F0"))%</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="price-comparison-info">
+                            @{
+                                var difference = VM.priceResult.PredictedPrice - VM.Annonce.Prix;
+                                var percentage = (difference / VM.Annonce.Prix) * 100;
+                            }
+                            @if (Math.Abs(difference) > 1000)
+                            {
+                                <div class="comparison-badge @(difference > 0 ? "higher" : "lower")">
+                                    Le prix annoncé est
+                                    <strong>@(difference > 0 ? $"{difference:N0} € moins cher" : $"{Math.Abs(difference):N0} € plus cher")</strong>
+                                    que l'estimation (@percentage.ToString("F1")%)
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="comparison-badge equal">
+                                    Le prix annoncé est proche de l'estimation du marché
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
         <!-- Actions -->
         <div class="actions-section">
             @if (VM.CurrentUserId.HasValue)
@@ -331,5 +529,4 @@ else
     {
         await VM.DisposeAsync();
     }
-
 }
