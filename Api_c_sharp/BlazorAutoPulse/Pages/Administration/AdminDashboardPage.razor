@@ -1,9 +1,7 @@
 @page "/admin"
 @layout AdminLayout
-@using BlazorAutoPulse.ViewModel
 @using BlazorAutoPulse.ViewModel.Administration
 @inject AdminDashboardViewModel VM
-@inject AdminAnnoncesViewModel VMA
 @inject NavigationManager Navigation
 
 <PageTitle>Tableau de bord Admin - AutoPulse</PageTitle>
@@ -11,36 +9,39 @@
 <div class="admin-dashboard">
     <div class="dashboard-header">
         <h1>📊 Tableau de bord</h1>
-        <p class="subtitle">Vue d'ensemble de la plateforme AutoPulse</p>
+        <p class="subtitle">Vue d'ensemble de la plateforme</p>
     </div>
 
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon users">👥</div>
+            <div class="stat-icon revenue">🚗</div>
             <div class="stat-info">
-                <h3>@VM.TotalUtilisateurs</h3>
-                <p>Utilisateurs</p>
-                <span class="stat-trend positive">+@VM.NouveauxUtilisateurs cette semaine</span>
+                <h3>@VM.TotalAnnonces</h3>
+                <p>Annonces</p>
             </div>
         </div>
 
-        
+        <div class="stat-card">
+            <div class="stat-icon users">👥</div>
+            <div class="stat-info">
+                <h3>@VM.TotalUtilisateurs</h3>
+                <p>Comptes</p>
+            </div>
+        </div>
 
         <div class="stat-card">
             <div class="stat-icon signalements">🚩</div>
             <div class="stat-info">
-                <h3>@VM.SignalementsRecent.Count</h3>
-                <p>Signalements en attente</p>
-                <span class="stat-trend warning">À traiter</span>
+                <h3>@VM.SignalementsEnAttente</h3>
+                <p>Signalements (Attente)</p>
             </div>
         </div>
 
         <div class="stat-card">
-            <div class="stat-icon revenue">💰</div>
+            <div class="stat-icon warning">⚖️</div>
             <div class="stat-info">
-                <h3>@VMA.AnnoncesActives</h3>
-                <p>Revenu ce mois</p>
-                <span class="stat-trend positive">+@VM.CroissanceRevenu%</span>
+                <h3>@VM.TotalPlaintes</h3>
+                <p>Plaintes</p>
             </div>
         </div>
     </div>
@@ -48,85 +49,40 @@
     <div class="dashboard-content">
         <div class="recent-activity">
             <div class="section-header">
-                <h2>📋 Activité récente</h2>
-                <button class="btn-refresh" @onclick="VM.RefreshData">🔄 Actualiser</button>
+                <h2>📋 Derniers Signalements</h2>
+                <button class="btn-refresh" @onclick="VM.RefreshData">Actualiser</button>
             </div>
 
             <div class="activity-list">
                 @if (VM.SignalementsRecent != null && VM.SignalementsRecent.Any())
                 {
-                    @foreach (var activity in VM.SignalementsRecent)
+                    @foreach (var s in VM.SignalementsRecent)
                     {
                         <div class="activity-item">
-                            <div class="activity-icon-wrapper">
-                                @if (!string.IsNullOrEmpty(activity.TitreCible))
-                                {
-                                    <span class="icon-type">📢</span>
-                                }
-                                else
-                                {
-                                    <span class="icon-type">👤</span>
-                                }
-                            </div>
-
                             <div class="activity-content">
-                                <div class="activity-header">
-                                    <span class="user-name">@activity.PseudoSignalant</span>
-                                    <span class="action-text">a signalé</span>
-                                    @if (!string.IsNullOrEmpty(activity.TitreCible))
-                                    {
-                                        <span class="target-name">l'annonce "@activity.TitreCible"</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="target-name">l'utilisateur @activity.PseudoCible</span>
-                                    }
-                                </div>
-
-                                <div class="activity-reason">
-                                    <span class="reason-badge">@activity.TypeSignalement</span>
-                                    <span class="reason-desc">@activity.Description</span>
-                                </div>
-
-                                <div class="activity-footer">
-                                    <span class="activity-date">📅 @activity.DateSignalement.ToString("dd/MM/yyyy HH:mm")</span>
-
-                                    <span class="status-badge @(GetStatusClass(activity.Statut))">
-                                        @activity.Statut
-                                    </span>
-                                </div>
+                                <strong>@s.PseudoSignalant</strong> a signalé
+                                @(string.IsNullOrEmpty(s.TitreCible) ? s.PseudoCible : s.TitreCible)
+                                <br />
+                                <small>@s.TypeSignalement - @s.DateSignalement.ToShortDateString()</small>
                             </div>
                         </div>
                     }
                 }
                 else
                 {
-                    <div class="empty-state">
-                        <p>Aucune activité récente.</p>
-                    </div>
+                    <p>Aucune activité récente.</p>
                 }
             </div>
         </div>
 
         <div class="quick-actions">
-            <h2>⚡ Actions rapides</h2>
+            <h2>⚡ Gestion</h2>
             <div class="actions-grid">
+                <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/annonces")'>
+                    Gérer les annonces
+                </button>
                 <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/utilisateurs")'>
-                    <span class="action-icon">👤</span>
-                    <span>Gérer utilisateurs</span>
-                </button>
-                
-                <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/signalements")'>
-                    <span class="action-icon">🚩</span>
-                    <span>Voir signalements</span>
-                </button>
-                <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/plaintes")'>
-                    <span class="action-icon">🚩</span>
-                    <span>Gérer plaintes</span>
-                </button>
-                <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/statistiques")'>
-                    <span class="action-icon">📊</span>
-                    <span>Statistiques</span>
+                    Gérer les utilisateurs
                 </button>
             </div>
         </div>
@@ -137,16 +93,5 @@
     protected override async Task OnInitializedAsync()
     {
         await VM.InitializeAsync(StateHasChanged);
-    }
-
-    private string GetStatusClass(string statut)
-    {
-        return statut?.ToLower() switch
-        {
-            "traité" => "status-success",
-            "en attente" => "status-warning",
-            "rejeté" => "status-danger",
-            _ => "status-default"
-        };
     }
 }

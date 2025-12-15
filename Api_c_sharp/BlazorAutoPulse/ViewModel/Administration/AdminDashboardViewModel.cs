@@ -7,26 +7,28 @@ namespace BlazorAutoPulse.ViewModel.Administration
     {
         private readonly ICompteService _compteService;
         private readonly ISignalementService _signalementService;
+        private readonly IAnnonceService _annonceService;
+        private readonly IPlainteService _plainteService;
 
         public int TotalUtilisateurs { get; private set; }
-        public int NouveauxUtilisateurs { get; private set; }
         public int TotalAnnonces { get; private set; }
-        public int NouvellesAnnonces { get; private set; }
         public int SignalementsEnAttente { get; private set; }
-        public decimal RevenuMensuel { get; private set; }
-        public decimal CroissanceRevenu { get; private set; }
-
-        // Activités récentes
+        public int TotalPlaintes { get; private set; }
 
         public List<AdminSignalement> SignalementsRecent { get; private set; } = new();
-        public IEnumerable<SignalementDTO> SignalementsRecentdto { get; private set; }
 
         private Action? _refreshUI;
 
-        public AdminDashboardViewModel(ICompteService compteService, ISignalementService signalementService)
+        public AdminDashboardViewModel(
+            ICompteService compteService,
+            ISignalementService signalementService,
+            IAnnonceService annonceService,
+            IPlainteService plainteService)
         {
             _compteService = compteService;
             _signalementService = signalementService;
+            _annonceService = annonceService;
+            _plainteService = plainteService;
         }
 
         public async Task InitializeAsync(Action refreshUI)
@@ -37,44 +39,45 @@ namespace BlazorAutoPulse.ViewModel.Administration
 
         private async Task LoadDashboardData()
         {
-            // Simulation de chargement de données
-            await Task.Delay(100);
-
-
-            TotalUtilisateurs = 1247;
-            NouveauxUtilisateurs = 34;
-            TotalAnnonces = 523;
-            NouvellesAnnonces = 18;
-            SignalementsEnAttente = 7;
-            RevenuMensuel = 12450;
-            CroissanceRevenu = 15.3m;
-
-            SignalementsRecentdto = await _signalementService.GetFiltered(1,0,"");
-
-            if (SignalementsRecentdto == null)
+            try
             {
-                SignalementsRecent = new List<AdminSignalement>();
-            }
-            else
-            {
-                // 3. Mapping
-                SignalementsRecent = SignalementsRecentdto.Select(s => new AdminSignalement
+                // Récupération des données via les services
+                var comptes = await _compteService.GetAllAsync();
+                TotalUtilisateurs = comptes?.Count() ?? 0;
+
+                var annonces = await _annonceService.GetAllAsync();
+                TotalAnnonces = annonces?.Count() ?? 0;
+
+                var plaintes = await _plainteService.GetAllAsync();
+                TotalPlaintes = plaintes?.Count() ?? 0;
+
+                var signalements = await _signalementService.GetAllSignalementsAsync();
+                // On filtre ceux qui sont "En attente" (à adapter selon le libellé exact en BDD)
+                SignalementsEnAttente = signalements?.Count(s => s.IdEtatSignalement == 1) ?? 0;
+
+                // Activité récente (Signalements)
+                var recentSignalementsDto = await _signalementService.GetFiltered(1, 0, "");
+                if (recentSignalementsDto != null)
                 {
-                    Id = s.IdSignalement,
-                    TypeSignalement = s.LibelleTypeSignalement ?? "Type inconnu",
-                    TypeCible = s.TypeCible,
-                    IdCible = s.IdAnnonceSignale ?? s.IdCompteSignale ?? 0,
-                    PseudoSignalant = s.PseudoSignalant ?? "Utilisateur inconnu",
-                    PseudoCible = s.PseudoSignale,
-                    TitreCible = s.LibelleAnnonceSignale,
-                    Description = s.DescriptionSignalement ?? "",
-                    DateSignalement = s.DateCreationSignalement,
-                    Statut = s.LibelleEtatSignalement ?? "En attente",
-                    IdStatut = s.IdEtatSignalement
-                }).ToList();
-
-                _refreshUI?.Invoke();
+                    SignalementsRecent = recentSignalementsDto.Take(5).Select(s => new AdminSignalement
+                    {
+                        Id = s.IdSignalement,
+                        TypeSignalement = s.LibelleTypeSignalement ?? "Inconnu",
+                        PseudoSignalant = s.PseudoSignalant ?? "Anonyme",
+                        PseudoCible = s.PseudoSignale,
+                        TitreCible = s.LibelleAnnonceSignale,
+                        Description = s.DescriptionSignalement ?? "",
+                        DateSignalement = s.DateCreationSignalement,
+                        Statut = s.LibelleEtatSignalement ?? "En attente"
+                    }).ToList();
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur Dashboard : {ex.Message}");
+            }
+
+            _refreshUI?.Invoke();
         }
 
         public async Task RefreshData()
