@@ -31,13 +31,11 @@ namespace BlazorAutoPulse.Service.WebService
             var queryString = string.Join("&", queryParams);
             var url = string.IsNullOrEmpty(queryString) ? "GetFiltered" : $"GetFiltered?{queryString}";
 
-            // ---------------------------------------------------------
-            // TODO: Appeler l'API ici quand le Back-End sera prêt
-            // var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(url));
-            // var response = await SendWithCredentialsAsync(request);
-            // response.EnsureSuccessStatusCode();
-            // return await response.Content.ReadFromJsonAsync<IEnumerable<JournalDTO>>() ?? Enumerable.Empty<JournalDTO>();
-            // ---------------------------------------------------------
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(url));
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<JournalDTO>>() ?? Enumerable.Empty<JournalDTO>();
+
 
             return await Task.FromResult(Enumerable.Empty<JournalDTO>());
         }
