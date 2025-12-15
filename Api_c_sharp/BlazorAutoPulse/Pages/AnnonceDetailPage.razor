@@ -178,6 +178,22 @@ else
             </div>
         }
 
+        <div class="stats-container">
+            <div class="stat-item" title="Nombre de vues">
+                <span class="stat-icon">👁️</span>
+                <span class="stat-value">
+                    @VM.Annonce.NbVues @(VM.Annonce.NbVues <= 1 ? "vue" : "vues")
+                </span>
+            </div>
+
+            <div class="stat-item" title="uwu">
+                <span class="stat-icon">❤️</span>
+                <span class="stat-value">
+                    @VM.Annonce.NbFavoris @(VM.Annonce.NbFavoris <= 1 ? "favori" : "favoris")
+                </span>
+            </div>
+        </div>
+
         <!-- Reste du code existant (informations principales, caractéristiques, etc.) -->
         <div class="main-info-section">
             <div class="price-section">

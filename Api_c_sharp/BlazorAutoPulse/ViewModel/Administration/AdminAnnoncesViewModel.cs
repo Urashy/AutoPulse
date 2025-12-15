@@ -1,4 +1,4 @@
-﻿namespace BlazorAutoPulse.ViewModel
+﻿namespace BlazorAutoPulse.ViewModel.Administration
 {
     public class AdminAnnoncesViewModel
     {

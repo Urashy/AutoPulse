@@ -47,7 +47,9 @@ public class AnnonceDetailDTO
     public DateTime MiseEnCirculation { get; set; }
     public int NbPlaces { get; set; }
     public int NbPortes { get; set; }
-    
+    public int NbVues { get; set; }
+    public int NbFavoris { get; set; }
+
     // Images
     public List<string> Images { get; set; } = new List<string>();
     
