@@ -23,6 +23,12 @@ namespace BlazorAutoPulse.ViewModel.Administration
 
         private Action? _refreshUI;
 
+        public AdminDashboardViewModel(ICompteService compteService, ISignalementService signalementService)
+        {
+            _compteService = compteService;
+            _signalementService = signalementService;
+        }
+
         public async Task InitializeAsync(Action refreshUI)
         {
             _refreshUI = refreshUI;
