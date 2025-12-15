@@ -1,5 +1,6 @@
 ﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
+using AutoPulse.Shared.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
@@ -13,24 +14,24 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             _logger = logger;
         }
 
-        public virtual async Task<IEnumerable<Journal>> GetFilteredJournal(int typeID, int order = 1,DateTime? datedebutintervalle = null,DateTime? datefinintervalle = null)
+        public virtual async Task<IEnumerable<Journal>> GetFilteredJournal(RechercheJournalDTO recherche)
         {
-            var query = dbSet.Where(journal => journal.IdTypeJournal == typeID);
-
+            var query = dbSet.Where(journal => journal.IdTypeJournal == recherche.IdType);
+            
             // Appliquer le filtre de date de début si fourni
-            if (datedebutintervalle.HasValue)
+            if (recherche.DebutIntervalle.HasValue)
             {
-                query = query.Where(j => j.DateJournal >= datedebutintervalle.Value);
+                query = query.Where(j => j.DateJournal >= recherche.DebutIntervalle.Value);
             }
 
             // Appliquer le filtre de date de fin si fourni
-            if (datefinintervalle.HasValue)
+            if (recherche.FinIntervalle.HasValue)
             {
-                query = query.Where(j => j.DateJournal <= datefinintervalle.Value);
+                query = query.Where(j => j.DateJournal <= recherche.FinIntervalle.Value);
             }
 
             // Appliquer le tri selon l'ordre
-            query = order == 1
+            query = recherche.Order == 1
                 ? query.OrderBy(j => j.DateJournal)
                 : query.OrderByDescending(j => j.DateJournal);
 
