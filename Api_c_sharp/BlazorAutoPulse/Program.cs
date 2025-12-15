@@ -86,6 +86,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<CommandeComposantViewModel>();
             builder.Services.AddScoped<AvisComposantViewModel>();
             builder.Services.AddScoped<NotificationViewModel>();
+            builder.Services.AddScoped<IIAService, IAWebService>();
             
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService, SignalRWebService>();

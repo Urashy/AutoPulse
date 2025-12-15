@@ -1,23 +1,26 @@
-﻿using AutoPulse.Shared.DTO;
+﻿using System.Text.RegularExpressions;
+using AutoPulse.Shared.DTO;
+using AutoPulse.Shared.DTO.IA.Data;
+using AutoPulse.Shared.DTO.IA.Result;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using static System.Net.WebRequestMethods;
 
 namespace BlazorAutoPulse.ViewModel
 {
     public class VenteViewModel
     {
-        //-------------------------------- Service
+        //-------------------------------- Services
         private readonly ICompteService _compteService;
         private readonly IAnnonceService _annonceService;
         private readonly IService<Voiture> _voitureService;
         private readonly IAdresseService _adresseService;
         private readonly IPostImageService _postImageService;
         private readonly IService<APourCouleur> _aPourCouleurService;
+        private readonly IIAService _iaService;
 
-        //-------------------------------- Modele
+        //-------------------------------- Modèles
         public List<ImageUpload> imageUpload;
         public List<AdresseDTO> compteAdresses;
         
@@ -34,8 +37,27 @@ namespace BlazorAutoPulse.ViewModel
         public Dictionary<string, string> errors { get; set; } = new();
         public bool showErrors { get; set; } = false;
 
+        // États des popups IA
+        public bool showCnnWarningPopup { get; set; } = false;
+        public bool showCnnLoadingPopup { get; set; } = false;
+        public bool showCnnResultPopup { get; set; } = false;
+        public bool showPriceWarningPopup { get; set; } = false;
+        public bool showPriceLoadingPopup { get; set; } = false;
+        public bool showAdjustmentWarningPopup { get; set; } = false;
+        public bool showAdjustmentLoadingPopup { get; set; } = false;
+        public bool showAdjustmentResultPopup { get; set; } = false;
+
+        // Résultats IA
+        public ResultatCNN? cnnResult { get; set; }
+        public ResultatPrediction? priceResult { get; set; }
+        public ResultatAjustement? adjustmentResult { get; set; }
+
+        // Liste des champs manquants pour la prédiction
+        public List<string> missingFields { get; set; } = new();
+
         private Action? _refreshUI;
         private NavigationManager _nav;
+        private GetAllViewModel _vmAll;
 
         public VenteViewModel(
             ICompteService compteService,
@@ -43,7 +65,8 @@ namespace BlazorAutoPulse.ViewModel
             IService<Voiture> voitureService, 
             IPostImageService postImageService,
             IAdresseService adresseService,
-            IService<APourCouleur> aPourCouleurService)
+            IService<APourCouleur> aPourCouleurService,
+            IIAService iaService)
         {
             _compteService = compteService;
             _annonceService = annonceService;
@@ -51,6 +74,7 @@ namespace BlazorAutoPulse.ViewModel
             _postImageService = postImageService;
             _adresseService = adresseService;
             _aPourCouleurService = aPourCouleurService;
+            _iaService = iaService;
             
             imageUpload = new List<ImageUpload>();
             
@@ -65,7 +89,6 @@ namespace BlazorAutoPulse.ViewModel
             {
                 IdVoiture = 0,
                 IdModeleBlender = null,
-
                 Kilometrage = 0,
                 Annee = 0,
                 Puissance = 0,
@@ -73,16 +96,15 @@ namespace BlazorAutoPulse.ViewModel
                 NbCylindres = 0,
                 MiseEnCirculation = DateTime.Now
             };
-            voiture.MiseEnCirculation = DateTime.Now;
             adresse = new Adresse();
-            
             selectedCouleurs = new List<int>();
         }
 
-        public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
+        public async Task InitializeAsync(Action refreshUI, NavigationManager nav, GetAllViewModel vmAll)
         {
             _refreshUI = refreshUI;
             _nav = nav;
+            _vmAll = vmAll;
 
             try
             {
@@ -91,9 +113,320 @@ namespace BlazorAutoPulse.ViewModel
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur lors de l'initialisation des variables: {ex.Message}");
+                Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
             }
         }
+
+        // ============================================================================
+        // MÉTHODES IA - CNN (Reconnaissance visuelle)
+        // ============================================================================
+
+        public bool CanUseCnn => imageUpload.Any();
+
+        public void OpenCnnWarningPopup()
+        {
+            if (!CanUseCnn) return;
+            showCnnWarningPopup = true;
+            _refreshUI?.Invoke();
+        }
+
+        public void CloseCnnWarningPopup()
+        {
+            showCnnWarningPopup = false;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task ExecuteCnnRecognition()
+        {
+            showCnnWarningPopup = false;
+            showCnnLoadingPopup = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                // Convertir la première image en base64
+                var firstImage = imageUpload.First();
+                using var memoryStream = new MemoryStream();
+                await firstImage.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(memoryStream);
+                var imageBytes = memoryStream.ToArray();
+                var base64Image = Convert.ToBase64String(imageBytes);
+
+                var dataCnn = new DataCNN
+                {
+                    ImageBase64 = base64Image
+                };
+
+                cnnResult = await _iaService.RecognizeVehicleAsync(dataCnn);
+
+                showCnnLoadingPopup = false;
+                
+                if (cnnResult.Success)
+                {
+                    showCnnResultPopup = true;
+                }
+                else
+                {
+                    errors.Add("cnn", cnnResult.Error ?? "Erreur lors de la reconnaissance");
+                }
+            }
+            catch (Exception ex)
+            {
+                showCnnLoadingPopup = false;
+                errors.Add("cnn", $"Erreur: {ex.Message}");
+            }
+
+            _refreshUI?.Invoke();
+        }
+
+        public async Task ApplyCnnResult()
+        {
+            if (cnnResult == null || !cnnResult.Success) return;
+
+            // Rechercher la marque
+            var marque = _vmAll.allMarques?.FirstOrDefault(m => 
+                m.LibelleMarque.ToLower() == cnnResult.Manufacturer.ToLower());
+            
+            if (marque != null)
+            {
+                voiture.IdMarque = marque.IdMarque;
+                
+                // Utiliser la méthode de filtrage existante de VMAll
+                await _vmAll.FiltrerModeleParMarquePublic(marque.IdMarque);
+                
+                // Rechercher le modèle dans les modèles filtrés
+                var modele = _vmAll.filteredModeles?.FirstOrDefault(m => 
+                    m.LibelleModele.Equals(cnnResult.Model, StringComparison.OrdinalIgnoreCase));
+                
+                if (modele != null)
+                {
+                    voiture.IdModele = modele.IdModele;
+                }
+            }
+
+            showCnnResultPopup = false;
+            _refreshUI?.Invoke();
+        }
+
+        public void CancelCnnResult()
+        {
+            showCnnResultPopup = false;
+            _refreshUI?.Invoke();
+        }
+
+        // ============================================================================
+        // MÉTHODES IA - Prédiction de prix
+        // ============================================================================
+
+        public void CheckAndPredictPrice()
+        {
+            missingFields.Clear();
+
+            // Vérifier les champs requis
+            if (voiture.IdMarque == null || voiture.IdMarque == 0)
+                missingFields.Add("Marque");
+            if (voiture.IdModele == null || voiture.IdModele == 0)
+                missingFields.Add("Modèle");
+            if (voiture.Annee == 0)
+                missingFields.Add("Année");
+            if (voiture.IdCategorie == null || voiture.IdCategorie == 0)
+                missingFields.Add("Catégorie");
+            if (voiture.IdCarburant == null || voiture.IdCarburant == 0)
+                missingFields.Add("Carburant");
+            if (voiture.Kilometrage == 0)
+                missingFields.Add("Kilométrage");
+            if (voiture.IdBoiteDeVitesse == null || voiture.IdBoiteDeVitesse == 0)
+                missingFields.Add("Boîte de vitesse");
+            if (voiture.IdMotricite == null || voiture.IdMotricite == 0)
+                missingFields.Add("Motricité");
+
+            if (missingFields.Any())
+            {
+                showPriceWarningPopup = true;
+            }
+            else
+            {
+                _ = ExecutePricePrediction();
+            }
+
+            _refreshUI?.Invoke();
+        }
+
+        public void ClosePriceWarningPopup()
+        {
+            showPriceWarningPopup = false;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task ExecutePricePrediction()
+        {
+            showPriceWarningPopup = false;
+            showPriceLoadingPopup = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                var dataPrediction = new DataPrediction
+                {
+                    Manufacturer = GetMarqueLibelle(),
+                    Model = GetModeleLibelle(),
+                    ProdYear = voiture.Annee,
+                    Category = GetCategorieLibelle(),
+                    LeatherInterior = "No", // Valeur par défaut - Non disponible dans le formulaire
+                    FuelType = GetCarburantLibelle(),
+                    EngineVolume = 2.0f, // Valeur par défaut - Non disponible dans le formulaire
+                    Mileage = voiture.Kilometrage.ToString(),
+                    Cylinders = voiture.NbCylindres > 0 ? (float)voiture.NbCylindres : 4f,
+                    GearBoxType = GetBoiteLibelle(),
+                    DriveWheels = GetMotriciteLibelle(),
+                    Doors = voiture.NbPorte.ToString() ?? "4", // Valeur par défaut
+                    Wheel = "Left wheel", // Valeur par défaut - Conduite à gauche
+                    Color = selectedCouleurs.Any() ? GetFirstCouleurLibelle() : "Black",
+                    Airbags = 4, // Valeur par défaut - Non disponible dans le formulaire
+                    Levy = 0f // Valeur par défaut - Non disponible dans le formulaire
+                };
+
+                priceResult = await _iaService.PredictPriceAsync(dataPrediction);
+
+                showPriceLoadingPopup = false;
+
+                if (!priceResult.Success)
+                {
+                    errors.Add("price", priceResult.Error ?? "Erreur lors de la prédiction");
+                }
+            }
+            catch (Exception ex)
+            {
+                showPriceLoadingPopup = false;
+                errors.Add("price", $"Erreur: {ex.Message}");
+            }
+
+            _refreshUI?.Invoke();
+        }
+
+        public void AcceptPredictPrice()
+        {
+            annonce.Prix = (int)Math.Round(priceResult.PredictedPrice);
+            _refreshUI?.Invoke();
+        }
+
+        // ============================================================================
+        // MÉTHODES IA - Ajustement de prix
+        // ============================================================================
+
+        public bool CanUseAdjustment => !string.IsNullOrWhiteSpace(annonce.Description) && annonce.Prix > 0;
+
+        public void OpenAdjustmentWarningPopup()
+        {
+            if (!CanUseAdjustment) return;
+            showAdjustmentWarningPopup = true;
+            _refreshUI?.Invoke();
+        }
+
+        public void CloseAdjustmentWarningPopup()
+        {
+            showAdjustmentWarningPopup = false;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task ExecuteAdjustment()
+        {
+            showAdjustmentWarningPopup = false;
+            showAdjustmentLoadingPopup = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                var dataAdjustment = new DataAjustement
+                {
+                    BasePrice = annonce.Prix,
+                    Description = annonce.Description,
+                };
+
+                adjustmentResult = await _iaService.AdjustPriceAsync(dataAdjustment);
+
+                showAdjustmentLoadingPopup = false;
+
+                if (adjustmentResult.Success)
+                {
+                    showAdjustmentResultPopup = true;
+                }
+                else
+                {
+                    errors.Add("adjustment", adjustmentResult.Error ?? "Erreur lors de l'ajustement");
+                }
+            }
+            catch (Exception ex)
+            {
+                showAdjustmentLoadingPopup = false;
+                errors.Add("adjustment", $"Erreur: {ex.Message}");
+            }
+
+            _refreshUI?.Invoke();
+        }
+
+        public void AcceptPriceAdjustment()
+        {
+            annonce.Prix = (int)Math.Round(adjustmentResult.AdjustedPrice);
+            ClosePriceWarningPopup();
+        }
+
+        public void CloseAdjustmentResultPopup()
+        {
+            showAdjustmentResultPopup = false;
+            _refreshUI?.Invoke();
+        }
+
+        // ============================================================================
+        // MÉTHODES HELPER POUR RÉCUPÉRER LES LIBELLÉS
+        // ============================================================================
+
+        private string GetMarqueLibelle()
+        {
+            var marque = _vmAll?.allMarques?.FirstOrDefault(m => m.IdMarque == voiture.IdMarque);
+            return marque?.LibelleMarque ?? "Unknown";
+        }
+
+        private string GetModeleLibelle()
+        {
+            var modele = _vmAll?.allModeles?.FirstOrDefault(m => m.IdModele == voiture.IdModele);
+            return modele?.LibelleModele ?? "Unknown";
+        }
+
+        private string GetCategorieLibelle()
+        {
+            var categorie = _vmAll?.allCategories?.FirstOrDefault(c => c.IdCategorie == voiture.IdCategorie);
+            return categorie?.LibelleCategorie ?? "Unknown";
+        }
+
+        private string GetCarburantLibelle()
+        {
+            var carburant = _vmAll?.allCarburants?.FirstOrDefault(c => c.IdCarburant == voiture.IdCarburant);
+            return carburant?.LibelleCarburant ?? "Unknown";
+        }
+
+        private string GetBoiteLibelle()
+        {
+            var boite = _vmAll?.allBoiteDeVitesse?.FirstOrDefault(b => b.IdBoiteDeVitesse == voiture.IdBoiteDeVitesse);
+            return boite?.LibelleBoite ?? "Unknown";
+        }
+
+        private string GetMotriciteLibelle()
+        {
+            var motricite = _vmAll?.allMotricite?.FirstOrDefault(m => m.IdMotricite == voiture.IdMotricite);
+            return motricite?.LibelleMotricite ?? "Unknown";
+        }
+
+        private string GetFirstCouleurLibelle()
+        {
+            if (!selectedCouleurs.Any()) return "Black";
+            
+            var couleur = _vmAll?.allCouleurs?.FirstOrDefault(c => c.IdCouleur == selectedCouleurs.First());
+            return couleur?.LibelleCouleur ?? "Black";
+        }
+
+        // ============================================================================
+        // MÉTHODES EXISTANTES (inchangées)
+        // ============================================================================
 
         public async Task UploadImage(InputFileChangeEventArgs e)
         {
@@ -279,7 +612,6 @@ namespace BlazorAutoPulse.ViewModel
             adresse.CodePostal = addr.CodePostal;
             adresse.LibelleVille = addr.LibelleVille;
     
-            // Effacer les erreurs d'adresse si présentes
             if (errors.ContainsKey("nomadresse")) errors.Remove("nomadresse");
             if (errors.ContainsKey("numeroadresse")) errors.Remove("numeroadresse");
             if (errors.ContainsKey("rueadresse")) errors.Remove("rueadresse");
