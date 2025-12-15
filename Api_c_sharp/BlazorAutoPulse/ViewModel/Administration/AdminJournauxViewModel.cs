@@ -22,11 +22,10 @@ namespace BlazorAutoPulse.ViewModel.Administration
         public DateTime? DateDebut { get; set; }
         public DateTime? DateFin { get; set; }
 
-        // Filtre Type Journal (nullable pour "Tous")
+        // Filtre Type Journal (nullable pour "Tous" dans l'UI)
         public int? SelectedTypeId { get; set; }
 
-        // Tri : 1 = Croissant, 0 (ou autre) = Décroissant. 
-        // Par défaut 0 pour avoir les logs récents en premier.
+        // Tri : 1 = Croissant, 0 = Décroissant (selon ta logique précédente)
         public int SortOrder { get; private set; } = 0;
 
         public AdminJournauxViewModel(IJournalService journalService)
@@ -45,8 +44,16 @@ namespace BlazorAutoPulse.ViewModel.Administration
             IsLoading = true;
             _refreshUI?.Invoke();
 
-            // Appel respectant l'ordre : typeId, dateDebut, dateFin, ordre
-            var result = await _journalService.GetFilteredAsync(SelectedTypeId, DateDebut, DateFin, SortOrder);
+            // Création du DTO de recherche à partir des propriétés du ViewModel
+            var rechercheDto = new RechercheJournalDTO
+            {
+                IdType = SelectedTypeId ?? 0,
+                DebutIntervalle = DateDebut,
+                FinIntervalle = DateFin,
+                Order = SortOrder
+            };
+
+            var result = await _journalService.GetFilteredAsync(rechercheDto);
 
             var allFiltered = result.ToList();
             TotalFilteredItems = allFiltered.Count;
@@ -68,7 +75,6 @@ namespace BlazorAutoPulse.ViewModel.Administration
 
         public async Task ToggleSortOrder()
         {
-            // Si c'est 1 (croissant), on passe à 0 (décroissant), sinon on met 1.
             SortOrder = (SortOrder == 1) ? 0 : 1;
 
             CurrentPage = 1;

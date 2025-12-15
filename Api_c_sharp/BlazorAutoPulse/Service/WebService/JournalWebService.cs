@@ -12,32 +12,43 @@ namespace BlazorAutoPulse.Service.WebService
 
         protected override string ApiEndpoint => "Journal";
 
-        public async Task<IEnumerable<JournalDTO>> GetFilteredAsync(int? typeId, DateTime? dateDebut, DateTime? dateFin, int ordre)
+        public async Task<IEnumerable<JournalDTO>> GetFilteredAsync(RechercheJournalDTO rechercheDto)
         {
             var queryParams = new List<string>();
 
-            if (typeId.HasValue)
-                queryParams.Add($"typeId={typeId.Value}");
+            if (rechercheDto.IdType > 0)
+            {
+                queryParams.Add($"IdType={rechercheDto.IdType}");
+            }
 
-            if (dateDebut.HasValue)
-                queryParams.Add($"dateDebut={dateDebut.Value:yyyy-MM-dd}");
+            // Gestion des dates
+            if (rechercheDto.DebutIntervalle.HasValue)
+            {
+                queryParams.Add($"DebutIntervalle={rechercheDto.DebutIntervalle.Value:yyyy-MM-dd}");
+            }
 
-            if (dateFin.HasValue)
-                queryParams.Add($"dateFin={dateFin.Value:yyyy-MM-dd}");
+            if (rechercheDto.FinIntervalle.HasValue)
+            {
+                queryParams.Add($"FinIntervalle={rechercheDto.FinIntervalle.Value:yyyy-MM-dd}");
+            }
 
-            // Ajout du paramètre d'ordre (int)
-            queryParams.Add($"ordre={ordre}");
+            // Gestion de l'ordre
+            queryParams.Add($"Order={rechercheDto.Order}");
 
             var queryString = string.Join("&", queryParams);
-            var url = string.IsNullOrEmpty(queryString) ? "GetFiltered" : $"GetFiltered?{queryString}";
+
+            // L'action dans le contrôleur s'appelle "GetFilteredJournal"
+            var url = string.IsNullOrEmpty(queryString)
+                ? "GetFilteredJournal"
+                : $"GetFilteredJournal?{queryString}";
 
             var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(url));
             var response = await SendWithCredentialsAsync(request);
+
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<JournalDTO>>() ?? Enumerable.Empty<JournalDTO>();
 
-
-            return await Task.FromResult(Enumerable.Empty<JournalDTO>());
+            return await response.Content.ReadFromJsonAsync<IEnumerable<JournalDTO>>()
+                   ?? Enumerable.Empty<JournalDTO>();
         }
     }
 }
