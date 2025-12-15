@@ -143,10 +143,10 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// </list>
     /// </returns>
     [ActionName("GetFilteredJournal")]
-    [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<JournalDTO>>> GetFilteredJournal(int idtype, int order = 1, DateTime? datedebutintervalle = null, DateTime? datefinintervalle = null)
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<JournalDTO>>> GetFilteredJournal([FromQuery] RechercheJournalDTO recherche)
     {
-        var result = await _manager.GetFilteredJournal(idtype, order, datedebutintervalle, datefinintervalle);
+        var result = await _manager.GetFilteredJournal(recherche);
 
         if (result is null || !result.Any())
             return NotFound();
