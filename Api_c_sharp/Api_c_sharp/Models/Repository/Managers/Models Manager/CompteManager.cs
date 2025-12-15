@@ -119,7 +119,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             }
         }
 
-        public async Task UpdateTypeCompte(Compte compteamodif,CompteModifTypeCompteDTO compteModifTypeCompteDTO, bool estpro)
+        public virtual async Task UpdateTypeCompte(Compte compteamodif,CompteModifTypeCompteDTO compteModifTypeCompteDTO, bool estpro)
         {
             if (estpro)
             {
@@ -136,12 +136,12 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             await context.SaveChangesAsync();
         }
 
-        public async Task<Compte> GetProfilPublic(int idcompte)
+        public virtual async Task<Compte> GetProfilPublic(int idcompte)
         {
             return await dbSet.Include(c => c.Images).Include(c => c.TypeCompteCompteNav).Include(c => c.Annonces).Include(c => c.AvisJugees).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
         }
 
-        public async Task ToggleEtatCompte(int idcompte, bool estretirer = false)
+        public virtual async Task ToggleEtatCompte(int idcompte, bool estretirer = false)
         {
             Compte compte = await dbSet.Include(c => c.EtatCompteNav).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
             if (compte.IdEtatCompte== 1)
