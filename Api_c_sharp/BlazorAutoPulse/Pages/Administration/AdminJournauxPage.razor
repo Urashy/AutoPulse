@@ -1,0 +1,114 @@
+@page "/admin/journaux"
+@layout AdminLayout
+@using BlazorAutoPulse.ViewModel.Administration
+@inject AdminJournauxViewModel VM
+
+<PageTitle>Historique des Journaux - Admin</PageTitle>
+
+<div class="admin-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h1>📜 Journaux du système</h1>
+            <p class="subtitle">@VM.TotalFilteredItems entrée(s)</p>
+        </div>
+
+        <div class="header-actions">
+            <div class="filter-group">
+                <div class="input-wrapper">
+                    <input type="number"
+                           placeholder="ID Type"
+                           @bind="VM.SelectedTypeId"
+                           @bind:after="VM.OnFilterChanged"
+                           class="filter-input small-input" />
+                </div>
+
+                <div class="date-input-wrapper">
+                    <label>Du</label>
+                    <input type="date"
+                           @bind="VM.DateDebut"
+                           @bind:after="VM.OnFilterChanged"
+                           class="date-input" />
+                </div>
+                <div class="date-input-wrapper">
+                    <label>Au</label>
+                    <input type="date"
+                           @bind="VM.DateFin"
+                           @bind:after="VM.OnFilterChanged"
+                           class="date-input" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (VM.IsLoading)
+    {
+        <div class="loading-state">
+            <div class="loader"></div>
+            <p>Chargement des journaux...</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th class="sortable-header" @onclick="VM.ToggleSortOrder">
+                            Date
+                            <span class="sort-icon">@(VM.SortOrder == 1 ? "▲" : "▼")</span>
+                        </th>
+                        <th>Type</th>
+                        <th>Compte</th>
+                        <th>Contenu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (VM.PagedJournaux.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="empty-state">Aucun journal trouvé.</td>
+                        </tr>
+                    }
+                    @foreach (var journal in VM.PagedJournaux)
+                    {
+                        <tr>
+                            <td>#@journal.IdJournal</td>
+                            <td>@journal.DateJournal.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge-type">Type @journal.IdTypeJournal</span>
+                            </td>
+                            <td>
+                                @if (journal.IdCompte != 0)
+                                {
+                                    <span class="user-id">User #@journal.IdCompte</span>
+                                }
+                                else
+                                {
+                                    <span>Système</span>
+                                }
+                            </td>
+                            <td class="content-cell">@journal.ContenuJournal</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (VM.TotalPages > 1)
+        {
+            <div class="pagination">
+                <button class="btn-page" @onclick="VM.PreviousPage" disabled="@(!VM.CanGoPrevious)">← Précédent</button>
+                <span class="page-info">Page @VM.CurrentPage sur @VM.TotalPages</span>
+                <button class="btn-page" @onclick="VM.NextPage" disabled="@(!VM.CanGoNext)">Suivant →</button>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+}

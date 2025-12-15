@@ -60,7 +60,6 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.Prix
             , // <--- AJOUTEZ CETTE LIGNE
                 opt => opt.MapFrom(src => src.Prix))
-            // Vendeur
             .ForMember(dest => dest.IdVendeur,
                 opt => opt.MapFrom(src => src.CompteAnnonceNav.IdCompte))
             .ForMember(dest => dest.PseudoVendeur,
@@ -120,6 +119,10 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.NbPlace))
             .ForMember(dest => dest.NbPortes,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.NbPorte))
+            .ForMember(dest => dest.NbVues,
+                opt => opt.MapFrom(src => src.Vues.Count()))
+            .ForMember(dest => dest.NbFavoris,
+                opt => opt.MapFrom(src => src.Favoris.Count()))
             .ForMember(dest => dest.Images,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList()))
             .ForMember(dest => dest.LienModeleBlender,
@@ -385,18 +388,24 @@ public class MapperProfile : Profile
         
         CreateMap<Notification, NotificationUpdateDTO>()
             .ReverseMap();
-        
+
+        //---------------------------------Offre---------------------------------
+
         //---------------------------------Pays---------------------------------
 
         CreateMap<Pays, PaysDTO>().ReverseMap();
 
         //---------------------------------PieceJointe---------------------------------
 
-        CreateMap<PieceJointe, PieceJointeDTO>()
-            .ForMember(dest => dest.ContenuBase64, opt => opt.MapFrom(src => src.Contenu)).ReverseMap();
+        CreateMap<PieceJointeDTO, PieceJointe>()
+            .ForMember(dest => dest.Contenu, opt => opt.MapFrom(src => Convert.FromBase64String(src.ContenuBase64))).ReverseMap();
 
         CreateMap<PieceJointeUploadDTO, PieceJointe>()
-            .ForMember(dest => dest.IdPieceJointe, opt => opt.Ignore())
+            .ForMember(dest => dest.DateUpload, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.Contenu, opt => opt.MapFrom(src => Convert.FromBase64String(src.ContenuBase64)))
+            .ForMember(dest => dest.MessagePjNav, opt => opt.Ignore());
+
+        CreateMap<PieceJointeCreateDTO, PieceJointe>()
             .ForMember(dest => dest.DateUpload, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.Contenu, opt => opt.MapFrom(src => Convert.FromBase64String(src.ContenuBase64)))
             .ForMember(dest => dest.MessagePjNav, opt => opt.Ignore());

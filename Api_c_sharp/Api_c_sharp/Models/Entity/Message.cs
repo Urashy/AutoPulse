@@ -39,5 +39,8 @@ namespace Api_c_sharp.Models.Entity
         
         [InverseProperty(nameof(PieceJointe.MessagePjNav))]
         public virtual ICollection<PieceJointe> PiecesJointes { get; set; } = new List<PieceJointe>();
+
+        [InverseProperty(nameof(Offre.OffreMessageNav))]
+        public virtual ICollection<Offre> Offres { get; set; } = new List<Offre>();
     }
 }

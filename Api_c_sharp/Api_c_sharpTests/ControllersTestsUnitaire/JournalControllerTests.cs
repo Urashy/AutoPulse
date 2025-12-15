@@ -255,21 +255,209 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task GetJournalByTypeTest()
+        public async Task GetFilteredJournal_ByTypeOnly_Test()
         {
-            var result = await _controller.GetAllByType(1);
+            // Arrange: Créer plusieurs journaux de différents types
+            await _journalService.LogConnexionAsync(1);
+            await _journalService.LogConnexionAsync(1);
+            await _journalService.LogDeconnexionAsync(1);
 
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                Order = 0
+            };
+
+            // Act
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<JournalDTO>));
-            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Count() >= 2);
+            Assert.IsTrue(result.Value.All(j => j.IdTypeJournal == 1));
         }
 
         [TestMethod]
-        public async Task NotFoundGetJournalByTypeTest()
+        public async Task GetFilteredJournal_WithDateDebut_Test()
         {
-            var result = await _controller.GetAllByType(999);
+            // Arrange
+            var dateReference = DateTime.UtcNow.AddDays(-5);
 
+            await _journalService.LogConnexionAsync(1);
+            await Task.Delay(100);
+            await _journalService.LogConnexionAsync(1);
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                DebutIntervalle = dateReference,
+                Order = 0
+            };
+
+            // Act
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.All(j => j.DateJournal >= dateReference));
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_WithDateFin_Test()
+        {
+            // Arrange
+            var dateFin = DateTime.UtcNow.AddDays(1);
+
+            await _journalService.LogConnexionAsync(1);
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                FinIntervalle = dateFin,
+                Order = 0
+            };
+
+            // Act
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.All(j => j.DateJournal <= dateFin));
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_WithDateIntervalComplete_Test()
+        {
+            // Arrange
+            var dateDebut = DateTime.UtcNow.AddDays(-1);
+            var dateFin = DateTime.UtcNow.AddDays(1);
+
+            await _journalService.LogConnexionAsync(1);
+            await _journalService.LogConnexionAsync(1);
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                DebutIntervalle = dateDebut,
+                FinIntervalle = dateFin,
+                Order = 0
+            };
+
+            // Act
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.All(j => j.DateJournal >= dateDebut && j.DateJournal <= dateFin));
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_OrderAscending_Test()
+        {
+            // Arrange
+            await _journalService.LogConnexionAsync(1);
+            await Task.Delay(100);
+            await _journalService.LogConnexionAsync(1);
+            await Task.Delay(100);
+            await _journalService.LogConnexionAsync(1);
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                Order = 1
+            };
+
+            // Act
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            var journaux = result.Value.ToList();
+            Assert.IsTrue(journaux.Count >= 3);
+
+            for (int i = 0; i < journaux.Count - 1; i++)
+            {
+                Assert.IsTrue(journaux[i].DateJournal <= journaux[i + 1].DateJournal);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_OrderDescending_Test()
+        {
+            // Arrange
+            await _journalService.LogConnexionAsync(1);
+            await Task.Delay(100);
+            await _journalService.LogConnexionAsync(1);
+            await Task.Delay(100);
+            await _journalService.LogConnexionAsync(1);
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                Order = 0
+            };
+
+            // Act
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            var journaux = result.Value.ToList();
+            Assert.IsTrue(journaux.Count >= 3);
+
+            for (int i = 0; i < journaux.Count - 1; i++)
+            {
+                Assert.IsTrue(journaux[i].DateJournal >= journaux[i + 1].DateJournal);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_NoResults_Test()
+        {
+            // Arrange
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 999,
+                Order = 0
+            };
+
+            // Act
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_WithDateIntervalNoResults_Test()
+        {
+            // Arrange
+            var dateDebut = DateTime.UtcNow.AddDays(-10);
+            var dateFin = DateTime.UtcNow.AddDays(-5);
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                DebutIntervalle = dateDebut,
+                FinIntervalle = dateFin,
+                Order = 0
+            };
+
+            // Act
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
@@ -573,21 +761,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             {
                 Assert.IsNotNull(ex);
             }
-        }
-
-        [TestMethod]
-        public async Task GetJournalByTypeFromServiceTest()
-        {
-            // Créer plusieurs journaux de différents types
-            await _journalService.LogConnexionAsync(1);
-            await _journalService.LogConnexionAsync(1);
-            await _journalService.LogDeconnexionAsync(1);
-
-            var connexionJournaux = await _journalService.GetJournalByType(1);
-
-            Assert.IsNotNull(connexionJournaux);
-            Assert.IsTrue(connexionJournaux.Count() >= 2);
-            Assert.IsTrue(connexionJournaux.All(j => j.IdTypeJournal == 1));
         }
 
         [TestMethod]

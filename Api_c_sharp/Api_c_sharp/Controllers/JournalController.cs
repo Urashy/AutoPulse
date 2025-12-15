@@ -142,11 +142,11 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
     /// <item><description><see cref="NotFoundResult"/> si aucun journal ne correspond (404).</description></item>
     /// </list>
     /// </returns>
-    [ActionName("GetAllByType")]
-    [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<JournalDTO>>> GetAllByType(int idtype)
+    [ActionName("GetFilteredJournal")]
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<JournalDTO>>> GetFilteredJournal([FromQuery] RechercheJournalDTO recherche)
     {
-        var result = await _manager.GetJournalByType(idtype);
+        var result = await _manager.GetFilteredJournal(recherche);
 
         if (result is null || !result.Any())
             return NotFound();
@@ -154,6 +154,4 @@ public class JournalController(JournalManager _manager, IMapper _mapper) : Contr
         return new ActionResult<IEnumerable<JournalDTO>>(_mapper.Map<IEnumerable<JournalDTO>>(result));
 
     }
-
-
 }

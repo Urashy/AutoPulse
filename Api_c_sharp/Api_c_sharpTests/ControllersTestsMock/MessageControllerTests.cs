@@ -160,7 +160,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
                 It.IsAny<int>(),
                 It.IsAny<int>(),
-                It.IsAny<string>()))
+                It.IsAny<string>(),
+                It.IsAny<int?>()))  // ✅ Ajouter le 4ème paramètre optionnel
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -172,10 +173,12 @@ namespace Api_c_sharp.ControllersMock.Tests
             var createdMessage = (Message)created.Value;
             Assert.AreEqual(messageDTO.ContenuMessage, createdMessage.ContenuMessage);
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Once);
+            // ✅ Vérifier avec les 4 paramètres (incluant le paramètre optionnel)
             _mockJournalService.Verify(j => j.LogEnvoiMessageAsync(
                 messageDTO.IdCompte,
                 messageDTO.IdConversation,
-                messageDTO.ContenuMessage), Times.Once);
+                messageDTO.ContenuMessage,
+                It.IsAny<int?>()), Times.Once);
         }
 
         [TestMethod]
@@ -200,7 +203,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
                 It.IsAny<int>(),
                 It.IsAny<int>(),
-                It.IsAny<string>()))
+                It.IsAny<string>(),
+                It.IsAny<int?>()))  // ✅ Ajouter le 4ème paramètre optionnel
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -363,7 +367,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdMessage))
                        .ReturnsAsync(existingMessage);
 
-            _controller.ModelState.AddModelError("ContenuMessage", "Required");
+            _controller.ModelState.AddModelError("Contenu", "Required");
 
             // Act
             var result = await _controller.Put(_objetcommun.IdMessage, messageDTO);
