@@ -1,6 +1,6 @@
 ﻿using BlazorAutoPulse.Service.Interface;
 
-namespace BlazorAutoPulse.ViewModel
+namespace BlazorAutoPulse.ViewModel.Administration
 {
     public class AdminDashboardViewModel
     {

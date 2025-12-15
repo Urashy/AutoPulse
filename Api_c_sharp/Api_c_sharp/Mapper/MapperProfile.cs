@@ -395,11 +395,15 @@ public class MapperProfile : Profile
 
         //---------------------------------PieceJointe---------------------------------
 
-        CreateMap<PieceJointe, PieceJointeDTO>()
-            .ForMember(dest => dest.ContenuBase64, opt => opt.MapFrom(src => src.Contenu)).ReverseMap();
+        CreateMap<PieceJointeDTO, PieceJointe>()
+            .ForMember(dest => dest.Contenu, opt => opt.MapFrom(src => Convert.FromBase64String(src.ContenuBase64))).ReverseMap();
 
         CreateMap<PieceJointeUploadDTO, PieceJointe>()
-            .ForMember(dest => dest.IdPieceJointe, opt => opt.Ignore())
+            .ForMember(dest => dest.DateUpload, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.Contenu, opt => opt.MapFrom(src => Convert.FromBase64String(src.ContenuBase64)))
+            .ForMember(dest => dest.MessagePjNav, opt => opt.Ignore());
+
+        CreateMap<PieceJointeCreateDTO, PieceJointe>()
             .ForMember(dest => dest.DateUpload, opt => opt.MapFrom(src => DateTime.UtcNow))
             .ForMember(dest => dest.Contenu, opt => opt.MapFrom(src => Convert.FromBase64String(src.ContenuBase64)))
             .ForMember(dest => dest.MessagePjNav, opt => opt.Ignore());

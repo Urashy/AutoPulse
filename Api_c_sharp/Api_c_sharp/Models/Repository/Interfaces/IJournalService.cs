@@ -1,5 +1,6 @@
 ﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using AutoPulse.Shared.DTO;
 
 namespace Api_c_sharp.Models.Repository.Interfaces
 {
@@ -39,6 +40,6 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
         Task LogBlocageUtilisateurAsync(int idCompteBloquer, int idCompteBloque);
 
-        Task<IEnumerable<Journal>> GetJournalByType(int typeID);
+        Task<IEnumerable<Journal>> GetFilteredJournal(RechercheJournalDTO recherche);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
+using AutoPulse.Shared.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
@@ -13,9 +14,28 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             _logger = logger;
         }
 
-        public virtual async Task<IEnumerable<Journal>> GetJournalByType(int typeID)
+        public virtual async Task<IEnumerable<Journal>> GetFilteredJournal(RechercheJournalDTO recherche)
         {
-            return await dbSet.Where(journal => journal.IdTypeJournal == typeID).OrderBy(j => j.DateJournal).ToListAsync();
+            var query = dbSet.Where(journal => journal.IdTypeJournal == recherche.IdType);
+            
+            // Appliquer le filtre de date de début si fourni
+            if (recherche.DebutIntervalle.HasValue)
+            {
+                query = query.Where(j => j.DateJournal >= recherche.DebutIntervalle.Value);
+            }
+
+            // Appliquer le filtre de date de fin si fourni
+            if (recherche.FinIntervalle.HasValue)
+            {
+                query = query.Where(j => j.DateJournal <= recherche.FinIntervalle.Value);
+            }
+
+            // Appliquer le tri selon l'ordre
+            query = recherche.Order == 1
+                ? query.OrderBy(j => j.DateJournal)
+                : query.OrderByDescending(j => j.DateJournal);
+
+            return await query.ToListAsync();
         }
 
         public virtual async Task LogActionAsync(int idCompte, int idTypeJournal, string contenu)

@@ -1,7 +1,7 @@
 ﻿using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service.Interface;
 
-namespace BlazorAutoPulse.ViewModel
+namespace BlazorAutoPulse.ViewModel.Administration
 {
     public class AdminUtilisateursViewModel
     {
@@ -77,7 +77,7 @@ namespace BlazorAutoPulse.ViewModel
                             TypeCompte = c.TypeCompte,
                             DateCreation = c.DateInscription,
                             IdTypeCompte = c.IdTypeCompte,
-                            EstSuspendu = (c.IdEtatCompte == 2)
+                            EstSuspendu = c.IdEtatCompte == 2
 
                         }).ToList();
 
@@ -176,7 +176,7 @@ namespace BlazorAutoPulse.ViewModel
                 Prenom = c.Prenom,
                 Email = "",
                 TypeCompte = c.TypeCompte,
-                EstSuspendu = (c.IdEtatCompte == 2),
+                EstSuspendu = c.IdEtatCompte == 2,
                 DateCreation = c.DateInscription,
                 IdTypeCompte = c.IdTypeCompte
             }).ToList();
