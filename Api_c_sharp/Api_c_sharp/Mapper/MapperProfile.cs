@@ -388,7 +388,9 @@ public class MapperProfile : Profile
         
         CreateMap<Notification, NotificationUpdateDTO>()
             .ReverseMap();
-        
+
+        //---------------------------------Offre---------------------------------
+
         //---------------------------------Pays---------------------------------
 
         CreateMap<Pays, PaysDTO>().ReverseMap();
