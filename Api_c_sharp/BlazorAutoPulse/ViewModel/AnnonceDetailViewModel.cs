@@ -1,4 +1,6 @@
 ﻿using AutoPulse.Shared.DTO;
+using AutoPulse.Shared.DTO.IA.Data;
+using AutoPulse.Shared.DTO.IA.Result;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.JSInterop;
 using BlazorAutoPulse.Service;
@@ -42,6 +44,21 @@ namespace BlazorAutoPulse.ViewModel
         public bool estMasquer = false;
 
         public string ProfileImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
+        
+        // IA
+        private readonly IIAService _iaService;
+
+        // États des popups IA
+        public bool showPriceWarningPopup { get; set; } = false;
+        public bool showPriceLoadingPopup { get; set; } = false;
+        public bool showAdjustmentWarningPopup { get; set; } = false;
+        public bool showAdjustmentLoadingPopup { get; set; } = false;
+        public bool showAdjustmentResultPopup { get; set; } = false;
+
+        // Résultats IA
+        public ResultatPrediction? priceResult { get; set; }
+        public ResultatAjustement? adjustmentResult { get; set; }
+        public List<string> missingFields { get; set; } = new();
 
         private Action? _refreshUI;
         private IJSRuntime? _jsRuntime;
@@ -429,6 +446,208 @@ namespace BlazorAutoPulse.ViewModel
         public async Task VoirProfilVendeur()
         {
             _nav.NavigateTo($"/comptepublic/{Annonce.IdVendeur}");
+        }
+
+        // Modifiez le constructeur pour ajouter IIAService
+        public AnnonceDetailViewModel(
+            IAnnonceService annonceService,
+            IPostImageService postImageService,
+            IFavorisService favorisService,
+            ICompteService compteService,
+            IImageService imageService,
+            ICouleurService couleurService,
+            IService<VueDTO> vueService,
+            NotificationService notificationService,
+            IIAService iaService) // AJOUT
+        {
+            _annonceService = annonceService;
+            _postImageService = postImageService;
+            _favorisService = favorisService;
+            _compteService = compteService;
+            _imageService = imageService;
+            _couleurService = couleurService;
+            _notificationService = notificationService;
+            _vueService = vueService;
+            _iaService = iaService; // AJOUT
+        }
+
+        // ============================================================================
+        // MÉTHODES IA - Prédiction de prix
+        // ============================================================================
+
+        public void CheckAndPredictPrice()
+        {
+            missingFields.Clear();
+
+            if (Annonce == null) return;
+
+            // Vérifier les champs requis (certains peuvent être manquants)
+            if (string.IsNullOrEmpty(Annonce.Marque))
+                missingFields.Add("Marque");
+            if (string.IsNullOrEmpty(Annonce.Modele))
+                missingFields.Add("Modèle");
+            if (Annonce.Annee == 0)
+                missingFields.Add("Année");
+            if (string.IsNullOrEmpty(Annonce.Categorie))
+                missingFields.Add("Catégorie");
+            if (string.IsNullOrEmpty(Annonce.Carburant))
+                missingFields.Add("Carburant");
+            if (Annonce.Kilometrage == 0)
+                missingFields.Add("Kilométrage");
+            if (string.IsNullOrEmpty(Annonce.BoiteDeVitesse))
+                missingFields.Add("Boîte de vitesse");
+            if (string.IsNullOrEmpty(Annonce.Motricite))
+                missingFields.Add("Motricité");
+
+            if (missingFields.Any())
+            {
+                showPriceWarningPopup = true;
+            }
+            else
+            {
+                _ = ExecutePricePrediction();
+            }
+
+            _refreshUI?.Invoke();
+        }
+
+        public void ClosePriceWarningPopup()
+        {
+            showPriceWarningPopup = false;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task ExecutePricePrediction()
+        {
+            if (Annonce == null) return;
+
+            showPriceWarningPopup = false;
+            showPriceLoadingPopup = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                var dataPrediction = new DataPrediction()
+                {
+                    Manufacturer = Annonce.Marque ?? "Unknown",
+                    Model = Annonce.Modele ?? "Unknown",
+                    ProdYear = Annonce.Annee,
+                    Category = Annonce.Categorie ?? "Unknown",
+                    LeatherInterior = "No",
+                    FuelType = Annonce.Carburant ?? "Unknown",
+                    EngineVolume = 2.0f,
+                    Mileage = Annonce.Kilometrage.ToString(),
+                    Cylinders = Annonce.NbCylindres > 0 ? (float)Annonce.NbCylindres : 4f,
+                    GearBoxType = Annonce.BoiteDeVitesse ?? "Unknown",
+                    DriveWheels = Annonce.Motricite ?? "Unknown",
+                    Doors = "4",
+                    Wheel = "Left wheel",
+                    Color = Annonce.Couleur ?? "Black",
+                    Airbags = 4,
+                    Levy = 0f
+                };
+
+                priceResult = await _iaService.PredictPriceAsync(dataPrediction);
+
+                showPriceLoadingPopup = false;
+
+                if (priceResult.Success)
+                {
+                    _notificationService.ShowSuccess(
+                        "Prédiction du prix",
+                        $"Prix estimé : {priceResult.PredictedPrice:N0} {priceResult.Currency}"
+                    );
+                }
+                else
+                {
+                    _notificationService.ShowError(
+                        "Erreur de prédiction",
+                        priceResult.Error ?? "Une erreur est survenue"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                showPriceLoadingPopup = false;
+                _notificationService.ShowError(
+                    "Erreur de prédiction",
+                    $"Erreur: {ex.Message}"
+                );
+            }
+
+            _refreshUI?.Invoke();
+        }
+
+        // ============================================================================
+        // MÉTHODES IA - Ajustement de prix
+        // ============================================================================
+
+        public bool CanUseAdjustment => 
+            Annonce != null && 
+            !string.IsNullOrWhiteSpace(Annonce.Description) && 
+            Annonce.Prix > 0;
+
+        public void OpenAdjustmentWarningPopup()
+        {
+            if (!CanUseAdjustment) return;
+            showAdjustmentWarningPopup = true;
+            _refreshUI?.Invoke();
+        }
+
+        public void CloseAdjustmentWarningPopup()
+        {
+            showAdjustmentWarningPopup = false;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task ExecuteAdjustment()
+        {
+            if (Annonce == null) return;
+
+            showAdjustmentWarningPopup = false;
+            showAdjustmentLoadingPopup = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                var dataAdjustment = new DataAjustement
+                {
+                    BasePrice = priceResult.PredictedPrice,
+                    Description = Annonce.Description ?? "",
+                };
+
+                adjustmentResult = await _iaService.AdjustPriceAsync(dataAdjustment);
+
+                showAdjustmentLoadingPopup = false;
+
+                if (adjustmentResult.Success)
+                {
+                    showAdjustmentResultPopup = true;
+                }
+                else
+                {
+                    _notificationService.ShowError(
+                        "Erreur d'ajustement",
+                        adjustmentResult.Error ?? "Une erreur est survenue"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                showAdjustmentLoadingPopup = false;
+                _notificationService.ShowError(
+                    "Erreur d'ajustement",
+                    $"Erreur: Veuillez prédire le prix avant"
+                );
+            }
+
+            _refreshUI?.Invoke();
+        }
+
+        public void CloseAdjustmentResultPopup()
+        {
+            showAdjustmentResultPopup = false;
+            _refreshUI?.Invoke();
         }
 
         public async Task DisposeAsync()

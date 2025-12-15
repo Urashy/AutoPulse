@@ -6,6 +6,7 @@ public class AnnonceDetailDTO
     public int IdAnnonce { get; set; }
     public string Libelle { get; set; }
     public string LibelleEtatAnnonce { get; set; }
+    public string Description { get; set; }
     public DateTime DatePublication { get; set; }
     public bool EstMiseEnAvant { get; set; }
     public int IdMiseEnAvant { get; set; }

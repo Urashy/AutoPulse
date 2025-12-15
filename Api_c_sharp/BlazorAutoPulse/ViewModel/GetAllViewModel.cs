@@ -81,4 +81,13 @@ public class GetAllViewModel
             filteredModeles = (await _modeleService.FiltreModeleParMarque(idMarque)).ToArray();
         }
     }
+
+    // ✨ NOUVELLE MÉTHODE PUBLIQUE pour l'IA CNN
+    /// <summary>
+    /// Version publique de FiltrerModeleParMarque pour l'utilisation par l'IA
+    /// </summary>
+    public async Task FiltrerModeleParMarquePublic(int idMarque)
+    {
+        await FiltrerModeleParMarque(idMarque);
+    }
 }
