@@ -13,11 +13,6 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             _logger = logger;
         }
 
-        public virtual async Task<IEnumerable<Journal>> GetJournalByType(int typeID)
-        {
-            return await dbSet.Where(journal => journal.IdTypeJournal == typeID).OrderBy(j => j.DateJournal).ToListAsync();
-        }
-
         public virtual async Task<IEnumerable<Journal>> GetFilteredJournal(int typeID, int order = 1,DateTime? datedebutintervalle = null,DateTime? datefinintervalle = null)
         {
             var query = dbSet.Where(journal => journal.IdTypeJournal == typeID);

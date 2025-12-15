@@ -39,6 +39,6 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
         Task LogBlocageUtilisateurAsync(int idCompteBloquer, int idCompteBloque);
 
-        Task<IEnumerable<Journal>> GetJournalByType(int typeID);
+        Task<IEnumerable<Journal>> GetFilteredJournal(int typeID, int order = 1, DateTime? datedebutintervalle = null, DateTime? datefinintervalle = null);
     }
 }
