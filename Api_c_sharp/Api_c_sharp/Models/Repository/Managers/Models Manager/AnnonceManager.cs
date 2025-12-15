@@ -30,9 +30,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Include(a => a.VoitureAnnonceNav)
                     .ThenInclude(v => v.CarburantVoitureNavigation)
                 .Include(a => a.VoitureAnnonceNav)
-                    .ThenInclude(v => v.BoiteVoitureNavigation) 
+                    .ThenInclude(v => v.BoiteVoitureNavigation)
                 .Include(a => a.VoitureAnnonceNav)
-                    .ThenInclude(v => v.MotriciteVoitureNavigation) 
+                    .ThenInclude(v => v.MotriciteVoitureNavigation)
                 .Include(a => a.VoitureAnnonceNav)
                     .ThenInclude(v => v.CategorieVoitureNavigation)
                 .Include(a => a.VoitureAnnonceNav)
@@ -41,7 +41,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Include(a => a.VoitureAnnonceNav)
                     .ThenInclude(v => v.Images)
                 .Include(a => a.VoitureAnnonceNav)
-                    .ThenInclude(v => v.ModeleBlenderNavigation);
+                    .ThenInclude(v => v.ModeleBlenderNavigation)
+                .Include(a => a.Favoris)
+                .Include(a => a.Vues);
         }
 
         public AnnonceManager(AutoPulseBdContext context) : base(context)
