@@ -45,8 +45,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _manager = new PieceJointeManager(_context);
             _controller = new PieceJointeController(_manager, _mapper);
 
-            _context.Adresses.RemoveRange(_context.Adresses);
-            await _context.SaveChangesAsync();
 
              Message message = new Message
              {
@@ -115,9 +113,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task PostAdresseTest_Entity()
+        public async Task PostPJTest_Entity()
         {
-            PieceJointeUploadDTO pj = new PieceJointeUploadDTO
+            PieceJointeCreateDTO pj = new PieceJointeCreateDTO
             {
                 NomFichier = "fichier_testpost.txt",
                 TypeMime = "text/plain",
@@ -132,23 +130,23 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
-            var createdAdresse = (PieceJointe)created.Value;
-            Assert.AreEqual(pj.NomFichier, createdAdresse.NomFichier);
+            var createdPJ = (PieceJointe)created.Value;
+            Assert.AreEqual(pj.NomFichier, createdPJ.NomFichier);
         }
 
 
         [TestMethod]
-        public async Task DeleteAdresseTest()
+        public async Task DeletePJTest()
         {
             var result = await _controller.Delete(_objetcommun.IdPieceJointe);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedAdresse = await _manager.GetByIdAsync(_objetcommun.IdPieceJointe);
-            Assert.IsNull(deletedAdresse);
+            var deletedPJ = await _manager.GetByIdAsync(_objetcommun.IdPieceJointe);
+            Assert.IsNull(deletedPJ);
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteAdresseTest()
+        public async Task NotFoundDeletePJTest()
         {
             var result = await _controller.Delete(0);
 
@@ -156,11 +154,11 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task PutAdresseTest()
+        public async Task PutPJTest()
         {
-            PieceJointeDTO pj = new PieceJointeDTO
+            PieceJointeUploadDTO pj = new PieceJointeUploadDTO
             {
-                IdPieceJointe = 1,
+                IdPieceJointe = _objetcommun.IdPieceJointe,
                 NomFichier = "fichier_testput.txt",
                 TypeMime = "text/plain",
                 Extension = ".txt",
@@ -172,16 +170,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var adresseput = await _manager.GetByIdAsync(_objetcommun.IdPieceJointe);
-            Assert.AreEqual(pj.NomFichier, adresseput.NomFichier);
+            var PJput = await _manager.GetByIdAsync(_objetcommun.IdPieceJointe);
+            Assert.AreEqual(pj.NomFichier, PJput.NomFichier);
         }
 
         [TestMethod]
-        public async Task NotFoundPutAdresseTest()
+        public async Task NotFoundPutPJTest()
         {
-            PieceJointeDTO pj = new PieceJointeDTO
+            PieceJointeUploadDTO pj = new PieceJointeUploadDTO
             {
-                IdPieceJointe = 1,
                 NomFichier = "fichier_testput.txt",
                 TypeMime = "text/plain",
                 Extension = ".txt",
@@ -194,11 +191,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
-        public async Task BadRequestPutAdresseTest()
+        public async Task BadRequestPutPJTest()
         {
-            PieceJointeDTO pj = new PieceJointeDTO
+            PieceJointeUploadDTO pj = new PieceJointeUploadDTO
             {
-                IdPieceJointe = 1,
                 NomFichier = null,
                 TypeMime = "text/plain",
                 Extension = ".txt",
@@ -218,9 +214,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
 
         [TestMethod]
-        public async Task BadRequestPostAdresseTest()
+        public async Task BadRequestPostPJTest()
         {
-            PieceJointeUploadDTO pj = new PieceJointeUploadDTO
+            PieceJointeCreateDTO pj = new PieceJointeCreateDTO
+
             {
                 NomFichier = "fichier_testpost.txt",
                 TypeMime = "text/plain",

@@ -1,8 +1,7 @@
 namespace AutoPulse.Shared.DTO;
 
-public class PieceJointeUploadDTO
+public class PieceJointeCreateDTO
 {
-    public int IdPieceJointe {  get; set; }
     public int IdMessage { get; set; }
     public string NomFichier { get; set; } = string.Empty;
     public string TypeMime { get; set; } = string.Empty;

@@ -183,7 +183,7 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// <summary>
     /// Crée une nouvelle piecejointe.
     /// </summary>
-    /// <param name="dto">Objet <see cref="PieceJointeUploadDTO"/> contenant les informations de la piece jointe à créer.</param>
+    /// <param name="dto">Objet <see cref="PieceJointeCreateDTO"/> contenant les informations de la piece jointe à créer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
@@ -192,7 +192,7 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    public async Task<ActionResult<PieceJointeUploadDTO>> Post([FromBody] PieceJointeUploadDTO dto)
+    public async Task<ActionResult<PieceJointeDTO>> Post([FromBody] PieceJointeCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -231,7 +231,7 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] PieceJointeDTO dto)
+    public async Task<ActionResult> Put(int id, [FromBody] PieceJointeUploadDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest();
