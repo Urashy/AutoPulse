@@ -10,7 +10,7 @@ public class PieceJointeManager : WriteableReadableManager<PieceJointe>, IPieceJ
     {
     }
 
-    public async Task<IEnumerable<PieceJointe>> GetByMessageIdAsync(int messageId)
+    public virtual async Task<IEnumerable<PieceJointe>> GetByMessageIdAsync(int messageId)
     {
         return await dbSet
             .Where(pj => pj.IdMessage == messageId)
@@ -18,7 +18,7 @@ public class PieceJointeManager : WriteableReadableManager<PieceJointe>, IPieceJ
             .ToListAsync();
     }
     
-    public async Task<PieceJointe?> GetByIdWithContentAsync(int id)
+    public virtual async Task<PieceJointe?> GetByIdWithContentAsync(int id)
     {
         return await dbSet
             .FirstOrDefaultAsync(pj => pj.IdPieceJointe == id);

@@ -1,242 +1,310 @@
-.annonces-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 25px;
-    margin-bottom: 30px;
-}
+/* BlazorAutoPulse/Pages/Administration/AdminJournauxPage.razor.css */
 
-.annonce-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
-    border: 1px solid #333;
-    border-radius: 15px;
-    overflow: hidden;
-    transition: all 0.3s;
-}
-
-    .annonce-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0, 212, 255, 0.2);
-        border-color: #00d4ff;
-    }
-
-    .annonce-card.selected {
-        border-color: #00d4ff;
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
-    }
-
-.annonce-image {
-    height: 200px;
-    background: linear-gradient(135deg, #333, #1a1a1a);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 48px;
-}
-
-.annonce-badge {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.badge-active {
-    background: rgba(0, 255, 136, 0.2);
-    color: #00ff88;
-    border: 1px solid #00ff88;
-}
-
-.badge-en.attente {
-    background: rgba(255, 170, 0, 0.2);
-    color: #ffaa00;
-    border: 1px solid #ffaa00;
-}
-
-.badge-suspendue {
-    background: rgba(255, 68, 68, 0.2);
-    color: #ff4444;
-    border: 1px solid #ff4444;
-}
-
-.badge-refusée {
-    background: rgba(128, 128, 128, 0.2);
-    color: #888;
-    border: 1px solid #888;
-}
-
-.featured-badge {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    padding: 6px 12px;
-    background: linear-gradient(135deg, #ffd700, #ffaa00);
-    color: #000;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.annonce-content {
-    padding: 20px;
-}
-
-.annonce-title {
-    font-size: 18px;
-    font-weight: 700;
+/* ========== CONTENEUR PRINCIPAL ========== */
+.admin-page {
+    padding: 30px;
     color: #fff;
-    margin: 0 0 10px 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.annonce-description {
-    font-size: 14px;
-    color: #aaa;
-    margin: 0 0 15px 0;
-    line-height: 1.5;
-}
-
-.annonce-details {
+/* ========== HEADER DE PAGE ========== */
+.page-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 15px;
-    padding: 15px;
-    background: rgba(0, 212, 255, 0.05);
-    border-radius: 10px;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #333;
 }
 
-.detail-item {
+.header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    color: #888;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* ========== BARRE D'ACTIONS & FILTRES ========== */
+.header-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid #333;
+}
+
+.input-wrapper,
+.date-input-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 5px;
 }
 
-.detail-icon {
-    font-size: 20px;
-}
+    .input-wrapper label,
+    .date-input-wrapper label {
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #667eea;
+        font-weight: 700;
+        margin-left: 2px;
+    }
 
-.detail-value {
-    font-size: 14px;
-    font-weight: 600;
-    color: #00d4ff;
-}
-
-.annonce-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-top: 15px;
-    border-top: 1px solid #333;
-}
-
-.meta-item {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-}
-
-.meta-label {
-    color: #666;
-}
-
-.meta-value {
+/* Styles des Inputs */
+.filter-input,
+.date-input {
+    background: #1a1a1a;
+    border: 1px solid #444;
     color: #fff;
-    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.3s ease;
 }
 
-.annonce-actions {
+    .filter-input:focus,
+    .date-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+
+.small-input {
+    width: 100px;
+    text-align: center;
+}
+
+/* Style spécifique pour les inputs date (calendrier sombre) */
+.date-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+    .date-input::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+    }
+
+/* ========== TABLEAU DES JOURNAUX ========== */
+.table-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    border-radius: 15px;
+    border: 1px solid #333;
+    overflow: hidden; /* Arrondit les coins du tableau */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .admin-table th {
+        background: rgba(102, 126, 234, 0.1);
+        color: #ccc;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        padding: 15px 20px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+        white-space: nowrap;
+    }
+
+    .admin-table td {
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: #ddd;
+        vertical-align: middle;
+    }
+
+    .admin-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .admin-table tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+/* Colonne triable */
+.sortable-header {
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+}
+
+    .sortable-header:hover {
+        background: rgba(102, 126, 234, 0.2);
+        color: #fff;
+    }
+
+.sort-icon {
+    font-size: 10px;
+    margin-left: 5px;
+    color: #667eea;
+}
+
+/* Cellules spécifiques */
+.content-cell {
+    max-width: 450px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #aaa;
+}
+
+.user-id {
+    font-family: 'Consolas', monospace;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #fff;
+}
+
+.badge-type {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(102, 126, 234, 0.15);
+    color: #667eea;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    text-transform: uppercase;
+}
+
+/* État vide */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-style: italic;
+    background: rgba(0,0,0,0.2);
+}
+
+/* ========== PAGINATION ========== */
+.pagination {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.3);
-    border-top: 1px solid #333;
+    justify-content: center;
+    align-items: center;
+    margin-top: 25px;
+    gap: 20px;
 }
 
-.btn-action {
-    flex: 1;
-    min-width: fit-content;
-    padding: 10px 15px;
-    background: rgba(0, 212, 255, 0.1);
-    border: 1px solid rgba(0, 212, 255, 0.3);
-    color: #00d4ff;
+.btn-page {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    color: #fff;
+    padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
     transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
+    font-size: 13px;
 }
 
-    .btn-action:hover {
-        background: rgba(0, 212, 255, 0.2);
+    .btn-page:hover:not(:disabled) {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
         transform: translateY(-2px);
     }
 
-    .btn-action.success {
-        background: rgba(0, 255, 136, 0.1);
-        border-color: rgba(0, 255, 136, 0.3);
-        color: #00ff88;
+    .btn-page:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
-        .btn-action.success:hover {
-            background: rgba(0, 255, 136, 0.2);
-        }
+.page-info {
+    color: #888;
+    font-size: 13px;
+    font-weight: 500;
+}
 
-    .btn-action.danger {
-        background: rgba(255, 68, 68, 0.1);
-        border-color: rgba(255, 68, 68, 0.3);
-        color: #ff4444;
+/* ========== LOADER ========== */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px;
+    gap: 15px;
+}
+
+.loader {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(102, 126, 234, 0.1);
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
     }
 
-        .btn-action.danger:hover {
-            background: rgba(255, 68, 68, 0.2);
-        }
-
-    .btn-action.warning {
-        background: rgba(255, 170, 0, 0.1);
-        border-color: rgba(255, 170, 0, 0.3);
-        color: #ffaa00;
+    100% {
+        transform: rotate(360deg);
     }
+}
 
-        .btn-action.warning:hover {
-            background: rgba(255, 170, 0, 0.2);
-        }
-
-    .btn-action.featured {
-        background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 170, 0, 0.2));
-        border-color: #ffd700;
-        color: #ffd700;
-    }
-
-        .btn-action.featured:hover {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 170, 0, 0.3));
-        }
-
+/* ========== RESPONSIVE ========== */
 @media (max-width: 1200px) {
-    .annonces-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    .content-cell {
+        max-width: 250px;
+    }
+}
+
+@media (max-width: 992px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .header-actions, .filter-group {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .input-wrapper, .date-input-wrapper {
+        flex: 1;
+    }
+
+    .filter-input, .date-input, .small-input {
+        width: 100%;
     }
 }
 
 @media (max-width: 768px) {
-    .annonces-grid {
-        grid-template-columns: 1fr;
+    .admin-table th, .admin-table td {
+        padding: 10px;
+        font-size: 12px;
     }
 
-    .annonce-actions {
-        flex-direction: column;
+    .content-cell {
+        max-width: 150px;
     }
 
-    .btn-action {
-        width: 100%;
+    .user-id {
+        display: block;
+        width: fit-content;
     }
 }
