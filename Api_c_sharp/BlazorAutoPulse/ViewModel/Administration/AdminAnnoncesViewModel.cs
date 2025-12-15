@@ -7,19 +7,28 @@ namespace BlazorAutoPulse.ViewModel.Administration
     {
         private readonly IAnnonceService _annonceService;
 
-        // On utilise AnnonceDTO pour être compatible avec AnnonceComposant
-        private List<AnnonceDTO> AllAnnonces { get; set; } = new();
+        // On ne stocke plus AllAnnonces car on charge page par page
         public List<AnnonceDTO> FilteredAnnonces { get; private set; } = new();
 
         public string SearchQuery { get; set; } = "";
 
         // Pagination
         public int CurrentPage { get; private set; } = 1;
-        public int ItemsPerPage { get; private set; } = 12; // Modifiable
-        public int TotalPages => FilteredAnnonces.Count == 0 ? 1 : (int)Math.Ceiling((double)FilteredAnnonces.Count / ItemsPerPage);
+        public int ItemsPerPage { get; private set; } = 12;
+
+        // Indicateur pour savoir s'il y a une page suivante (logique similaire à RechercheViewModel)
+        public bool HasMorePages { get; private set; }
+
         public bool CanGoPrevious => CurrentPage > 1;
-        public bool CanGoNext => CurrentPage < TotalPages;
-        public string PaginationInfo => $"Page {CurrentPage} / {TotalPages} ({FilteredAnnonces.Count} annonces)";
+        public bool CanGoNext => HasMorePages;
+
+        // On ne peut plus calculer le TotalPages exact sans une requête Count() dédiée, 
+        // donc on affiche une estimation ou juste le numéro de page.
+        public string PaginationInfo => $"Page {CurrentPage} - {FilteredAnnonces.Count} affichée(s)";
+
+        // Pour garder la compatibilité avec la vue si elle utilise TotalPages, 
+        // on retourne CurrentPage + 1 si on peut avancer
+        public int TotalPages => HasMorePages ? CurrentPage + 1 : CurrentPage;
 
         public bool IsLoading { get; private set; } = true;
 
@@ -33,23 +42,46 @@ namespace BlazorAutoPulse.ViewModel.Administration
         public async Task InitializeAsync(Action refreshUI)
         {
             _refreshUI = refreshUI;
-            await LoadAnnonces();
+            await PerformSearch();
         }
 
-        private async Task LoadAnnonces()
+        // Nouvelle méthode centrale pour charger les données
+        private async Task PerformSearch()
         {
             IsLoading = true;
             _refreshUI?.Invoke();
 
             try
             {
-                var result = await _annonceService.GetAllAsync();
-                AllAnnonces = result.ToList();
-                FilteredAnnonces = AllAnnonces;
+                // Construction des paramètres de recherche pour le back-end
+                var searchParams = new ParametreRecherche
+                {
+                    Nom = SearchQuery ?? string.Empty, // Recherche textuelle
+                    PageNumber = CurrentPage,
+                    PageSize = ItemsPerPage,
+                    // Valeurs par défaut pour ignorer les autres filtres
+                    PrixMin = 0,
+                    PrixMax = 0, // 0 = infini dans ta logique généralement
+                    KmMin = 0,
+                    KmMax = 0,
+                    IdMarque = 0,
+                    IdCarburant = 0,
+                    IdTypeVoiture = 0 // Categorie
+                };
+
+                // Appel au service existant (filtrage serveur)
+                var result = await _annonceService.GetFilteredAnnoncesAsync(searchParams);
+
+                FilteredAnnonces = result.ToList();
+
+                // Si on a reçu autant d'items que demandé, on suppose qu'il y a potentiellement une page suivante
+                HasMorePages = FilteredAnnonces.Count == ItemsPerPage;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur chargement: {ex.Message}");
+                Console.WriteLine($"Erreur chargement annonces : {ex.Message}");
+                FilteredAnnonces = new List<AnnonceDTO>();
+                HasMorePages = false;
             }
             finally
             {
@@ -58,49 +90,57 @@ namespace BlazorAutoPulse.ViewModel.Administration
             }
         }
 
+        // Retourne la liste directement car elle contient déjà uniquement la page courante
         public List<AnnonceDTO> GetPagedAnnonces()
         {
-            return FilteredAnnonces
-                .Skip((CurrentPage - 1) * ItemsPerPage)
-                .Take(ItemsPerPage)
-                .ToList();
+            return FilteredAnnonces;
         }
 
-        public void SearchAnnonces()
+        // Déclenchée par la barre de recherche
+        public async Task SearchAnnonces()
         {
-            if (string.IsNullOrWhiteSpace(SearchQuery))
-            {
-                FilteredAnnonces = AllAnnonces;
-            }
-            else
-            {
-                var q = SearchQuery.ToLower();
-                FilteredAnnonces = AllAnnonces.Where(a =>
-                    (a.Modele != null && a.Modele.ToLower().Contains(q)) ||
-                    (a.Marque != null && a.Marque.ToLower().Contains(q))
-                ).ToList();
-            }
-            CurrentPage = 1;
-            _refreshUI?.Invoke();
+            CurrentPage = 1; // Reset à la première page lors d'une nouvelle recherche
+            await PerformSearch();
         }
 
         public async Task DeleteAnnonce(AnnonceDTO annonce)
         {
             try
             {
-                await _annonceService.DeleteAsync(annonce.IdAnnonce); // Assure-toi que DeleteAsync prend l'ID ou l'objet
-                AllAnnonces.Remove(annonce);
-                SearchAnnonces(); // Rafraichir le filtre
+                await _annonceService.DeleteAsync(annonce.IdAnnonce); // Utilise IdAnnonce ou Id selon ton DTO
+
+                // On retire l'élément de la liste locale pour un feedback immédiat
+                FilteredAnnonces.Remove(annonce);
+
+                // Optionnel : Recharger la page pour combler le trou s'il y a d'autres éléments
+                // await PerformSearch(); 
+
                 Console.WriteLine($"Annonce {annonce.IdAnnonce} supprimée");
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur suppression: {ex.Message}");
+                Console.WriteLine($"Erreur suppression : {ex.Message}");
             }
         }
 
-        public void NextPage() { if (CanGoNext) { CurrentPage++; _refreshUI?.Invoke(); } }
-        public void PreviousPage() { if (CanGoPrevious) { CurrentPage--; _refreshUI?.Invoke(); } }
+        // Navigation Async
+        public async Task NextPage()
+        {
+            if (CanGoNext)
+            {
+                CurrentPage++;
+                await PerformSearch();
+            }
+        }
+
+        public async Task PreviousPage()
+        {
+            if (CanGoPrevious)
+            {
+                CurrentPage--;
+                await PerformSearch();
+            }
+        }
     }
 }
