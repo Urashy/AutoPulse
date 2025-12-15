@@ -3,6 +3,7 @@
 @using BlazorAutoPulse.ViewModel
 @using BlazorAutoPulse.ViewModel.Administration
 @inject AdminDashboardViewModel VM
+@inject AdminAnnoncesViewModel VMA
 @inject NavigationManager Navigation
 
 <PageTitle>Tableau de bord Admin - AutoPulse</PageTitle>
@@ -28,7 +29,7 @@
         <div class="stat-card">
             <div class="stat-icon signalements">🚩</div>
             <div class="stat-info">
-                <h3>@VM.SignalementsEnAttente</h3>
+                <h3>@VM.SignalementsRecent.Count</h3>
                 <p>Signalements en attente</p>
                 <span class="stat-trend warning">À traiter</span>
             </div>
@@ -37,7 +38,7 @@
         <div class="stat-card">
             <div class="stat-icon revenue">💰</div>
             <div class="stat-info">
-                <h3>@VM.RevenuMensuel.ToString("N0") €</h3>
+                <h3>@VMA.AnnoncesActives</h3>
                 <p>Revenu ce mois</p>
                 <span class="stat-trend positive">+@VM.CroissanceRevenu%</span>
             </div>
