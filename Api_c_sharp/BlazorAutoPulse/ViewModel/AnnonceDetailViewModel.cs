@@ -97,11 +97,7 @@ namespace BlazorAutoPulse.ViewModel
                     await LoadAllImages();
                 }
 
-                await _vueService.CreateAsync(new VueDTO
-                {
-                    IdAnnonce = idAnnonce,
-                    IdCompte = CurrentUserId ?? 0
-                });
+                
 
                 couleurDisponible = await _couleurService.GetCouleursByVoitureId(Annonce.IdVoiture);
                 selectedColor = couleurDisponible?.FirstOrDefault()?.CodeHexaCouleur;
@@ -110,6 +106,12 @@ namespace BlazorAutoPulse.ViewModel
                 if (Annonce != null && CurrentUserId.HasValue)
                 {
                     IsFavorite = await _favorisService.IsFavorite(CurrentUserId.Value, idAnnonce);
+
+                    await _vueService.CreateAsync(new VueDTO
+                    {
+                        IdAnnonce = idAnnonce,
+                        IdCompte = CurrentUserId ?? 0
+                    });
                 }
             }
             catch (Exception ex)

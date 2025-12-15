@@ -6,6 +6,7 @@ using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
 using BlazorAutoPulse.Services;
 using BlazorAutoPulse.ViewModel;
+using BlazorAutoPulse.ViewModel.Administration;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ReinitialisationMdp = BlazorAutoPulse.Model.ReinitialisationMdp;

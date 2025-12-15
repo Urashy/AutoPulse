@@ -730,3 +730,64 @@
         inset: -3px;
     }
 }
+/* Conteneur global pour aligner à droite */
+.stats-container {
+    display: flex;
+    justify-content: flex-end; /* Aligne tout à droite */
+    align-items: center;
+    gap: 15px; /* Espace entre les deux badges */
+    margin-top: 10px; /* Espace par rapport aux images du dessus */
+    margin-bottom: 20px; /* Espace par rapport au titre en dessous */
+    padding-right: 10px;
+}
+
+/* Style de chaque badge (vue et favori) */
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.03); /* Fond très léger */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 30px; /* Forme de pilule */
+    color: #888; /* Texte gris par défaut */
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: default;
+    user-select: none;
+}
+
+/* Icône un peu plus grande */
+.stat-icon {
+    font-size: 16px;
+    opacity: 0.7;
+}
+
+/* Effet au survol */
+.stat-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(0, 212, 255, 0.3); /* Bordure bleutée au survol */
+    color: #fff; /* Texte devient blanc */
+    transform: translateY(-2px); /* Légère remontée */
+}
+
+    .stat-item:hover .stat-icon {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+/* Responsive : sur mobile, on garde aligné à droite ou on centre selon votre goût */
+@media (max-width: 768px) {
+    .stats-container {
+        margin-top: 15px;
+        padding-right: 0;
+        /* Décommenter la ligne ci-dessous si vous préférez centré sur mobile */
+        /* justify-content: center; */
+    }
+
+    .stat-item {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+}

@@ -1,7 +1,7 @@
 ﻿using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service.Interface;
 
-namespace BlazorAutoPulse.ViewModel
+namespace BlazorAutoPulse.ViewModel.Administration
 {
     public class AdminSignalementsViewModel
     {
