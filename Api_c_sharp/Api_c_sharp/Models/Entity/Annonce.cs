@@ -83,4 +83,7 @@ public class Annonce
     
     [InverseProperty(nameof(Notification.AnnonceNotificationNav))]
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
+    [InverseProperty(nameof(Offre.OffreAnnonceNav))]
+    public virtual ICollection<Offre> Offres { get; set; } = new List<Offre>();
 }
