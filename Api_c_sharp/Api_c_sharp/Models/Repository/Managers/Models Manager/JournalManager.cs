@@ -18,6 +18,30 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.Where(journal => journal.IdTypeJournal == typeID).OrderBy(j => j.DateJournal).ToListAsync();
         }
 
+        public virtual async Task<IEnumerable<Journal>> GetFilteredJournal(int typeID, int order = 1,DateTime? datedebutintervalle = null,DateTime? datefinintervalle = null)
+        {
+            var query = dbSet.Where(journal => journal.IdTypeJournal == typeID);
+
+            // Appliquer le filtre de date de début si fourni
+            if (datedebutintervalle.HasValue)
+            {
+                query = query.Where(j => j.DateJournal >= datedebutintervalle.Value);
+            }
+
+            // Appliquer le filtre de date de fin si fourni
+            if (datefinintervalle.HasValue)
+            {
+                query = query.Where(j => j.DateJournal <= datefinintervalle.Value);
+            }
+
+            // Appliquer le tri selon l'ordre
+            query = order == 1
+                ? query.OrderBy(j => j.DateJournal)
+                : query.OrderByDescending(j => j.DateJournal);
+
+            return await query.ToListAsync();
+        }
+
         public virtual async Task LogActionAsync(int idCompte, int idTypeJournal, string contenu)
         {
             try
