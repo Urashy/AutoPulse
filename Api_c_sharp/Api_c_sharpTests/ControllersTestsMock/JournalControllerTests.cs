@@ -296,9 +296,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task GetJournalByTypeTest()
+        public async Task GetFilteredJournal_ByTypeOnly_Test()
         {
-            // Arrange
             var journalsList = new List<Journal>
             {
                 _objetcommun,
@@ -312,33 +311,241 @@ namespace Api_c_sharp.ControllersMock.Tests
                 }
             };
 
-            _mockManager.Setup(m => m.GetJournalByType(1))
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                Order = 0
+            };
+
+            _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(r => r.IdType == 1)))
                        .ReturnsAsync(journalsList);
 
-            // Act
-            var result = await _controller.GetAllByType(1);
+            var result = await _controller.GetFilteredJournal(recherche);
 
-            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<JournalDTO>));
             Assert.IsTrue(result.Value.Any());
             Assert.AreEqual(2, result.Value.Count());
+            Assert.IsTrue(result.Value.All(j => j.IdTypeJournal == 1));
         }
 
         [TestMethod]
-        public async Task NotFoundGetJournalByTypeTest()
+        public async Task GetFilteredJournal_WithDateInterval_Test()
         {
-            // Arrange
-            _mockManager.Setup(m => m.GetJournalByType(999))
+            var dateDebut = DateTime.UtcNow.AddDays(-5);
+            var dateFin = DateTime.UtcNow;
+
+            var journalsList = new List<Journal>
+            {
+                new Journal
+                {
+                    IdJournal = 1,
+                    ContenuJournal = "Journal dans l'intervalle",
+                    DateJournal = DateTime.UtcNow.AddDays(-2),
+                    IdCompte = 1,
+                    IdTypeJournal = 1
+                }
+            };
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                DebutIntervalle = dateDebut,
+                FinIntervalle = dateFin,
+                Order = 0
+            };
+
+            _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(
+                r => r.IdType == 1 && r.DebutIntervalle == dateDebut && r.FinIntervalle == dateFin)))
+                       .ReturnsAsync(journalsList);
+
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+            _mockManager.Verify(m => m.GetFilteredJournal(It.IsAny<RechercheJournalDTO>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_OrderAscending_Test()
+        {
+            var date1 = DateTime.UtcNow.AddHours(-3);
+            var date2 = DateTime.UtcNow.AddHours(-2);
+            var date3 = DateTime.UtcNow.AddHours(-1);
+
+            var journalsList = new List<Journal>
+            {
+                new Journal { IdJournal = 1, ContenuJournal = "Premier", DateJournal = date1, IdCompte = 1, IdTypeJournal = 1 },
+                new Journal { IdJournal = 2, ContenuJournal = "Deuxième", DateJournal = date2, IdCompte = 1, IdTypeJournal = 1 },
+                new Journal { IdJournal = 3, ContenuJournal = "Troisième", DateJournal = date3, IdCompte = 1, IdTypeJournal = 1 }
+            };
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                Order = 1
+            };
+
+            _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(r => r.Order == 1)))
+                       .ReturnsAsync(journalsList);
+
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            var journaux = result.Value.ToList();
+            Assert.AreEqual(3, journaux.Count);
+
+            for (int i = 0; i < journaux.Count - 1; i++)
+            {
+                Assert.IsTrue(journaux[i].DateJournal <= journaux[i + 1].DateJournal);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_OrderDescending_Test()
+        {
+            var date1 = DateTime.UtcNow.AddHours(-1);
+            var date2 = DateTime.UtcNow.AddHours(-2);
+            var date3 = DateTime.UtcNow.AddHours(-3);
+
+            var journalsList = new List<Journal>
+            {
+                new Journal { IdJournal = 3, ContenuJournal = "Troisième", DateJournal = date1, IdCompte = 1, IdTypeJournal = 1 },
+                new Journal { IdJournal = 2, ContenuJournal = "Deuxième", DateJournal = date2, IdCompte = 1, IdTypeJournal = 1 },
+                new Journal { IdJournal = 1, ContenuJournal = "Premier", DateJournal = date3, IdCompte = 1, IdTypeJournal = 1 }
+            };
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                Order = 0
+            };
+
+            _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(r => r.Order == 0)))
+                       .ReturnsAsync(journalsList);
+
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            var journaux = result.Value.ToList();
+            Assert.AreEqual(3, journaux.Count);
+
+            for (int i = 0; i < journaux.Count - 1; i++)
+            {
+                Assert.IsTrue(journaux[i].DateJournal >= journaux[i + 1].DateJournal);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_NoResults_Test()
+        {
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 999,
+                Order = 0
+            };
+
+            _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(r => r.IdType == 999)))
                        .ReturnsAsync((IEnumerable<Journal>)null);
 
-            // Act
-            var result = await _controller.GetAllByType(999);
+            var result = await _controller.GetFilteredJournal(recherche);
 
-            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_EmptyResults_Test()
+        {
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                DebutIntervalle = DateTime.UtcNow.AddDays(-10),
+                FinIntervalle = DateTime.UtcNow.AddDays(-5),
+                Order = 0
+            };
+
+            _mockManager.Setup(m => m.GetFilteredJournal(It.IsAny<RechercheJournalDTO>()))
+                       .ReturnsAsync(new List<Journal>());
+
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_WithDateDebutOnly_Test()
+        {
+            var dateDebut = DateTime.UtcNow.AddDays(-5);
+
+            var journalsList = new List<Journal>
+            {
+                new Journal
+                {
+                    IdJournal = 1,
+                    ContenuJournal = "Journal récent",
+                    DateJournal = DateTime.UtcNow.AddDays(-2),
+                    IdCompte = 1,
+                    IdTypeJournal = 1
+                }
+            };
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                DebutIntervalle = dateDebut,
+                Order = 0
+            };
+
+            _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(
+                r => r.DebutIntervalle == dateDebut && !r.FinIntervalle.HasValue)))
+                       .ReturnsAsync(journalsList);
+
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+        }
+
+        [TestMethod]
+        public async Task GetFilteredJournal_WithDateFinOnly_Test()
+        {
+            var dateFin = DateTime.UtcNow;
+
+            var journalsList = new List<Journal>
+            {
+                new Journal
+                {
+                    IdJournal = 1,
+                    ContenuJournal = "Journal ancien",
+                    DateJournal = DateTime.UtcNow.AddDays(-2),
+                    IdCompte = 1,
+                    IdTypeJournal = 1
+                }
+            };
+
+            var recherche = new RechercheJournalDTO
+            {
+                IdType = 1,
+                FinIntervalle = dateFin,
+                Order = 0
+            };
+
+            _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(
+                r => !r.DebutIntervalle.HasValue && r.FinIntervalle == dateFin)))
+                       .ReturnsAsync(journalsList);
+
+            var result = await _controller.GetFilteredJournal(recherche);
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
         }
 
         // ==========================================

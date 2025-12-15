@@ -1,0 +1,130 @@
+﻿using AutoPulse.Shared.DTO;
+using Api_c_sharp.Models.Repository.Managers;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using Api_c_sharp.Models.Entity;
+
+namespace Api_c_sharp.Controllers
+{
+    /// <summary>
+    /// Contrôleur REST permettant de gérer les offres.
+    /// Les méthodes exposent ou consomment des DTO afin
+    /// d’assurer la séparation entre le modèle de domaine
+    /// et la couche API.
+    /// </summary>
+    [Route("api/[controller]/[action]")]
+    [ApiController]
+    public class OffreController(OffreManager _manager, IMapper _offremapper) : ControllerBase
+    {
+        /// <summary>
+        /// Crée une nouvelle offre.
+        /// </summary>
+        /// <param name="dto">Objet <see cref="OffreCreateDTO"/> contenant les informations de l'offre à créer.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see cref="CreatedAtActionResult"/> avec l'offre créée (201).</description></item>
+        /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
+        /// </list>
+        /// </returns>
+        [ActionName("Post")]
+        [HttpPost]
+        public async Task<ActionResult<OffreDTO>> Post([FromBody] OffreCreateDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var entity = _offremapper.Map<Offre>(dto);
+
+            await _manager.AddAsync(entity);
+
+            // Retourne bien les deux clés
+            return CreatedAtAction(nameof(GetByID), new { idoffre = entity.IdOffre }, dto);
+        }
+
+        /// <summary>
+        /// Met à jour une offre existante.
+        /// </summary>
+        /// <param name="dto">Objet <see cref="OffreUpdateDTO"/> contenant les nouvelles valeurs.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+        /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune offre ne correspond (404).</description></item>
+        /// </list>
+        /// </returns>
+        [ActionName("Put")]
+        [HttpPut("{idannonce}/{idCompte}")]
+        public async Task<ActionResult> Put(int idoffre, [FromBody] OffreUpdateDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var toUpdate = await _manager.GetByIdAsync(idoffre);
+            if (toUpdate == null)
+                return NotFound();
+
+            var updated = _offremapper.Map<Offre>(dto);
+
+            await _manager.UpdateAsync(toUpdate, updated);
+
+            return NoContent();
+        }
+        /// <summary>
+        /// Supprime une offre existante.
+        /// </summary>
+        /// <param name="id">Identifiant unique de l'offre à supprimer.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune offre ne correspond (404).</description></item>
+        /// </list>
+        /// </returns>
+        [ActionName("Delete")]
+        [HttpDelete("{idoffre}")]
+        public async Task<IActionResult> Delete(int idoffre)
+        {
+            var entity = await _manager.GetByIdAsync(idoffre);
+
+            if (entity == null)
+                return NotFound();
+
+            await _manager.DeleteAsync(entity);
+            return NoContent();
+        }
+        /// <summary>
+        /// Récupère la liste de toutes les offres.
+        /// </summary>
+        /// <returns>
+        /// Une liste de <see cref="OffreDTO"/> (200 OK).
+        /// </returns>
+        [ActionName("GetAll")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<OffreDTO>>> GetAll()
+        {
+            var list = await _manager.GetAllAsync();
+            return new ActionResult<IEnumerable<OffreDTO>>(_offremapper.Map<IEnumerable<OffreDTO>>(list));
+        }
+        /// <summary>
+        /// Récupère une offre à partir de ses identifiant.
+        /// </summary>
+        /// <param name="id">Identifiant unique de l'offre recherchée.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see cref="OffreDTO"/> si l'offre existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune offre ne correspond (404).</description></item>
+        /// </list>
+        /// </returns>
+        [ActionName("GetByIds")]
+        [HttpGet("{idoffre}")]
+        public async Task<ActionResult<OffreDTO>> GetByID(int idoffre)
+        {
+            var result = await _manager.GetByIdAsync(idoffre);
+
+            if (result == null)
+                return NotFound();
+
+            return _offremapper.Map<OffreDTO>(result);
+        }
+    }
+}
