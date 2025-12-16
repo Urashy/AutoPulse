@@ -7,7 +7,6 @@ namespace BlazorAutoPulse.ViewModel.Administration
     {
         private readonly IAnnonceService _annonceService;
 
-        // On ne stocke plus AllAnnonces car on charge page par page
         public List<AnnonceDTO> FilteredAnnonces { get; private set; } = new();
 
         public string SearchQuery { get; set; } = "";
@@ -16,18 +15,12 @@ namespace BlazorAutoPulse.ViewModel.Administration
         public int CurrentPage { get; private set; } = 1;
         public int ItemsPerPage { get; private set; } = 12;
 
-        // Indicateur pour savoir s'il y a une page suivante (logique similaire à RechercheViewModel)
         public bool HasMorePages { get; private set; }
 
         public bool CanGoPrevious => CurrentPage > 1;
         public bool CanGoNext => HasMorePages;
-
-        // On ne peut plus calculer le TotalPages exact sans une requête Count() dédiée, 
-        // donc on affiche une estimation ou juste le numéro de page.
         public string PaginationInfo => $"Page {CurrentPage} - {FilteredAnnonces.Count} affichée(s)";
 
-        // Pour garder la compatibilité avec la vue si elle utilise TotalPages, 
-        // on retourne CurrentPage + 1 si on peut avancer
         public int TotalPages => HasMorePages ? CurrentPage + 1 : CurrentPage;
 
         public bool IsLoading { get; private set; } = true;
@@ -45,7 +38,6 @@ namespace BlazorAutoPulse.ViewModel.Administration
             await PerformSearch();
         }
 
-        // Nouvelle méthode centrale pour charger les données
         private async Task PerformSearch()
         {
             IsLoading = true;
@@ -53,13 +45,11 @@ namespace BlazorAutoPulse.ViewModel.Administration
 
             try
             {
-                // Construction des paramètres de recherche pour le back-end
                 var searchParams = new ParametreRecherche
                 {
                     Nom = SearchQuery ?? string.Empty, // Recherche textuelle
                     PageNumber = CurrentPage,
                     PageSize = ItemsPerPage,
-                    // Valeurs par défaut pour ignorer les autres filtres
                     PrixMin = 0,
                     PrixMax = 0, // 0 = infini dans ta logique généralement
                     KmMin = 0,
@@ -67,14 +57,13 @@ namespace BlazorAutoPulse.ViewModel.Administration
                     IdMarque = 0,
                     IdCarburant = 0,
                     IdTypeVoiture = 0 // Categorie
+                    ,Order = 3
                 };
 
-                // Appel au service existant (filtrage serveur)
                 var result = await _annonceService.GetFilteredAnnoncesAsync(searchParams);
 
                 FilteredAnnonces = result.ToList();
 
-                // Si on a reçu autant d'items que demandé, on suppose qu'il y a potentiellement une page suivante
                 HasMorePages = FilteredAnnonces.Count == ItemsPerPage;
             }
             catch (Exception ex)
@@ -90,16 +79,14 @@ namespace BlazorAutoPulse.ViewModel.Administration
             }
         }
 
-        // Retourne la liste directement car elle contient déjà uniquement la page courante
         public List<AnnonceDTO> GetPagedAnnonces()
         {
             return FilteredAnnonces;
         }
 
-        // Déclenchée par la barre de recherche
         public async Task SearchAnnonces()
         {
-            CurrentPage = 1; // Reset à la première page lors d'une nouvelle recherche
+            CurrentPage = 1;
             await PerformSearch();
         }
 

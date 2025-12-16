@@ -8,8 +8,22 @@
 
 <div class="admin-dashboard">
     <div class="dashboard-header">
-        <h1>📊 Tableau de bord</h1>
-        <p class="subtitle">Vue d'ensemble de la plateforme</p>
+        <div class="dashboard-header-left">
+            <h1>📊 Tableau de bord</h1>
+            <p class="subtitle">Vue d'ensemble de la plateforme</p>
+        </div>
+        <button class="btn-refresh" @onclick="HandleRefresh" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span class="refresh-spinner"></span>
+                <span>Chargement...</span>
+            }
+            else
+            {
+                <span>🔄</span>
+                <span>Actualiser</span>
+            }
+        </button>
     </div>
 
     <div class="stats-grid">
@@ -20,7 +34,6 @@
                 <p>Annonces</p>
             </div>
         </div>
-
         <div class="stat-card">
             <div class="stat-icon users">👥</div>
             <div class="stat-info">
@@ -28,7 +41,6 @@
                 <p>Comptes</p>
             </div>
         </div>
-
         <div class="stat-card">
             <div class="stat-icon signalements">🚩</div>
             <div class="stat-info">
@@ -36,7 +48,6 @@
                 <p>Signalements (Attente)</p>
             </div>
         </div>
-
         <div class="stat-card">
             <div class="stat-icon warning">⚖️</div>
             <div class="stat-info">
@@ -50,9 +61,7 @@
         <div class="recent-activity">
             <div class="section-header">
                 <h2>📋 Derniers Signalements</h2>
-                <button class="btn-refresh" @onclick="VM.RefreshData">Actualiser</button>
             </div>
-
             <div class="activity-list">
                 @if (VM.SignalementsRecent != null && VM.SignalementsRecent.Any())
                 {
@@ -84,14 +93,30 @@
                 <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/utilisateurs")'>
                     Gérer les utilisateurs
                 </button>
+                <button class="action-btn" @onclick='() => Navigation.NavigateTo("/admin/signalements")'>
+                    Gérer les signalements
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 @code {
+    private bool isLoading = false;
+
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
         await VM.InitializeAsync(StateHasChanged);
+        isLoading = false;
+    }
+
+    private async Task HandleRefresh()
+    {
+        isLoading = true;
+        StateHasChanged();
+        await VM.RefreshData();
+        isLoading = false;
+        StateHasChanged();
     }
 }
