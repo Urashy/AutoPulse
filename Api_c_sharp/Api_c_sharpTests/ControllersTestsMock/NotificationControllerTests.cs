@@ -253,6 +253,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             var actionResult = await _controller.Post(notificationDto);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Notification>()), Times.Never);
+
         }
 
         [TestMethod]
@@ -357,6 +359,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             var result = await _controller.Put(_objetcommun.IdNotification, notificationDto);
 
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Notification>(), It.IsAny<Notification>()), Times.Never);
         }
 
         #endregion
