@@ -16,7 +16,7 @@ namespace BlazorAutoPulse.ViewModel
         //-------------------------------- Services
         private readonly ICompteService _compteService;
         private readonly IAnnonceService _annonceService;
-        private readonly IService<VoitureDetailDTO> _voitureService;
+        private readonly IVoitureService _voitureService;
         private readonly IAdresseService _adresseService;
         private readonly IPostImageService _postImageService;
         private readonly IService<APourCouleur> _aPourCouleurService;
@@ -64,7 +64,7 @@ namespace BlazorAutoPulse.ViewModel
         public VenteViewModel(
             ICompteService compteService,
             IAnnonceService annonceService, 
-            IService<VoitureDetailDTO> voitureService, 
+            IVoitureService voitureService, 
             IPostImageService postImageService,
             IAdresseService adresseService,
             IService<APourCouleur> aPourCouleurService,
@@ -283,7 +283,7 @@ namespace BlazorAutoPulse.ViewModel
                     Cylinders = VoitureDetailDto.NbCylindres > 0 ? (float)VoitureDetailDto.NbCylindres : 4f,
                     GearBoxType = GetBoiteLibelle(),
                     DriveWheels = GetMotriciteLibelle(),
-                    Doors = VoitureDetailDto.NbPortes.ToString() ?? "4", // Valeur par défaut
+                    Doors = VoitureDetailDto.NbPorte.ToString() ?? "4", // Valeur par défaut
                     Wheel = VoitureDetailDto.PositionVolant ? "Left wheel" : "Right wheel",
                     Color = selectedCouleurs.Any() ? GetFirstCouleurLibelle() : "Black",
                     Airbags = 4, // Valeur par défaut - Non disponible dans le formulaire
@@ -561,10 +561,10 @@ namespace BlazorAutoPulse.ViewModel
             if (VoitureDetailDto.Couple <= 0)
                 errors.Add("couple", "Couple invalide");
 
-            if (VoitureDetailDto.NbPortes <= 0)
+            if (VoitureDetailDto.NbPorte <= 0)
                 errors.Add("nbporte", "Nombre de portes invalide");
 
-            if (VoitureDetailDto.NbPlaces <= 0)
+            if (VoitureDetailDto.NbPlace <= 0)
                 errors.Add("nbplace", "Nombre de places invalide");
 
             if (VoitureDetailDto.IdCarburant != 4 && VoitureDetailDto.NbCylindres <= 0)

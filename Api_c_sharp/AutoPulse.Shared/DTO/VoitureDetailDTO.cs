@@ -16,8 +16,8 @@ public class VoitureDetailDTO
     public int Couple { get; set; }
     public int NbCylindres { get; set; }
     public DateTime MiseEnCirculation { get; set; }
-    public int NbPlaces { get; set; }
-    public int NbPortes { get; set; }
+    public int NbPlace { get; set; }
+    public int NbPorte { get; set; }
     public bool InterieurCuire { get; set; }
     public double CylindrerMoteur { get; set; }
     public bool PositionVolant { get; set; }
