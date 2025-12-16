@@ -30,45 +30,56 @@ builder.Services.AddDbContext<AutoPulseBdContext>(options =>
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
 //------------------------------Managers (DI)------------------------------
-builder.Services.AddScoped<AnnonceManager>();
 builder.Services.AddScoped<AdresseManager>();
+builder.Services.AddScoped<AnnonceManager>();
+builder.Services.AddScoped<APourConversationManager>();
+builder.Services.AddScoped<APourCouleurManager>();
 builder.Services.AddScoped<AvisManager>();
-builder.Services.AddScoped<MarqueManager>();
-builder.Services.AddScoped<ModeleManager>();
+builder.Services.AddScoped<BloqueManager>();
 builder.Services.AddScoped<BoiteDeVitesseManager>();
 builder.Services.AddScoped<CarburantManager>();
 builder.Services.AddScoped<CategorieManager>();
 builder.Services.AddScoped<CommandeManager>();
-builder.Services.AddScoped<MiseEnAvantManager>();
-builder.Services.AddScoped<MotriciteManager>();
-builder.Services.AddScoped<PaysManager>();
-builder.Services.AddScoped<TypeJournalManager>();
 builder.Services.AddScoped<CompteManager>();
-builder.Services.AddScoped<ImageManager>();
-builder.Services.AddScoped<TypeCompteManager>();
-builder.Services.AddScoped<CouleurManager>();
-builder.Services.AddScoped<VoitureManager>();
-builder.Services.AddScoped<APourCouleurManager>();
-builder.Services.AddScoped<FavoriManager>();
 builder.Services.AddScoped<ConversationManager>();
-builder.Services.AddScoped<NotificationManager>();
-builder.Services.AddScoped<MessageManager>();
-builder.Services.AddScoped<ReinitialisationMotDePasseManager>();
+builder.Services.AddScoped<CouleurManager>();
+builder.Services.AddScoped<EtatAnnonceManager>();
+builder.Services.AddScoped<EtatCompteManager>();
+builder.Services.AddScoped<EtatSignalementManager>();
+builder.Services.AddScoped<FactureManager>();
+builder.Services.AddScoped<FavoriManager>();
+builder.Services.AddScoped<ImageManager>();
 builder.Services.AddScoped<JournalManager>();
-builder.Services.AddScoped<SignalementManager>();
-builder.Services.AddScoped<TypeSignalementManager>();
-builder.Services.AddScoped<BloqueManager>();
+builder.Services.AddScoped<MarqueManager>();
+builder.Services.AddScoped<MessageManager>();
+builder.Services.AddScoped<MiseEnAvantManager>();
+builder.Services.AddScoped<ModeleManager>();
+builder.Services.AddScoped<ModeleBlenderManager>();
+builder.Services.AddScoped<MotriciteManager>();
+builder.Services.AddScoped<MoyenPaiementManager>();
+builder.Services.AddScoped<NotificationManager>();
+builder.Services.AddScoped<OffreManager>();
+builder.Services.AddScoped<PaysManager>();
 builder.Services.AddScoped<PieceJointeManager>();
 builder.Services.AddScoped<PlainteManager>();
+builder.Services.AddScoped<ReinitialisationMotDePasseManager>();
+builder.Services.AddScoped<SignalementManager>();
+builder.Services.AddScoped<TypeCompteManager>();
+builder.Services.AddScoped<TypeJournalManager>();
+builder.Services.AddScoped<TypeSignalementManager>();
+builder.Services.AddScoped<VoitureManager>();
 builder.Services.AddScoped<VueManager>();
 
-// Enregistrer aussi les interfaces pour ModeleManager (car il a une m�thode sp�ciale)
-builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
+builder.Services.AddScoped<IAdresseRepository>(sp => sp.GetRequiredService<AdresseManager>());
+builder.Services.AddScoped<IAnnonceRepository>(sp => sp.GetRequiredService<AnnonceManager>());
 builder.Services.AddScoped<IAvisRepository>(sp => sp.GetRequiredService<AvisManager>());
-builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalManager>());
-builder.Services.AddScoped<INotificationService>(sp => sp.GetRequiredService<NotificationManager>());
+builder.Services.AddScoped<ICompteRepository>(sp => sp.GetRequiredService<CompteManager>());
 builder.Services.AddScoped<ICommandeRepository>(sp => sp.GetRequiredService<CommandeManager>());
+builder.Services.AddScoped<IConversationRepository>(sp => sp.GetRequiredService<ConversationManager>());
 builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmentService>();
+builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalManager>());
+builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
+builder.Services.AddScoped<INotificationService>(sp => sp.GetRequiredService<NotificationManager>());
 
 // Enregistrement du service IA avec HttpClient
 builder.Services.AddHttpClient<IIAService, IAManager>(client =>
