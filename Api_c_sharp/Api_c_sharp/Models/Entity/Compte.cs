@@ -38,7 +38,7 @@ namespace Api_c_sharp.Models.Entity
 
         [Column("com_date_derniere_connexion")]
         [Required]
-        public DateTime? DateDerniereConnexion { get; set; }
+        public DateTime DateDerniereConnexion { get; set; }
 
         [Column("com_date_naissance")]
         [Required]

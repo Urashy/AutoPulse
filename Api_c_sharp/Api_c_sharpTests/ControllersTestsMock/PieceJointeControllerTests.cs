@@ -181,6 +181,160 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
+        public async Task Upload_IgnoresFile_WhenTooLarge()
+        {
+            // Arrange
+            var dto = new PieceJointeUploadDTO
+            {
+                IdPieceJointe = _objetcommun.IdPieceJointe,
+                NomFichier = "big.pdf",
+                Extension = ".pdf",
+                TypeMime = "application/pdf",
+                TailleFichier = 11 * 1024 * 1024,
+                ContenuBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("test")),
+                IdMessage = 1
+            };
+
+            // Act
+            var result = await _controller.Upload(new List<PieceJointeUploadDTO> { dto });
+
+            // Assert
+            var ok = result.Result as OkObjectResult;
+            Assert.IsNotNull(ok);
+
+            var list = ok.Value as List<PieceJointeDTO>;
+            Assert.AreEqual(0, list.Count);
+
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<PieceJointe>()), Times.Never);
+        }
+        [TestMethod]
+        public async Task Upload_ReturnsMultipleFiles_WhenMultipleValid()
+        {
+            // Arrange
+            var dtos = new List<PieceJointeUploadDTO>
+    {
+        new()
+        {
+            NomFichier = "a.txt",
+            Extension = ".txt",
+            TypeMime = "text/plain",
+            TailleFichier = 100,
+            ContenuBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("a")),
+            IdMessage = 1
+        },
+        new()
+        {
+            NomFichier = "b.pdf",
+            Extension = ".pdf",
+            TypeMime = "application/pdf",
+            TailleFichier = 100,
+            ContenuBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("b")),
+            IdMessage = 1
+        }
+    };
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<PieceJointe>()))
+                        .ReturnsAsync(_objetcommun);
+
+            // Act
+            var result = await _controller.Upload(dtos);
+
+            // Assert
+            var ok = result.Result as OkObjectResult;
+            var list = ok.Value as List<PieceJointeDTO>;
+
+            Assert.AreEqual(2, list.Count);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<PieceJointe>()), Times.Exactly(2));
+        }
+
+
+        [TestMethod]
+        public async Task Upload_IgnoresFile_WhenExtensionInvalid()
+        {
+            // Arrange
+            var dto = new PieceJointeUploadDTO
+            {
+                IdPieceJointe = _objetcommun.IdPieceJointe,
+                NomFichier = "virus.exe",
+                Extension = ".exe",
+                TypeMime = "application/exe",
+                TailleFichier = 100,
+                ContenuBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("test")),
+                IdMessage = 1
+            };
+
+            // Act
+            var result = await _controller.Upload(new List<PieceJointeUploadDTO> { dto });
+
+            // Assert
+            var ok = result.Result as OkObjectResult;
+            Assert.IsNotNull(ok);
+
+            var list = ok.Value as List<PieceJointeDTO>;
+            Assert.AreEqual(0, list.Count);
+
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<PieceJointe>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Upload_IgnoresFile_WhenBase64Invalid()
+        {
+            // Arrange
+            var dto = new PieceJointeUploadDTO
+            {
+                IdPieceJointe = _objetcommun.IdPieceJointe,
+                NomFichier = "file.txt",
+                Extension = ".txt",
+                TypeMime = "text/plain",
+                TailleFichier = 100,
+                ContenuBase64 = "INVALID_BASE64",
+                IdMessage = 1
+            };
+
+            // Act
+            var result = await _controller.Upload(new List<PieceJointeUploadDTO> { dto });
+
+            // Assert
+            var ok = result.Result as OkObjectResult;
+            Assert.IsNotNull(ok);
+
+            var list = ok.Value as List<PieceJointeDTO>;
+            Assert.AreEqual(0, list.Count);
+
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<PieceJointe>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Upload_Continues_WhenAddAsyncThrows()
+        {
+            // Arrange
+            var dto = new PieceJointeUploadDTO
+            {
+                IdPieceJointe = _objetcommun.IdPieceJointe,
+                NomFichier = "file.txt",
+                Extension = ".txt",
+                TypeMime = "text/plain",
+                TailleFichier = 100,
+                ContenuBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("test")),
+                IdMessage = 1
+            };
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<PieceJointe>()))
+                        .ThrowsAsync(new Exception("DB error"));
+
+            // Act
+            var result = await _controller.Upload(new List<PieceJointeUploadDTO> { dto });
+
+            // Assert
+            var ok = result.Result as OkObjectResult;
+            Assert.IsNotNull(ok);
+
+            var list = ok.Value as List<PieceJointeDTO>;
+            Assert.AreEqual(0, list.Count);
+        }
+
+
+        [TestMethod]
         public async Task Upload_ReturnsBadRequest_WhenEmpty()
         {
             // Act
@@ -253,13 +407,15 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task Post_ReturnsBadRequest_WhenModelInvalid()
         {
             // Arrange
-            _controller.ModelState.AddModelError("Error", "Invalid");
+            var dto = new PieceJointeCreateDTO();
+            _controller.ModelState.AddModelError("NomFichier", "Required");
 
             // Act
-            var result = await _controller.Post(new PieceJointeCreateDTO());
+            var result = await _controller.Post(dto);
 
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<PieceJointe>()), Times.Never);
         }
 
         // -----------------------------------------------------
@@ -288,7 +444,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task Put_ReturnsNotFound_WhenMissing()
+        public async Task Put_PJ_ReturnsNotFound()
         {
             // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(1))
@@ -299,6 +455,25 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        [TestMethod]
+        public async Task BadRequestPutPJTest()
+        {
+            // Arrange
+            var dto = new PieceJointeUploadDTO
+            {
+                NomFichier = null
+            };
+
+            _controller.ModelState.AddModelError("NomFichier", "Required");
+
+            // Act
+            var result = await _controller.Put(1, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<PieceJointe>(), It.IsAny<PieceJointe>()), Times.Never);
         }
 
         // -----------------------------------------------------
@@ -317,6 +492,20 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
+        [TestMethod]
+        public async Task Delete_CallsDeleteAsync_WhenExists()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdWithContentAsync(1))
+                        .ReturnsAsync(_objetcommun);
+
+            // Act
+            await _controller.Delete(1);
+
+            // Assert
+            _mockManager.Verify(m => m.DeleteAsync(_objetcommun), Times.Once);
+        }
+
 
         [TestMethod]
         public async Task Delete_ReturnsNotFound_WhenMissing()

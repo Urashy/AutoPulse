@@ -48,6 +48,9 @@ public class AnnonceDetailDTO
     public DateTime MiseEnCirculation { get; set; }
     public int NbPlaces { get; set; }
     public int NbPortes { get; set; }
+    public bool InterieurCuire { get; set; }
+    public double CylindrerMoteur { get; set; }
+    public bool PositionVolant { get; set; }
     public int NbVues { get; set; }
     public int NbFavoris { get; set; }
 

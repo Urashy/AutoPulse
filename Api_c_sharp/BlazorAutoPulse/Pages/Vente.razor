@@ -260,7 +260,7 @@
                             {
                                 @foreach (var marque in VMAll.allMarques)
                                 {
-                                    <option value="@marque.IdMarque" selected="@(VM.voiture.IdMarque == marque.IdMarque)">@marque.LibelleMarque</option>
+                                    <option value="@marque.IdMarque" selected="@(VM.VoitureDetailDto.IdMarque == marque.IdMarque)">@marque.LibelleMarque</option>
                                 }
                             }
                         </select>
@@ -277,7 +277,7 @@
                             {
                                 @foreach (var modele in VMAll.filteredModeles)
                                 {
-                                    <option value="@modele.IdModele" selected="@(VM.voiture.IdModele == modele.IdModele)">@modele.LibelleModele</option>
+                                    <option value="@modele.IdModele" selected="@(VM.VoitureDetailDto.IdModele == modele.IdModele)">@modele.LibelleModele</option>
                                 }
                             }
                         </select>
@@ -288,11 +288,10 @@
                     </div>
                 </div>
 
-                @* ... Reste des champs existants ... *@
                 <div class="form-row">
                     <div class="form-group @(VM.HasError("annee") ? "has-error" : "")">
                         <label>Année</label>
-                        <input type="number" placeholder="2021" required @bind="VM.voiture.Annee">
+                        <input type="number" placeholder="2021" required @bind="VM.VoitureDetailDto.Annee">
                         @if (VM.HasError("annee"))
                         {
                             <span class="error-message">@VM.GetError("annee")</span>
@@ -300,7 +299,7 @@
                     </div>
                     <div class="form-group @(VM.HasError("kilometrage") ? "has-error" : "")">
                         <label>Kilométrage</label>
-                        <input type="number" placeholder="45000" required @bind="VM.voiture.Kilometrage">
+                        <input type="number" placeholder="45000" required @bind="VM.VoitureDetailDto.Kilometrage">
                         @if (VM.HasError("kilometrage"))
                         {
                             <span class="error-message">@VM.GetError("kilometrage")</span>
@@ -346,28 +345,9 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group @(VM.HasError("puissance") ? "has-error" : "")">
-                        <label>Puissance</label>
-                        <input type="number" placeholder="170" @bind="VM.voiture.Puissance" required>
-                        @if (VM.HasError("puissance"))
-                        {
-                            <span class="error-message">@VM.GetError("puissance")</span>
-                        }
-                    </div>
-                    <div class="form-group @(VM.HasError("couple") ? "has-error" : "")">
-                        <label>Couple</label>
-                        <input type="number" placeholder="122" @bind="VM.voiture.Couple" required>
-                        @if (VM.HasError("couple"))
-                        {
-                            <span class="error-message">@VM.GetError("couple")</span>
-                        }
-                    </div>
-                </div>
-
-                <div class="form-row">
                     <div class="form-group @(VM.HasError("nbporte") ? "has-error" : "")">
                         <label>Nombre de portes</label>
-                        <input type="number" placeholder="5" @bind="VM.voiture.NbPorte" required>
+                        <input type="number" placeholder="5" @bind="VM.VoitureDetailDto.NbPorte" required>
                         @if (VM.HasError("nbporte"))
                         {
                             <span class="error-message">@VM.GetError("nbporte")</span>
@@ -375,7 +355,7 @@
                     </div>
                     <div class="form-group @(VM.HasError("nbplace") ? "has-error" : "")">
                         <label>Nombre de places</label>
-                        <input type="number" placeholder="5" @bind="VM.voiture.NbPlace" required>
+                        <input type="number" placeholder="5" @bind="VM.VoitureDetailDto.NbPlace" required>
                         @if (VM.HasError("nbplace"))
                         {
                             <span class="error-message">@VM.GetError("nbplace")</span>
@@ -386,7 +366,7 @@
                 <div class="form-row">
                     <div class="form-group @(VM.HasError("nbcylindres") ? "has-error" : "")">
                         <label>Nombre de cylindres</label>
-                        <input type="number" placeholder="4" @bind="VM.voiture.NbCylindres" disabled="@(VM.voiture.IdCarburant == 4)" required>
+                        <input type="number" placeholder="4" @bind="VM.VoitureDetailDto.NbCylindres" disabled="@(VM.VoitureDetailDto.IdCarburant == 4)" required>
                         @if (VM.HasError("nbcylindres"))
                         {
                             <span class="error-message">@VM.GetError("nbcylindres")</span>
@@ -394,15 +374,15 @@
                     </div>
                     <div class="form-group">
                         <label>Date de mise en circulation</label>
-                        <input type="date" placeholder="2000-01-01" @bind="VM.voiture.MiseEnCirculation" required>
+                        <input type="date" placeholder="2000-01-01" @bind="VM.VoitureDetailDto.MiseEnCirculation" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group @(VM.HasError("boitedevitesse") ? "has-error" : "")">
                         <label>Boîte de vitesse</label>
-                        <select @onchange="VM.OnBoiteDeVitesseChange" disabled="@(VM.voiture.IdCarburant == 4)">
-                            @if (VM.voiture.IdCarburant == 4)
+                        <select @onchange="VM.OnBoiteDeVitesseChange" disabled="@(VM.VoitureDetailDto.IdCarburant == 4)">
+                            @if (VM.VoitureDetailDto.IdCarburant == 4)
                             {
                                 <option value="2">Automatique</option>
                             }
@@ -440,6 +420,45 @@
                             <span class="error-message">@VM.GetError("categorie")</span>
                         }
                     </div>
+                </div>
+
+                @* PLACER CE CODE JUSTE AVANT LA SECTION "Adresse de vente" *@
+
+                <div class="form-row">
+                    <div class="form-group @(VM.HasError("cylindrermoteur") ? "has-error" : "")">
+                        <label>Cylindrée du moteur (L)</label>
+                        <input type="number"
+                               step="0.1"
+                               placeholder="2.0"
+                               @bind="VM.VoitureDetailDto.CylindrerMoteur"
+                               disabled="@(VM.VoitureDetailDto.IdCarburant == 4)"
+                               required>
+                        @if (VM.HasError("cylindrermoteur"))
+                        {
+                            <span class="error-message">@VM.GetError("cylindrermoteur")</span>
+                        }
+                    </div>
+                    <div class="form-group @(VM.HasError("positionvolant") ? "has-error" : "")">
+                        <label>Position du volant</label>
+                        <select @onchange="VM.OnPositionVolantChange">
+                            <option value="">Sélectionnez une position</option>
+                            <option value="true" selected="@(VM.VoitureDetailDto.PositionVolant == true)">Gauche</option>
+                            <option value="false" selected="@(VM.VoitureDetailDto.PositionVolant == false)">Droite</option>
+                        </select>
+                        @if (VM.HasError("positionvolant"))
+                        {
+                            <span class="error-message">@VM.GetError("positionvolant")</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="custom-checkbox-wrapper">
+                        <input type="checkbox"
+                               class="custom-checkbox-input"
+                               @bind="VM.VoitureDetailDto.InterieurCuire">
+                        <span class="custom-checkbox-label">Intérieur en cuir</span>
+                    </label>
                 </div>
 
                 <div class="form-row">

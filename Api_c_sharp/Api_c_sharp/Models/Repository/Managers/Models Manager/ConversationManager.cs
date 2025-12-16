@@ -25,5 +25,17 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .OrderByDescending(c => c.DateDernierMessage)
                 .ToListAsync();
         }
+
+        public async Task<Conversation> PostComplet(Conversation conversation, string contenumessage, int idcompteenvoi, int idcompterecoi)
+        {
+            await dbSet.AddAsync(conversation);
+
+            context.APourConversations.Add(new APourConversation { IdCompte = idcompteenvoi, IdConversation = conversation.IdConversation });
+            context.APourConversations.Add(new APourConversation { IdCompte = idcompterecoi, IdConversation = conversation.IdConversation });
+
+            context.Messages.Add(new Message { IdConversation = conversation.IdConversation, EstLu = false, DateEnvoiMessage = DateTime.UtcNow, ContenuMessage = contenumessage, IdCompte = idcompteenvoi });
+            await context.SaveChangesAsync();
+            return conversation;
+        }
     }
 }
