@@ -164,6 +164,15 @@ else
                         <div class="options-dropdown">
                             @if (VM.CurrentUserId == VM.Annonce.IdVendeur)
                             {
+                                <button @onclick="VM.RedirectToModif"
+                                        @onmouseenter="() => VM.SetInfoOption(infoModif)"
+                                        @onmouseleave="() => VM.SetInfoOption(null)"
+                                        class="option-item">
+
+                                    <span class="option-icon">✏️️</span>
+                                    <span>Modifier votre annonce</span>
+                                </button>
+                                
                                 <button @onclick="VM.estMasquer ? VM.DemasquerAnnonce : VM.MasquerAnnonce"
                                         @onmouseenter="() => VM.SetInfoOption(VM.estMasquer ? infoDemasquer : infoMasquer)"
                                         @onmouseleave="() => VM.SetInfoOption(null)"
@@ -371,6 +380,22 @@ else
                         <span>Catégorie</span>
                         <span>@VM.Annonce.Categorie</span>
                     </div>
+                    <div class="spec-row">
+                        <span>Nombre de porte</span>
+                        <span>@VM.Annonce.NbPortes</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Nombre de place</span>
+                        <span>@VM.Annonce.NbPlaces</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Intérieur cuire</span>
+                        <span>@(VM.Annonce.InterieurCuire? "Oui" : "Non")</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Position du volant</span>
+                        <span>@(VM.Annonce.PositionVolant? "Gauche" : "Droite")</span>
+                    </div>
                 </div>
 
                 <div class="spec-group">
@@ -394,6 +419,10 @@ else
                     <div class="spec-row">
                         <span>Motricité</span>
                         <span>@VM.Annonce.Motricite</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Cylindré du moteur</span>
+                        <span>@VM.Annonce.CylindrerMoteur L</span>
                     </div>
                 </div>
             </div>
@@ -515,6 +544,7 @@ else
     [Parameter] public int IdAnnonce { get; set; }
     private string infoMasquer = "Masquer temporairement votre annonce pour que personne ne la vois sans la supprimer";
     private string infoDemasquer = "Demasquer cette annonce pour que les gens puisse la chercher";
+    private string infoModif = "Modifier les caractéristiques de votre annonce";
     private string infoSupprimer = "Supprimer définitivement votre annonce";
     private string infoSignaler = "Signaler cette annonce pour contenu inapproprié ou frauduleux";
 

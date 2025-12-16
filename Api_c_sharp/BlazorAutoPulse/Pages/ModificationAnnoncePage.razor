@@ -1,0 +1,222 @@
+@page "/modifier-annonce/{IdAnnonce:int}"
+@using BlazorAutoPulse.ViewModel
+@inject ModifierAnnonceViewModel VM
+@inject NavigationManager Navigation
+
+<PageTitle>Modifier l'annonce - AutoPulse</PageTitle>
+
+@if (VM.IsLoading)
+{
+    <div class="loading-container">
+        <div class="loader"></div>
+        <p>Chargement de l'annonce...</p>
+    </div>
+}
+else if (VM.Annonce == null)
+{
+    <div class="error-container">
+        <h2>Annonce introuvable</h2>
+        <p>L'annonce que vous souhaitez modifier n'existe pas ou vous n'avez pas les droits nécessaires.</p>
+        <button @onclick="() => Redirect(homeUrl)" class="btn-back">Retour à l'accueil</button>
+    </div>
+}
+else
+{
+    <div class="edit-container">
+        <div class="header-nav">
+            <button @onclick="() => Redirect(annonceUrl)" class="btn-back">← Annuler</button>
+            <h1>Modifier l'annonce</h1>
+        </div>
+
+        <div class="edit-form">
+            @if (VM.showErrors && VM.errors.ContainsKey("general"))
+            {
+                <div class="error-message-global">
+                    @VM.GetError("general")
+                </div>
+            }
+
+            <!-- SECTION ANNONCE -->
+            <div class="section-header">
+                <h2>📢 Informations de l'annonce</h2>
+            </div>
+
+            <div class="form-group @(VM.HasError("titre") ? "has-error" : "")">
+                <label>Titre de l'annonce *</label>
+                <input type="text" @bind="VM.Annonce.Libelle" placeholder="Titre de votre annonce" maxlength="200" />
+                @if (VM.HasError("titre"))
+                {
+                    <span class="error-message">@VM.GetError("titre")</span>
+                }
+            </div>
+
+            <div class="form-group @(VM.HasError("prix") ? "has-error" : "")">
+                <label>Prix (€) *</label>
+                <input type="number" @bind="VM.Annonce.Prix" placeholder="25000" min="0" />
+                @if (VM.HasError("prix"))
+                {
+                    <span class="error-message">@VM.GetError("prix")</span>
+                }
+            </div>
+
+            <div class="form-group @(VM.HasError("description") ? "has-error" : "")">
+                <label>Description</label>
+                <textarea @bind="VM.Annonce.Description" 
+                          placeholder="Décrivez votre véhicule, son état, ses équipements..."
+                          rows="8"></textarea>
+                @if (VM.HasError("description"))
+                {
+                    <span class="error-message">@VM.GetError("description")</span>
+                }
+            </div>
+
+            <!-- SECTION VOITURE -->
+            <div class="section-header">
+                <h2>🚗 Caractéristiques du véhicule</h2>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group @(VM.HasError("kilometrage") ? "has-error" : "")">
+                    <label>Kilométrage (km) *</label>
+                    <input type="number" @bind="VM.Voiture.Kilometrage" placeholder="50000" min="0" />
+                    @if (VM.HasError("kilometrage"))
+                    {
+                        <span class="error-message">@VM.GetError("kilometrage")</span>
+                    }
+                </div>
+
+                <div class="form-group @(VM.HasError("annee") ? "has-error" : "")">
+                    <label>Année *</label>
+                    <input type="number" @bind="VM.Voiture.Annee" placeholder="2020" min="1900" max="@DateTime.Now.Year" />
+                    @if (VM.HasError("annee"))
+                    {
+                        <span class="error-message">@VM.GetError("annee")</span>
+                    }
+                </div>
+            </div>
+
+            <div class="form-group @(VM.HasError("miseEnCirculation") ? "has-error" : "")">
+                <label>Date de mise en circulation *</label>
+                <input type="date" @bind="VM.Voiture.MiseEnCirculation" />
+                @if (VM.HasError("miseEnCirculation"))
+                {
+                    <span class="error-message">@VM.GetError("miseEnCirculation")</span>
+                }
+            </div>
+
+            <div class="form-row">
+                <div class="form-group @(VM.HasError("puissance") ? "has-error" : "")">
+                    <label>Puissance (ch) *</label>
+                    <input type="number" @bind="VM.Voiture.Puissance" placeholder="150" min="0" />
+                    @if (VM.HasError("puissance"))
+                    {
+                        <span class="error-message">@VM.GetError("puissance")</span>
+                    }
+                </div>
+
+                <div class="form-group @(VM.HasError("couple") ? "has-error" : "")">
+                    <label>Couple (Nm) *</label>
+                    <input type="number" @bind="VM.Voiture.Couple" placeholder="250" min="0" />
+                    @if (VM.HasError("couple"))
+                    {
+                        <span class="error-message">@VM.GetError("couple")</span>
+                    }
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group @(VM.HasError("nbCylindres") ? "has-error" : "")">
+                    <label>Nombre de cylindres *</label>
+                    <input type="number" @bind="VM.Voiture.NbCylindres" placeholder="4" min="1" max="16" />
+                    @if (VM.HasError("nbCylindres"))
+                    {
+                        <span class="error-message">@VM.GetError("nbCylindres")</span>
+                    }
+                </div>
+
+                <div class="form-group @(VM.HasError("cylindrerMoteur") ? "has-error" : "")">
+                    <label>Cylindrée (L) *</label>
+                    <input type="number" step="0.1" @bind="VM.Voiture.CylindrerMoteur" placeholder="2.0" min="0" />
+                    @if (VM.HasError("cylindrerMoteur"))
+                    {
+                        <span class="error-message">@VM.GetError("cylindrerMoteur")</span>
+                    }
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group @(VM.HasError("nbPlaces") ? "has-error" : "")">
+                    <label>Nombre de places *</label>
+                    <input type="number" @bind="VM.Voiture.NbPlace" placeholder="5" min="1" max="9" />
+                    @if (VM.HasError("nbPlaces"))
+                    {
+                        <span class="error-message">@VM.GetError("nbPlaces")</span>
+                    }
+                </div>
+
+                <div class="form-group @(VM.HasError("nbPortes") ? "has-error" : "")">
+                    <label>Nombre de portes *</label>
+                    <input type="number" @bind="VM.Voiture.NbPorte" placeholder="5" min="2" max="7" />
+                    @if (VM.HasError("nbPortes"))
+                    {
+                        <span class="error-message">@VM.GetError("nbPortes")</span>
+                    }
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Intérieur en cuir</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="interieurCuir" @bind="VM.Voiture.InterieurCuire" />
+                        <label for="interieurCuir" class="checkbox-label">Oui</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Position du volant</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="positionVolant" @bind="VM.Voiture.PositionVolant" />
+                        <label for="positionVolant" class="checkbox-label">
+                            @(VM.Voiture.PositionVolant ? "À droite" : "À gauche")
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="form-actions">
+                <button @onclick="() => Redirect(annonceUrl)" class="btn-cancel-action">
+                    Annuler
+                </button>
+                <button @onclick="VM.SaveChanges" class="btn-save" disabled="@VM.IsSaving">
+                    @(VM.IsSaving ? "Enregistrement..." : "💾 Enregistrer les modifications")
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(VM.successMessage))
+            {
+                <div class="success-message">
+                    ✓ @VM.successMessage
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int IdAnnonce { get; set; }
+
+    public string annonceUrl => $"/annonce/{IdAnnonce}";
+    public string homeUrl => "/";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(IdAnnonce, StateHasChanged, Navigation);
+    }
+
+    private void Redirect(string uri)
+    {
+        Navigation.NavigateTo(uri);
+    }
+}
