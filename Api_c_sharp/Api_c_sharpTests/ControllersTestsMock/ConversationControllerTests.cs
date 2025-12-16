@@ -184,6 +184,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Conversation>()), Times.Never);
         }
 
         [TestMethod]
@@ -291,6 +292,8 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Conversation>(), It.IsAny<Conversation>()), Times.Never);
         }
 
         [TestMethod]
