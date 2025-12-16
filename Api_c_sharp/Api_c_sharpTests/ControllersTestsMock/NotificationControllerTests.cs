@@ -12,10 +12,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Api_c_sharp.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
-    public class NotificationControllerMoqTests
+    public class NotificationControllerTests
     {
         private NotificationController _controller;
         private Mock<NotificationManager> _mockManager;
@@ -29,8 +29,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestInitialize]
         public void Initialize()
         {
-            _mockManager = new Mock<NotificationManager>();
-            _mockCompteManager = new Mock<CompteManager>();
+            _mockManager = new Mock<NotificationManager>(null);
+            _mockCompteManager = new Mock<CompteManager>(null);
             _mockMapper = new Mock<IMapper>();
 
             _controller = new NotificationController(
@@ -184,7 +184,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _mockMapper.Setup(m => m.Map<Notification>(notificationDto))
                 .Returns(notification);
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Notification>()))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(notification);
 
             var actionResult = await _controller.Post(notificationDto);
 
@@ -229,7 +229,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _mockMapper.Setup(m => m.Map<Notification>(notificationDto))
                 .Returns(notification);
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Notification>()))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(notification);
 
             var actionResult = await _controller.Post(notificationDto);
 
