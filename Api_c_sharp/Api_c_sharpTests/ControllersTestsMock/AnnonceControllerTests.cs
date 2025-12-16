@@ -191,13 +191,13 @@ namespace Api_c_sharp.ControllersMock.Tests
             };
 
             _controller.ModelState.AddModelError("Description", "Required");
-            _mockManager.Verify(m => m.AddAsync(It.IsAny<Annonce>()), Times.Never);
 
             // Act
             var actionResult = await _controller.Post(annonceDTO);
 
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Annonce>()), Times.Never);
         }
 
         [TestMethod]
