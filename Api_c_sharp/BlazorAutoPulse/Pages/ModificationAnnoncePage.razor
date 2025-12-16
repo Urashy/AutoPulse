@@ -1,0 +1,106 @@
+@page "/modifier-annonce/{IdAnnonce:int}"
+@using BlazorAutoPulse.ViewModel
+@inject ModifierAnnonceViewModel VM
+@inject NavigationManager Navigation
+
+<PageTitle>Modifier l'annonce - AutoPulse</PageTitle>
+
+@if (VM.IsLoading)
+{
+    <div class="loading-container">
+        <div class="loader"></div>
+        <p>Chargement de l'annonce...</p>
+    </div>
+}
+else if (VM.Annonce == null)
+{
+    <div class="error-container">
+        <h2>Annonce introuvable</h2>
+        <p>L'annonce que vous souhaitez modifier n'existe pas ou vous n'avez pas les droits nécessaires.</p>
+        <button @onclick="() => Redirect(homeUrl)" class="btn-back">Retour à l'accueil</button>
+    </div>
+}
+else
+{
+    <div class="edit-container">
+        <div class="header-nav">
+            <button @onclick="() => Redirect(annonceUrl)" class="btn-back">← Annuler</button>
+            <h1>Modifier l'annonce</h1>
+        </div>
+
+        <div class="edit-form">
+            @if (VM.showErrors && VM.errors.ContainsKey("general"))
+            {
+                <div class="error-message-global">
+                    @VM.GetError("general")
+                </div>
+            }
+
+            <!-- Titre -->
+            <div class="form-group @(VM.HasError("titre") ? "has-error" : "")">
+                <label>Titre de l'annonce</label>
+                <input type="text" @bind="VM.Annonce.Libelle" placeholder="Titre de votre annonce" />
+                @if (VM.HasError("titre"))
+                {
+                    <span class="error-message">@VM.GetError("titre")</span>
+                }
+            </div>
+
+            <!-- Prix -->
+            <div class="form-group @(VM.HasError("prix") ? "has-error" : "")">
+                <label>Prix (€)</label>
+                <input type="number" @bind="VM.Annonce.Prix" placeholder="25000" />
+                @if (VM.HasError("prix"))
+                {
+                    <span class="error-message">@VM.GetError("prix")</span>
+                }
+            </div>
+
+            <!-- Description -->
+            <div class="form-group @(VM.HasError("description") ? "has-error" : "")">
+                <label>Description</label>
+                <textarea @bind="VM.Annonce.Description" 
+                          placeholder="Décrivez votre véhicule, son état, ses équipements..."
+                          rows="10"></textarea>
+                @if (VM.HasError("description"))
+                {
+                    <span class="error-message">@VM.GetError("description")</span>
+                }
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="form-actions">
+                <button @onclick="() => Redirect(annonceUrl)" class="btn-cancel-action">
+                    Annuler
+                </button>
+                <button @onclick="VM.SaveChanges" class="btn-save" disabled="@VM.IsSaving">
+                    @(VM.IsSaving ? "Enregistrement..." : "💾 Enregistrer les modifications")
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(VM.successMessage))
+            {
+                <div class="success-message">
+                    ✓ @VM.successMessage
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int IdAnnonce { get; set; }
+
+    public string annonceUrl => $"/annonce/{IdAnnonce}";
+    public string homeUrl => "/";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(IdAnnonce, StateHasChanged, Navigation);
+    }
+
+    private void Redirect(string uri)
+    {
+        Navigation.NavigateTo(uri);
+    }
+}

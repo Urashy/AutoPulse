@@ -58,6 +58,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IAdresseService, AdresseWebService>();
             builder.Services.AddScoped<IPlainteService, PlainteWebService>();
             builder.Services.AddScoped<INotificationService, NotificationWebService>();
+            builder.Services.AddScoped<IIAService, IAWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -87,8 +88,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<CommandeComposantViewModel>();
             builder.Services.AddScoped<AvisComposantViewModel>();
             builder.Services.AddScoped<NotificationViewModel>();
-            builder.Services.AddScoped<IIAService, IAWebService>();
             builder.Services.AddScoped<AdminJournauxViewModel>();
+            builder.Services.AddScoped<ModifierAnnonceViewModel>();
 
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService, SignalRWebService>();

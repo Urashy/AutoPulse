@@ -45,6 +45,8 @@ namespace BlazorAutoPulse.ViewModel
 
         public string ProfileImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
         
+        public string modifAnnonceUrl { get; set; }
+        
         // IA
         private readonly IIAService _iaService;
 
@@ -106,12 +108,12 @@ namespace BlazorAutoPulse.ViewModel
 
                 // Charger l'annonce
                 Annonce = await _annonceService.GetAnnonceDetailById(idAnnonce);
-
+            
                 if (Annonce != null)
                 {
                     await LoadVendeurProfileImage(Annonce.IdVendeur);
-
                     await LoadAllImages();
+                    modifAnnonceUrl = $"/modifier-annonce/{Annonce.IdAnnonce}";
                 }
 
                 
@@ -663,6 +665,11 @@ namespace BlazorAutoPulse.ViewModel
 
                 }
             }
+        }
+        
+        public void RedirectToModif()
+        {
+            _nav.NavigateTo(modifAnnonceUrl);
         }
 
         public void Reset()
