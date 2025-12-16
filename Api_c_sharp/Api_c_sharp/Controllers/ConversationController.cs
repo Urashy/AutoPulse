@@ -6,7 +6,9 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using Api_c_sharp.Hubs;
 using Api_c_sharp.Models.Entity;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Api_c_sharp.Controllers;
 
@@ -21,7 +23,8 @@ namespace Api_c_sharp.Controllers;
 public class ConversationController(
     ConversationManager _manager, 
     IConversationEnrichmentService _enrichmentService,
-    IMapper _mapper) : ControllerBase
+    IMapper _mapper,
+    IHubContext<MessageHub> _hubContext = null) : ControllerBase
 {
     /// <summary>
     /// Récupère une conversation à partir de son identifiant.
@@ -125,13 +128,31 @@ public class ConversationController(
     /// </summary>
     [ActionName("Post")]
     [HttpPost("{idcompteenvoi}/{idcompterecoi}")]
-    public async Task<ActionResult<ConversationDetailDTO>> PostComplet([FromBody] ConversationCreateDTO dto,string message,int idcompteenvoi,int idcompterecoi)
+    public async Task<ActionResult<ConversationListDTO>> PostComplet([FromBody] ConversationCreateDTO dto,int idcompteenvoi,int idcompterecoi)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         var entity = _mapper.Map<Conversation>(dto);
-        await _manager.PostComplet(entity, message,idcompteenvoi,idcompterecoi);
+        await _manager.PostComplet(entity, dto.message,idcompteenvoi,idcompterecoi);
+        
+        if (_hubContext != null)
+        {
+            await MessageHub.NotifyNewConversation(
+                _hubContext,
+                entity.IdConversation,
+                idcompteenvoi,
+                idcompterecoi,
+                dto.message
+            );
+            
+            await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
+                .SendAsync("ReceiveMessage",
+                    entity.IdConversation,
+                    idcompterecoi,
+                    dto.message,
+                    entity.DateDernierMessage);
+        }
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdConversation }, entity);
     }

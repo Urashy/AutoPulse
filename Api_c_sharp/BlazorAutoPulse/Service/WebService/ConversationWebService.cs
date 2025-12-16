@@ -18,4 +18,25 @@ public class ConversationWebService: BaseWebService<ConversationListDTO>, IConve
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<IEnumerable<ConversationListDTO>>();
     }
+
+    public async Task<ConversationListDTO> PostComplet(ConversationCreateDTO conversation, int idCompteEnvoie, int idCompteRecoi)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl($"PostComplet{idCompteEnvoie}/{idCompteRecoi}"))
+        {
+            Content = JsonContent.Create(conversation)
+        };
+        
+        var response = await SendWithCredentialsAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadFromJsonAsync<ConversationListDTO>();
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Erreur Post : {error}");
+            return await response.Content.ReadFromJsonAsync<ConversationListDTO>();
+        }
+    }
 }

@@ -43,10 +43,6 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.AdresseAnnonceNav.LibelleVille))
             .ForMember(dest => dest.CodePostal,
                 opt => opt.MapFrom(src => src.AdresseAnnonceNav.CodePostal))
-            .ForMember(dest => dest.ImagePrincipale,
-                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Images.Any()
-                    ? Convert.ToBase64String(src.VoitureAnnonceNav.Images.First().Fichier)
-                    : null))
             .ForMember(dest => dest.IdMiseEnAvant,
                 opt => opt.MapFrom(src => src.IdMiseEnAvant)).ReverseMap();
 
