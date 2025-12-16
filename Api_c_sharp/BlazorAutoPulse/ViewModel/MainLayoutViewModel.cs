@@ -81,6 +81,8 @@ namespace BlazorAutoPulse.ViewModel
                     
                     _signalRService.OnPriceDropReceived += HandlePriceDropNotification;
                     notificationsCount = await _notificationService.GetUnreadCountAsync(compte.IdCompte);
+
+                    
                 }
             }
             catch
