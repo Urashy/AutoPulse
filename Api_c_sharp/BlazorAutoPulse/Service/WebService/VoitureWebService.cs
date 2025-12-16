@@ -1,8 +1,8 @@
-using BlazorAutoPulse.Model;
+using AutoPulse.Shared.DTO;
 
 namespace BlazorAutoPulse.Service.WebService;
 
-public class VoitureWebService: BaseWebService<Voiture>
+public class VoitureWebService: BaseWebService<VoitureDetailDTO>
 {
     public VoitureWebService(HttpClient httpClient) : base(httpClient)
     {

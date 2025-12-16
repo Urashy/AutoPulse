@@ -8,10 +8,12 @@ namespace BlazorAutoPulse.ViewModel
     public class ModifierAnnonceViewModel
     {
         private readonly IAnnonceService _annonceService;
+        private readonly IService<VoitureDetailDTO> _voitureService;
         private readonly ICompteService _compteService;
         private readonly NotificationService _notificationService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
+        public VoitureDetailDTO? Voiture { get; private set; }
         public bool IsLoading { get; private set; } = true;
         public bool IsSaving { get; private set; } = false;
         public int? CurrentUserId { get; private set; }
@@ -26,10 +28,12 @@ namespace BlazorAutoPulse.ViewModel
         public ModifierAnnonceViewModel(
             IAnnonceService annonceService,
             ICompteService compteService,
+            IService<VoitureDetailDTO> voitureService,
             NotificationService notificationService)
         {
             _annonceService = annonceService;
             _compteService = compteService;
+            _voitureService = voitureService;
             _notificationService = notificationService;
         }
 
@@ -57,6 +61,7 @@ namespace BlazorAutoPulse.ViewModel
 
                 // Charger l'annonce
                 Annonce = await _annonceService.GetAnnonceDetailById(idAnnonce);
+                Voiture = await _voitureService.GetByIdAsync(Annonce.IdVoiture);
 
                 // Vérifier que l'utilisateur est bien le propriétaire
                 if (Annonce == null || Annonce.IdVendeur != CurrentUserId)

@@ -10,6 +10,7 @@ using BlazorAutoPulse.ViewModel.Administration;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ReinitialisationMdp = BlazorAutoPulse.Model.ReinitialisationMdp;
+using VoitureDetailDTO = AutoPulse.Shared.DTO.VoitureDetailDTO;
 
 namespace BlazorAutoPulse
 {
@@ -28,7 +29,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IService<Categorie>, CategorieWebService>();
             builder.Services.AddScoped<IService<BoiteDeVitesse>, BoiteVitesseWebService>();
             builder.Services.AddScoped<IService<Motricite>, MotriciteWebService>();
-            builder.Services.AddScoped<IService<Voiture>, VoitureWebService>();
+            builder.Services.AddScoped<IService<VoitureDetailDTO>, VoitureWebService>();
             builder.Services.AddScoped<IService<APourCouleur>, APourCouleurWebService>();
             builder.Services.AddScoped<IService<AvisListDTO>, AvisWebService>();
             builder.Services.AddScoped<IService<CommandeDTO>, CommandeWebService>();

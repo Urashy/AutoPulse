@@ -3,13 +3,13 @@ namespace AutoPulse.Shared.DTO;
 public class VoitureDetailDTO
 {
     public int IdVoiture { get; set; }
-    public string LibelleMarque { get; set; }
-    public string LibelleModele { get; set; }
-    public string LibelleMotricite { get; set; }
-    public string LibelleCarburant { get; set; }
-    public string LibelleBoite { get; set; }
+    public int IdMarque { get; set; }
+    public int IdModele { get; set; }
+    public int IdMotricite { get; set; }
+    public int IdCarburant { get; set; }
+    public int IdBoiteDeVitesse { get; set; }
     public IEnumerable<string> LibelleCouleur { get; set; }
-    public string LibelleCategorie { get; set; }
+    public int IdCategorie { get; set; }
     public int Kilometrage { get; set; }
     public int Annee { get; set; }
     public int Puissance { get; set; }
@@ -18,6 +18,9 @@ public class VoitureDetailDTO
     public DateTime MiseEnCirculation { get; set; }
     public int NbPlaces { get; set; }
     public int NbPortes { get; set; }
-    public string LienModeleBlender { get; set; }
+    public bool InterieurCuire { get; set; }
+    public double CylindrerMoteur { get; set; }
+    public bool PositionVolant { get; set; }
+    public int? IdModeleBlender { get; set; }
     public List<string> Images { get; set; } = new List<string>();
 }

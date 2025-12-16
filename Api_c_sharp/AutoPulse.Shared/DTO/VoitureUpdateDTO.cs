@@ -16,6 +16,9 @@ public class VoitureUpdateDTO
     public int Puissance { get; set; }
     public int Couple { get; set; }
     public int NbCylindres { get; set; }
+    public bool InterieurCuire { get; set; }
+    public double CylindrerMoteur { get; set; }
+    public bool PositionVolant { get; set; }
     public DateTime MiseEnCirculation { get; set; }
     public int? IdModeleBlender { get; set; }
 }

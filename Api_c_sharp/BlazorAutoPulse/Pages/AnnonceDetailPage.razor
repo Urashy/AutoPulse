@@ -380,6 +380,14 @@ else
                         <span>Catégorie</span>
                         <span>@VM.Annonce.Categorie</span>
                     </div>
+                    <div class="spec-row">
+                        <span>Intérieur cuire</span>
+                        <span>@(VM.Annonce.InterieurCuire? "Oui" : "Non")</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Position du volant</span>
+                        <span>@(VM.Annonce.PositionVolant? "Gauche" : "Droite")</span>
+                    </div>
                 </div>
 
                 <div class="spec-group">
@@ -403,6 +411,10 @@ else
                     <div class="spec-row">
                         <span>Motricité</span>
                         <span>@VM.Annonce.Motricite</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Cylindré du moteur</span>
+                        <span>@VM.Annonce.CylindrerMoteur L</span>
                     </div>
                 </div>
             </div>

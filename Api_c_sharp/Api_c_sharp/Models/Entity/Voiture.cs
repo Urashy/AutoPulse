@@ -57,6 +57,15 @@ namespace Api_c_sharp.Models.Entity
 
         [Column("voi_nbcylindres")]
         public int NbCylindres { get; set; }
+        
+        [Column("voi_interieurcuire")]
+        public bool InterieurCuire { get; set; }
+        
+        [Column("voi_cylindrermoteur")]
+        public double CylindrerMoteur { get; set; }
+        
+        [Column("voi_positionvolant")]
+        public bool PositionVolant { get; set; }
 
         [Column("mob_id")]
         public int? IdModeleBlender { get; set; }
