@@ -204,6 +204,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<ReinitialisationMotDePasse>()), Times.Never);
         }
 
 
@@ -272,6 +273,8 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<ReinitialisationMotDePasse>(), It.IsAny<ReinitialisationMotDePasse>()), Times.Never);
         }
 
         #endregion
@@ -519,6 +522,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+
         }
 
         [TestMethod]
