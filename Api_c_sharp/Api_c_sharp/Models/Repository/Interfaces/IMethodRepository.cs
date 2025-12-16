@@ -88,6 +88,8 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     public interface IConversationRepository
     {
         Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId);
+
+        Task<Conversation> PostComplet(Conversation conversation,string contenumessage, int idcompte, int idcompte2);
     }
 
     public interface IApourConversationRepository

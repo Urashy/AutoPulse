@@ -119,4 +119,20 @@ public class ConversationController(
 
         return new ActionResult<IEnumerable<ConversationListDTO>>(result);
     }
+
+    /// <summary>
+    /// Crée une nouvelle conversation.
+    /// </summary>
+    [ActionName("Post")]
+    [HttpPost("{idcompteenvoi}/{idcompterecoi}")]
+    public async Task<ActionResult<ConversationDetailDTO>> PostComplet([FromBody] ConversationCreateDTO dto,string message,int idcompteenvoi,int idcompterecoi)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var entity = _mapper.Map<Conversation>(dto);
+        await _manager.PostComplet(entity, message,idcompteenvoi,idcompterecoi);
+
+        return CreatedAtAction(nameof(GetByID), new { id = entity.IdConversation }, entity);
+    }
 }

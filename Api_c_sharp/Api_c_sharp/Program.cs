@@ -71,7 +71,7 @@ builder.Services.AddScoped<ICommandeRepository>(sp => sp.GetRequiredService<Comm
 builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmentService>();
 
 // Enregistrement du service IA avec HttpClient
-builder.Services.AddHttpClient<IIAService, IAService>(client =>
+builder.Services.AddHttpClient<IIAService, IAManager>(client =>
 {
     var pythonApiUrl = builder.Configuration["PythonAPI:BaseUrl"] ?? "http://localhost:8000";
     var timeout = builder.Configuration.GetValue<int>("PythonAPI:Timeout", 120);
