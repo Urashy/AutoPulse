@@ -1,6 +1,8 @@
 using System.Net;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Authentification;
+using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 
 namespace BlazorAutoPulse.ViewModel;
@@ -8,7 +10,8 @@ namespace BlazorAutoPulse.ViewModel;
 public class ConnexionViewModel
 {
     private readonly IServiceConnexion _connexionService;
-    
+    private readonly ICompteService _compteService;
+
     public string emailUtilisateur { get; set; }
     public string motDePasseUtilisateur { get; set; }
     public string messageErreur { get; set; }
@@ -17,9 +20,10 @@ public class ConnexionViewModel
     private Action? _refreshUI;
     private NavigationManager _nav;
 
-    public ConnexionViewModel(IServiceConnexion connexionService)
+    public ConnexionViewModel(IServiceConnexion connexionService, ICompteService compteservice)
     {
         _connexionService = connexionService;
+        _compteService = compteservice;
         messageErreur = string.Empty;
         isLoading = false;
     }
@@ -66,9 +70,18 @@ public class ConnexionViewModel
             switch (httpCode)
             {
                 case HttpStatusCode.OK:
-                    // Succès - redirection
                     await Task.Delay(100);
+
+                    CompteDetailDTO moi = await _compteService.GetMe();
+                    if (moi.IdTypeCompte == 3)
+                    {
+                        _nav.NavigateTo("/admin");
+                        break;
+                    }
+
+
                     _nav.NavigateTo("/compte", forceLoad: true);
+                                  
                     break;
 
                 case HttpStatusCode.Unauthorized:
