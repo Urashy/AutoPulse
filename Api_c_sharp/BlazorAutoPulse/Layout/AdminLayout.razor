@@ -19,38 +19,33 @@ else if (VM.IsVerified)
                 <p class="admin-badge">ADMIN</p>
             </div>
 
+
             <nav class="sidebar-nav">
-                <NavLink href="/admin" Match="NavLinkMatch.All" class="nav-item">
+                <a href="/admin" class="@VM.GetNavItemClass("/admin")">
                     <span class="icon">📊</span>
                     <span class="text">Tableau de bord</span>
-                </NavLink>
-
-                <NavLink href="/admin/signalements" class="nav-item">
+                </a>
+                <a href="/admin/signalements" class="@VM.GetNavItemClass("/admin/signalements")">
                     <span class="icon">🚩</span>
                     <span class="text">Signalements</span>
-                </NavLink>
-
-                <NavLink href="/admin/annonces" class="nav-item">
+                </a>
+                <a href="/admin/annonces" class="@VM.GetNavItemClass("/admin/annonces")">
                     <span class="icon">🚗</span>
                     <span class="text">Annonces</span>
-                </NavLink>
-
-                <NavLink href="/admin/utilisateurs" class="nav-item">
+                </a>
+                <a href="/admin/utilisateurs" class="@VM.GetNavItemClass("/admin/utilisateurs")">
                     <span class="icon">👥</span>
                     <span class="text">Utilisateurs</span>
-                </NavLink>
-
-                <NavLink href="/admin/journaux" class="nav-item">
+                </a>
+                <a href="/admin/journaux" class="@VM.GetNavItemClass("/admin/journaux")">
                     <span class="icon">📰</span>
                     <span class="text">Journaux</span>
-                </NavLink>
-
+                </a>
                 <div class="nav-divider"></div>
-
-                <NavLink href="/" class="nav-item nav-exit">
+                <a href="/" class="nav-item nav-exit">
                     <span class="icon">←</span>
                     <span class="text">Mode Normal</span>
-                </NavLink>
+                </a>
             </nav>
         </aside>
 
