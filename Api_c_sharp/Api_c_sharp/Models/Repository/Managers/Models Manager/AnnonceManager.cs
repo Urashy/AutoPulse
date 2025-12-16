@@ -166,7 +166,8 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual async Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId)
         {
-            return await Api_c_sharplyIncludes()
+            return await dbSet.Include(a => a.VoitureAnnonceNav)
+                .ThenInclude(v => v.Images)
                 .Where(a => a.IdCompte == compteId)
                 .ToListAsync();
         }

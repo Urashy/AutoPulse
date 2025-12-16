@@ -29,7 +29,8 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public async Task<Conversation> PostComplet(Conversation conversation, string contenumessage, int idcompteenvoi, int idcompterecoi)
         {
             await dbSet.AddAsync(conversation);
-
+            await context.SaveChangesAsync();
+            
             context.APourConversations.Add(new APourConversation { IdCompte = idcompteenvoi, IdConversation = conversation.IdConversation });
             context.APourConversations.Add(new APourConversation { IdCompte = idcompterecoi, IdConversation = conversation.IdConversation });
 

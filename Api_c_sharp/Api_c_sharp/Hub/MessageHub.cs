@@ -150,5 +150,31 @@ namespace Api_c_sharp.Hubs
     
             Console.WriteLine($"📉 Price drop notification sent to group {groupName}");
         }
+        
+        public static async Task NotifyNewConversation(
+            IHubContext<MessageHub> hubContext,
+            int conversationId,
+            int senderId,
+            int receiverId,
+            string firstMessage)
+        {
+            // Notifier le destinataire
+            if (UserConnections.TryGetValue(receiverId, out var connections))
+            {
+                foreach (var connectionId in connections)
+                {
+                    await hubContext.Clients.Client(connectionId)
+                        .SendAsync("NewConversationCreated", new
+                        {
+                            IdConversation = conversationId,
+                            SenderId = senderId,
+                            FirstMessage = firstMessage,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                }
+            }
+    
+            Console.WriteLine($"💬 New conversation {conversationId} notification sent to user {receiverId}");
+        }
     }
 }
