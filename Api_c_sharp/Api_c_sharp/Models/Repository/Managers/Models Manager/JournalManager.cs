@@ -16,7 +16,11 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual async Task<IEnumerable<Journal>> GetFilteredJournal(RechercheJournalDTO recherche)
         {
-            var query = dbSet.Where(journal => journal.IdTypeJournal == recherche.IdType);
+            var query = dbSet.AsQueryable();
+            if (recherche.IdType != 0 && recherche.IdType != null)
+            {
+                query = dbSet.Where(journal => journal.IdTypeJournal == recherche.IdType);
+            }
             
             // Appliquer le filtre de date de début si fourni
             if (recherche.DebutIntervalle.HasValue)
@@ -30,6 +34,8 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 query = query.Where(j => j.DateJournal <= recherche.FinIntervalle.Value);
             }
 
+
+            
             // Appliquer le tri selon l'ordre
             query = recherche.Order == 1
                 ? query.OrderBy(j => j.DateJournal)

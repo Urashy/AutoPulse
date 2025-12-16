@@ -224,6 +224,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Signalement>()), Times.Never);
         }
 
         [TestMethod]
@@ -326,6 +327,8 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Signalement>(), It.IsAny<Signalement>()), Times.Never);
         }
 
         [TestMethod]
@@ -624,6 +627,8 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Signalement>(), It.IsAny<Signalement>()), Times.Never);
         }
 
         private void ClaimCookie(int userId)

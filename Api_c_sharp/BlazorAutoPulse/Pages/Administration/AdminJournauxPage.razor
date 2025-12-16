@@ -15,11 +15,16 @@
         <div class="header-actions">
             <div class="filter-group">
                 <div class="input-wrapper">
-                    <input type="number"
-                           placeholder="ID Type"
-                           @bind="VM.SelectedTypeId"
-                           @bind:after="VM.OnFilterChanged"
-                           class="filter-input small-input" />
+                    <label>Type de journal</label>
+                    <select @bind="VM.SelectedTypeId"
+                            @bind:after="VM.OnFilterChanged"
+                            class="filter-select">
+                        <option value="">Tous les types</option>
+                        @foreach (var type in VM.TypesJournal)
+                        {
+                            <option value="@type.IdTypeJournaux">@type.LibelleTypeJournaux</option>
+                        }
+                    </select>
                 </div>
 
                 <div class="date-input-wrapper">
