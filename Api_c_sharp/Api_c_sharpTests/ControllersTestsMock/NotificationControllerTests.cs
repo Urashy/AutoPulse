@@ -12,10 +12,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Api_c_sharp.ControllersUnitaires.Tests
+namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
-    public class NotificationControllerMoqTests
+    public class NotificationControllerTests
     {
         private NotificationController _controller;
         private Mock<NotificationManager> _mockManager;
@@ -29,8 +29,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestInitialize]
         public void Initialize()
         {
-            _mockManager = new Mock<NotificationManager>();
-            _mockCompteManager = new Mock<CompteManager>();
+            _mockManager = new Mock<NotificationManager>(null);
+            _mockCompteManager = new Mock<CompteManager>(null);
             _mockMapper = new Mock<IMapper>();
 
             _controller = new NotificationController(
@@ -184,7 +184,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _mockMapper.Setup(m => m.Map<Notification>(notificationDto))
                 .Returns(notification);
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Notification>()))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(notification);
 
             var actionResult = await _controller.Post(notificationDto);
 
@@ -229,7 +229,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _mockMapper.Setup(m => m.Map<Notification>(notificationDto))
                 .Returns(notification);
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Notification>()))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(notification);
 
             var actionResult = await _controller.Post(notificationDto);
 
@@ -253,6 +253,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var actionResult = await _controller.Post(notificationDto);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Notification>()), Times.Never);
+
         }
 
         [TestMethod]
@@ -357,6 +359,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _controller.Put(_objetcommun.IdNotification, notificationDto);
 
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Notification>(), It.IsAny<Notification>()), Times.Never);
         }
 
         #endregion
