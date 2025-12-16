@@ -39,7 +39,7 @@ namespace Api_c_sharp.Controllers
             await _manager.AddAsync(entity);
 
             // Retourne bien les deux clés
-            return CreatedAtAction(nameof(GetByID), new { idoffre = entity.IdOffre }, dto);
+            return CreatedAtAction(nameof(GetByID), new { idoffre = entity.IdOffre }, entity);
         }
 
         /// <summary>

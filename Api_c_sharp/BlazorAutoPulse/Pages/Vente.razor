@@ -4,12 +4,192 @@
 @inject GetAllViewModel VMAll
 @inject NavigationManager nav
 
-<PageTitle>AutoPulse</PageTitle>
+<PageTitle>AutoPulse - Vendre</PageTitle>
 
 @* Overlay pour fermer le dropdown *@
 @if (VM.dropdownOpen)
 {
     <div @onclick="VM.CloseDropdown" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:998;background:transparent;"></div>
+}
+
+@* POPUPS IA *@
+@* Popup Warning CNN *@
+@if (VM.showCnnWarningPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3>⚠️ Reconnaissance par IA</h3>
+            </div>
+            <div class="popup-content">
+                <p>Le dataset utilisé pour l'entraînement est limité, l'IA peut faire des erreurs sur les véhicules courants.</p>
+                <p><strong>Voulez-vous continuer ?</strong></p>
+            </div>
+            <div class="popup-actions">
+                <button class="btn-cancel" @onclick="VM.CloseCnnWarningPopup">Annuler</button>
+                <button class="btn-confirm" @onclick="VM.ExecuteCnnRecognition">Continuer</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Popup Loading CNN *@
+@if (VM.showCnnLoadingPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container popup-loading">
+            <div class="loading-spinner"></div>
+            <p>Analyse de l'image en cours...</p>
+        </div>
+    </div>
+}
+
+@* Popup Résultat CNN *@
+@if (VM.showCnnResultPopup && VM.cnnResult != null)
+{
+    <div class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3>🎯 Résultat de la reconnaissance</h3>
+            </div>
+            <div class="popup-content">
+                <div class="ia-result-box">
+                    <p><strong>Marque détectée :</strong> @VM.cnnResult.Manufacturer</p>
+                    <p><strong>Modèle détecté :</strong> @VM.cnnResult.Model</p>
+                    <p><strong>Confiance :</strong> @VM.cnnResult.Confidence</p>
+
+                    @if (VM.cnnResult.TopPredictions?.Any() == true)
+                    {
+                        <div class="top-predictions">
+                            <p><strong>Autres prédictions :</strong></p>
+                            @foreach (var pred in VM.cnnResult.TopPredictions.Skip(1).Take(3))
+                            {
+                                <p class="alt-pred">• @pred.Manufacturer @pred.Model (@pred.Confidence)</p>
+                            }
+                        </div>
+                    }
+                </div>
+                <p class="popup-question">Voulez-vous pré-remplir ces champs ?</p>
+            </div>
+            <div class="popup-actions">
+                <button class="btn-cancel" @onclick="VM.CancelCnnResult">Non</button>
+                <button class="btn-confirm" @onclick="async () => await VM.ApplyCnnResult()">Oui, pré-remplir</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Popup Warning Prix *@
+@if (VM.showPriceWarningPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3>⚠️ Champs manquants</h3>
+            </div>
+            <div class="popup-content">
+                <p>Les champs suivants ne sont pas remplis :</p>
+                <ul class="missing-fields-list">
+                    @foreach (var field in VM.missingFields)
+                    {
+                        <li>• @field</li>
+                    }
+                </ul>
+                <p><strong>L'IA risque d'être moins précise. Voulez-vous continuer ?</strong></p>
+            </div>
+            <div class="popup-actions">
+                <button class="btn-cancel" @onclick="VM.ClosePriceWarningPopup">Annuler</button>
+                <button class="btn-confirm" @onclick="VM.ExecutePricePrediction">Continuer quand même</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Popup Loading Prix *@
+@if (VM.showPriceLoadingPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container popup-loading">
+            <div class="loading-spinner"></div>
+            <p>Prédiction du prix en cours...</p>
+        </div>
+    </div>
+}
+
+@* Popup Warning Ajustement *@
+@if (VM.showAdjustmentWarningPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <h3>⚠️ Ajustement par IA</h3>
+            </div>
+            <div class="popup-content">
+                <p>L'IA va analyser votre description pour détecter d'éventuels défauts et ajuster le prix en conséquence.</p>
+                <p><strong>⚠️ Attention :</strong> L'IA peut faire des erreurs, vérifiez bien le résultat avant de l'appliquer.</p>
+            </div>
+            <div class="popup-actions">
+                <button class="btn-cancel" @onclick="VM.CloseAdjustmentWarningPopup">Annuler</button>
+                <button class="btn-confirm" @onclick="VM.ExecuteAdjustment">Analyser</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Popup Loading Ajustement *@
+@if (VM.showAdjustmentLoadingPopup)
+{
+    <div class="popup-overlay">
+        <div class="popup-container popup-loading">
+            <div class="loading-spinner"></div>
+            <p>Analyse de la description en cours...</p>
+        </div>
+    </div>
+}
+
+@* Popup Résultat Ajustement *@
+@if (VM.showAdjustmentResultPopup && VM.adjustmentResult != null)
+{
+    <div class="popup-overlay">
+        <div class="popup-container popup-large">
+            <div class="popup-header">
+                <h3>📊 Résultat de l'analyse</h3>
+            </div>
+            <div class="popup-content">
+                <div class="adjustment-result">
+                    <div class="adjustment-category">
+                        <strong>Catégorie :</strong> @VM.adjustmentResult.Category
+                    </div>
+
+                    <div class="price-comparison">
+                        <div class="price-item">
+                            <span class="price-label">Prix initial</span>
+                            <span class="price-value">@VM.adjustmentResult.BasePrice.ToString("N0") €</span>
+                        </div>
+                        <div class="price-arrow">→</div>
+                        <div class="price-item">
+                            <span class="price-label">Prix ajusté</span>
+                            <span class="price-value adjusted">@VM.adjustmentResult.AdjustedPrice.ToString("N0") €</span>
+                        </div>
+                    </div>
+
+                    <div class="reduction-info">
+                        <p><strong>Réduction :</strong> @VM.adjustmentResult.ReductionAmount.ToString("N0") € (-@VM.adjustmentResult.ReductionPercent.ToString("N2")%)</p>
+                        <p><strong>Coefficient de qualité :</strong> @VM.adjustmentResult.QualityCoefficient.ToString("N2")</p>
+                    </div>
+
+                    <div class="description-analyzed">
+                        <p><strong>Description analysée :</strong></p>
+                        <p class="description-text">@VM.adjustmentResult.DescriptionAnalyzed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-actions">
+                <button class="btn-confirm" @onclick="VM.AcceptPriceAdjustment">Accepter le nouveaux prix</button>
+                <button class="btn-confirm" @onclick="VM.CloseAdjustmentResultPopup">OK</button>
+            </div>
+        </div>
+    </div>
 }
 
 <div id="sell" class="page active">
@@ -59,6 +239,14 @@
                     </ul>
                 }
 
+                @* BOUTON IA CNN *@
+                <button type="button"
+                        class="btn-ia btn-ia-cnn"
+                        disabled="@(!VM.CanUseCnn)"
+                        @onclick="VM.OpenCnnWarningPopup">
+                    🤖 Pré-remplir "marque" et "modèle" avec l'IA
+                </button>
+
                 <div class="form-row">
                     <div class="form-group @(VM.HasError("marque") ? "has-error" : "")">
                         <label>Marque</label>
@@ -72,7 +260,7 @@
                             {
                                 @foreach (var marque in VMAll.allMarques)
                                 {
-                                    <option value="@marque.IdMarque">@marque.LibelleMarque</option>
+                                    <option value="@marque.IdMarque" selected="@(VM.voiture.IdMarque == marque.IdMarque)">@marque.LibelleMarque</option>
                                 }
                             }
                         </select>
@@ -89,7 +277,7 @@
                             {
                                 @foreach (var modele in VMAll.filteredModeles)
                                 {
-                                    <option value="@modele.IdModele">@modele.LibelleModele</option>
+                                    <option value="@modele.IdModele" selected="@(VM.voiture.IdModele == modele.IdModele)">@modele.LibelleModele</option>
                                 }
                             }
                         </select>
@@ -100,6 +288,7 @@
                     </div>
                 </div>
 
+                @* ... Reste des champs existants ... *@
                 <div class="form-row">
                     <div class="form-group @(VM.HasError("annee") ? "has-error" : "")">
                         <label>Année</label>
@@ -220,7 +409,6 @@
                             else
                             {
                                 <option value="0">Toutes les boîtes de vitesse</option>
-
                                 @if (VMAll.allBoiteDeVitesse != null)
                                 {
                                     @foreach (var boite in VMAll.allBoiteDeVitesse)
@@ -262,7 +450,23 @@
                         {
                             <span class="error-message">@VM.GetError("prix")</span>
                         }
-                        <button type="button" class="btn-ia" onclick="alert('Estimation IA : Basé sur les informations fournies, un prix juste se situerait entre 29 500 € et 31 000 €.')">✨ Estimer le prix par l'IA</button>
+
+                        @* BOUTON IA PRÉDICTION PRIX *@
+                        <button type="button" class="btn-ia" @onclick="VM.CheckAndPredictPrice">
+                            ✨ Estimer le prix par l'IA
+                        </button>
+
+                        @* AFFICHAGE PRIX PRÉDIT *@
+                        @if (VM.priceResult != null && VM.priceResult.Success)
+                        {
+                            <div class="ia-price-result" @onclick="@VM.AcceptPredictPrice">
+                                <label>Prix estimé par l'IA (cliquer pour remplir le prix)</label>
+                                <div class="predicted-price">
+                                    @VM.priceResult.PredictedPrice.ToString("N0") @VM.priceResult.Currency
+                                    <span class="confidence-badge">Confiance: @((VM.priceResult.ConfidenceScore * 100).ToString("N0"))%</span>
+                                </div>
+                            </div>
+                        }
                     </div>
                     <div class="form-group @(VM.HasError("couleurs") ? "has-error" : "")">
                         <label>Couleurs</label>
@@ -311,7 +515,6 @@
 
                 <div class="address-section">
                     <div class="saved-addresses-sidebar">
-                        
                         <div class="saved-addresses-label">Adresses enregistrées</div>
                         <div class="address-quick-button reset @(VM.selectedAddressId == null ? "active" : "")" @onclick="VM.ResetAddress">
                             <span class="address-btn-name">
@@ -334,7 +537,6 @@
                         }
                     </div>
 
-                    <!-- Colonne de droite - Formulaire d'adresse -->
                     <div class="address-form-fields">
                         <div class="form-group @(VM.HasError("nomadresse") ? "has-error" : "")">
                             <label>Nom de l'adresse</label>
@@ -387,7 +589,15 @@
 
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea placeholder="Décrivez votre véhicule, son état, ses équipements..."></textarea>
+                    <textarea placeholder="Décrivez votre véhicule, son état, ses équipements..." @bind="VM.annonce.Description"></textarea>
+
+                    @* BOUTON IA AJUSTEMENT *@
+                    <button type="button"
+                            class="btn-ia btn-ia-adjustment"
+                            disabled="@(!VM.CanUseAdjustment)"
+                            @onclick="VM.OpenAdjustmentWarningPopup">
+                        🔍 Analyser la description et ajuster le prix
+                    </button>
                 </div>
 
                 <button @onclick="@VM.CreateAnnonce" type="button" class="btn-submit" style="margin-top: 20px;">Publier mon annonce</button>
@@ -399,7 +609,7 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
-        await VM.InitializeAsync(StateHasChanged, nav);
         await VMAll.InitializeAsync();
+        await VM.InitializeAsync(StateHasChanged, nav, VMAll);
     }
 }

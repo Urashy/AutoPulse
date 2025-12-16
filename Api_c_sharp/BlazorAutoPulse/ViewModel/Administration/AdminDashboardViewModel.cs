@@ -1,23 +1,35 @@
-﻿using BlazorAutoPulse.Service.Interface;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.ViewModel.Administration
 {
     public class AdminDashboardViewModel
     {
         private readonly ICompteService _compteService;
+        private readonly ISignalementService _signalementService;
+        private readonly IAnnonceService _annonceService;
+        private readonly IPlainteService _plainteService;
 
         public int TotalUtilisateurs { get; private set; }
-        public int NouveauxUtilisateurs { get; private set; }
         public int TotalAnnonces { get; private set; }
-        public int NouvellesAnnonces { get; private set; }
         public int SignalementsEnAttente { get; private set; }
-        public decimal RevenuMensuel { get; private set; }
-        public decimal CroissanceRevenu { get; private set; }
+        public int TotalPlaintes { get; private set; }
 
-        // Activités récentes
-        public List<AdminActivity> RecentActivities { get; private set; } = new();
+        public List<AdminSignalement> SignalementsRecent { get; private set; } = new();
 
         private Action? _refreshUI;
+
+        public AdminDashboardViewModel(
+            ICompteService compteService,
+            ISignalementService signalementService,
+            IAnnonceService annonceService,
+            IPlainteService plainteService)
+        {
+            _compteService = compteService;
+            _signalementService = signalementService;
+            _annonceService = annonceService;
+            _plainteService = plainteService;
+        }
 
         public async Task InitializeAsync(Action refreshUI)
         {
@@ -27,57 +39,43 @@ namespace BlazorAutoPulse.ViewModel.Administration
 
         private async Task LoadDashboardData()
         {
-            // Simulation de chargement de données
-            await Task.Delay(100);
-
-
-            TotalUtilisateurs = 1247;
-            NouveauxUtilisateurs = 34;
-            TotalAnnonces = 523;
-            NouvellesAnnonces = 18;
-            SignalementsEnAttente = 7;
-            RevenuMensuel = 12450;
-            CroissanceRevenu = 15.3m;
-
-            // Activités récentes simulées
-            RecentActivities = new List<AdminActivity>
+            try
             {
-                new AdminActivity
+                // Récupération des données via les services
+                var comptes = await _compteService.GetAllAsync();
+                TotalUtilisateurs = comptes?.Count() ?? 0;
+
+                var annonces = await _annonceService.GetAllAsync();
+                TotalAnnonces = annonces?.Count() ?? 0;
+
+                var plaintes = await _plainteService.GetAllAsync();
+                TotalPlaintes = plaintes?.Count() ?? 0;
+
+                var signalements = await _signalementService.GetAllSignalementsAsync();
+                // On filtre ceux qui sont "En attente" (à adapter selon le libellé exact en BDD)
+                SignalementsEnAttente = signalements?.Count(s => s.IdEtatSignalement == 1) ?? 0;
+
+                // Activité récente (Signalements)
+                var recentSignalementsDto = await _signalementService.GetFiltered(1, 0, "");
+                if (recentSignalementsDto != null)
                 {
-                    Icon = "👤",
-                    Description = "Nouvel utilisateur inscrit : Jean Dupont",
-                    Type = "info",
-                    TimeAgo = "Il y a 5 minutes"
-                },
-                new AdminActivity
-                {
-                    Icon = "🚗",
-                    Description = "Nouvelle annonce publiée : BMW Série 3",
-                    Type = "info",
-                    TimeAgo = "Il y a 15 minutes"
-                },
-                new AdminActivity
-                {
-                    Icon = "🚩",
-                    Description = "Nouveau signalement : Contenu suspect",
-                    Type = "warning",
-                    TimeAgo = "Il y a 32 minutes"
-                },
-                new AdminActivity
-                {
-                    Icon = "✅",
-                    Description = "Annonce validée : Mercedes Classe A",
-                    Type = "info",
-                    TimeAgo = "Il y a 1 heure"
-                },
-                new AdminActivity
-                {
-                    Icon = "❌",
-                    Description = "Compte suspendu : Violation des CGU",
-                    Type = "danger",
-                    TimeAgo = "Il y a 2 heures"
+                    SignalementsRecent = recentSignalementsDto.Take(5).Select(s => new AdminSignalement
+                    {
+                        Id = s.IdSignalement,
+                        TypeSignalement = s.LibelleTypeSignalement ?? "Inconnu",
+                        PseudoSignalant = s.PseudoSignalant ?? "Anonyme",
+                        PseudoCible = s.PseudoSignale,
+                        TitreCible = s.LibelleAnnonceSignale,
+                        Description = s.DescriptionSignalement ?? "",
+                        DateSignalement = s.DateCreationSignalement,
+                        Statut = s.LibelleEtatSignalement ?? "En attente"
+                    }).ToList();
                 }
-            };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur Dashboard : {ex.Message}");
+            }
 
             _refreshUI?.Invoke();
         }
@@ -86,13 +84,5 @@ namespace BlazorAutoPulse.ViewModel.Administration
         {
             await LoadDashboardData();
         }
-    }
-
-    public class AdminActivity
-    {
-        public string Icon { get; set; } = "";
-        public string Description { get; set; } = "";
-        public string Type { get; set; } = "info"; // info, warning, danger
-        public string TimeAgo { get; set; } = "";
     }
 }
