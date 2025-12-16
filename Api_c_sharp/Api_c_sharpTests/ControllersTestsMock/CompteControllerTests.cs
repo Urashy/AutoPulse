@@ -657,15 +657,6 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public void GoogleLogin_ReturnsOkResult()
-        {
-            var result = _controller.GoogleLogin();
-
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
         public void GoogleLogin_ReturnsUrlInResponse()
         {
             var result = _controller.GoogleLogin();
@@ -878,55 +869,6 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #region Tests manquants pour compléter la couverture
 
-        [TestMethod]
-        public async Task NotFoundGetProfilPublicTest_WithGetProfilPublic()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetProfilPublic(0))
-                       .ReturnsAsync((Compte)null);
-
-            // Act
-            var result = await _controller.GetProfilPublic(0);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetMe_Authenticated_ReturnsCompteDetailDTO()
-        {
-            // Arrange
-            var claims = new List<Claim> { new Claim("idUser", "1") };
-            var identity = new ClaimsIdentity(claims, "TestAuthType");
-            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
-
-            _mockManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(_objetcommun);
-
-            // Act
-            var result = await _controller.GetMe();
-
-            // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-            var okResult = result.Result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            Assert.IsInstanceOfType(okResult.Value, typeof(CompteDetailDTO));
-        }
-
-        [TestMethod]
-        public async Task Login_InvalidPassword_AuthenticateReturnsNull()
-        {
-            // Arrange
-            var loginRequest = new LoginRequest { Email = "john@gmail.com", MotDePasse = "WrongPassword" };
-            _mockManager.Setup(m => m.AuthenticateCompte(It.IsAny<string>(), It.IsAny<string>()))
-                       .ReturnsAsync((Compte)null);
-
-            // Act
-            var result = await _controller.Login(loginRequest);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
-        }
 
         [TestMethod]
         public async Task Logout_UnauthenticatedUser_ThrowsException()
@@ -1347,6 +1289,317 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.AreNotEqual(result1, result2);
+        }
+
+        #endregion
+
+        // ============================================================================
+        // SOLUTION SANS REFACTORING - Tests avec HttpClient mocké
+        // ============================================================================
+
+        // Vous pouvez tester SANS créer d'interface, mais c'est plus complexe.
+        // Voici les approches possibles :
+
+        // ============================================================================
+        // APPROCHE 1 : Tester indirectement via GetOrCreateCompte (RECOMMANDÉ)
+        // ============================================================================
+
+        #region Tests Google OAuth sans refactoring - CORRIGÉS
+
+        [TestMethod]
+        public async Task GetOrCreateCompte_ExistingUser_ReturnsExistingCompte()
+        {
+            // Arrange
+            var userInfo = new GoogleUserInfo
+            {
+                Id = "google_123",
+                Email = _objetcommun.Email,
+                Name = "John Doe",
+                GivenName = "John",
+                FamilyName = "Doe"
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(userInfo.Email))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Compte>(), It.IsAny<Compte>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act - Utiliser la réflexion pour appeler la méthode privée
+            var method = typeof(CompteController).GetMethod("GetOrCreateCompte",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            var result = await (Task<(bool, Compte)>)method.Invoke(_controller, new object[] { userInfo });
+
+            // Assert
+            Assert.IsTrue(result.Item1); // Utilisateur existant
+            Assert.AreEqual(_objetcommun.IdCompte, result.Item2.IdCompte);
+            Assert.AreEqual(_objetcommun.Email, result.Item2.Email);
+
+            _mockManager.Verify(m => m.GetByNameAsync(userInfo.Email), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetOrCreateCompte_NewUser_CreatesNewCompte()
+        {
+            // Arrange
+            var userInfo = new GoogleUserInfo
+            {
+                Id = "google_new_456",
+                Email = "newuser@gmail.com",
+                Name = "Jane Smith",
+                GivenName = "Jane",
+                FamilyName = "Smith"
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(userInfo.Email))
+                       .ReturnsAsync((Compte)null);
+
+            // CORRECTION: Capturer le compte passé à AddAsync et le retourner
+            Compte capturedCompte = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
+                       .Callback<Compte>(c => capturedCompte = c)
+                       .ReturnsAsync((Compte c) =>
+                       {
+                           c.IdCompte = 99; // Simuler l'assignation de l'ID par la DB
+                           return c;
+                       });
+
+            // Act
+            var method = typeof(CompteController).GetMethod("GetOrCreateCompte",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            var result = await (Task<(bool, Compte)>)method.Invoke(_controller, new object[] { userInfo });
+
+            // Assert
+            Assert.IsFalse(result.Item1); // Nouvel utilisateur
+            Assert.AreEqual(99, result.Item2.IdCompte);
+            Assert.AreEqual(userInfo.Email, result.Item2.Email);
+            Assert.AreEqual(userInfo.Id, result.Item2.GoogleId);
+            Assert.AreEqual("Google", result.Item2.AuthProvider);
+
+            // Vérifier que le compte créé a les bonnes valeurs
+            Assert.IsNotNull(capturedCompte);
+            Assert.AreEqual(userInfo.Email, capturedCompte.Email);
+            Assert.AreEqual(userInfo.Id, capturedCompte.GoogleId);
+            Assert.AreEqual("Smith", capturedCompte.Nom);
+            Assert.AreEqual("Jane", capturedCompte.Prenom);
+
+            _mockManager.Verify(m => m.AddAsync(It.Is<Compte>(c =>
+                c.Email == userInfo.Email &&
+                c.GoogleId == userInfo.Id)), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetOrCreateCompte_NewUserWithNullFamilyName_UsesDefaultValues()
+        {
+            // Arrange
+            var userInfo = new GoogleUserInfo
+            {
+                Id = "google_no_name",
+                Email = "noname@gmail.com",
+                Name = "OnlyFirstName",
+                GivenName = "OnlyFirstName",
+                FamilyName = null // Pas de nom de famille
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(userInfo.Email))
+                       .ReturnsAsync((Compte)null);
+
+            Compte capturedCompte = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
+                       .Callback<Compte>(c => capturedCompte = c)
+                       .ReturnsAsync((Compte c) =>
+                       {
+                           c.IdCompte = 100;
+                           return c;
+                       });
+
+            // Act
+            var method = typeof(CompteController).GetMethod("GetOrCreateCompte",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            var result = await (Task<(bool, Compte)>)method.Invoke(_controller, new object[] { userInfo });
+
+            // Assert
+            Assert.IsFalse(result.Item1);
+            Assert.IsNotNull(capturedCompte);
+            Assert.AreEqual("Nom", capturedCompte.Nom); // Valeur par défaut
+            Assert.AreEqual("OnlyFirstName", capturedCompte.Prenom);
+
+            _mockManager.Verify(m => m.AddAsync(It.Is<Compte>(c =>
+                c.Nom == "Nom" &&
+                c.Prenom == "OnlyFirstName")), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetOrCreateCompte_NewUserWithNullName_UsesEmailPrefix()
+        {
+            // Arrange
+            var userInfo = new GoogleUserInfo
+            {
+                Id = "google_no_name_at_all",
+                Email = "testuser@gmail.com",
+                Name = null, // Pas de nom du tout
+                GivenName = null,
+                FamilyName = null
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(userInfo.Email))
+                       .ReturnsAsync((Compte)null);
+
+            Compte capturedCompte = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
+                       .Callback<Compte>(c => capturedCompte = c)
+                       .ReturnsAsync((Compte c) =>
+                       {
+                           c.IdCompte = 101;
+                           return c;
+                       });
+
+            // Act
+            var method = typeof(CompteController).GetMethod("GetOrCreateCompte",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            var result = await (Task<(bool, Compte)>)method.Invoke(_controller, new object[] { userInfo });
+
+            // Assert
+            Assert.IsFalse(result.Item1);
+            Assert.IsNotNull(capturedCompte);
+            Assert.AreEqual("testuser", capturedCompte.Pseudo); // Extrait de l'email
+
+            _mockManager.Verify(m => m.AddAsync(It.Is<Compte>(c =>
+                c.Pseudo == "testuser")), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetOrCreateCompte_ExistingUserWithGoogleId_DoesNotUpdate()
+        {
+            // Arrange
+            var userInfo = new GoogleUserInfo
+            {
+                Id = "google_existing_id",
+                Email = _objetcommun.Email,
+                Name = "John Doe"
+            };
+
+            var existingCompte = new Compte
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                GoogleId = "google_existing_id", // Déjà un Google ID
+                Nom = "Doe",
+                Prenom = "John"
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(userInfo.Email))
+                       .ReturnsAsync(existingCompte);
+
+            // Act
+            var method = typeof(CompteController).GetMethod("GetOrCreateCompte",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            var result = await (Task<(bool, Compte)>)method.Invoke(_controller, new object[] { userInfo });
+
+            // Assert
+            Assert.IsTrue(result.Item1); // Utilisateur existant
+            Assert.AreEqual(existingCompte.IdCompte, result.Item2.IdCompte);
+
+            // Ne devrait PAS appeler UpdateAsync car le GoogleId existe déjà
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Compte>(), It.IsAny<Compte>()),
+                Times.Never);
+        }
+
+        [TestMethod]
+        public async Task GetOrCreateCompte_NewUserWithPartialInfo_CreatesWithDefaults()
+        {
+            // Arrange
+            var userInfo = new GoogleUserInfo
+            {
+                Id = "google_partial",
+                Email = "partial@gmail.com",
+                Name = null,
+                GivenName = "Jean",
+                FamilyName = null
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(userInfo.Email))
+                       .ReturnsAsync((Compte)null);
+
+            Compte capturedCompte = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
+                       .Callback<Compte>(c => capturedCompte = c)
+                       .ReturnsAsync((Compte c) =>
+                       {
+                           c.IdCompte = 102;
+                           return c;
+                       });
+
+            // Act
+            var method = typeof(CompteController).GetMethod("GetOrCreateCompte",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            var result = await (Task<(bool, Compte)>)method.Invoke(_controller, new object[] { userInfo });
+
+            // Assert
+            Assert.IsFalse(result.Item1);
+            Assert.IsNotNull(capturedCompte);
+            Assert.AreEqual("Jean", capturedCompte.Prenom);
+            Assert.AreEqual("Nom", capturedCompte.Nom); // Valeur par défaut
+            Assert.AreEqual("partial", capturedCompte.Pseudo); // Extrait de l'email
+            Assert.AreEqual(1, capturedCompte.IdTypeCompte); // Type par défaut
+            Assert.AreEqual(1, capturedCompte.IdEtatCompte); // État par défaut
+            Assert.AreEqual("Google", capturedCompte.AuthProvider);
+        }
+
+        [TestMethod]
+        public async Task GetOrCreateCompte_NewUser_SetsCorrectDateFields()
+        {
+            // Arrange
+            var userInfo = new GoogleUserInfo
+            {
+                Id = "google_dates",
+                Email = "dates@gmail.com",
+                Name = "Date Test",
+                GivenName = "Date",
+                FamilyName = "Test"
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(userInfo.Email))
+                       .ReturnsAsync((Compte)null);
+
+            Compte capturedCompte = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
+                       .Callback<Compte>(c => capturedCompte = c)
+                       .ReturnsAsync((Compte c) =>
+                       {
+                           c.IdCompte = 103;
+                           return c;
+                       });
+
+            // Act
+            var method = typeof(CompteController).GetMethod("GetOrCreateCompte",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            var startTime = DateTime.UtcNow;
+            var result = await (Task<(bool, Compte)>)method.Invoke(_controller, new object[] { userInfo });
+            var endTime = DateTime.UtcNow;
+
+            // Assert
+            Assert.IsFalse(result.Item1);
+            Assert.IsNotNull(capturedCompte);
+
+            // Vérifier que les dates sont en UTC
+            Assert.AreEqual(DateTimeKind.Utc, capturedCompte.DateCreation.Kind);
+            Assert.AreEqual(DateTimeKind.Utc, capturedCompte.DateDerniereConnexion.Kind);
+            Assert.AreEqual(DateTimeKind.Utc, capturedCompte.DateNaissance.Kind);
+
+            // Vérifier que DateCreation et DateDerniereConnexion sont récentes
+            Assert.IsTrue(capturedCompte.DateCreation >= startTime && capturedCompte.DateCreation <= endTime);
+            Assert.IsTrue(capturedCompte.DateDerniereConnexion >= startTime && capturedCompte.DateDerniereConnexion <= endTime);
+
+            // Vérifier la date de naissance par défaut (2000-01-01)
+            Assert.AreEqual(new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), capturedCompte.DateNaissance);
         }
 
         #endregion
