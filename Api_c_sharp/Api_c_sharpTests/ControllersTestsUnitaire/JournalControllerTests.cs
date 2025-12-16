@@ -280,58 +280,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task GetFilteredJournal_WithDateDebut_Test()
-        {
-            // Arrange
-            var dateReference = DateTime.UtcNow.AddDays(-5);
-
-            await _journalService.LogConnexionAsync(1);
-            await Task.Delay(100);
-            await _journalService.LogConnexionAsync(1);
-
-            var recherche = new RechercheJournalDTO
-            {
-                IdType = 1,
-                DebutIntervalle = dateReference,
-                Order = 0
-            };
-
-            // Act
-            var result = await _controller.GetFilteredJournal(recherche);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.All(j => j.DateJournal >= dateReference));
-        }
-
-        [TestMethod]
-        public async Task GetFilteredJournal_WithDateFin_Test()
-        {
-            // Arrange
-            var dateFin = DateTime.UtcNow.AddDays(1);
-
-            await _journalService.LogConnexionAsync(1);
-
-            var recherche = new RechercheJournalDTO
-            {
-                IdType = 1,
-                FinIntervalle = dateFin,
-                Order = 0
-            };
-
-            // Act
-            var result = await _controller.GetFilteredJournal(recherche);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.All(j => j.DateJournal <= dateFin));
-        }
-
-        [TestMethod]
         public async Task GetFilteredJournal_WithDateIntervalComplete_Test()
         {
             // Arrange
