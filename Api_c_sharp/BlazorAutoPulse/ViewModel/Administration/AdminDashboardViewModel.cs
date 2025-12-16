@@ -41,7 +41,6 @@ namespace BlazorAutoPulse.ViewModel.Administration
         {
             try
             {
-                // Récupération des données via les services
                 var comptes = await _compteService.GetAllAsync();
                 TotalUtilisateurs = comptes?.Count() ?? 0;
 
@@ -52,7 +51,6 @@ namespace BlazorAutoPulse.ViewModel.Administration
                 TotalPlaintes = plaintes?.Count() ?? 0;
 
                 var signalements = await _signalementService.GetAllSignalementsAsync();
-                // On filtre ceux qui sont "En attente" (à adapter selon le libellé exact en BDD)
                 SignalementsEnAttente = signalements?.Count(s => s.IdEtatSignalement == 1) ?? 0;
 
                 // Activité récente (Signalements)
