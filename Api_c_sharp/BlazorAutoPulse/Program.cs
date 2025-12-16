@@ -60,6 +60,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<INotificationService, NotificationWebService>();
             builder.Services.AddScoped<IVoitureService, VoitureWebService>();
             builder.Services.AddScoped<IIAService, IAWebService>();
+            builder.Services.AddScoped<IJournalService, JournalWebService>();
+
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
