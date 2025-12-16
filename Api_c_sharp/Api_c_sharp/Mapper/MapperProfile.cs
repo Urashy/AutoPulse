@@ -390,6 +390,15 @@ public class MapperProfile : Profile
             .ReverseMap();
 
         //---------------------------------Offre---------------------------------
+        CreateMap<Offre, OffreDTO>().ReverseMap();
+        
+        CreateMap<OffreUpdateDTO, Offre>().ReverseMap();
+
+        CreateMap<OffreCreateDTO, Offre>()
+            .ForMember(dest => dest.IdOffre, opt => opt.Ignore())
+            .ForMember(dest => dest.DateOffre, opt => opt.MapFrom(_ => DateTime.UtcNow))
+            .ForMember(dest => dest.EstAccepte, opt => opt.Ignore());
+
 
         //---------------------------------Pays---------------------------------
 

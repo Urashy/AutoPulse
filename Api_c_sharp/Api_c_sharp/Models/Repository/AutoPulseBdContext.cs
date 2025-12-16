@@ -41,6 +41,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Motricite> Motricites { get; set; }
         public DbSet<MoyenPaiement> MoyensPaiements { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Offre> Offres { get; set; }
         public DbSet<Pays> Pays { get; set; }
         public DbSet<PieceJointe> PiecesJointes { get; set; }
         public DbSet<Plainte> Plaintes { get; set; }
@@ -344,6 +345,20 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(n => n.AnnonceNotificationNav)
                 .WithMany(s => s.Notifications)
                 .HasForeignKey(n => n.IdAnnonce);
+
+            //-----------------------------Offre-----------------------------
+            modelBuilder.Entity<Offre>()
+                .HasKey(e => e.IdOffre);
+
+            modelBuilder.Entity<Offre>()
+                .HasOne(o => o.OffreAnnonceNav)
+                .WithMany(a => a.Offres)
+                .HasForeignKey(o => o.IdAnnonce);
+
+            modelBuilder.Entity<Offre>()
+                .HasOne(o => o.OffreMessageNav)
+                .WithMany(c => c.Offres)
+                .HasForeignKey(o => o.IdMessage);
 
             //-----------------------------Pays-----------------------------
             modelBuilder.Entity<Pays>()
