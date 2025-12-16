@@ -119,6 +119,12 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.NbPlace))
             .ForMember(dest => dest.NbPortes,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.NbPorte))
+            .ForMember(dest => dest.InterieurCuire,
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.InterieurCuire))
+            .ForMember(dest => dest.CylindrerMoteur,
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.CylindrerMoteur))
+            .ForMember(dest => dest.PositionVolant,
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.PositionVolant))
             .ForMember(dest => dest.NbVues,
                 opt => opt.MapFrom(src => src.Vues.Count()))
             .ForMember(dest => dest.NbFavoris,
@@ -492,22 +498,6 @@ public class MapperProfile : Profile
             .ReverseMap();
 
         CreateMap<Voiture, VoitureDetailDTO>()
-            .ForMember(dest => dest.LibelleMarque,
-                opt => opt.MapFrom(src => src.MarqueVoitureNavigation.LibelleMarque))
-            .ForMember(dest => dest.LibelleModele,
-                opt => opt.MapFrom(src => "N/A")) // À mapper avec la vraie relation
-            .ForMember(dest => dest.LibelleMotricite,
-                opt => opt.MapFrom(src => src.MotriciteVoitureNavigation.LibelleMotricite))
-            .ForMember(dest => dest.LibelleCarburant,
-                opt => opt.MapFrom(src => src.CarburantVoitureNavigation.LibelleCarburant))
-            .ForMember(dest => dest.LibelleBoite,
-                opt => opt.MapFrom(src => src.BoiteVoitureNavigation.LibelleBoite))
-            .ForMember(dest => dest.LibelleCouleur,
-                opt => opt.MapFrom(src => src.APourCouleurs.FirstOrDefault().APourCouleurCouleurNav.LibelleCouleur ?? "Non spécifié"))
-            .ForMember(dest => dest.LibelleCategorie,
-                opt => opt.MapFrom(src => src.CategorieVoitureNavigation.LibelleCategorie))
-            .ForMember(dest => dest.LienModeleBlender,
-                opt => opt.MapFrom(src => src.ModeleBlenderNavigation != null ? src.ModeleBlenderNavigation.Lien : null))
             .ForMember(dest => dest.Images,
                 opt => opt.MapFrom(src => src.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList())).ReverseMap();
 

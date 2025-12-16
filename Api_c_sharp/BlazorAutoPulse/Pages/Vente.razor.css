@@ -758,3 +758,60 @@ textarea:disabled {
         transform: rotate(90deg);
     }
 }
+
+/* Checkbox personnalisée simple et belle */
+.custom-checkbox-wrapper {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    padding: 8px 0;
+}
+
+.custom-checkbox-input {
+    appearance: none;
+    width: 22px !important;
+    height: 22px;
+    border: 2px solid #555 !important;
+    border-radius: 6px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease !important;
+    flex-shrink: 0;
+}
+
+.custom-checkbox-input:hover {
+    border-color: #00d4ff;
+}
+
+.custom-checkbox-input:checked {
+    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    border-color: #00d4ff;
+}
+
+.custom-checkbox-input:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.custom-checkbox-label {
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Adresses (existants à conserver) */
+.address-section {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}

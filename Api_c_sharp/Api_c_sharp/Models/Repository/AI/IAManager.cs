@@ -4,13 +4,13 @@ using AutoPulse.Shared.DTO.IA.Result;
 
 namespace Api_c_sharp.Models.Repository.AI;
 
-public class IAService : IIAService
+public class IAManager : IIAService
 {
     private readonly HttpClient _httpClient;
-    private readonly ILogger<IAService> _logger;
+    private readonly ILogger<IAManager> _logger;
     private readonly string _pythonApiUrl;
 
-    public IAService(HttpClient httpClient, IConfiguration configuration, ILogger<IAService> logger)
+    public IAManager(HttpClient httpClient, IConfiguration configuration, ILogger<IAManager> logger)
     {
         _httpClient = httpClient;
         _logger = logger;

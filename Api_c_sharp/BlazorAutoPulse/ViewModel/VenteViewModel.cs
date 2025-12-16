@@ -6,6 +6,8 @@ using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using AutoPulse.Shared.DTO;
+using VoitureDetailDTO = AutoPulse.Shared.DTO.VoitureDetailDTO;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -14,7 +16,7 @@ namespace BlazorAutoPulse.ViewModel
         //-------------------------------- Services
         private readonly ICompteService _compteService;
         private readonly IAnnonceService _annonceService;
-        private readonly IService<Voiture> _voitureService;
+        private readonly IVoitureService _voitureService;
         private readonly IAdresseService _adresseService;
         private readonly IPostImageService _postImageService;
         private readonly IService<APourCouleur> _aPourCouleurService;
@@ -25,7 +27,7 @@ namespace BlazorAutoPulse.ViewModel
         public List<AdresseDTO> compteAdresses;
         
         public AnnonceCreateDTO annonce;
-        public Voiture voiture;
+        public VoitureDetailDTO VoitureDetailDto;
         public Adresse adresse;
         public int? selectedAddressId { get; set; } = null;
         
@@ -62,7 +64,7 @@ namespace BlazorAutoPulse.ViewModel
         public VenteViewModel(
             ICompteService compteService,
             IAnnonceService annonceService, 
-            IService<Voiture> voitureService, 
+            IVoitureService voitureService, 
             IPostImageService postImageService,
             IAdresseService adresseService,
             IService<APourCouleur> aPourCouleurService,
@@ -85,7 +87,7 @@ namespace BlazorAutoPulse.ViewModel
                 IdMiseEnAvant = 1,
                 DatePublication = DateTime.Now,
             };
-            voiture = new Voiture
+            VoitureDetailDto = new VoitureDetailDTO
             {
                 IdVoiture = 0,
                 IdModeleBlender = null,
@@ -94,7 +96,10 @@ namespace BlazorAutoPulse.ViewModel
                 Puissance = 0,
                 Couple = 0,
                 NbCylindres = 0,
-                MiseEnCirculation = DateTime.Now
+                MiseEnCirculation = DateTime.Now,
+                InterieurCuire = false,
+                CylindrerMoteur = 0,
+                PositionVolant = true
             };
             adresse = new Adresse();
             selectedCouleurs = new List<int>();
@@ -188,7 +193,7 @@ namespace BlazorAutoPulse.ViewModel
             
             if (marque != null)
             {
-                voiture.IdMarque = marque.IdMarque;
+                VoitureDetailDto.IdMarque = marque.IdMarque;
                 
                 // Utiliser la méthode de filtrage existante de VMAll
                 await _vmAll.FiltrerModeleParMarquePublic(marque.IdMarque);
@@ -199,7 +204,7 @@ namespace BlazorAutoPulse.ViewModel
                 
                 if (modele != null)
                 {
-                    voiture.IdModele = modele.IdModele;
+                    VoitureDetailDto.IdModele = modele.IdModele;
                 }
             }
 
@@ -222,21 +227,21 @@ namespace BlazorAutoPulse.ViewModel
             missingFields.Clear();
 
             // Vérifier les champs requis
-            if (voiture.IdMarque == null || voiture.IdMarque == 0)
+            if (VoitureDetailDto.IdMarque == null || VoitureDetailDto.IdMarque == 0)
                 missingFields.Add("Marque");
-            if (voiture.IdModele == null || voiture.IdModele == 0)
+            if (VoitureDetailDto.IdModele == null || VoitureDetailDto.IdModele == 0)
                 missingFields.Add("Modèle");
-            if (voiture.Annee == 0)
+            if (VoitureDetailDto.Annee == 0)
                 missingFields.Add("Année");
-            if (voiture.IdCategorie == null || voiture.IdCategorie == 0)
+            if (VoitureDetailDto.IdCategorie == null || VoitureDetailDto.IdCategorie == 0)
                 missingFields.Add("Catégorie");
-            if (voiture.IdCarburant == null || voiture.IdCarburant == 0)
+            if (VoitureDetailDto.IdCarburant == null || VoitureDetailDto.IdCarburant == 0)
                 missingFields.Add("Carburant");
-            if (voiture.Kilometrage == 0)
+            if (VoitureDetailDto.Kilometrage == 0)
                 missingFields.Add("Kilométrage");
-            if (voiture.IdBoiteDeVitesse == null || voiture.IdBoiteDeVitesse == 0)
+            if (VoitureDetailDto.IdBoiteDeVitesse == null || VoitureDetailDto.IdBoiteDeVitesse == 0)
                 missingFields.Add("Boîte de vitesse");
-            if (voiture.IdMotricite == null || voiture.IdMotricite == 0)
+            if (VoitureDetailDto.IdMotricite == null || VoitureDetailDto.IdMotricite == 0)
                 missingFields.Add("Motricité");
 
             if (missingFields.Any())
@@ -269,17 +274,17 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     Manufacturer = GetMarqueLibelle(),
                     Model = GetModeleLibelle(),
-                    ProdYear = voiture.Annee,
+                    ProdYear = VoitureDetailDto.Annee,
                     Category = GetCategorieLibelle(),
-                    LeatherInterior = "No", // Valeur par défaut - Non disponible dans le formulaire
+                    LeatherInterior = VoitureDetailDto.InterieurCuire ? "Yes" : "No",
                     FuelType = GetCarburantLibelle(),
-                    EngineVolume = 2.0f, // Valeur par défaut - Non disponible dans le formulaire
-                    Mileage = voiture.Kilometrage.ToString(),
-                    Cylinders = voiture.NbCylindres > 0 ? (float)voiture.NbCylindres : 4f,
+                    EngineVolume = (float)VoitureDetailDto.CylindrerMoteur,
+                    Mileage = VoitureDetailDto.Kilometrage.ToString(),
+                    Cylinders = VoitureDetailDto.NbCylindres > 0 ? (float)VoitureDetailDto.NbCylindres : 4f,
                     GearBoxType = GetBoiteLibelle(),
                     DriveWheels = GetMotriciteLibelle(),
-                    Doors = voiture.NbPorte.ToString() ?? "4", // Valeur par défaut
-                    Wheel = "Left wheel", // Valeur par défaut - Conduite à gauche
+                    Doors = VoitureDetailDto.NbPorte.ToString() ?? "4", // Valeur par défaut
+                    Wheel = VoitureDetailDto.PositionVolant ? "Left wheel" : "Right wheel",
                     Color = selectedCouleurs.Any() ? GetFirstCouleurLibelle() : "Black",
                     Airbags = 4, // Valeur par défaut - Non disponible dans le formulaire
                     Levy = 0f // Valeur par défaut - Non disponible dans le formulaire
@@ -382,37 +387,37 @@ namespace BlazorAutoPulse.ViewModel
 
         private string GetMarqueLibelle()
         {
-            var marque = _vmAll?.allMarques?.FirstOrDefault(m => m.IdMarque == voiture.IdMarque);
+            var marque = _vmAll?.allMarques?.FirstOrDefault(m => m.IdMarque == VoitureDetailDto.IdMarque);
             return marque?.LibelleMarque ?? "Unknown";
         }
 
         private string GetModeleLibelle()
         {
-            var modele = _vmAll?.allModeles?.FirstOrDefault(m => m.IdModele == voiture.IdModele);
+            var modele = _vmAll?.allModeles?.FirstOrDefault(m => m.IdModele == VoitureDetailDto.IdModele);
             return modele?.LibelleModele ?? "Unknown";
         }
 
         private string GetCategorieLibelle()
         {
-            var categorie = _vmAll?.allCategories?.FirstOrDefault(c => c.IdCategorie == voiture.IdCategorie);
+            var categorie = _vmAll?.allCategories?.FirstOrDefault(c => c.IdCategorie == VoitureDetailDto.IdCategorie);
             return categorie?.LibelleCategorie ?? "Unknown";
         }
 
         private string GetCarburantLibelle()
         {
-            var carburant = _vmAll?.allCarburants?.FirstOrDefault(c => c.IdCarburant == voiture.IdCarburant);
+            var carburant = _vmAll?.allCarburants?.FirstOrDefault(c => c.IdCarburant == VoitureDetailDto.IdCarburant);
             return carburant?.LibelleCarburant ?? "Unknown";
         }
 
         private string GetBoiteLibelle()
         {
-            var boite = _vmAll?.allBoiteDeVitesse?.FirstOrDefault(b => b.IdBoiteDeVitesse == voiture.IdBoiteDeVitesse);
+            var boite = _vmAll?.allBoiteDeVitesse?.FirstOrDefault(b => b.IdBoiteDeVitesse == VoitureDetailDto.IdBoiteDeVitesse);
             return boite?.LibelleBoite ?? "Unknown";
         }
 
         private string GetMotriciteLibelle()
         {
-            var motricite = _vmAll?.allMotricite?.FirstOrDefault(m => m.IdMotricite == voiture.IdMotricite);
+            var motricite = _vmAll?.allMotricite?.FirstOrDefault(m => m.IdMotricite == VoitureDetailDto.IdMotricite);
             return motricite?.LibelleMotricite ?? "Unknown";
         }
 
@@ -446,49 +451,51 @@ namespace BlazorAutoPulse.ViewModel
 
         public void OnMarqueChanged(ChangeEventArgs e)
         {
-            voiture.IdMarque = int.Parse(e.Value.ToString());
-            if (voiture.IdMarque != 0 && errors.ContainsKey("marque"))
+            VoitureDetailDto.IdMarque = int.Parse(e.Value.ToString());
+            if (VoitureDetailDto.IdMarque != 0 && errors.ContainsKey("marque"))
                 errors.Remove("marque");
             _refreshUI?.Invoke();
         }
         
         public void OnModeleChanged(ChangeEventArgs e)
         {
-            voiture.IdModele = int.Parse(e.Value.ToString());
-            if (voiture.IdModele != 0 && errors.ContainsKey("modele"))
+            VoitureDetailDto.IdModele = int.Parse(e.Value.ToString());
+            if (VoitureDetailDto.IdModele != 0 && errors.ContainsKey("modele"))
                 errors.Remove("modele");
         }
 
         public void OnCarburantChange(ChangeEventArgs e)
         {
-            voiture.IdCarburant = int.Parse(e.Value.ToString());
-            if (voiture.IdCarburant == 4)
+            VoitureDetailDto.IdCarburant = int.Parse(e.Value.ToString());
+            if (VoitureDetailDto.IdCarburant == 4)
             {
-                voiture.IdBoiteDeVitesse = 2;
+                VoitureDetailDto.IdBoiteDeVitesse = 2;
+                VoitureDetailDto.NbCylindres = 0;
+                VoitureDetailDto.CylindrerMoteur = 0;
             }
-            if (voiture.IdCarburant != 0 && errors.ContainsKey("carburant"))
+            if (VoitureDetailDto.IdCarburant != 0 && errors.ContainsKey("carburant"))
                 errors.Remove("carburant");
             _refreshUI?.Invoke();
         }
 
         public void OnMotriciteChange(ChangeEventArgs e)
         {
-            voiture.IdMotricite = int.Parse(e.Value.ToString());
-            if (voiture.IdMotricite != 0 && errors.ContainsKey("motricite"))
+            VoitureDetailDto.IdMotricite = int.Parse(e.Value.ToString());
+            if (VoitureDetailDto.IdMotricite != 0 && errors.ContainsKey("motricite"))
                 errors.Remove("motricite");
         }
         
         public void OnBoiteDeVitesseChange(ChangeEventArgs e)
         {
-            voiture.IdBoiteDeVitesse = int.Parse(e.Value.ToString());
-            if (voiture.IdBoiteDeVitesse != 0 && errors.ContainsKey("boitedevitesse"))
+            VoitureDetailDto.IdBoiteDeVitesse = int.Parse(e.Value.ToString());
+            if (VoitureDetailDto.IdBoiteDeVitesse != 0 && errors.ContainsKey("boitedevitesse"))
                 errors.Remove("boitedevitesse");
         }
         
         public void OnCategorieChange(ChangeEventArgs e)
         {
-            voiture.IdCategorie = int.Parse(e.Value.ToString());
-            if (voiture.IdCategorie != 0 && errors.ContainsKey("categorie"))
+            VoitureDetailDto.IdCategorie = int.Parse(e.Value.ToString());
+            if (VoitureDetailDto.IdCategorie != 0 && errors.ContainsKey("categorie"))
                 errors.Remove("categorie");
         }
         
@@ -530,43 +537,43 @@ namespace BlazorAutoPulse.ViewModel
             if (!nomPhotos.Any())
                 errors.Add("photos", "Au moins une photo est requise");
 
-            if (voiture.IdMarque == null || voiture.IdMarque == 0)
+            if (VoitureDetailDto.IdMarque == null || VoitureDetailDto.IdMarque == 0)
                 errors.Add("marque", "Veuillez sélectionner une marque");
 
-            if (voiture.IdModele == null || voiture.IdModele == 0)
+            if (VoitureDetailDto.IdModele == null || VoitureDetailDto.IdModele == 0)
                 errors.Add("modele", "Veuillez sélectionner un modèle");
 
-            if (voiture.Annee == 0 || voiture.Annee < 1900 || voiture.Annee > DateTime.Now.Year + 1)
+            if (VoitureDetailDto.Annee == 0 || VoitureDetailDto.Annee < 1900 || VoitureDetailDto.Annee > DateTime.Now.Year + 1)
                 errors.Add("annee", "Année invalide");
 
-            if (voiture.Kilometrage < 0)
+            if (VoitureDetailDto.Kilometrage < 0)
                 errors.Add("kilometrage", "Kilométrage invalide");
 
-            if (voiture.IdCarburant == null || voiture.IdCarburant == 0)
+            if (VoitureDetailDto.IdCarburant == null || VoitureDetailDto.IdCarburant == 0)
                 errors.Add("carburant", "Veuillez sélectionner un carburant");
 
-            if (voiture.IdMotricite == null || voiture.IdMotricite == 0)
+            if (VoitureDetailDto.IdMotricite == null || VoitureDetailDto.IdMotricite == 0)
                 errors.Add("motricite", "Veuillez sélectionner une motricité");
 
-            if (voiture.Puissance <= 0)
+            if (VoitureDetailDto.Puissance <= 0)
                 errors.Add("puissance", "Puissance invalide");
 
-            if (voiture.Couple <= 0)
+            if (VoitureDetailDto.Couple <= 0)
                 errors.Add("couple", "Couple invalide");
 
-            if (voiture.NbPorte <= 0)
+            if (VoitureDetailDto.NbPorte <= 0)
                 errors.Add("nbporte", "Nombre de portes invalide");
 
-            if (voiture.NbPlace <= 0)
+            if (VoitureDetailDto.NbPlace <= 0)
                 errors.Add("nbplace", "Nombre de places invalide");
 
-            if (voiture.IdCarburant != 4 && voiture.NbCylindres <= 0)
+            if (VoitureDetailDto.IdCarburant != 4 && VoitureDetailDto.NbCylindres <= 0)
                 errors.Add("nbcylindres", "Nombre de cylindres invalide");
 
-            if (voiture.IdBoiteDeVitesse == null || voiture.IdBoiteDeVitesse == 0)
+            if (VoitureDetailDto.IdBoiteDeVitesse == null || VoitureDetailDto.IdBoiteDeVitesse == 0)
                 errors.Add("boitedevitesse", "Veuillez sélectionner une boîte de vitesse");
 
-            if (voiture.IdCategorie == null || voiture.IdCategorie == 0)
+            if (VoitureDetailDto.IdCategorie == null || VoitureDetailDto.IdCategorie == 0)
                 errors.Add("categorie", "Veuillez sélectionner une catégorie");
 
             if (annonce.Prix == null || annonce.Prix <= 0)
@@ -574,6 +581,12 @@ namespace BlazorAutoPulse.ViewModel
 
             if (!selectedCouleurs.Any())
                 errors.Add("couleurs", "Veuillez sélectionner au moins une couleur");
+            
+            if (VoitureDetailDto.IdCarburant != 4 && VoitureDetailDto.CylindrerMoteur <= 0)
+                errors.Add("cylindrermoteur", "Cylindrée du moteur invalide");
+            
+            if (VoitureDetailDto.PositionVolant != null)
+                errors.Add("positionvolant", "Veuillez sélectionner la position du volant");
 
             if (string.IsNullOrWhiteSpace(adresse.Nom))
                 errors.Add("nomadresse", "Le nom de l'adresse est requis");
@@ -627,6 +640,17 @@ namespace BlazorAutoPulse.ViewModel
             adresse = new Adresse();
             _refreshUI?.Invoke();
         }
+        
+        public void OnPositionVolantChange(ChangeEventArgs e)
+        {
+            if (bool.TryParse(e.Value?.ToString(), out bool value))
+            {
+                VoitureDetailDto.PositionVolant = value;
+                if (errors.ContainsKey("positionvolant"))
+                    errors.Remove("positionvolant");
+            }
+            _refreshUI?.Invoke();
+        }
 
         public async Task CreateAnnonce()
         {
@@ -644,11 +668,11 @@ namespace BlazorAutoPulse.ViewModel
                 adresse.IdPays = 1;
                 adresse.IdCompte = 1;
                 Adresse resultAdr = await _adresseService.CreateAsync(adresse);
-                Voiture resultVoiture = await _voitureService.CreateAsync(voiture);
+                VoitureDetailDTO resultVoitureDetailDto = await _voitureService.CreateAsync(VoitureDetailDto);
                 
                 foreach (ImageUpload image in imageUpload)
                 {
-                    image.IdVoiture = resultVoiture.IdVoiture;
+                    image.IdVoiture = resultVoitureDetailDto.IdVoiture;
                     await _postImageService.CreateAsync(image);
                 }
                 
@@ -657,17 +681,17 @@ namespace BlazorAutoPulse.ViewModel
                     APourCouleur aPourCouleur = new APourCouleur()
                     {
                         IdCouleur = couleur,
-                        IdVoiture = resultVoiture.IdVoiture,
+                        IdVoiture = resultVoitureDetailDto.IdVoiture,
                     };
                     await _aPourCouleurService.CreateAsync(aPourCouleur);
                 }
                 
                 annonce.IdAdresse = resultAdr.IdAdresse;
-                annonce.IdVoiture = resultVoiture.IdVoiture;
+                annonce.IdVoiture = resultVoitureDetailDto.IdVoiture;
                 await _annonceService.CreateAnnonceAsync(annonce);
                 _nav.NavigateTo("/");
 
-                voiture = new Voiture();
+                VoitureDetailDto = new VoitureDetailDTO();
                 adresse = new Adresse();
                 annonce = new AnnonceCreateDTO();
                 nomPhotos = new List<string>();

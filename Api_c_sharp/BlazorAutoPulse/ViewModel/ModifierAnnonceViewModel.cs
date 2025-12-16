@@ -8,10 +8,12 @@ namespace BlazorAutoPulse.ViewModel
     public class ModifierAnnonceViewModel
     {
         private readonly IAnnonceService _annonceService;
+        private readonly IVoitureService _voitureService;
         private readonly ICompteService _compteService;
         private readonly NotificationService _notificationService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
+        public VoitureDetailDTO? Voiture { get; private set; }
         public bool IsLoading { get; private set; } = true;
         public bool IsSaving { get; private set; } = false;
         public int? CurrentUserId { get; private set; }
@@ -26,10 +28,12 @@ namespace BlazorAutoPulse.ViewModel
         public ModifierAnnonceViewModel(
             IAnnonceService annonceService,
             ICompteService compteService,
+            IVoitureService voitureService,
             NotificationService notificationService)
         {
             _annonceService = annonceService;
             _compteService = compteService;
+            _voitureService = voitureService;
             _notificationService = notificationService;
         }
 
@@ -57,6 +61,8 @@ namespace BlazorAutoPulse.ViewModel
 
                 // Charger l'annonce
                 Annonce = await _annonceService.GetAnnonceDetailById(idAnnonce);
+                Voiture = await _voitureService.GetByIdAsync(Annonce.IdVoiture);
+                Console.WriteLine(Annonce.IdVoiture);
 
                 // Vérifier que l'utilisateur est bien le propriétaire
                 if (Annonce == null || Annonce.IdVendeur != CurrentUserId)
@@ -85,13 +91,45 @@ namespace BlazorAutoPulse.ViewModel
         {
             errors.Clear();
 
+            // Validation de l'annonce
             if (string.IsNullOrWhiteSpace(Annonce?.Libelle))
                 errors.Add("titre", "Le titre est requis");
+            else if (Annonce.Libelle.Length > 200)
+                errors.Add("titre", "Le titre ne peut pas dépasser 200 caractères");
 
             if (Annonce?.Prix == null || Annonce.Prix <= 0)
                 errors.Add("prix", "Le prix doit être supérieur à 0");
 
-            // La description est optionnelle
+            // Validation de la voiture
+            if (Voiture != null)
+            {
+                if (Voiture.Kilometrage < 0)
+                    errors.Add("kilometrage", "Le kilométrage ne peut pas être négatif");
+
+                if (Voiture.Annee < 1900 || Voiture.Annee > DateTime.Now.Year)
+                    errors.Add("annee", $"L'année doit être entre 1900 et {DateTime.Now.Year}");
+
+                if (Voiture.MiseEnCirculation > DateTime.Now)
+                    errors.Add("miseEnCirculation", "La date de mise en circulation ne peut pas être dans le futur");
+
+                if (Voiture.Puissance <= 0)
+                    errors.Add("puissance", "La puissance doit être supérieure à 0");
+
+                if (Voiture.Couple < 0)
+                    errors.Add("couple", "Le couple ne peut pas être négatif");
+
+                if (Voiture.NbCylindres < 1 || Voiture.NbCylindres > 16)
+                    errors.Add("nbCylindres", "Le nombre de cylindres doit être entre 1 et 16");
+
+                if (Voiture.CylindrerMoteur <= 0)
+                    errors.Add("cylindrerMoteur", "La cylindrée doit être supérieure à 0");
+
+                if (Voiture.NbPlace < 1 || Voiture.NbPlace > 9)
+                    errors.Add("nbPlaces", "Le nombre de places doit être entre 1 et 9");
+
+                if (Voiture.NbPorte < 2 || Voiture.NbPorte > 7)
+                    errors.Add("nbPortes", "Le nombre de portes doit être entre 2 et 7");
+            }
             
             return !errors.Any();
         }
@@ -113,11 +151,12 @@ namespace BlazorAutoPulse.ViewModel
 
             if (!ValidateForm())
             {
+                errors.Add("general", "Veuillez corriger les erreurs dans le formulaire");
                 _refreshUI?.Invoke();
                 return;
             }
 
-            if (Annonce == null || !CurrentUserId.HasValue)
+            if (Annonce == null || Voiture == null || !CurrentUserId.HasValue)
             {
                 return;
             }
@@ -127,12 +166,13 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                var updateDto = new AnnonceUpdateDTO
+                // Mise à jour de l'annonce
+                var updateAnnonceDto = new AnnonceUpdateDTO
                 {
                     IdAnnonce = Annonce.IdAnnonce,
                     Libelle = Annonce.Libelle,
                     IdCompte = Annonce.IdVendeur,
-                    IdEtatAnnonce = 1, // Vous pourriez vouloir récupérer l'état actuel
+                    IdEtatAnnonce = 1, // État par défaut
                     IdAdresse = Annonce.IdAdresse,
                     IdVoiture = Annonce.IdVoiture,
                     IdMiseEnAvant = Annonce.IdMiseEnAvant,
@@ -141,7 +181,33 @@ namespace BlazorAutoPulse.ViewModel
                     Description = Annonce.Description ?? ""
                 };
 
-                await _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, updateDto);
+                await _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, updateAnnonceDto);
+
+                // Mise à jour de la voiture
+                var updateVoitureDto = new VoitureUpdateDTO
+                {
+                    IdVoiture = Voiture.IdVoiture,
+                    IdMarque = Voiture.IdMarque,
+                    IdModele = Voiture.IdModele,
+                    IdMotricite = Voiture.IdMotricite,
+                    IdCarburant = Voiture.IdCarburant,
+                    IdBoiteDeVitesse = Voiture.IdBoiteDeVitesse,
+                    IdCategorie = Voiture.IdCategorie,
+                    NbPlace = Voiture.NbPlace,
+                    NbPorte = Voiture.NbPorte,
+                    Kilometrage = Voiture.Kilometrage,
+                    Annee = Voiture.Annee,
+                    Puissance = Voiture.Puissance,
+                    Couple = Voiture.Couple,
+                    NbCylindres = Voiture.NbCylindres,
+                    InterieurCuire = Voiture.InterieurCuire,
+                    CylindrerMoteur = Voiture.CylindrerMoteur,
+                    PositionVolant = Voiture.PositionVolant,
+                    MiseEnCirculation = Voiture.MiseEnCirculation,
+                    IdModeleBlender = Voiture.IdModeleBlender
+                };
+
+                await _voitureService.UpdateVoitureAsync(Voiture.IdVoiture, updateVoitureDto);
 
                 _notificationService.ShowSuccess(
                     "Modification réussie",
