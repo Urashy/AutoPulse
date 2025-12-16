@@ -522,6 +522,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.VerificationCode(It.IsAny<string>(),It.IsAny<string>()), Times.Never);
 
         }
 
