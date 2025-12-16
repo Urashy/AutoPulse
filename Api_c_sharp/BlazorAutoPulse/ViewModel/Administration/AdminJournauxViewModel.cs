@@ -6,10 +6,12 @@ namespace BlazorAutoPulse.ViewModel.Administration
     public class AdminJournauxViewModel
     {
         private readonly IJournalService _journalService;
+        private readonly IService<TypeJournalDTO> _typeJournalService;
         private Action? _refreshUI;
 
         public bool IsLoading { get; private set; } = true;
         public List<JournalDTO> PagedJournaux { get; private set; } = new();
+        public List<TypeJournalDTO> TypesJournal { get; private set; } = new();
 
         public int CurrentPage { get; private set; } = 1;
         public int ItemsPerPage { get; private set; } = 15;
@@ -28,15 +30,31 @@ namespace BlazorAutoPulse.ViewModel.Administration
         // Tri : 1 = Croissant, 0 = Décroissant (selon ta logique précédente)
         public int SortOrder { get; private set; } = 0;
 
-        public AdminJournauxViewModel(IJournalService journalService)
+        public AdminJournauxViewModel(IJournalService journalService, IService<TypeJournalDTO> typeJournalService)
         {
             _journalService = journalService;
+            _typeJournalService = typeJournalService;
         }
 
         public async Task InitializeAsync(Action refreshUI)
         {
             _refreshUI = refreshUI;
+            await LoadTypesJournal();
             await LoadJournaux();
+        }
+
+        private async Task LoadTypesJournal()
+        {
+            try
+            {
+                var types = await _typeJournalService.GetAllAsync();
+                TypesJournal = types.ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur chargement types journal: {ex.Message}");
+                TypesJournal = new List<TypeJournalDTO>();
+            }
         }
 
         public async Task LoadJournaux()
