@@ -209,7 +209,7 @@
     padding: 10px 15px; /* Était 16px 20px - C'est ici que la hauteur diminue le plus */
     color: #c4b5fd;
     text-decoration: none;
-    border-radius: 12px; /* Légèrement réduit pour coller à la nouvelle taille */
+    border-radius: 12px;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 13px; /* Était 15px */
     font-weight: 600;
