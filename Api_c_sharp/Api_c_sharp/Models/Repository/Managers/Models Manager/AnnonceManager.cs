@@ -226,5 +226,25 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 return false;
             }
         }
+
+        public async Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce annonce)
+        {
+            int anneeReference = annonce.VoitureAnnonceNav.Annee;
+
+            int anneeMin = anneeReference - 4;
+            int anneeMax = anneeReference + 4;
+
+            IEnumerable<Annonce> listannonce = await dbSet
+                            .Include(a => a.VoitureAnnonceNav)
+                                .ThenInclude(v => v.Images)
+                            .Where(a => a.IdAnnonce != annonce.IdAnnonce
+                                && a.VoitureAnnonceNav.IdCategorie == annonce.VoitureAnnonceNav.IdCategorie
+                                && a.VoitureAnnonceNav.Annee >= anneeMin
+                                && a.VoitureAnnonceNav.Annee <= anneeMax)
+                .OrderBy(a => Math.Abs(a.VoitureAnnonceNav.Annee - anneeReference))
+                .ToListAsync();
+
+            return listannonce;
+        }
     }
 }

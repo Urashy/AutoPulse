@@ -28,7 +28,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Couleur> Couleurs { get; set; }
         public DbSet<EtatAnnonce> EtatAnnonces { get; set; }
         public DbSet<EtatCompte> EtatComptes { get; set; }
-        public DbSet<EtatSignalement> EtatSignalements { get; set; }
+        public DbSet<EtatSignalementPlainte> EtatSignalementsPlaintes { get; set; }
         public DbSet<Facture> Factures { get; set; }
         public DbSet<Favori> Favoris { get; set; }
         public DbSet<Image> Images { get; set; }

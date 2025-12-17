@@ -11,5 +11,6 @@ namespace AutoPulse.Shared.DTO
         public int IdCompte { get; set; }
         public int IdSignalement { get; set; }
         public DateTime DateCreation { get; set; }
+        public int IdEtat { get; set; }
     }
 }

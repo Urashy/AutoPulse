@@ -9,6 +9,75 @@
 
 <PageTitle>@(VM.Annonce?.Libelle ?? "Détail de l'annonce") - AutoPulse</PageTitle>
 
+@* Popup Contact Vendeur *@
+@if (VM.showContactPopup)
+{
+    <div class="popup-overlay" @onclick="VM.CloseContactPopup">
+        <div class="popup-container popup-contact" @onclick:stopPropagation>
+            <div class="popup-header">
+                <h3>✉️ Contacter le vendeur</h3>
+                <button class="btn-close-popup" @onclick="VM.CloseContactPopup">✕</button>
+            </div>
+            <div class="popup-content">
+                <div class="contact-info">
+                    <div class="seller-badge">
+                        <img src="@VM.ProfileImageSource" alt="Vendeur" class="seller-mini-picture" />
+                        <div>
+                            <p class="seller-name-popup">@VM.Annonce?.PseudoVendeur</p>
+                            <p class="seller-type-popup">@VM.Annonce?.TypeCompteVendeur</p>
+                        </div>
+                    </div>
+                    <div class="annonce-ref">
+                        <span class="ref-label">Annonce:</span>
+                        <span class="ref-value">@VM.Annonce?.Libelle</span>
+                    </div>
+                </div>
+
+                <div class="message-input-group">
+                    <label for="contactMessage">Votre message</label>
+                    <textarea
+                        id="contactMessage"
+                        class="contact-textarea"
+                        placeholder="Bonjour, je suis intéressé par votre annonce..."
+                        rows="6"
+                        maxlength="1000"
+                        @bind="VM.contactMessage"
+                        @bind:event="oninput"
+                        disabled="@VM.isLoadingContact"></textarea>
+                    <div class="char-counter">
+                        @VM.contactMessage.Length / 1000 caractères
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(VM.contactError))
+                {
+                    <div class="contact-error">
+                        ⚠️ @VM.contactError
+                    </div>
+                }
+            </div>
+            <div class="popup-actions">
+                <button class="btn-cancel" @onclick="VM.CloseContactPopup" disabled="@VM.isLoadingContact">
+                    Annuler
+                </button>
+                <button class="btn-confirm btn-send" @onclick="VM.SendContactMessage" disabled="@VM.isLoadingContact">
+                    @if (VM.isLoadingContact)
+                    {
+                        <span class="btn-loading">
+                            <span class="mini-spinner"></span>
+                            Envoi...
+                        </span>
+                    }
+                    else
+                    {
+                        <span>📤 Envoyer</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @* Popup Warning Prix *@
 @if (VM.showPriceWarningPopup)
 {
@@ -349,7 +418,7 @@ else
                         <p class="seller-name">@VM.Annonce.PseudoVendeur</p>
                         <p class="seller-type">@VM.Annonce.TypeCompteVendeur</p>
                     </div>
-                    <button class="btn-contact">Contacter le vendeur</button>
+                    <button class="btn-contact" @onclick="VM.OpenContactPopup">Contacter le vendeur</button>
                 </div>
             </div>
         </div>

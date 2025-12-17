@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_c_sharp.Models.Entity;
 
-[Table("t_e_etatsignalement_ets")]
-public class EtatSignalement
+[Table("t_e_etatsignalementplainte_ets")]
+public class EtatSignalementPlainte
 {
     [Key]
     [Column("ets_id")]
@@ -17,4 +17,7 @@ public class EtatSignalement
     
     [InverseProperty(nameof(Signalement.EtatSignalementNav))]
     public virtual ICollection<Signalement> Signalements { get; set; } = new List<Signalement>();
+
+    [InverseProperty(nameof(Plainte.EtatSignalementPlaintePlainteNav))]
+    public virtual ICollection<Plainte> Plaintes { get; set; } = new List<Plainte>();
 }

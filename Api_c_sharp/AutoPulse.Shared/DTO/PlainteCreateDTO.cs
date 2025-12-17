@@ -8,6 +8,7 @@ namespace AutoPulse.Shared.DTO
         [StringLength(1000, MinimumLength = 10, ErrorMessage = "Le contenu doit faire entre 10 et 1000 caractères.")]
         public string Description { get; set; }
         public int IdCompte { get; set; }
+        public int IdEtat { get; set; }
         public int IdSignalement { get; set; }
     }
 }

@@ -84,60 +84,6 @@ public class IAController : ControllerBase
     }
 
     /// <summary>
-    /// Endpoint spécifique pour la reconnaissance visuelle (CNN)
-    /// Alternative à l'endpoint polymorphe pour plus de clarté
-    /// </summary>
-    [ActionName("RecognizeVehicle")]
-    [HttpPost]
-    public async Task<ActionResult<ResultatCNN>> RecognizeVehicle([FromBody] DataCNN data)
-    {
-        var result = await Predict(data);
-
-        if (result.Result is OkObjectResult okResult && okResult.Value is ResultatCNN cnnResult)
-        {
-            return Ok(cnnResult);
-        }
-
-        return result.Result!;
-    }
-
-    /// <summary>
-    /// Endpoint spécifique pour la prédiction de prix
-    /// Alternative à l'endpoint polymorphe pour plus de clarté
-    /// </summary>
-    [ActionName("PredictPrice")]
-    [HttpPost]
-    public async Task<ActionResult<ResultatPrediction>> PredictPrice([FromBody] DataPrediction data)
-    {
-        var result = await Predict(data);
-
-        if (result.Result is OkObjectResult okResult && okResult.Value is ResultatPrediction predResult)
-        {
-            return Ok(predResult);
-        }
-
-        return result.Result!;
-    }
-
-    /// <summary>
-    /// Endpoint spécifique pour l'ajustement de prix
-    /// Alternative à l'endpoint polymorphe pour plus de clarté
-    /// </summary>
-    [ActionName("AdjustPrice")]
-    [HttpPost]
-    public async Task<ActionResult<ResultatAjustement>> AdjustPrice([FromBody] DataAjustement data)
-    {
-        var result = await Predict(data);
-
-        if (result.Result is OkObjectResult okResult && okResult.Value is ResultatAjustement adjResult)
-        {
-            return Ok(adjResult);
-        }
-
-        return result.Result!;
-    }
-
-    /// <summary>
     /// Vérifie l'état du service IA Python
     /// </summary>
     [ActionName("Health")]

@@ -18,6 +18,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly ICompteService _compteService;
         private readonly ICouleurService _couleurService;
         private readonly NotificationService _notificationService;
+        private readonly IConversationService _conversationService;
         private readonly IService<VueDTO> _vueService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
@@ -56,6 +57,12 @@ namespace BlazorAutoPulse.ViewModel
         public bool showAdjustmentWarningPopup { get; set; } = false;
         public bool showAdjustmentLoadingPopup { get; set; } = false;
         public bool showAdjustmentResultPopup { get; set; } = false;
+        
+        // Propriétés pour la popup de contact
+        public bool showContactPopup { get; set; } = false;
+        public string contactMessage { get; set; } = "";
+        public bool isLoadingContact { get; set; } = false;
+        public string contactError { get; set; } = "";
 
         // Résultats IA
         public ResultatPrediction? priceResult { get; set; }
@@ -74,6 +81,7 @@ namespace BlazorAutoPulse.ViewModel
             IImageService imageService,
             ICouleurService couleurService,
             IService<VueDTO> vueService,
+            IConversationService conversationService,
             NotificationService notificationService)
         {
             _annonceService = annonceService;
@@ -83,6 +91,7 @@ namespace BlazorAutoPulse.ViewModel
             _imageService = imageService;
             _couleurService = couleurService;
             _notificationService = notificationService;
+            _conversationService = conversationService;
             _vueService = vueService;
         }
 
@@ -450,29 +459,6 @@ namespace BlazorAutoPulse.ViewModel
             _nav.NavigateTo($"/comptepublic/{Annonce.IdVendeur}");
         }
 
-        // Modifiez le constructeur pour ajouter IIAService
-        public AnnonceDetailViewModel(
-            IAnnonceService annonceService,
-            IPostImageService postImageService,
-            IFavorisService favorisService,
-            ICompteService compteService,
-            IImageService imageService,
-            ICouleurService couleurService,
-            IService<VueDTO> vueService,
-            NotificationService notificationService,
-            IIAService iaService) // AJOUT
-        {
-            _annonceService = annonceService;
-            _postImageService = postImageService;
-            _favorisService = favorisService;
-            _compteService = compteService;
-            _imageService = imageService;
-            _couleurService = couleurService;
-            _notificationService = notificationService;
-            _vueService = vueService;
-            _iaService = iaService; // AJOUT
-        }
-
         // ============================================================================
         // MÉTHODES IA - Prédiction de prix
         // ============================================================================
@@ -549,7 +535,18 @@ namespace BlazorAutoPulse.ViewModel
                     Levy = 0f
                 };
 
-                priceResult = await _iaService.PredictPriceAsync(dataPrediction);
+                var result = await _iaService.PredictAIAsync(dataPrediction);
+                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
+
+                if (result is ResultatPrediction prediction)
+                {
+                    priceResult = prediction;
+                    Console.WriteLine("Cast réussi vers ResultatPrediction");
+                }
+                else
+                {
+                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
+                }
 
                 showPriceLoadingPopup = false;
 
@@ -618,7 +615,18 @@ namespace BlazorAutoPulse.ViewModel
                     Description = Annonce.Description ?? "",
                 };
 
-                adjustmentResult = await _iaService.AdjustPriceAsync(dataAdjustment);
+                var result = await _iaService.PredictAIAsync(dataAdjustment);
+                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
+
+                if (result is ResultatPrediction prediction)
+                {
+                    priceResult = prediction;
+                    Console.WriteLine("Cast réussi vers ResultatPrediction");
+                }
+                else
+                {
+                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
+                }
 
                 showAdjustmentLoadingPopup = false;
 
@@ -670,6 +678,87 @@ namespace BlazorAutoPulse.ViewModel
         public void RedirectToModif()
         {
             _nav.NavigateTo(modifAnnonceUrl);
+        }
+        
+        public void OpenContactPopup()
+        {
+            if (!CurrentUserId.HasValue)
+            {
+                _nav.NavigateTo("/connexion");
+                return;
+            }
+    
+            showContactPopup = true;
+            contactError = "";
+            _refreshUI?.Invoke();
+        }
+
+        public void CloseContactPopup()
+        {
+            showContactPopup = false;
+            contactError = "";
+            _refreshUI?.Invoke();
+        }
+
+        public void UpdateContactMessage(string message)
+        {
+            contactMessage = message;
+        }
+
+        public async Task SendContactMessage()
+        {
+            if (!CurrentUserId.HasValue || Annonce == null)
+            {
+                contactError = "Vous devez être connecté pour envoyer un message";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(contactMessage))
+            {
+                contactError = "Le message ne peut pas être vide";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            isLoadingContact = true;
+            contactError = "";
+            _refreshUI?.Invoke();
+
+            try
+            {
+                var conversationDto = new ConversationCreateDTO
+                {
+                    IdAnnonce = Annonce.IdAnnonce,
+                    message = contactMessage,
+                    DateDernierMessage = DateTime.Now
+                };
+                
+                await _conversationService.PostComplet(
+                    conversationDto, 
+                    CurrentUserId.Value, 
+                    Annonce.IdVendeur
+                );
+
+                // Succès : fermer la popup et vider le message
+                _notificationService.ShowSuccess(
+                    "Message envoyé",
+                    "Votre message a été envoyé au vendeur avec succès"
+                );
+        
+                contactMessage = "";
+                showContactPopup = false;
+            }
+            catch (Exception ex)
+            {
+                contactError = "Erreur lors de l'envoi du message. Veuillez réessayer.";
+                Console.WriteLine($"Erreur envoi message: {ex.Message}");
+            }
+            finally
+            {
+                isLoadingContact = false;
+                _refreshUI?.Invoke();
+            }
         }
 
         public void Reset()

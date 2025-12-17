@@ -111,9 +111,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdTypeCompte = 1
             };
 
-            await _context.EtatSignalements.AddAsync(etat);
-            await _context.EtatSignalements.AddAsync(etat2);
-            await _context.EtatSignalements.AddAsync(etat3);
+            await _context.EtatSignalementsPlaintes.AddAsync(etat);
+            await _context.EtatSignalementsPlaintes.AddAsync(etat2);
+            await _context.EtatSignalementsPlaintes.AddAsync(etat3);
             await _context.TypesSignalement.AddAsync(type);
             await _context.Comptes.AddAsync(compteSignalant);
             await _context.Comptes.AddAsync(compteSignale);

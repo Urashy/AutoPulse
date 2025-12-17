@@ -5,9 +5,7 @@ namespace BlazorAutoPulse.Service.Interface
 {
     public interface IIAService
     {
-        Task<ResultatCNN> RecognizeVehicleAsync(DataCNN data);
-        Task<ResultatPrediction> PredictPriceAsync(DataPrediction data);
-        Task<ResultatAjustement> AdjustPriceAsync(DataAjustement data);
+        Task<ResultatAI> PredictAIAsync(DataAI data);
         Task<bool> HealthCheckAsync();
     }
 }
