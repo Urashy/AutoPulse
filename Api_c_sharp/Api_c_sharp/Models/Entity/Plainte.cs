@@ -27,6 +27,10 @@ namespace Api_c_sharp.Models.Entity
         [Column("com_id")]
         public int IdCompte { get; set; }
 
+        [Required]
+        [Column("ets_id")]
+        public int IdEtat { get; set; }
+
         [ForeignKey(nameof(IdCompte))]
         [InverseProperty(nameof(Compte.Plaintes))]
         public virtual Compte ComptePlainteNav { get; set; } = null!;
@@ -34,6 +38,10 @@ namespace Api_c_sharp.Models.Entity
         [ForeignKey(nameof(IdSignalement))]
         [InverseProperty(nameof(Signalement.Plaintes))]
         public virtual Signalement SignalementPlainteNav { get; set; } = null!;
+
+        [ForeignKey(nameof(IdEtat))]
+        [InverseProperty(nameof (EtatSignalementPlainte.Plaintes))]
+        public virtual EtatSignalementPlainte EtatSignalementPlaintePlainteNav { get; set; } = null!;
         
 
     }

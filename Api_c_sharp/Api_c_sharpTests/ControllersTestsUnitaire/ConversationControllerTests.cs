@@ -164,37 +164,37 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
 
         [TestMethod]
-        public async Task PostVoitureTest_Entity()
+        public async Task PostConversationTest_Entity()
         {
-            var voiture = new ConversationCreateDTO
+            var Conversation = new ConversationCreateDTO
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
                 DateDernierMessage = _objetcommun.DateDernierMessage,
             };
 
 
-            var actionResult = await _controller.Post(voiture);
+            var actionResult = await _controller.Post(Conversation);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
-            var createdVoiture = (Conversation)created.Value;
-            Assert.AreEqual(voiture.DateDernierMessage, createdVoiture.DateDernierMessage);
+            var createdConversation = (Conversation)created.Value;
+            Assert.AreEqual(Conversation.DateDernierMessage, createdConversation.DateDernierMessage);
         }
 
 
         [TestMethod]
-        public async Task DeleteVoitureTest()
+        public async Task DeleteConversationTest()
         {
             var result = await _controller.Delete(_objetcommun.IdConversation);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedVoiture = await _manager.GetByIdAsync(_objetcommun.IdConversation);
-            Assert.IsNull(deletedVoiture);
+            var deletedConversation = await _manager.GetByIdAsync(_objetcommun.IdConversation);
+            Assert.IsNull(deletedConversation);
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteVoitureTest()
+        public async Task NotFoundDeleteConversationTest()
         {
             var result = await _controller.Delete(0);
 
@@ -202,42 +202,42 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task PutVoitureTest()
+        public async Task PutConversationTest()
         {
-            ConversationUpdateDTO voiture = new ConversationUpdateDTO()
+            ConversationUpdateDTO Conversation = new ConversationUpdateDTO()
             {
                 IdConversation = _objetcommun.IdConversation,
                 IdAnnonce = _objetcommun.IdAnnonce,
                 DateDernierMessage = DateTime.Now.AddDays(1),
             };
 
-            var result = await _controller.Put(_objetcommun.IdConversation, voiture);
+            var result = await _controller.Put(_objetcommun.IdConversation, Conversation);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var fetchedVoiture = await _manager.GetByIdAsync(_objetcommun.IdConversation);
-            Assert.AreEqual(voiture.IdConversation, fetchedVoiture.IdConversation);
+            var fetchedConversation = await _manager.GetByIdAsync(_objetcommun.IdConversation);
+            Assert.AreEqual(Conversation.IdConversation, fetchedConversation.IdConversation);
         }
 
         [TestMethod]
-        public async Task NotFoundPutVoitureTest()
+        public async Task NotFoundPutConversationTest()
         {
-            ConversationUpdateDTO voiture = new ConversationUpdateDTO()
+            ConversationUpdateDTO Conversation = new ConversationUpdateDTO()
             {
                 IdConversation = _objetcommun.IdConversation,
                 IdAnnonce = _objetcommun.IdAnnonce,
                 DateDernierMessage = DateTime.Now.AddDays(1),
             };
 
-            var result = await _controller.Put(0, voiture);
+            var result = await _controller.Put(0, Conversation);
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
-        public async Task BadRequestPutVoitureTest()
+        public async Task BadRequestPutConversationTest()
         {
-            // Arrange : voiture avec kilométrage invalide
-            ConversationUpdateDTO voiture = new ConversationUpdateDTO()
+            // Arrange : Conversation avec kilométrage invalide
+            ConversationUpdateDTO Conversation = new ConversationUpdateDTO()
             {
                 IdConversation = _objetcommun.IdConversation,
                 IdAnnonce = -1,
@@ -248,7 +248,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _controller.ModelState.AddModelError("IdAnnonce", "Le IdAnnonce doit être supérieur à 0");
 
             // Act
-            var result = await _controller.Put(_objetcommun.IdConversation, voiture);
+            var result = await _controller.Put(_objetcommun.IdConversation, Conversation);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
@@ -256,9 +256,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
 
         [TestMethod]
-        public async Task BadRequestPostVoitureTest()
+        public async Task BadRequestPostConversationTest()
         {
-            ConversationCreateDTO voiture = new ConversationCreateDTO()
+            ConversationCreateDTO Conversation = new ConversationCreateDTO()
             {
                 IdAnnonce = -1,
                 DateDernierMessage = DateTime.Now.AddDays(1),
@@ -266,7 +266,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _controller.ModelState.AddModelError("IdAnnonce", "Le IdAnnonce doit être supérieur à 0");
 
-            var actionResult = await _controller.Post(voiture);
+            var actionResult = await _controller.Post(Conversation);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
@@ -293,6 +293,84 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task PostCompletTest_Success()
+        {
+            // Arrange
+            var acheteur = new Compte
+            {
+                IdCompte = 2,
+                Nom = "Acheteur",
+                Prenom = "Jean",
+                Email = "jean.acheteur@gmail.com",
+                Pseudo = "jeanacheteur",
+                MotDePasse = "Password123!",
+                DateCreation = DateTime.Now,
+                DateNaissance = new DateTime(1995, 5, 10),
+                DateDerniereConnexion = DateTime.Now,
+                IdTypeCompte = 1
+            };
+            await _context.Comptes.AddAsync(acheteur);
+            await _context.SaveChangesAsync();
+
+            var conversationDto = new ConversationCreateDTO
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                DateDernierMessage = DateTime.Now,
+                message = "Bonjour, je suis intéressé par votre annonce"
+            };
+
+            // Act
+            var actionResult = await _controller.PostComplet(conversationDto, acheteur.IdCompte, 1);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            var created = (CreatedAtActionResult)actionResult.Result;
+            Assert.IsNotNull(created.Value);
+
+            var createdConversation = (Conversation)created.Value;
+            Assert.IsTrue(createdConversation.IdConversation > 0);
+
+            var aPourConversations = await _context.APourConversations
+                .Where(apc => apc.IdConversation == createdConversation.IdConversation)
+                .ToListAsync();
+
+            Assert.AreEqual(2, aPourConversations.Count);
+            Assert.IsTrue(aPourConversations.Any(apc => apc.IdCompte == acheteur.IdCompte));
+            Assert.IsTrue(aPourConversations.Any(apc => apc.IdCompte == 1));
+
+            var message = await _context.Messages
+                .FirstOrDefaultAsync(m => m.IdConversation == createdConversation.IdConversation);
+
+            Assert.IsNotNull(message);
+            Assert.AreEqual(conversationDto.message, message.ContenuMessage);
+            Assert.AreEqual(acheteur.IdCompte, message.IdCompte);
+            Assert.IsFalse(message.EstLu);
+            Assert.IsTrue((DateTime.UtcNow - message.DateEnvoiMessage).TotalSeconds < 5);
+        }
+
+        [TestMethod]
+        public async Task BadRequestPostCompletTest()
+        {
+            // Arrange
+            var conversationDto = new ConversationCreateDTO
+            {
+                IdAnnonce = -1,
+                DateDernierMessage = DateTime.Now,
+                message = "Message test"
+            };
+
+            _controller.ModelState.AddModelError("IdAnnonce", "Le IdAnnonce doit être supérieur à 0");
+
+            // Act
+            var actionResult = await _controller.PostComplet(conversationDto, 1, 2);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Api_c_sharp.Controllers;
+using Api_c_sharp.Hubs;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
@@ -7,6 +8,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -25,13 +27,30 @@ namespace Api_c_sharp.ControllersMock.Tests
         private ConversationController _controller;
         private IMapper _mapper;
         private Conversation _objetcommun;
+        private Mock<IHubContext<MessageHub>> _mockHubContext;
+        private Mock<IHubClients> _mockHubClients;
+        private Mock<IClientProxy> _mockClientProxy;
 
         [TestInitialize]
         public void Initialize()
         {
-            // Création des mocks
+            // Création des mocks existants
             _mockManager = new Mock<ConversationManager>(null);
             _mockEnrichmentService = new Mock<IConversationEnrichmentService>();
+
+            // Création des mocks pour SignalR Hub
+            _mockHubContext = new Mock<IHubContext<MessageHub>>();
+            _mockHubClients = new Mock<IHubClients>();
+            _mockClientProxy = new Mock<IClientProxy>();
+
+            // Configuration du mock HubContext
+            _mockHubContext.Setup(h => h.Clients).Returns(_mockHubClients.Object);
+            _mockHubClients.Setup(c => c.Group(It.IsAny<string>())).Returns(_mockClientProxy.Object);
+            _mockClientProxy.Setup(c => c.SendCoreAsync(
+                It.IsAny<string>(),
+                It.IsAny<object[]>(),
+                It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             // Création de la conversation de référence
             _objetcommun = new Conversation
@@ -48,8 +67,12 @@ namespace Api_c_sharp.ControllersMock.Tests
             });
             _mapper = config.CreateMapper();
 
-            // Injection dans le controller
-            _controller = new ConversationController(_mockManager.Object, _mockEnrichmentService.Object, _mapper);
+            // Injection dans le controller avec HubContext
+            _controller = new ConversationController(
+                _mockManager.Object,
+                _mockEnrichmentService.Object,
+                _mapper,
+                _mockHubContext.Object);
         }
 
         [TestMethod]
@@ -357,6 +380,150 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task PostCompletTest_Success()
+        {
+            // Arrange
+            var conversationDto = new ConversationCreateDTO
+            {
+                IdAnnonce = 1,
+                DateDernierMessage = DateTime.Now,
+                message = "Bonjour, je suis intéressé par votre annonce"
+            };
+
+            var createdConversation = new Conversation
+            {
+                IdConversation = 3,
+                IdAnnonce = conversationDto.IdAnnonce,
+                DateDernierMessage = conversationDto.DateDernierMessage
+            };
+
+            int idCompteEnvoi = 2;
+            int idCompteRecoi = 1;
+
+            _mockManager.Setup(m => m.PostComplet(
+                    It.IsAny<Conversation>(),
+                    conversationDto.message,
+                    idCompteEnvoi,
+                    idCompteRecoi))
+                .ReturnsAsync(createdConversation)
+                .Callback<Conversation, string, int, int>((conv, msg, idEnvoi, idRecoi) =>
+                {
+                    // Simuler l'attribution de l'ID
+                    conv.IdConversation = createdConversation.IdConversation;
+                })
+                .Verifiable();
+
+            // Act
+            var actionResult = await _controller.PostComplet(conversationDto, idCompteEnvoi, idCompteRecoi);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            var created = (CreatedAtActionResult)actionResult.Result;
+            Assert.IsNotNull(created.Value);
+
+            var returnedConversation = (Conversation)created.Value;
+            Assert.AreEqual(createdConversation.IdConversation, returnedConversation.IdConversation);
+            Assert.AreEqual(conversationDto.IdAnnonce, returnedConversation.IdAnnonce);
+
+            // Vérifier que PostComplet a été appelé avec les bons paramètres
+            _mockManager.Verify(m => m.PostComplet(
+                It.Is<Conversation>(c => c.IdAnnonce == conversationDto.IdAnnonce),
+                conversationDto.message,
+                idCompteEnvoi,
+                idCompteRecoi),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task BadRequestPostCompletTest()
+        {
+            // Arrange
+            var conversationDto = new ConversationCreateDTO
+            {
+                IdAnnonce = -1,
+                DateDernierMessage = DateTime.Now,
+                message = "Message test"
+            };
+
+            _controller.ModelState.AddModelError("IdAnnonce", "Le IdAnnonce doit être supérieur à 0");
+
+            // Act
+            var actionResult = await _controller.PostComplet(conversationDto, 1, 2);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+
+            // Vérifier que PostComplet n'a jamais été appelé car le ModelState est invalide
+            _mockManager.Verify(m => m.PostComplet(
+                It.IsAny<Conversation>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<int>()),
+                Times.Never);
+        }
+
+        [TestMethod]
+        public async Task PostCompletTest_WithHubContext_SendsNotifications()
+        {
+            // Arrange
+            var conversationDto = new ConversationCreateDTO
+            {
+                IdAnnonce = 1,
+                DateDernierMessage = DateTime.Now,
+                message = "Test message pour notification"
+            };
+
+            var createdConversation = new Conversation
+            {
+                IdConversation = 5,
+                IdAnnonce = conversationDto.IdAnnonce,
+                DateDernierMessage = conversationDto.DateDernierMessage
+            };
+
+            int idCompteEnvoi = 2;
+            int idCompteRecoi = 1;
+
+            _mockManager.Setup(m => m.PostComplet(
+                    It.IsAny<Conversation>(),
+                    conversationDto.message,
+                    idCompteEnvoi,
+                    idCompteRecoi))
+                .ReturnsAsync(createdConversation)
+                .Callback<Conversation, string, int, int>((conv, msg, idEnvoi, idRecoi) =>
+                {
+                    conv.IdConversation = createdConversation.IdConversation;
+                });
+
+            // Act
+            var actionResult = await _controller.PostComplet(conversationDto, idCompteEnvoi, idCompteRecoi);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            // Vérifier que le Hub a été utilisé pour envoyer le message au groupe de conversation
+            _mockHubClients.Verify(
+                c => c.Group($"conversation_{createdConversation.IdConversation}"),
+                Times.Once,
+                "Le groupe de conversation devrait être ciblé");
+
+            // Vérifier que SendCoreAsync a été appelé (c'est la méthode sous-jacente de SendAsync)
+            _mockClientProxy.Verify(
+                c => c.SendCoreAsync(
+                    "ReceiveMessage",
+                    It.Is<object[]>(args =>
+                        args.Length == 4 &&
+                        (int)args[0] == createdConversation.IdConversation &&
+                        (int)args[1] == idCompteRecoi &&
+                        (string)args[2] == conversationDto.message),
+                    default(CancellationToken)),
+                Times.Once,
+                "Le message ReceiveMessage devrait être envoyé avec les bons paramètres");
         }
     }
 }

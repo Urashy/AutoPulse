@@ -26,7 +26,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .ToListAsync();
         }
 
-        public async Task<Conversation> PostComplet(Conversation conversation, string contenumessage, int idcompteenvoi, int idcompterecoi)
+        public virtual async Task<Conversation> PostComplet(Conversation conversation, string contenumessage, int idcompteenvoi, int idcompterecoi)
         {
             await dbSet.AddAsync(conversation);
             await context.SaveChangesAsync();

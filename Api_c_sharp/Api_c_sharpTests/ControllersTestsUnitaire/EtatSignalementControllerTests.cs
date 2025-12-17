@@ -44,7 +44,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _manager = new EtatSignalementManager(_context);
             _controller = new EtatSignalementController(_manager, _mapper);
 
-            _context.EtatSignalements.RemoveRange(_context.EtatSignalements);
+            _context.EtatSignalementsPlaintes.RemoveRange(_context.EtatSignalementsPlaintes);
             await _context.SaveChangesAsync();
 
             var objet = new EtatSignalement()
@@ -52,7 +52,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 LibelleEtatSignalement = "Test"
             };
 
-            await _context.EtatSignalements.AddAsync(objet);
+            await _context.EtatSignalementsPlaintes.AddAsync(objet);
             await _context.SaveChangesAsync();
 
             _objetcommun = objet;

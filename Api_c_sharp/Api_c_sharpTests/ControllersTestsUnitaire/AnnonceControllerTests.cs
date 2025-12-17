@@ -256,7 +256,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 await _context.Annonces.AddAsync(annonce);
                 await _context.Favoris.AddAsync(favori);
                 await _context.TypesSignalement.AddAsync(_typeSignalement);
-                await _context.EtatSignalements.AddAsync(_etatSignalement);
+                await _context.EtatSignalementsPlaintes.AddAsync(_etatSignalement);
                 await _context.Signalements.AddAsync(_signalement);
                 await _context.Conversations.AddAsync(_conversation);
                 await _context.APourConversations.AddAsync(_aPourConversation);
@@ -1019,6 +1019,12 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value);
+        }
+
+        [TestMethod]
+        public async Task GetAnnonceSimilaireTests()
+        {
+
         }
     }
 }
