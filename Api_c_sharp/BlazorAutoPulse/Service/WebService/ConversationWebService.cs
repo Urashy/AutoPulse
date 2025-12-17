@@ -21,7 +21,7 @@ public class ConversationWebService: BaseWebService<ConversationListDTO>, IConve
 
     public async Task<ConversationListDTO> PostComplet(ConversationCreateDTO conversation, int idCompteEnvoie, int idCompteRecoi)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl($"PostComplet{idCompteEnvoie}/{idCompteRecoi}"))
+        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl($"Post/{idCompteEnvoie}/{idCompteRecoi}"))
         {
             Content = JsonContent.Create(conversation)
         };

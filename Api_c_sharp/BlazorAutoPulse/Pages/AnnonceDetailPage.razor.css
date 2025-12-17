@@ -1285,3 +1285,212 @@
         transform: rotate(90deg);
     }
 }
+
+/* ============================================================================ */
+/* POPUP CONTACT VENDEUR */
+/* ============================================================================ */
+
+.popup-contact {
+    max-width: 600px;
+}
+
+.btn-close-popup {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 35px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #333;
+    border-radius: 50%;
+    color: #ccc;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.btn-close-popup:hover {
+    background: rgba(255, 68, 68, 0.2);
+    border-color: #ff4444;
+    color: #ff4444;
+    transform: rotate(90deg);
+}
+
+.contact-info {
+    background: rgba(0, 212, 255, 0.05);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.seller-badge {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.seller-mini-picture {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #00d4ff;
+}
+
+.seller-name-popup {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    margin: 0 0 4px 0;
+}
+
+.seller-type-popup {
+    font-size: 13px;
+    color: #888;
+    margin: 0;
+}
+
+.annonce-ref {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.ref-label {
+    color: #888;
+    font-size: 13px;
+}
+
+.ref-value {
+    color: #00d4ff;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.message-input-group {
+    margin-bottom: 20px;
+}
+
+.message-input-group label {
+    display: block;
+    color: #00d4ff;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.contact-textarea {
+    width: 100%;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 150px;
+    transition: all 0.3s;
+}
+
+.contact-textarea:focus {
+    outline: none;
+    border-color: #00d4ff;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+
+.contact-textarea:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.contact-textarea::placeholder {
+    color: #666;
+}
+
+.char-counter {
+    text-align: right;
+    color: #666;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.contact-error {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    color: #ff6666;
+    font-size: 14px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-send {
+    position: relative;
+    min-width: 140px;
+}
+
+.btn-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+}
+
+.mini-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .popup-contact {
+        max-width: 95%;
+        margin: 20px;
+    }
+
+    .contact-textarea {
+        min-height: 120px;
+        font-size: 14px;
+    }
+
+    .seller-badge {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .annonce-ref {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .popup-actions {
+        flex-direction: column-reverse;
+    }
+
+    .btn-cancel,
+    .btn-confirm {
+        width: 100%;
+    }
+}

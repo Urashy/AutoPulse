@@ -2,9 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace AutoPulse.Shared.DTO.IA.Result;
 
-[JsonDerivedType(typeof(ResultatCNN), typeDiscriminator: "cnn")]
-[JsonDerivedType(typeof(ResultatPrediction), typeDiscriminator: "prediction")]
-[JsonDerivedType(typeof(ResultatAjustement), typeDiscriminator: "ajustement")]
 public abstract class ResultatAI
 {
     [JsonPropertyName("type")]

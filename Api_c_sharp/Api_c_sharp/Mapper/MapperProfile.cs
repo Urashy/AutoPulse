@@ -125,8 +125,6 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.Vues.Count()))
             .ForMember(dest => dest.NbFavoris,
                 opt => opt.MapFrom(src => src.Favoris.Count()))
-            .ForMember(dest => dest.Images,
-                opt => opt.MapFrom(src => src.VoitureAnnonceNav.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList()))
             .ForMember(dest => dest.LienModeleBlender,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.ModeleBlenderNavigation != null
                     ? src.VoitureAnnonceNav.ModeleBlenderNavigation.Lien
@@ -258,7 +256,11 @@ public class MapperProfile : Profile
 
         //---------------------------------Conversation---------------------------------
 
-        CreateMap<Conversation, ConversationCreateDTO>()
+        CreateMap<ConversationCreateDTO, Conversation>()
+            .ForMember(dest => dest.DateDernierMessage, opt => opt.MapFrom(src => DateTime.SpecifyKind(
+                                                                                                                                                                                                src.DateDernierMessage,
+                                                                                                                                                                                                DateTimeKind.Local
+                                                                                                                                                                                            ).ToUniversalTime()))
             .ReverseMap();
 
         CreateMap<Conversation, ConversationUpdateDTO>()

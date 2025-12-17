@@ -53,9 +53,6 @@ public class AnnonceDetailDTO
     public bool PositionVolant { get; set; }
     public int NbVues { get; set; }
     public int NbFavoris { get; set; }
-
-    // Images
-    public List<string> Images { get; set; } = new List<string>();
     
     // Modèle 3D
     public string LienModeleBlender { get; set; }
