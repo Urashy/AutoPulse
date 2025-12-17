@@ -8,7 +8,7 @@ using Api_c_sharp.Models.Entity;
 namespace Api_c_sharp.Controllers
 {
     /// <summary>
-    /// Contrôleur REST permettant de gérer la table de jointure entre couleur et voiture.
+    /// Contrôleur REST permettant de gérer la table de jointure entre compte et conversation.
     /// Les méthodes exposent ou consomment des DTO afin
     /// d’assurer la séparation entre le modèle de domaine
     /// et la couche API.
@@ -18,12 +18,12 @@ namespace Api_c_sharp.Controllers
     public class APourConversationController(APourConversationManager _manager, IMapper _aPourCoversationMapper) : ControllerBase
     {
         /// <summary>
-        /// Crée une nouvelle adresse.
+        /// Crée une nouvelle liaison entre compte et conversation.
         /// </summary>
-        /// <param name="dto">Objet <see cref="APourConversationDTO"/> contenant les informations de l'adresse à créer.</param>
+        /// <param name="dto">Objet <see cref="APourConversationDTO"/> contenant les Ids de la liaison à créer.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
+        /// <item><description><see cref="CreatedAtActionResult"/> avec la liaison créée (201).</description></item>
         /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
         /// </list>
         /// </returns>
@@ -42,15 +42,15 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Met à jour une Adresse existante.
+        /// Met à jour une liaison existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
+        /// <param name="id">Identifiant unique de la liaison à mettre à jour.</param>
         /// <param name="dto">Objet <see cref="APourConversationDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
         /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune laiason ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Put")]
@@ -71,13 +71,13 @@ namespace Api_c_sharp.Controllers
             return NoContent();
         }
         /// <summary>
-        /// Supprime une adresse existante.
+        /// Supprime une liaison existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à supprimer.</param>
+        /// <param name="id">Identifiant unique de la liaison  à supprimer.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune liaison ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Delete")]
@@ -93,7 +93,7 @@ namespace Api_c_sharp.Controllers
             return NoContent();
         }
         /// <summary>
-        /// Récupère la liste de toutes les adresses.
+        /// Récupère la liste de toutes les liaisons.
         /// </summary>
         /// <returns>
         /// Une liste de <see cref="APourConversationDTO"/> (200 OK).
@@ -106,13 +106,13 @@ namespace Api_c_sharp.Controllers
             return new ActionResult<IEnumerable<APourConversationDTO>>(_aPourCoversationMapper.Map<IEnumerable<APourConversationDTO>>(list));
         }
         /// <summary>
-        /// Récupère une adresse à partir de son identifiant.
+        /// Récupère une laiason à partir de son identifiant.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse recherchée.</param>
+        /// <param name="id">Identifiant unique de la liaison recherchée.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="APourConversationDTO"/> si l'adresse existe (200 OK).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="APourConversationDTO"/> si la liaison existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune liaison ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("GetById")]

@@ -20,7 +20,7 @@ namespace Api_c_sharp.Controllers;
 public class MotriciteController(MotriciteManager _manager, IMapper _motriciteMapper) : ControllerBase
 {
     /// <summary>
-    /// Récupère une marque à partir de son identifiant.
+    /// Récupère une motricité à partir de son identifiant.
     /// </summary>
     /// <param name="id">Identifiant unique du modele recherchée.</param>
     /// <returns>

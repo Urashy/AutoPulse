@@ -32,15 +32,15 @@ namespace Api_c_sharp.Controllers;
 [ApiController]
 public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config, IJournalService _journalService) : ControllerBase
 {
-#region CRUD Classique
+    #region CRUD Classique
     /// <summary>
-    /// Récupère une annoncs à partir de son identifiant.
+    /// Récupère un compte à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la compte recherchée.</param>
+    /// <param name="id">Identifiant unique du compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteDTO"/> si la compte existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="CompteDetailDTO"/> si le compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
@@ -56,13 +56,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Récupère une compte à partir de son nom exact (insensible à la casse).
+    /// Récupère un compte à partir de son nom exact (insensible à la casse).
     /// </summary>
-    /// <param name="str">Nom de la compte recherchée.</param>
+    /// <param name="str">Nom du compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteDetailDTO"/> si la compte existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="CompteDetailDTO"/> si le compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetByString")]
@@ -80,10 +80,10 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Récupère la liste de toutes les comptes.
+    /// Récupère la liste de touts les comptes.
     /// </summary>
     /// <returns>
-    /// Une liste de <see cref="CompteDTO"/> (200 OK).
+    /// Une liste de <see cref="CompteGetDTO"/> (200 OK).
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
@@ -94,12 +94,12 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Crée une nouvelle compte.
+    /// Crée un nouveau compte.
     /// </summary>
-    /// <param name="dto">Objet <see cref="CompteDTO"/> contenant les informations de la compte à créer.</param>
+    /// <param name="dto">Objet <see cref="CompteCreateDTO"/> contenant les informations du compte à créer.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec la compte créée (201).</description></item>
+    /// <item><description><see cref="CreatedAtActionResult"/> avec le compte créée (201).</description></item>
     /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
     /// </list>
     /// </returns>
@@ -124,15 +124,15 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Met à jour une compte existante.
+    /// Met à jour un compte existant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la compte à mettre à jour.</param>
+    /// <param name="id">Identifiant unique du compte à mettre à jour.</param>
     /// <param name="dto">Objet <see cref="CompteUpdateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
     /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Put")]
@@ -158,14 +158,14 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Met à jour une compte existante.
+    /// Met à jour un compte existant.
     /// </summary>
     /// <param name="id">Identifiant unique du compte à mettre à jour.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
     /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("PutAnonymise")]
@@ -191,7 +191,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Met à jour un compte existante.
+    /// Met à jour un compt existant.
     /// </summary>
     /// <param name="id">Identifiant unique du compte à mettre à jour.</param>
     /// <param name="dto">Objet <see cref="CompteModifTypeCompteDTO"/> contenant les nouvelles valeurs.</param>
@@ -199,7 +199,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
     /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("PutTypeCompte")]
@@ -222,13 +222,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Supprime une compte existante.
+    /// Supprime un compte existant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la compte à supprimer.</param>
+    /// <param name="id">Identifiant unique du compte à supprimer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Delete")]
@@ -268,11 +268,11 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <summary>
     /// Récupère un compte à partir d'un id de type de compte.
     /// </summary>
-    /// <param name="type">Identifiant unique de la compte recherchée.</param>
+    /// <param name="type">Identifiant unique du compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteGetDTO"/> si les compte existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="CompteGetDTO"/> si le compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetByTypeCompte")]
@@ -294,7 +294,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="CompteGetDTO"/> si les comptes existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetComptesByFavoris")]
@@ -311,13 +311,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
 
     /// <summary>
-    /// Récupère une profil public à partir de son identifiant.
+    /// Récupère un profil public à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la compte recherchée.</param>
+    /// <param name="id">Identifiant unique du compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteDTO"/> si la compte existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="CompteDTO"/> si le compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetProfilPublic")]
@@ -338,8 +338,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <param name="idcompte">Identifiant unique du compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteGetDTO"/> si les compte existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="CompteGetDTO"/> si le compte existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("ToggleEtatCompte")]

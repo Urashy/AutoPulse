@@ -89,7 +89,7 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
     /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun avis ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune voiture ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Put")]
@@ -113,13 +113,13 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     }
 
     /// <summary>
-    /// Supprime un avis existant.
+    /// Supprime une voirure existant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à supprimer.</param>
+    /// <param name="id">Identifiant unique de la voiture à supprimer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun avis ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune voiture ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Delete")]

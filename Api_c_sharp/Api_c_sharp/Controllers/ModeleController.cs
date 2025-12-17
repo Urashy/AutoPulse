@@ -10,7 +10,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 namespace Api_c_sharp.Controllers;
 
 /// <summary>
-/// Contrôleur REST permettant de gérer les marques.
+/// Contrôleur REST permettant de gérer les modeles.
 /// Les méthodes exposent ou consomment des DTO afin
 /// d’assurer la séparation entre le modèle de domaine
 /// et la couche API.

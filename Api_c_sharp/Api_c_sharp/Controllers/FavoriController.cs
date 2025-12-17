@@ -73,7 +73,7 @@ namespace Api_c_sharp.Controllers
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
         /// <item><description><see cref="BadRequestResult"/> si l'ID fourni ne correspond pas à celui du DTO (400).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune commande ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucun favori ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Put")]

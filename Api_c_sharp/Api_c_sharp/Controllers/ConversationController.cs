@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace Api_c_sharp.Controllers;
 
 /// <summary>
-/// Contrôleur REST permettant de gérer les avis.
+/// Contrôleur REST permettant de gérer les conversations.
 /// Les méthodes exposent ou consomment des DTO afin
 /// d’assurer la séparation entre le modèle de domaine
 /// et la couche API.

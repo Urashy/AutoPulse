@@ -23,6 +23,13 @@ public class SignalementController(
     /// <summary>
     /// Récupère un signalement à partir de son identifiant.
     /// </summary>
+    /// <param name="id">Identifiant unique du signalement.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Le signalement correspondant (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun signalement ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
     public async Task<ActionResult<SignalementDTO>> GetByID(int id)
@@ -38,6 +45,11 @@ public class SignalementController(
     /// <summary>
     /// Récupère la liste de tous les signalements.
     /// </summary>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Une collection de <see cref="SignalementDTO"/> (200).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAll()
@@ -48,8 +60,16 @@ public class SignalementController(
     }
 
     /// <summary>
-    /// Crée un nouveau signalement (annonce ou compte).
+    /// Crée un nouveau signalement concernant une annonce ou un compte.
     /// </summary>
+    /// <param name="dto">Objet <see cref="SignalementCreateDTO"/> contenant les informations du signalement.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="CreatedAtActionResult"/> avec le signalement créé (201).</description></item>
+    /// <item><description><see cref="BadRequestObjectResult"/> si les données sont invalides (400).</description></item>
+    /// <item><description><see cref="UnauthorizedResult"/> si l'utilisateur n'est pas authentifié (401).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("Post")]
     [HttpPost]
     public async Task<ActionResult<SignalementDTO>> Post([FromBody] SignalementCreateDTO dto)
@@ -107,6 +127,15 @@ public class SignalementController(
     /// <summary>
     /// Met à jour un signalement existant.
     /// </summary>
+    /// <param name="id">Identifiant unique du signalement.</param>
+    /// <param name="dto">Objet <see cref="SignalementUpdateDTO"/> contenant les nouvelles valeurs.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+    /// <item><description><see cref="BadRequestResult"/> si les données sont invalides (400).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun signalement ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
     public async Task<ActionResult> Put(int id, [FromBody] SignalementUpdateDTO dto)
@@ -128,6 +157,13 @@ public class SignalementController(
     /// <summary>
     /// Supprime un signalement existant.
     /// </summary>
+    /// <param name="id">Identifiant unique du signalement.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun signalement ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
@@ -142,8 +178,16 @@ public class SignalementController(
     }
 
     /// <summary>
-    /// Récupère les signalements par état, type et recherche.
+    /// Récupère les signalements filtrés par état, type et critère de recherche.
     /// </summary>
+    /// <param name="etatId">Identifiant de l'état du signalement.</param>
+    /// <param name="typeId">Identifiant du type de signalement.</param>
+    /// <param name="recherche">Chaîne de recherche optionnelle.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Une collection de signalements filtrés (200).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetFilteredSignalement")]
     [HttpGet("{etatId}/{typeId}")]
     public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetFilteredSignalement(int etatId, int typeId, [FromQuery] string? recherche)
@@ -157,8 +201,15 @@ public class SignalementController(
     /// <summary>
     /// Met à jour l'état d'un signalement.
     /// </summary>
-    /// <param name="idSignalement">ID du signalement</param>
-    /// <param name="dto">DTO contenant le nouvel état</param>
+    /// <param name="idSignalement">Identifiant unique du signalement.</param>
+    /// <param name="dto">Objet <see cref="SignalementUpdateDTO"/> contenant le nouvel état.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+    /// <item><description><see cref="BadRequestObjectResult"/> si l'état est invalide (400).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si le signalement n'existe pas (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("UpdateEtat")]
     [HttpPut("{idSignalement}")]
     public async Task<ActionResult> UpdateEtat(int idSignalement, [FromBody] SignalementUpdateDTO dto)

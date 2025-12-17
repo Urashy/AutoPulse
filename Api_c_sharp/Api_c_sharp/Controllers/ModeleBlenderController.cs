@@ -24,8 +24,8 @@ public class ModeleBlenderController(ModeleBlenderManager _manager, IMapper _mod
     /// </summary>
     /// <param name="id">Identifiant unique du modele recherchée.</param>
     /// <returns>
-    /// <item><description><see cref="ModeleBlenderDTO"/> si la motricité existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune motricité ne correspond (404).</description></item>
+    /// <item><description><see cref="ModeleBlenderDTO"/> si le modele blender existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun modele blender ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]

@@ -7,7 +7,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 namespace Api_c_sharp.Controllers
 {
     /// <summary>
-    /// Contrôleur REST permettant de gérer les couleurs.
+    /// Contrôleur REST permettant de gérer les états de compte.
     /// Les méthodes exposent ou consomment des DTO afin
     /// d’assurer la séparation entre le modèle de domaine
     /// et la couche API.
@@ -17,12 +17,12 @@ namespace Api_c_sharp.Controllers
     public class EtatCompteController (EtatCompteManager _manager, IMapper _couleurMapper) : ControllerBase
     {
         /// <summary>
-        /// Récupère une couleur à partir de son identifiant.
+        /// Récupère un état à partir de son identifiant.
         /// </summary>
         /// <param name="id">Identifiant unique du modele recherchée.</param>
         /// <returns>
-        /// <item><description><see cref="EtatCompteDTO"/> si la couleur existe (200 OK).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune couleur ne correspond (404).</description></item>
+        /// <item><description><see cref="EtatCompteDTO"/> si l'état existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucun état ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("GetById")]
@@ -37,7 +37,7 @@ namespace Api_c_sharp.Controllers
             return new ActionResult<EtatCompteDTO>(_couleurMapper.Map<EtatCompteDTO>(result));
         }
         /// <summary>
-        /// Récupère la liste de toutes les couleurs.
+        /// Récupère la liste de toute les états.
         /// </summary>
         /// <returns>
         /// Une liste de <see cref="EtatCompteDTO"/> (200 OK).

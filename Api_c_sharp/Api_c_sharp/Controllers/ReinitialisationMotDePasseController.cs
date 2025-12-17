@@ -15,12 +15,13 @@ namespace Api_c_sharp.Controllers;
 public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseManager _manager, IConfiguration _config) : ControllerBase
 {
     /// <summary>
-    /// Récupère un modele à partir de son identifiant.
+    /// Récupère une demande de réinitialisation de mot de passe à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique du modele recherchée.</param>
+    /// <param name="id">Identifiant unique de la demande de réinitialisation.</param>
     /// <returns>
-    /// <item><description><see cref="ModeleDTO"/> si le modele existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun modele ne correspond (404).</description></item>
+    /// <list type="bullet">
+    /// <item><description>La demande de réinitialisation correspondante (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune demande ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
@@ -36,10 +37,12 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
     }
 
     /// <summary>
-    /// Récupère la liste de tous les modèles.
+    /// Récupère la liste de toutes les demandes de réinitialisation de mot de passe.
     /// </summary>
     /// <returns>
-    /// Une liste de <see cref="ModeleDTO"/> (200 OK).
+    /// <list type="bullet">
+    /// <item><description>Une collection de demandes de réinitialisation (200).</description></item>
+    /// </list>
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
@@ -48,15 +51,15 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
         var list = await _manager.GetAllAsync();
         return new ActionResult<IEnumerable<ReinitialisationMotDePasse>>(list);
     }
-    
+
     /// <summary>
-    /// Récupère une annonce à partir de son nom exact (insensible à la casse).
+    /// Récupère une demande de réinitialisation de mot de passe à partir de son token.
     /// </summary>
-    /// <param name="str">Nom de l'annonce recherchée.</param>
+    /// <param name="str">Token de réinitialisation.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="AnnonceDTO"/> si l'annonce existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// <item><description>La demande de réinitialisation correspondante (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun token ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetByString")]
@@ -72,14 +75,14 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
 
         return Ok(result);
     }
-    
+
     /// <summary>
-    /// Crée une nouveau conversation.
+    /// Crée une demande de réinitialisation de mot de passe et envoie un code par email.
     /// </summary>
-    /// <param name="dto">Objet <see cref="ConversationCreateDTO"/> contenant les informations du conversation à créer.</param>
+    /// <param name="dto">Objet <see cref="ReinitialiseMdpDTO"/> contenant l'email et l'identifiant du compte.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec le conversation créée (201).</description></item>
+    /// <item><description>Message de confirmation indiquant qu'un code a été envoyé (200).</description></item>
     /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
     /// </list>
     /// </returns>
@@ -130,17 +133,17 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
 
         return CreatedAtAction(nameof(Get), new { id = reinitMdp.IdReinitialisationMdp }, reinitMdp);
     }
-    
+
     /// <summary>
-    /// Met à jour un Conversation existant.
+    /// Met à jour une demande de réinitialisation de mot de passe existante.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="Conversation"/> contenant les nouvelles valeurs.</param>
+    /// <param name="id">Identifiant unique de la demande de réinitialisation.</param>
+    /// <param name="dto">Objet <see cref="ReinitialisationMotDePasse"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune Conversation ne correspond (404).</description></item>
+    /// <item><description><see cref="BadRequestResult"/> si les données sont invalides (400).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune demande ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Put")]
@@ -159,15 +162,15 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
 
         return NoContent();
     }
-    
+
     /// <summary>
-    /// Supprime une compte existante.
+    /// Supprime une demande de réinitialisation de mot de passe à partir de son token.
     /// </summary>
-    /// <param name="id">Identifiant unique de la compte à supprimer.</param>
+    /// <param name="token">Token de réinitialisation.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune compte ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun token ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Delete")]
@@ -183,6 +186,19 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
         return NoContent();
     }
 
+
+    /// <summary>
+    /// Vérifie la validité d'un code de réinitialisation de mot de passe.
+    /// </summary>
+    /// <param name="dto">Objet <see cref="ReinitialiseMdpDTO"/> contenant l'email et le code.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Confirmation si le code est valide (200).</description></item>
+    /// <item><description><see cref="NoContentResult"/> si le code est vide (204).</description></item>
+    /// <item><description><see cref="NotFoundObjectResult"/> si le code est invalide ou expiré (404).</description></item>
+    /// <item><description><see cref="BadRequestResult"/> si le modèle est invalide (400).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("VerifCode")]
     [HttpPost]
     public async Task<ActionResult> VerifCode([FromBody] ReinitialiseMdpDTO dto)

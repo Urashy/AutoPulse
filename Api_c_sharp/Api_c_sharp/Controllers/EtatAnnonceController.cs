@@ -24,8 +24,8 @@ public class EtatAnnonceController(EtatAnnonceManager _manager, IMapper _mapper)
     /// </summary>
     /// <param name="id">Identifiant unique du modele recherchée.</param>
     /// <returns>
-    /// <item><description><see cref="EtatAnnonceDTO"/> si l'annonce existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// <item><description><see cref="EtatAnnonceDTO"/> si l'état annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun état ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
@@ -41,7 +41,7 @@ public class EtatAnnonceController(EtatAnnonceManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Récupère la liste de toutes les etats d'annonce.
+    /// Récupère la liste de toutes les états d'annonce.
     /// </summary>
     /// <returns>
     /// Une liste de <see cref="MotriciteDTO"/> (200 OK).

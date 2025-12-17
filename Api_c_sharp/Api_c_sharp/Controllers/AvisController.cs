@@ -26,8 +26,8 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// <param name="id">Identifiant unique de la annonce recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="AvisDetailDTO"/> si la annonce existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// <item><description><see cref="AvisDetailDTO"/> si l'avi existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun avis ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
@@ -83,7 +83,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// <summary>
     /// Met à jour un avis existant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à mettre à jour.</param>
+    /// <param name="id">Identifiant unique de l'avis à mettre à jour.</param>
     /// <param name="dto">Objet <see cref="AvisUpdateDTO"/> contenant les nouvelles valeurs.</param>
     /// <returns>
     /// <list type="bullet">
@@ -112,7 +112,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// <summary>
     /// Supprime un avis existant.
     /// </summary>
-    /// <param name="id">Identifiant unique de la annonce à supprimer.</param>
+    /// <param name="id">Identifiant unique de l'avis à supprimer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
@@ -135,7 +135,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// <summary>
     /// Récupère des avis à partir d'un compte.
     /// </summary>
-    /// <param name="idcompte">Identifiant unique du type recherchée.</param>
+    /// <param name="idcompte">Identifiant unique du compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="AvisListDTO"/> si l'avis existe (200 OK).</description></item>

@@ -8,7 +8,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 namespace Api_c_sharp.Controllers
 {
     /// <summary>
-    /// Contrôleur REST permettant de gérer les adresses.
+    /// Contrôleur REST permettant de gérer les notifications.
     /// Les méthodes exposent ou consomment des DTO afin
     /// d’assurer la séparation entre le modèle de domaine
     /// et la couche API.
@@ -18,12 +18,12 @@ namespace Api_c_sharp.Controllers
     public class NotificationController(NotificationManager _manager, IMapper _mapper,CompteManager _comptemanager) : ControllerBase
     {
         /// <summary>
-        /// Crée une nouvelle adresse.
+        /// Crée une nouvelle notification.
         /// </summary>
-        /// <param name="dto">Objet <see cref="NotificationCreateDTO"/> contenant les informations de l'adresse à créer.</param>
+        /// <param name="dto">Objet <see cref="NotificationCreateDTO"/> contenant les informations de la notification à créer.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
+        /// <item><description><see cref="CreatedAtActionResult"/> avec la notification créée (201).</description></item>
         /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
         /// </list>
         /// </returns>
@@ -41,15 +41,15 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Met à jour une Adresse existante.
+        /// Met à jour une notification existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
+        /// <param name="id">Identifiant unique de la notification à mettre à jour.</param>
         /// <param name="dto">Objet <see cref="NotificationUpdateDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
         /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune notification ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Put")]
@@ -70,13 +70,13 @@ namespace Api_c_sharp.Controllers
             return NoContent();
         }
         /// <summary>
-        /// Supprime une adresse existante.
+        /// Supprime une notification existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à supprimer.</param>
+        /// <param name="id">Identifiant unique de la notification à supprimer.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune notification ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Delete")]
@@ -92,7 +92,7 @@ namespace Api_c_sharp.Controllers
             return NoContent();
         }
         /// <summary>
-        /// Récupère la liste de toutes les adresses.
+        /// Récupère la liste de toutes les notifications.
         /// </summary>
         /// <returns>
         /// Une liste de <see cref="NotificationDTO"/> (200 OK).
@@ -106,13 +106,13 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Récupère une adresse à partir de son identifiant.
+        /// Récupère une notification à partir de son identifiant.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse recherchée.</param>
+        /// <param name="id">Identifiant unique de la notification recherchée.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="NotificationDTO"/> si l'adresse existe (200 OK).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NotificationDTO"/> si la notification existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune notification ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("GetById")]
@@ -128,10 +128,14 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Récupère la liste de toutes les adresses.
+        /// Récupère toutes les notifications associées à un compte.
         /// </summary>
+        /// <param name="idcompte">Identifiant unique du compte.</param>
         /// <returns>
-        /// Une liste de <see cref="NotificationDTO"/> (200 OK).
+        /// <list type="bullet">
+        /// <item><description>Une collection de notifications du compte (200).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune notification n'est trouvée (404).</description></item>
+        /// </list>
         /// </returns>
         [ActionName("GetNotificationByCompteID")]
         [HttpGet("{idcompte}")]
@@ -146,10 +150,14 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Récupère la liste de toutes les adresses.
+        /// Récupère toutes les notifications non lues associées à un compte.
         /// </summary>
+        /// <param name="idcompte">Identifiant unique du compte.</param>
         /// <returns>
-        /// Une liste de <see cref="NotificationDTO"/> (200 OK).
+        /// <list type="bullet">
+        /// <item><description>Une collection de notifications non lues (200).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune notification non lue n'est trouvée (404).</description></item>
+        /// </list>
         /// </returns>
         [ActionName("GetUnreadNotificationByCompte")]
         [HttpGet("{idcompte}")]
@@ -164,10 +172,13 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Récupère la liste de toutes les adresses.
+        /// Récupère le nombre de notifications non lues pour un compte.
         /// </summary>
+        /// <param name="idcompte">Identifiant unique du compte.</param>
         /// <returns>
-        /// Une liste de <see cref="NotificationDTO"/> (200 OK).
+        /// <list type="bullet">
+        /// <item><description>Le nombre de notifications non lues (200).</description></item>
+        /// </list>
         /// </returns>
         [ActionName("GetUnreadCountByCompte")]
         [HttpGet("{idcompte}")]
@@ -177,14 +188,13 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Met à jour une Adresse existante.
+        /// Marque une notification comme lue.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
+        /// <param name="idNotification">Identifiant unique de la notification.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-        /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NoContentResult"/> si la notification est marquée comme lue (204).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si la notification n'existe pas (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("MarkAsRead")]
@@ -203,14 +213,13 @@ namespace Api_c_sharp.Controllers
 
 
         /// <summary>
-        /// Met à jour une Adresse existante.
+        /// Marque toutes les notifications d'un compte comme lues.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
+        /// <param name="idCompte">Identifiant unique du compte.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-        /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NoContentResult"/> si les notifications sont mises à jour (204).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si le compte n'existe pas (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("MarkAllAsRead")]
@@ -228,13 +237,12 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Supprime une adresse existante.
+        /// Supprime les notifications plus anciennes qu'un nombre de jours donné.
         /// </summary>
-        /// <param name="daysold">Identifiant unique de l'adresse à supprimer.</param>
+        /// <param name="daysold">Nombre de jours d'ancienneté des notifications à supprimer.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NoContentResult"/> si la suppression est effectuée (204).</description></item>
         /// </list>
         /// </returns>
         [ActionName("DeleteOldNotification")]
