@@ -110,6 +110,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             var result = await _controller.Post(dto);
 
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Favori>()), Times.Never);
         }
 
         // ---------------------------
@@ -141,6 +142,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             var result = await _controller.Put(1, 1, dto);
 
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Favori>(), It.IsAny<Favori>()), Times.Never);
         }
 
         [TestMethod]
@@ -184,6 +187,51 @@ namespace Api_c_sharp.ControllersMock.Tests
             var result = await _controller.Delete(1, 1);
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task IsFavorite_ReturnsTrue_WhenExists()
+        {
+            var entity = new Favori { IdCompte = 1, IdAnnonce = 2 };
+
+            _mockManager.Setup(m => m.ExistsAsync(1, 2))
+                        .ReturnsAsync(true);
+
+            var result = await _controller.IsFavorite(1, 2);
+
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Value);
+        }
+
+        [TestMethod]
+        public async Task IsFavorite_ReturnsFalse_WhenNotExists()
+        {
+            _mockManager.Setup(m => m.ExistsAsync(1, 2))
+                        .ReturnsAsync(false);
+
+            var result = await _controller.IsFavorite(1, 2);
+
+            Assert.IsNotNull(result);
+            Assert.IsFalse(result.Value);
+        }
+
+        [TestMethod]
+        public async Task GetByCompteId_ReturnsList()
+        {
+            var data = new List<Favori>
+            {
+                new Favori { IdCompte = 1, IdAnnonce = 1 },
+                new Favori { IdCompte = 1, IdAnnonce = 2 }
+            };
+
+            _mockManager.Setup(m => m.GetByCompteIdAsync(1))
+                        .ReturnsAsync(data);
+
+            var result = await _controller.GetByCompteId(1);
+
+            Assert.IsNotNull(result.Value);
+            Assert.AreEqual(2, result.Value.Count());
+            Assert.IsTrue(result.Value.All(f => f.IdCompte == 1));
         }
     }
 }
