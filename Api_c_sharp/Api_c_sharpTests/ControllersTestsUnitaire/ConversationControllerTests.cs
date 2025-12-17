@@ -179,7 +179,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var created = (CreatedAtActionResult)actionResult.Result;
 
             var createdConversation = (Conversation)created.Value;
-            Assert.AreEqual(Conversation.DateDernierMessage, createdConversation.DateDernierMessage);
+            Assert.AreEqual(Conversation.DateDernierMessage.ToUniversalTime(), createdConversation.DateDernierMessage);
         }
 
 

@@ -163,7 +163,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task PostVoitureTest_Entity()
+        public async Task PostConversationTest_Entity()
         {
             // Arrange
             var conversationDTO = new ConversationCreateDTO
@@ -186,12 +186,12 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
             var createdConversation = (Conversation)created.Value;
-            Assert.AreEqual(conversationDTO.DateDernierMessage, createdConversation.DateDernierMessage);
+            Assert.AreEqual(conversationDTO.DateDernierMessage.ToUniversalTime(), createdConversation.DateDernierMessage);
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Conversation>()), Times.Once);
         }
 
         [TestMethod]
-        public async Task BadRequestPostVoitureTest()
+        public async Task BadRequestPostConversationTest()
         {
             // Arrange
             ConversationCreateDTO conversationDTO = new ConversationCreateDTO()
@@ -211,7 +211,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task DeleteVoitureTest()
+        public async Task DeleteConversationTest()
         {
             // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdConversation))
@@ -229,7 +229,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteVoitureTest()
+        public async Task NotFoundDeleteConversationTest()
         {
             // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(0))
@@ -243,7 +243,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task PutVoitureTest()
+        public async Task PutConversationTest()
         {
             // Arrange
             var existingConversation = new Conversation
@@ -277,7 +277,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundPutVoitureTest()
+        public async Task NotFoundPutConversationTest()
         {
             // Arrange
             ConversationUpdateDTO conversationDTO = new ConversationUpdateDTO()
@@ -298,7 +298,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task BadRequestPutVoitureTest()
+        public async Task BadRequestPutConversationTest()
         {
             // Arrange
             ConversationUpdateDTO conversationDTO = new ConversationUpdateDTO()

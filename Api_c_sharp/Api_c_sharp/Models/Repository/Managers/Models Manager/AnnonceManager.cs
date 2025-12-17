@@ -214,7 +214,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return true;
         }
 
-        public async Task<bool> EstMasque(int annonceId)
+        public virtual async Task<bool> EstMasque(int annonceId)
         {
             Annonce annonce = await GetByIdAsync(annonceId);
             if (annonce.IdEtatAnnonce == 4)
@@ -227,7 +227,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             }
         }
 
-        public async Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce annonce)
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce annonce)
         {
             int anneeReference = annonce.VoitureAnnonceNav.Annee;
 
