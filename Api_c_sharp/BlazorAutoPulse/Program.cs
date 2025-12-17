@@ -40,7 +40,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IModeleService, ModeleWebService>();
             builder.Services.AddScoped<IServiceConnexion, ConnexionWebService>();
             builder.Services.AddScoped<IPostImageService, PostImageWebService>();
-            builder.Services.AddScoped<ICompteService, CompteWebService>();
+            builder.Services.AddScoped<ICompteService, CompteWebService>();  
             builder.Services.AddScoped<IFavorisService, FavoriWebService>();
             builder.Services.AddScoped<IImageService, ImageWebService>();
             builder.Services.AddScoped<IReinitialiseMdp, ReinitialisationMdpWebService>();
