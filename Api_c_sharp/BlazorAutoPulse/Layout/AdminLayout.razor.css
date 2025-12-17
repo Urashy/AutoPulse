@@ -164,20 +164,25 @@
 }
 
 .admin-badge {
+    /* Positionnement et texte */
     display: inline-block;
     padding: 8px 16px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
-    border: 2px solid;
-    border-image: linear-gradient(135deg, #8b5cf6, #ec4899) 1;
     color: #d8b4fe;
-    border-radius: 50px;
     font-size: 12px;
     font-weight: 800;
     letter-spacing: 2px;
+    text-transform: uppercase;
+    /* Important pour le pseudo-élément */
+    position: relative;
+    z-index: 1;
     margin: 0;
+    /* Forme du badge */
+    border-radius: 50px;
+    background: rgba(139, 92, 246, 0.1);
+    /* Effets de lumière */
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-    animation: pulse-border 2s ease-in-out infinite;
 }
+
 
 @keyframes pulse-border {
     0%, 100% {
@@ -191,23 +196,22 @@
 
 /* ========== NAVIGATION ========== */
 .sidebar-nav {
-    padding: 25px 20px;
+    padding: 20px 15px; /* Était 25px 20px */
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px; /* Était 10px - Rapproche les boutons les uns des autres */
     flex: 1;
 }
-
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 16px 20px;
+    gap: 10px; /* Était 15px - Rapproche l'icône du texte */
+    padding: 10px 15px; /* Était 16px 20px - C'est ici que la hauteur diminue le plus */
     color: #c4b5fd;
     text-decoration: none;
-    border-radius: 16px;
+    border-radius: 12px; /* Légèrement réduit pour coller à la nouvelle taille */
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size: 15px;
+    font-size: 13px; /* Était 15px */
     font-weight: 600;
     border: 2px solid transparent;
     position: relative;
@@ -260,7 +264,7 @@
         }
 
     .nav-item .icon {
-        font-size: 24px;
+        font-size: 18px; /* Était 24px - Icône plus discrète */
         flex-shrink: 0;
         filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.5));
         transition: transform 0.3s;
