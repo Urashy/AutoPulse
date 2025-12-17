@@ -128,7 +128,10 @@ public class ConversationController(
     /// </summary>
     [ActionName("Post")]
     [HttpPost("{idcompteenvoi}/{idcompterecoi}")]
-    public async Task<ActionResult<ConversationListDTO>> PostComplet([FromBody] ConversationCreateDTO dto,int idcompteenvoi,int idcompterecoi)
+    public async Task<ActionResult<ConversationListDTO>> PostComplet(
+        [FromRoute] int idcompteenvoi,
+        [FromRoute] int idcompterecoi,
+        [FromBody] ConversationCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);

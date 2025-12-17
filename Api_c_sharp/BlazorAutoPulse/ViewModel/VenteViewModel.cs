@@ -161,7 +161,18 @@ namespace BlazorAutoPulse.ViewModel
                     ImageBase64 = base64Image
                 };
 
-                cnnResult = await _iaService.RecognizeVehicleAsync(dataCnn);
+                var result = await _iaService.PredictAIAsync(dataCnn);
+                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
+
+                if (result is ResultatPrediction prediction)
+                {
+                    priceResult = prediction;
+                    Console.WriteLine("Cast réussi vers ResultatPrediction");
+                }
+                else
+                {
+                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
+                }
 
                 showCnnLoadingPopup = false;
                 
@@ -267,6 +278,7 @@ namespace BlazorAutoPulse.ViewModel
             showPriceWarningPopup = false;
             showPriceLoadingPopup = true;
             _refreshUI?.Invoke();
+            
 
             try
             {
@@ -290,7 +302,18 @@ namespace BlazorAutoPulse.ViewModel
                     Levy = 0f // Valeur par défaut - Non disponible dans le formulaire
                 };
 
-                priceResult = await _iaService.PredictPriceAsync(dataPrediction);
+                var result = await _iaService.PredictAIAsync(dataPrediction);
+                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
+
+                if (result is ResultatPrediction prediction)
+                {
+                    priceResult = prediction;
+                    Console.WriteLine("Cast réussi vers ResultatPrediction");
+                }
+                else
+                {
+                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
+                }
 
                 showPriceLoadingPopup = false;
 
@@ -347,7 +370,18 @@ namespace BlazorAutoPulse.ViewModel
                     Description = annonce.Description,
                 };
 
-                adjustmentResult = await _iaService.AdjustPriceAsync(dataAdjustment);
+                var result = await _iaService.PredictAIAsync(dataAdjustment);
+                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
+
+                if (result is ResultatPrediction prediction)
+                {
+                    priceResult = prediction;
+                    Console.WriteLine("Cast réussi vers ResultatPrediction");
+                }
+                else
+                {
+                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
+                }
 
                 showAdjustmentLoadingPopup = false;
 
