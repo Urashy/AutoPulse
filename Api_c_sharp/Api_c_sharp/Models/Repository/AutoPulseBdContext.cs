@@ -233,7 +233,7 @@ namespace Api_c_sharp.Models.Repository
                 .HasKey(e => e.IdEtatCompte);
 
             //-----------------------------EtatSignalement-----------------------------
-            modelBuilder.Entity<EtatSignalement>()
+            modelBuilder.Entity<EtatSignalementPlainte>()
                 .HasKey(e => e.IdEtatSignalement);
 
             //-----------------------------Facture-----------------------------
@@ -387,6 +387,11 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(p => p.ComptePlainteNav)
                 .WithMany(c => c.Plaintes)
                 .HasForeignKey(p => p.IdCompte);
+
+            modelBuilder.Entity<Plainte>()
+                .HasOne(p => p.EtatSignalementPlaintePlainteNav)
+                .WithMany(t => t.Plaintes)
+                .HasForeignKey(p => p.IdEtat);
 
             //-----------------------------ReinitialisationMotDePasse-----------------------------
             modelBuilder.Entity<ReinitialisationMotDePasse>()

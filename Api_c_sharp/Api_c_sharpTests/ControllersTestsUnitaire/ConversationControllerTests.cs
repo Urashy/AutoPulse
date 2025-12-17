@@ -323,7 +323,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             };
 
             // Act
-            var actionResult = await _controller.PostComplet(conversationDto, acheteur.IdCompte, 1);
+            var actionResult = await _controller.PostComplet( acheteur.IdCompte, 1,conversationDto);
 
             // Assert
             Assert.IsNotNull(actionResult);
@@ -367,7 +367,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _controller.ModelState.AddModelError("IdAnnonce", "Le IdAnnonce doit être supérieur à 0");
 
             // Act
-            var actionResult = await _controller.PostComplet(conversationDto, 1, 2);
+            var actionResult = await _controller.PostComplet( 1, 2,conversationDto);
 
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));

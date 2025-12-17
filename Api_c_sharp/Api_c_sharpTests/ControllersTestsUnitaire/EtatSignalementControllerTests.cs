@@ -24,7 +24,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private AutoPulseBdContext _context;
         private EtatSignalementManager _manager;
         private IMapper _mapper;
-        private EtatSignalement _objetcommun;
+        private EtatSignalementPlainte _objetcommun;
 
         [TestInitialize]
         public async Task Initialize()
@@ -47,7 +47,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.EtatSignalementsPlaintes.RemoveRange(_context.EtatSignalementsPlaintes);
             await _context.SaveChangesAsync();
 
-            var objet = new EtatSignalement()
+            var objet = new EtatSignalementPlainte()
             {
                 LibelleEtatSignalement = "Test"
             };

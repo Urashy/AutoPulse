@@ -298,7 +298,7 @@ public class MapperProfile : Profile
 
         //---------------------------------EtatSignalement---------------------------------
 
-        CreateMap<EtatSignalement, EtatSignalementDTO>().ReverseMap();
+        CreateMap<EtatSignalementPlainte, EtatSignalementDTO>().ReverseMap();
 
         //---------------------------------Facture---------------------------------
 

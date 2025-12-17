@@ -41,7 +41,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             private Message _message2;
             private Commande _commande;
             private TypeSignalement _typeSignalement;
-            private EtatSignalement _etatSignalement;
+            private EtatSignalementPlainte _etatSignalement;
 
             [TestInitialize]
             public async Task Initialize()
@@ -191,7 +191,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                     LibelleTypeSignalement = "Contenu inapproprié"
                 };
 
-                _etatSignalement = new EtatSignalement()
+                _etatSignalement = new EtatSignalementPlainte()
                 {
                     IdEtatSignalement = 1,
                     LibelleEtatSignalement = "En cours"
@@ -1024,7 +1024,47 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetAnnonceSimilaireTests()
         {
+            Voiture voiture = new Voiture()
+            {
+                IdVoiture = 2,
+                IdMarque = 1,
+                IdMotricite = 1,
+                IdCarburant = 1,
+                IdBoiteDeVitesse = 1,
+                IdCategorie = 1,
+                Kilometrage = 10000,
+                Annee = 2021,
+                Puissance = 150,
+                MiseEnCirculation = DateTime.Now,
+                IdModele = 1,
+                NbPlace = 5,
+                NbPorte = 5
+            };
 
+            Annonce annonce = new Annonce()
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test similaire",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse =1,
+                Prix = 20000,
+                Description = "Description de l'annonce similaire",
+                IdMiseEnAvant = 1,
+                IdVoiture = 2,
+                DatePublication = DateTime.Now
+            };
+            await _context.Voitures.AddAsync(voiture);
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
+
+            var result  = await _controller.GetSimilaires(annonce.IdAnnonce);
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == annonce.Libelle) );
         }
     }
 }

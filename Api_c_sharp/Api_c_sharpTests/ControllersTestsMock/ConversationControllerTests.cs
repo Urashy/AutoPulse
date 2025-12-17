@@ -417,7 +417,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 .Verifiable();
 
             // Act
-            var actionResult = await _controller.PostComplet(conversationDto, idCompteEnvoi, idCompteRecoi);
+            var actionResult = await _controller.PostComplet(idCompteEnvoi, idCompteRecoi,conversationDto);
 
             // Assert
             Assert.IsNotNull(actionResult);
@@ -453,8 +453,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller.ModelState.AddModelError("IdAnnonce", "Le IdAnnonce doit être supérieur à 0");
 
             // Act
-            var actionResult = await _controller.PostComplet(conversationDto, 1, 2);
-
+            var actionResult = await _controller.PostComplet( 1, 2,conversationDto);
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
 
@@ -500,7 +499,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 });
 
             // Act
-            var actionResult = await _controller.PostComplet(conversationDto, idCompteEnvoi, idCompteRecoi);
+            var actionResult = await _controller.PostComplet( idCompteEnvoi, idCompteRecoi,conversationDto);
 
             // Assert
             Assert.IsNotNull(actionResult);

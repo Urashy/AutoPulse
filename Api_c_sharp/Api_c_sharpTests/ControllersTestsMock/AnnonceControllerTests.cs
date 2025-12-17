@@ -236,7 +236,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 LibelleTypeSignalement = "Contenu inapproprié"
             };
 
-            var etatSignalement = new EtatSignalement
+            var etatSignalement = new EtatSignalementPlainte
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "En cours"
@@ -310,7 +310,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 LibelleTypeSignalement = "Contenu inapproprié"
             };
 
-            var etatSignalement = new EtatSignalement
+            var etatSignalement = new EtatSignalementPlainte
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "En cours"
@@ -411,7 +411,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 LibelleTypeSignalement = "Contenu inapproprié"
             };
 
-            var etatSignalement = new EtatSignalement
+            var etatSignalement = new EtatSignalementPlainte
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "En cours"
@@ -500,7 +500,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 LibelleTypeSignalement = "Contenu inapproprié"
             };
 
-            var etatSignalement = new EtatSignalement
+            var etatSignalement = new EtatSignalementPlainte
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "En cours"

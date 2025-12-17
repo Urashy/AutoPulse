@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
-    public class EtatSignalementManager : ReadableManager<EtatSignalement>
+    public class EtatSignalementManager : ReadableManager<EtatSignalementPlainte>
     {
         public EtatSignalementManager(AutoPulseBdContext context) : base(context)
         {
