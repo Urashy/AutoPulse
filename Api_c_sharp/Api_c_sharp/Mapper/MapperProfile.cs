@@ -257,10 +257,7 @@ public class MapperProfile : Profile
         //---------------------------------Conversation---------------------------------
 
         CreateMap<ConversationCreateDTO, Conversation>()
-            .ForMember(dest => dest.DateDernierMessage, opt => opt.MapFrom(src => DateTime.SpecifyKind(
-                                                                                                                                                                                                src.DateDernierMessage,
-                                                                                                                                                                                                DateTimeKind.Local
-                                                                                                                                                                                            ).ToUniversalTime()))
+            .ForMember(dest => dest.DateDernierMessage, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.DateDernierMessage,DateTimeKind.Local).ToUniversalTime()))
             .ReverseMap();
 
         CreateMap<Conversation, ConversationUpdateDTO>()
@@ -298,7 +295,7 @@ public class MapperProfile : Profile
 
         //---------------------------------EtatSignalement---------------------------------
 
-        CreateMap<EtatSignalement, EtatSignalementDTO>().ReverseMap();
+        CreateMap<EtatSignalementPlainte, EtatSignalementDTO>().ReverseMap();
 
         //---------------------------------Facture---------------------------------
 

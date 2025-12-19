@@ -214,7 +214,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return true;
         }
 
-        public async Task<bool> EstMasque(int annonceId)
+        public virtual async Task<bool> EstMasque(int annonceId)
         {
             Annonce annonce = await GetByIdAsync(annonceId);
             if (annonce.IdEtatAnnonce == 4)
@@ -225,6 +225,27 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             {
                 return false;
             }
+        }
+
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce annonce)
+        {
+            int anneeReference = annonce.VoitureAnnonceNav.Annee;
+
+            int anneeMin = anneeReference - 4;
+            int anneeMax = anneeReference + 4;
+
+            IEnumerable<Annonce> listannonce = await dbSet
+                            .Include(a => a.VoitureAnnonceNav)
+                                .ThenInclude(v => v.Images)
+                            .Where(a => a.IdAnnonce != annonce.IdAnnonce
+                                && a.VoitureAnnonceNav.IdCategorie == annonce.VoitureAnnonceNav.IdCategorie
+                                && a.VoitureAnnonceNav.Annee >= anneeMin
+                                && a.VoitureAnnonceNav.Annee <= anneeMax)
+                .OrderBy(a => Math.Abs(a.VoitureAnnonceNav.Annee - anneeReference))
+                .Take(20)
+                .ToListAsync();
+
+            return listannonce;
         }
     }
 }

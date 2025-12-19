@@ -59,19 +59,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // ----- ENTITÉS -----
 
-            EtatSignalement etat = new EtatSignalement()
+            EtatSignalementPlainte etat = new EtatSignalementPlainte()
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "Ouvert"
             };
 
-            EtatSignalement etat2 = new EtatSignalement()
+            EtatSignalementPlainte etat2 = new EtatSignalementPlainte()
             {
                 IdEtatSignalement = 2,
                 LibelleEtatSignalement = "Traité"
             };
 
-            EtatSignalement etat3 = new EtatSignalement()
+            EtatSignalementPlainte etat3 = new EtatSignalementPlainte()
             {
                 IdEtatSignalement = 3,
                 LibelleEtatSignalement = "Rejeté"
@@ -111,9 +111,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdTypeCompte = 1
             };
 
-            await _context.EtatSignalements.AddAsync(etat);
-            await _context.EtatSignalements.AddAsync(etat2);
-            await _context.EtatSignalements.AddAsync(etat3);
+            await _context.EtatSignalementsPlaintes.AddAsync(etat);
+            await _context.EtatSignalementsPlaintes.AddAsync(etat2);
+            await _context.EtatSignalementsPlaintes.AddAsync(etat3);
             await _context.TypesSignalement.AddAsync(type);
             await _context.Comptes.AddAsync(compteSignalant);
             await _context.Comptes.AddAsync(compteSignale);

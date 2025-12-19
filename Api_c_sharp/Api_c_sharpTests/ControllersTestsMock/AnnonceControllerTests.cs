@@ -236,7 +236,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 LibelleTypeSignalement = "Contenu inapproprié"
             };
 
-            var etatSignalement = new EtatSignalement
+            var etatSignalement = new EtatSignalementPlainte
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "En cours"
@@ -310,7 +310,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 LibelleTypeSignalement = "Contenu inapproprié"
             };
 
-            var etatSignalement = new EtatSignalement
+            var etatSignalement = new EtatSignalementPlainte
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "En cours"
@@ -411,7 +411,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 LibelleTypeSignalement = "Contenu inapproprié"
             };
 
-            var etatSignalement = new EtatSignalement
+            var etatSignalement = new EtatSignalementPlainte
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "En cours"
@@ -500,7 +500,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 LibelleTypeSignalement = "Contenu inapproprié"
             };
 
-            var etatSignalement = new EtatSignalement
+            var etatSignalement = new EtatSignalementPlainte
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "En cours"
@@ -1316,6 +1316,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsFalse(result.Value);
         }
 
+
         [TestMethod]
         public async Task EstMasqueTrueTests()
         {
@@ -1334,8 +1335,9 @@ namespace Api_c_sharp.ControllersMock.Tests
                 DatePublication = DateTime.Now
             };
 
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
-                       .ReturnsAsync(annonceMasquee);
+            // Mock de la méthode EstMasque qui retourne directement true
+            _mockManager.Setup(m => m.EstMasque(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(true);
 
             // Act
             var result = await _controller.EstMasque(_objetcommun.IdAnnonce);
@@ -1344,6 +1346,60 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value);
+        }
+
+        [TestMethod]
+        public async Task GetAnnonceSimilaireTests()
+        {
+            // Arrange
+            var annonceSimilaire = new Annonce
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test similaire",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description de l'annonce similaire",
+                IdMiseEnAvant = 1,
+                IdVoiture = 2,
+                DatePublication = DateTime.Now
+            };
+
+            var annoncesList = new List<Annonce> { annonceSimilaire };
+
+            // Le controller appelle d'abord GetByIdAsync pour récupérer l'annonce
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(_objetcommun);
+
+            // Puis il appelle GetAnnoncesSimilaires avec l'entité complète
+            _mockManager.Setup(m => m.GetAnnoncesSimilaires(_objetcommun))
+                       .ReturnsAsync(annoncesList);
+
+            // Act
+            var result = await _controller.GetSimilaires(_objetcommun.IdAnnonce);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == annonceSimilaire.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAnnonceSimilaireTests()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(0))
+                       .ReturnsAsync((Annonce)null);
+
+            // Act
+            var result = await _controller.GetSimilaires(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

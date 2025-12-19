@@ -20,8 +20,20 @@ public class MessageController(
     IJournalService _journalService, 
     IHubContext<MessageHub> _hubContext = null) : ControllerBase
 {
+    /// <summary>
+    /// Récupère un message à partir de son identifiant.
+    /// </summary>
+    /// <param name="id">Identifiant unique du message.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Le message correspondant s'il existe (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun message ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(MessageDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MessageDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -32,8 +44,17 @@ public class MessageController(
         return _messagemapper.Map<MessageDTO>(result);
     }
 
+    /// <summary>
+    /// Récupère tous les messages.
+    /// </summary>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Une liste de <see cref="MessageDTO"/> (200 OK).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<MessageDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<MessageDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -41,10 +62,19 @@ public class MessageController(
     }
 
     /// <summary>
-    /// Crée un nouveau message et notifie TOUS les participants via SignalR
+    /// Crée un nouveau message et notifie tous les participants de la conversation via SignalR.
     /// </summary>
+    /// <param name="dto">Données nécessaires à la création du message.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="CreatedAtActionResult"/>Le message créé avec succès (201).</description></item>
+    /// <item><description><see cref="BadRequestObjectResult"/> si les données sont invalides (400).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(MessageCreateDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<MessageCreateDTO>> Post([FromBody] MessageCreateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -70,8 +100,24 @@ public class MessageController(
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdMessage }, entity);
     }
 
+
+    /// <summary>
+    /// Met à jour un message existant.
+    /// </summary>
+    /// <param name="id">Identifiant unique du message.</param>
+    /// <param name="dto">Nouvelles données du message.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+    /// <item><description><see cref="BadRequestResult"/> si les données sont invalides (400).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun message ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] MessageUpdateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -88,8 +134,22 @@ public class MessageController(
         return NoContent();
     }
 
+
+
+    /// <summary>
+    /// Supprime un message.
+    /// </summary>
+    /// <param name="id">Identifiant unique du message.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun message ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _manager.GetByIdAsync(id);
@@ -102,11 +162,21 @@ public class MessageController(
     }
 
     /// <summary>
-    /// Récupère tous les messages d'une conversation et les marque automatiquement comme lus
-    /// via la fonction stockée en base de données
+    /// Récupère tous les messages d'une conversation et les marque automatiquement comme lus.
+    /// La mise à jour est effectuée via une fonction stockée en base de données et notifiée via SignalR.
     /// </summary>
+    /// <param name="idconversation">Identifiant unique de la conversation.</param>
+    /// <param name="iduser">Identifiant unique de l'utilisateur.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Une collection de messages marqués comme lus (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun message n'est trouvé (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetAllByConversationAndMarkAsRead")]
     [HttpGet("{idconversation}/{iduser}")]
+    [ProducesResponseType(typeof(IEnumerable<MessageDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<MessageDTO>>> GetByConversationAndMarkAsRead(int idconversation, int iduser)
     {
         // Api_c_sharpel de la méthode qui marque les messages comme lus via la fonction BD
@@ -125,10 +195,18 @@ public class MessageController(
     }
 
     /// <summary>
-    /// Récupère le nombre de messages non lus pour une conversation via fonction stockée
+    /// Récupère le nombre de messages non lus d'une conversation pour un utilisateur.
     /// </summary>
+    /// <param name="conversationId">Identifiant unique de la conversation.</param>
+    /// <param name="userId">Identifiant unique de l'utilisateur.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Le nombre de messages non lus (200).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetUnreadCount")]
     [HttpGet("{conversationId}/{userId}")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
     public async Task<ActionResult<int>> GetUnreadCount(int conversationId, int userId)
     {
         var count = await _manager.GetUnreadMessageCount(conversationId, userId);

@@ -22,6 +22,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IService<VueDTO> _vueService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
+        public IEnumerable<AnnonceDTO> AnnonceSimilaires { get; private set; } 
         public List<int> ImageIds { get; private set; } = new();
         public int CurrentImageIndex { get; private set; } = 0;
         public bool IsLoading { get; private set; } = true;
@@ -68,6 +69,20 @@ namespace BlazorAutoPulse.ViewModel
         public ResultatPrediction? priceResult { get; set; }
         public ResultatAjustement? adjustmentResult { get; set; }
         public List<string> missingFields { get; set; } = new();
+
+        public int CurrentSimilarIndex { get; private set; } = 0;
+        private const int AdsPerPage = 5; // 5 cartes visibles à la fois
+
+        // Nombre total de pages (positions) possibles
+        public int TotalSimilarPages =>
+            Math.Max(0, (AnnonceSimilaires?.Count() ?? 0) - AdsPerPage + 1);
+
+        // Vérifications pour la navigation
+        public bool CanGoPreviousSimilar => CurrentSimilarIndex > 0;
+        public bool CanGoNextSimilar => CurrentSimilarIndex < TotalSimilarPages - 1;
+
+        // Propriété calculée pour le style de transformation CSS
+        public int CurrentSimilarPage => CurrentSimilarIndex; // Pour les dots
 
         private Action? _refreshUI;
         private IJSRuntime? _jsRuntime;
@@ -125,6 +140,7 @@ namespace BlazorAutoPulse.ViewModel
                     modifAnnonceUrl = $"/modifier-annonce/{Annonce.IdAnnonce}";
                 }
 
+                AnnonceSimilaires = await _annonceService.GetAnnoncesSimilaires(idAnnonce);
                 
 
                 couleurDisponible = await _couleurService.GetCouleursByVoitureId(Annonce.IdVoiture);
@@ -405,7 +421,7 @@ namespace BlazorAutoPulse.ViewModel
                 Prix = Annonce.Prix,
                 Description = Annonce.Libelle
             };
-            _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
+            await _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, annonceChange);
             IsOptionsMenuOpen = false;
 
             await EstMasquerAnnonce();
@@ -761,6 +777,75 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
+        public IEnumerable<AnnonceDTO> GetVisibleSimilarAds()
+        {
+            return AnnonceSimilaires ?? Enumerable.Empty<AnnonceDTO>();
+        }
+
+        /// <summary>
+        /// Calcule le décalage CSS pour le défilement
+        /// Chaque carte fait environ 20% de largeur (100% / 5)
+        /// </summary>
+        public string GetCarouselTransform()
+        {
+            // Chaque déplacement est de 20% (1/5) + le gap proportionnel
+            // Pour simplifier, on utilise calc dans le CSS
+            var percentage = CurrentSimilarIndex * 20; // 20% par carte (100/5)
+            return $"translateX(-{percentage}%)";
+        }
+
+        /// <summary>
+        /// Défile d'une carte vers la gauche
+        /// </summary>
+        public void PreviousSimilar()
+        {
+            if (CanGoPreviousSimilar)
+            {
+                CurrentSimilarIndex--;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Défile d'une carte vers la droite
+        /// </summary>
+        public void NextSimilar()
+        {
+            if (CanGoNextSimilar)
+            {
+                CurrentSimilarIndex++;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Va directement à une position spécifique
+        /// </summary>
+        public void GoToSimilarPage(int pageIndex)
+        {
+            if (pageIndex >= 0 && pageIndex < TotalSimilarPages)
+            {
+                CurrentSimilarIndex = pageIndex;
+                _refreshUI?.Invoke();
+            }
+        }
+        public void NavigateToSimilarAd(int idAnnonce)
+        {
+            _nav?.NavigateTo($"/annonce/{idAnnonce}");
+        }
+        public string GetSimilarAdImage(int idVoiture)
+        {
+            try
+            {
+                return _imageService.GetFirstImage(idVoiture);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur chargement image similaire voiture {idVoiture}: {ex.Message}");
+                return "https://via.placeholder.com/300x200?text=Pas+d%27image";
+            }
+        }
+
         public void Reset()
         {
             CurrentImageIndex = 0;
@@ -770,6 +855,9 @@ namespace BlazorAutoPulse.ViewModel
             isLoading3D = false;
             IsOptionsMenuOpen = false;
             infoOptionAnnonce = null;
+
+            CurrentSimilarIndex = 0;
+            AnnonceSimilaires = Enumerable.Empty<AnnonceDTO>();
         }
     }
 }

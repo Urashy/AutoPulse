@@ -62,27 +62,54 @@ namespace BlazorAutoPulse.ViewModel.Administration
             IsLoading = true;
             _refreshUI?.Invoke();
 
-            // Création du DTO de recherche à partir des propriétés du ViewModel
-            var rechercheDto = new RechercheJournalDTO
+            try
             {
-                IdType = SelectedTypeId ?? 0,
-                DebutIntervalle = DateDebut,
-                FinIntervalle = DateFin,
-                Order = SortOrder
-            };
+                // Création du DTO de recherche
+                var rechercheDto = new RechercheJournalDTO
+                {
+                    IdType = SelectedTypeId ?? 0,
+                    DebutIntervalle = DateDebut,
 
-            var result = await _journalService.GetFilteredAsync(rechercheDto);
+                    // CORRECTIF DATE : On ajoute 1 jour à la date de fin. 
+                    // L'API reçoit minuit (00:00:00). Sans cela, tous les journaux 
+                    // créés durant la journée de fin sont exclus par le " <= ".
+                    FinIntervalle = DateFin?.AddDays(1),
 
-            var allFiltered = result.ToList();
-            TotalFilteredItems = allFiltered.Count;
+                    Order = SortOrder
+                };
 
-            PagedJournaux = allFiltered
-                .Skip((CurrentPage - 1) * ItemsPerPage)
-                .Take(ItemsPerPage)
-                .ToList();
+                // Appel au service (qui peut lever une exception si 404)
+                var result = await _journalService.GetFilteredAsync(rechercheDto);
 
-            IsLoading = false;
-            _refreshUI?.Invoke();
+                var allFiltered = result.ToList();
+                TotalFilteredItems = allFiltered.Count;
+
+                PagedJournaux = allFiltered
+                    .Skip((CurrentPage - 1) * ItemsPerPage)
+                    .Take(ItemsPerPage)
+                    .ToList();
+            }
+            catch (HttpRequestException ex) when (ex.Message.Contains("404"))
+            {
+                // CORRECTIF 404 : Si l'API renvoie 404 (aucun résultat),
+                // on réinitialise simplement la liste au lieu de faire planter Blazor.
+                PagedJournaux = new List<JournalDTO>();
+                TotalFilteredItems = 0;
+                Console.WriteLine("Info: Aucun journal trouvé pour ces critères (404).");
+            }
+            catch (Exception ex)
+            {
+                // Gestion des autres types d'erreurs (réseau, serveur 500, etc.)
+                Console.WriteLine($"Erreur lors du chargement: {ex.Message}");
+                PagedJournaux = new List<JournalDTO>();
+                TotalFilteredItems = 0;
+            }
+            finally
+            {
+                // Garanti que le chargement s'arrête, même en cas d'erreur
+                IsLoading = false;
+                _refreshUI?.Invoke();
+            }
         }
 
         public async Task OnFilterChanged()

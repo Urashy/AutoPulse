@@ -30,6 +30,8 @@ public class MoyenPaiementController(MoyenPaiementManager _manager, IMapper _map
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(MoyenPaiementDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MoyenPaiementDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class MoyenPaiementController(MoyenPaiementManager _manager, IMapper _map
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<MoyenPaiementDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<MoyenPaiementDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

@@ -28,7 +28,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Couleur> Couleurs { get; set; }
         public DbSet<EtatAnnonce> EtatAnnonces { get; set; }
         public DbSet<EtatCompte> EtatComptes { get; set; }
-        public DbSet<EtatSignalement> EtatSignalements { get; set; }
+        public DbSet<EtatSignalementPlainte> EtatSignalementsPlaintes { get; set; }
         public DbSet<Facture> Factures { get; set; }
         public DbSet<Favori> Favoris { get; set; }
         public DbSet<Image> Images { get; set; }
@@ -233,7 +233,7 @@ namespace Api_c_sharp.Models.Repository
                 .HasKey(e => e.IdEtatCompte);
 
             //-----------------------------EtatSignalement-----------------------------
-            modelBuilder.Entity<EtatSignalement>()
+            modelBuilder.Entity<EtatSignalementPlainte>()
                 .HasKey(e => e.IdEtatSignalement);
 
             //-----------------------------Facture-----------------------------
@@ -387,6 +387,11 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(p => p.ComptePlainteNav)
                 .WithMany(c => c.Plaintes)
                 .HasForeignKey(p => p.IdCompte);
+
+            modelBuilder.Entity<Plainte>()
+                .HasOne(p => p.EtatSignalementPlaintePlainteNav)
+                .WithMany(t => t.Plaintes)
+                .HasForeignKey(p => p.IdEtat);
 
             //-----------------------------ReinitialisationMotDePasse-----------------------------
             modelBuilder.Entity<ReinitialisationMotDePasse>()

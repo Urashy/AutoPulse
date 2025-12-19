@@ -23,7 +23,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         private Mock<EtatSignalementManager> _mockManager;
         private EtatSignalementController _controller;
         private IMapper _mapper;
-        private EtatSignalement _objetcommun;
+        private EtatSignalementPlainte _objetcommun;
 
         [TestInitialize]
         public void Initialize()
@@ -33,7 +33,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager = new Mock<EtatSignalementManager>(null);
 
             // Création de l'adresse de référence
-            _objetcommun = new EtatSignalement
+            _objetcommun = new EtatSignalementPlainte
             {
                 IdEtatSignalement = 1,
                 LibelleEtatSignalement = "Regardé"
@@ -71,7 +71,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(0))
-                       .ReturnsAsync((EtatSignalement)null);
+                       .ReturnsAsync((EtatSignalementPlainte)null);
 
             // Act
             var result = await _controller.GetById(0);
@@ -85,10 +85,10 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task GetAllTest()
         {
             // Arrange
-            var EtatSignalementList = new List<EtatSignalement>
+            var EtatSignalementList = new List<EtatSignalementPlainte>
             {
                 _objetcommun,
-                new EtatSignalement
+                new EtatSignalementPlainte
                 {
                     IdEtatSignalement = 2,
                     LibelleEtatSignalement ="En attente"

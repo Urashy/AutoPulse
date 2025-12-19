@@ -18,17 +18,19 @@ namespace Api_c_sharp.Controllers
     public class APourCouleurController(APourCouleurManager _manager, IMapper _adresseMapper) : ControllerBase
     {
         /// <summary>
-        /// Crée une nouvelle adresse.
+        /// Crée une nouvelle liaison.
         /// </summary>
-        /// <param name="dto">Objet <see cref="APourCouleurDTO"/> contenant les informations de l'adresse à créer.</param>
+        /// <param name="dto">Objet <see cref="APourCouleurDTO"/> contenant les informations de la liaison à créer.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
+        /// <item><description><see cref="CreatedAtActionResult"/> avec la liaison créée (201).</description></item>
         /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(APourCouleurDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APourCouleurDTO>> Post([FromBody] APourCouleurDTO dto)
         {
             if (!ModelState.IsValid)
@@ -41,19 +43,22 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Met à jour une Adresse existante.
+        /// Met à jour une liaison existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à mettre à jour.</param>
+        /// <param name="id">Identifiant unique de la liaison à mettre à jour.</param>
         /// <param name="dto">Objet <see cref="APourCouleurDTO"/> contenant les nouvelles valeurs.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
         /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune liaison ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{idvoiture}/{idcouleur}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int idvoiture,int idcouleur, [FromBody] APourCouleurDTO dto)
         {
             if (!ModelState.IsValid)
@@ -70,17 +75,19 @@ namespace Api_c_sharp.Controllers
             return NoContent();
         }
         /// <summary>
-        /// Supprime une adresse existante.
+        /// Supprime une liaison existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à supprimer.</param>
+        /// <param name="id">Identifiant unique de la liaison à supprimer.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune liaison ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{idvoiture}/{idcouleur}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int idvoiture,int idcouleur)
         {
             var entity = await _manager.GetAPourCouleursByIDS(idvoiture, idcouleur);
@@ -92,13 +99,14 @@ namespace Api_c_sharp.Controllers
             return NoContent();
         }
         /// <summary>
-        /// Récupère la liste de toutes les adresses.
+        /// Récupère la liste de toutes les liaisons.
         /// </summary>
         /// <returns>
         /// Une liste de <see cref="APourCouleurDTO"/> (200 OK).
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<APourCouleurDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<APourCouleurDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -106,17 +114,19 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Récupère une adresse à partir de son identifiant.
+        /// Récupère une liaison à partir de son identifiant.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse recherchée.</param>
+        /// <param name="id">Identifiant unique de la liaison recherchée.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="APourCouleur"/> si l'adresse existe (200 OK).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="APourCouleur"/> si la liaison existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune liaison ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("GetByIds")]
         [HttpGet("{idvoiture}/{idcouleur}")]
+        [ProducesResponseType(typeof(APourCouleurDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APourCouleurDTO>> GetByIDs(int idvoiture, int idcouleur)
         {
             var result = await _manager.GetAPourCouleursByIDS(idvoiture,idcouleur);

@@ -30,6 +30,8 @@ public class MarqueController(MarqueManager _manager, IMapper _marqueMapper) : C
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(MarqueDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MarqueDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class MarqueController(MarqueManager _manager, IMapper _marqueMapper) : C
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<MarqueDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<MarqueDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

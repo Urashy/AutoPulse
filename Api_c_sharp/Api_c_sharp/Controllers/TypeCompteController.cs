@@ -29,6 +29,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(TypeCompteDTO), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<TypeCompteDTO>> GetById(int id)
         {
             TypeCompte result = await _manager.GetByIdAsync(id);
@@ -46,6 +48,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [HttpGet]
         [ActionName("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<TypeCompteDTO>), 200)]
         public async Task<ActionResult<IEnumerable<TypeCompteDTO>>> GetAll()
         {
             IEnumerable<TypeCompte> list = await _manager.GetAllAsync();
@@ -61,6 +64,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [HttpGet]
         [ActionName("GetTypeComptesPourChercher")]
+        [ProducesResponseType(typeof(IEnumerable<TypeCompteDTO>), 200)]
         public async Task<ActionResult<IEnumerable<TypeCompteDTO>>> GetTypeComptesPourChercher()
         {
             IEnumerable<TypeCompte> list = await _manager.GetTypeComptesPourChercher();
@@ -74,9 +78,12 @@ namespace Api_c_sharp.Controllers
         /// <param name="idCompte">Identifiant unique du compte.</param>
         /// <returns>
         /// <item><description>L'ID du type de compte si le compte existe (200 OK).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucun type de compte ne correspond (404).</description></item>
         /// </returns>
         [HttpGet("{idCompte}")]
+        [ActionName("GetTypeCompteByCompteId")]
+        [ProducesResponseType(typeof(TypeCompteDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TypeCompteDTO>> GetTypeCompteByCompteId(int idCompte)
         {
             TypeCompte compte = await _manager.GetTypeCompteByCompteId(idCompte);

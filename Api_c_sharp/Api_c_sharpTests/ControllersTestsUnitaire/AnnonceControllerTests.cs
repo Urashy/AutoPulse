@@ -25,248 +25,248 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
     [TestClass()]
     public class AnnonceControllerTests
     {
-            private AnnonceController _controller;
-            private AutoPulseBdContext _context;
-            private AnnonceManager _manager;
-            private IMapper _mapper;
-            private Annonce _objetcommun;
-            private IJournalService _journalService;
-            private INotificationService _notificationService;
+        private AnnonceController _controller;
+        private AutoPulseBdContext _context;
+        private AnnonceManager _manager;
+        private IMapper _mapper;
+        private Annonce _objetcommun;
+        private IJournalService _journalService;
+        private INotificationService _notificationService;
 
-            // Objets communs pour les tests de suppression
-            private Signalement _signalement;
-            private Conversation _conversation;
-            private APourConversation _aPourConversation;
-            private Message _message1;
-            private Message _message2;
-            private Commande _commande;
-            private TypeSignalement _typeSignalement;
-            private EtatSignalement _etatSignalement;
+        // Objets communs pour les tests de suppression
+        private Signalement _signalement;
+        private Conversation _conversation;
+        private APourConversation _aPourConversation;
+        private Message _message1;
+        private Message _message2;
+        private Commande _commande;
+        private TypeSignalement _typeSignalement;
+        private EtatSignalementPlainte _etatSignalement;
 
-            [TestInitialize]
-            public async Task Initialize()
+        [TestInitialize]
+        public async Task Initialize()
+        {
+            var options = new DbContextOptionsBuilder<AutoPulseBdContext>()
+                .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+                .Options;
+
+            _context = new AutoPulseBdContext(options);
+
+            var config = new MapperConfiguration(cfg =>
             {
-                var options = new DbContextOptionsBuilder<AutoPulseBdContext>()
-                    .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
-                    .Options;
+                cfg.AddProfile<MapperProfile>();
+            });
+            _mapper = config.CreateMapper();
 
-                _context = new AutoPulseBdContext(options);
+            _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
+            _notificationService = new NotificationManager(_context);
+            _manager = new AnnonceManager(_context);
+            _controller = new AnnonceController(_manager, _mapper, _journalService, _notificationService);
 
-                var config = new MapperConfiguration(cfg =>
-                {
-                    cfg.AddProfile<MapperProfile>();
-                });
-                _mapper = config.CreateMapper();
+            _context.Annonces.RemoveRange(_context.Annonces);
+            await _context.SaveChangesAsync();
 
-                _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
-                _notificationService = new NotificationManager(_context);
-                _manager = new AnnonceManager(_context);
-                _controller = new AnnonceController(_manager, _mapper, _journalService, _notificationService);
+            _context.Marques.Add(new Marque { IdMarque = 1, LibelleMarque = "TestMarque" });
+            _context.Motricites.Add(new Motricite { IdMotricite = 1, LibelleMotricite = "4x4" });
+            _context.Carburants.Add(new Carburant { IdCarburant = 1, LibelleCarburant = "Essence" });
+            _context.BoitesDeVitesses.Add(new BoiteDeVitesse { IdBoiteDeVitesse = 1, LibelleBoite = "Manuelle" });
+            _context.Categories.Add(new Categorie { IdCategorie = 1, LibelleCategorie = "SUV" });
+            _context.Modeles.Add(new Modele { IdModele = 1, LibelleModele = "Modele Test" });
 
-                _context.Annonces.RemoveRange(_context.Annonces);
-                await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-                _context.Marques.Add(new Marque { IdMarque = 1, LibelleMarque = "TestMarque" });
-                _context.Motricites.Add(new Motricite { IdMotricite = 1, LibelleMotricite = "4x4" });
-                _context.Carburants.Add(new Carburant { IdCarburant = 1, LibelleCarburant = "Essence" });
-                _context.BoitesDeVitesses.Add(new BoiteDeVitesse { IdBoiteDeVitesse = 1, LibelleBoite = "Manuelle" });
-                _context.Categories.Add(new Categorie { IdCategorie = 1, LibelleCategorie = "SUV" });
-                _context.Modeles.Add(new Modele { IdModele = 1, LibelleModele = "Modele Test" });
+            TypeCompte typeCompte = new TypeCompte()
+            {
+                IdTypeCompte = 1,
+                Libelle = "Particulier"
+            };
 
-                await _context.SaveChangesAsync();
+            _context.TypesJournal.AddRange(
+                new TypeJournal { IdTypeJournaux = 1, LibelleTypeJournaux = "Connexion" },
+                new TypeJournal { IdTypeJournaux = 2, LibelleTypeJournaux = "Déconnexion" },
+                new TypeJournal { IdTypeJournaux = 3, LibelleTypeJournaux = "Création de compte" },
+                new TypeJournal { IdTypeJournaux = 4, LibelleTypeJournaux = "Modification de profil" },
+                new TypeJournal { IdTypeJournaux = 5, LibelleTypeJournaux = "Publication d'annonce" },
+                new TypeJournal { IdTypeJournaux = 6, LibelleTypeJournaux = "Modification d'annonce" },
+                new TypeJournal { IdTypeJournaux = 7, LibelleTypeJournaux = "Suppression d'annonce" },
+                new TypeJournal { IdTypeJournaux = 8, LibelleTypeJournaux = "Achat" },
+                new TypeJournal { IdTypeJournaux = 9, LibelleTypeJournaux = "Signalement" },
+                new TypeJournal { IdTypeJournaux = 10, LibelleTypeJournaux = "Dépôt avis" },
+                new TypeJournal { IdTypeJournaux = 11, LibelleTypeJournaux = "Mise en favoris" },
+                new TypeJournal { IdTypeJournaux = 12, LibelleTypeJournaux = "Envoyer un message/offre" },
+                new TypeJournal { IdTypeJournaux = 13, LibelleTypeJournaux = "Génération de facture" },
+                new TypeJournal { IdTypeJournaux = 14, LibelleTypeJournaux = "Utilisateur bloque un autre utilisateur" }
+            );
 
-                TypeCompte typeCompte = new TypeCompte()
-                {
-                    IdTypeCompte = 1,
-                    Libelle = "Particulier"
-                };
+            Compte compte = new Compte()
+            {
+                IdCompte = 1,
+                IdTypeCompte = typeCompte.IdTypeCompte,
+                Email = "test@gmail.com",
+                Pseudo = "TestUser",
+                MotDePasse = "Password123",
+                Nom = "Doe",
+                Prenom = "John",
+                DateDerniereConnexion = DateTime.Now,
+                DateNaissance = new DateTime(1990, 1, 1),
+                DateCreation = DateTime.Now
+            };
 
-                _context.TypesJournal.AddRange(
-                    new TypeJournal { IdTypeJournaux = 1, LibelleTypeJournaux = "Connexion" },
-                    new TypeJournal { IdTypeJournaux = 2, LibelleTypeJournaux = "Déconnexion" },
-                    new TypeJournal { IdTypeJournaux = 3, LibelleTypeJournaux = "Création de compte" },
-                    new TypeJournal { IdTypeJournaux = 4, LibelleTypeJournaux = "Modification de profil" },
-                    new TypeJournal { IdTypeJournaux = 5, LibelleTypeJournaux = "Publication d'annonce" },
-                    new TypeJournal { IdTypeJournaux = 6, LibelleTypeJournaux = "Modification d'annonce" },
-                    new TypeJournal { IdTypeJournaux = 7, LibelleTypeJournaux = "Suppression d'annonce" },
-                    new TypeJournal { IdTypeJournaux = 8, LibelleTypeJournaux = "Achat" },
-                    new TypeJournal { IdTypeJournaux = 9, LibelleTypeJournaux = "Signalement" },
-                    new TypeJournal { IdTypeJournaux = 10, LibelleTypeJournaux = "Dépôt avis" },
-                    new TypeJournal { IdTypeJournaux = 11, LibelleTypeJournaux = "Mise en favoris" },
-                    new TypeJournal { IdTypeJournaux = 12, LibelleTypeJournaux = "Envoyer un message/offre" },
-                    new TypeJournal { IdTypeJournaux = 13, LibelleTypeJournaux = "Génération de facture" },
-                    new TypeJournal { IdTypeJournaux = 14, LibelleTypeJournaux = "Utilisateur bloque un autre utilisateur" }
-                );
+            Voiture voiture = new Voiture()
+            {
+                IdVoiture = 1,
+                IdMarque = 1,
+                IdMotricite = 1,
+                IdCarburant = 1,
+                IdBoiteDeVitesse = 1,
+                IdCategorie = 1,
+                Kilometrage = 10000,
+                Annee = 2020,
+                Puissance = 150,
+                MiseEnCirculation = DateTime.Now,
+                IdModele = 1,
+                NbPlace = 5,
+                NbPorte = 5
+            };
 
-                Compte compte = new Compte()
-                {
-                    IdCompte = 1,
-                    IdTypeCompte = typeCompte.IdTypeCompte,
-                    Email = "test@gmail.com",
-                    Pseudo = "TestUser",
-                    MotDePasse = "Password123",
-                    Nom = "Doe",
-                    Prenom = "John",
-                    DateDerniereConnexion = DateTime.Now,
-                    DateNaissance = new DateTime(1990, 1, 1),
-                    DateCreation = DateTime.Now
-                };
+            EtatAnnonce etatAnnonce = new EtatAnnonce()
+            {
+                IdEtatAnnonce = 1,
+                LibelleEtatAnnonce = "Disponible"
+            };
 
-                Voiture voiture = new Voiture()
-                {
-                    IdVoiture = 1,
-                    IdMarque = 1,
-                    IdMotricite = 1,
-                    IdCarburant = 1,
-                    IdBoiteDeVitesse = 1,
-                    IdCategorie = 1,
-                    Kilometrage = 10000,
-                    Annee = 2020,
-                    Puissance = 150,
-                    MiseEnCirculation = DateTime.Now,
-                    IdModele = 1,
-                    NbPlace = 5,
-                    NbPorte = 5
-                };
+            EtatAnnonce etatAnnonceMasque = new EtatAnnonce()
+            {
+                IdEtatAnnonce = 4,
+                LibelleEtatAnnonce = "Masque"
+            };
 
-                EtatAnnonce etatAnnonce = new EtatAnnonce()
-                {
-                    IdEtatAnnonce = 1,
-                    LibelleEtatAnnonce = "Disponible"
-                };
+            Pays pays = new Pays()
+            {
+                IdPays = 1,
+                Libelle = "Testland"
+            };
 
-                EtatAnnonce etatAnnonceMasque = new EtatAnnonce()
-                {
-                    IdEtatAnnonce = 4,
-                    LibelleEtatAnnonce = "Masque"
-                };
+            Adresse adresse = new Adresse()
+            {
+                IdAdresse = 1,
+                Nom = "Domicile",
+                Rue = "123 Rue de Test",
+                LibelleVille = "Testville",
+                CodePostal = "12345",
+                IdPays = pays.IdPays
+            };
 
-                Pays pays = new Pays()
-                {
-                    IdPays = 1,
-                    Libelle = "Testland"
-                };
+            MiseEnAvant miseEnAvant = new MiseEnAvant()
+            {
+                IdMiseEnAvant = 1,
+                LibelleMiseEnAvant = "Standard",
+                PrixSemaine = 9,
+            };
 
-                Adresse adresse = new Adresse()
-                {
-                    IdAdresse = 1,
-                    Nom = "Domicile",
-                    Rue = "123 Rue de Test",
-                    LibelleVille = "Testville",
-                    CodePostal = "12345",
-                    IdPays = pays.IdPays
-                };
+            Annonce annonce = new Annonce()
+            {
+                IdAnnonce = 1,
+                Libelle = "Annonce Test",
+                IdCompte = compte.IdCompte,
+                IdEtatAnnonce = etatAnnonce.IdEtatAnnonce,
+                IdAdresse = adresse.IdAdresse,
+                Prix = 20000,
+                Description = "Description de l'annonce",
+                IdMiseEnAvant = miseEnAvant.IdMiseEnAvant,
+                IdVoiture = voiture.IdVoiture,
+                DatePublication = DateTime.Now
+            };
 
-                MiseEnAvant miseEnAvant = new MiseEnAvant()
-                {
-                    IdMiseEnAvant = 1,
-                    LibelleMiseEnAvant = "Standard",
-                    PrixSemaine = 9,
-                };
+            Favori favori = new Favori()
+            {
+                IdAnnonce = annonce.IdAnnonce,
+                IdCompte = compte.IdCompte
+            };
 
-                Annonce annonce = new Annonce()
-                {
-                    IdAnnonce = 1,
-                    Libelle = "Annonce Test",
-                    IdCompte = compte.IdCompte,
-                    IdEtatAnnonce = etatAnnonce.IdEtatAnnonce,
-                    IdAdresse = adresse.IdAdresse,
-                    Prix = 20000,
-                    Description = "Description de l'annonce",
-                    IdMiseEnAvant = miseEnAvant.IdMiseEnAvant,
-                    IdVoiture = voiture.IdVoiture,
-                    DatePublication = DateTime.Now
-                };
+            // Initialisation des objets pour les tests de suppression
+            _typeSignalement = new TypeSignalement()
+            {
+                IdTypeSignalement = 1,
+                LibelleTypeSignalement = "Contenu inapproprié"
+            };
 
-                Favori favori = new Favori()
-                {
-                    IdAnnonce = annonce.IdAnnonce,
-                    IdCompte = compte.IdCompte
-                };
+            _etatSignalement = new EtatSignalementPlainte()
+            {
+                IdEtatSignalement = 1,
+                LibelleEtatSignalement = "En cours"
+            };
 
-                // Initialisation des objets pour les tests de suppression
-                _typeSignalement = new TypeSignalement()
-                {
-                    IdTypeSignalement = 1,
-                    LibelleTypeSignalement = "Contenu inapproprié"
-                };
+            _signalement = new Signalement()
+            {
+                IdSignalement = 1,
+                IdAnnonceSignale = annonce.IdAnnonce,
+                IdTypeSignalement = _typeSignalement.IdTypeSignalement,
+                IdEtatSignalement = _etatSignalement.IdEtatSignalement,
+                DescriptionSignalement = "Cette annonce contient du contenu inapproprié",
+                IdCompteSignalant = 1
+            };
 
-                _etatSignalement = new EtatSignalement()
-                {
-                    IdEtatSignalement = 1,
-                    LibelleEtatSignalement = "En cours"
-                };
+            _conversation = new Conversation()
+            {
+                IdConversation = 1,
+                IdAnnonce = annonce.IdAnnonce,
+                DateDernierMessage = DateTime.Now
+            };
 
-                _signalement = new Signalement()
-                {
-                    IdSignalement = 1,
-                    IdAnnonceSignale = annonce.IdAnnonce,
-                    IdTypeSignalement = _typeSignalement.IdTypeSignalement,
-                    IdEtatSignalement = _etatSignalement.IdEtatSignalement,
-                    DescriptionSignalement = "Cette annonce contient du contenu inapproprié",
-                    IdCompteSignalant = 1
-                };
+            _aPourConversation = new APourConversation()
+            {
+                IdConversation = _conversation.IdConversation,
+                IdCompte = 1
+            };
 
-                _conversation = new Conversation()
-                {
-                    IdConversation = 1,
-                    IdAnnonce = annonce.IdAnnonce,
-                    DateDernierMessage = DateTime.Now
-                };
+            _message1 = new Message()
+            {
+                IdMessage = 1,
+                IdConversation = _conversation.IdConversation,
+                IdCompte = 1,
+                ContenuMessage = "Bonjour, est-ce que le véhicule est toujours disponible?",
+                DateEnvoiMessage = DateTime.Now
+            };
 
-                _aPourConversation = new APourConversation()
-                {
-                    IdConversation = _conversation.IdConversation,
-                    IdCompte = 1
-                };
+            _message2 = new Message()
+            {
+                IdMessage = 2,
+                IdConversation = _conversation.IdConversation,
+                IdCompte = 1,
+                ContenuMessage = "Oui, il est disponible",
+                DateEnvoiMessage = DateTime.Now
+            };
 
-                _message1 = new Message()
-                {
-                    IdMessage = 1,
-                    IdConversation = _conversation.IdConversation,
-                    IdCompte = 1,
-                    ContenuMessage = "Bonjour, est-ce que le véhicule est toujours disponible?",
-                    DateEnvoiMessage = DateTime.Now
-                };
+            _commande = new Commande()
+            {
+                IdCommande = 1,
+                IdAnnonce = annonce.IdAnnonce,
+                IdAcheteur = 2,
+            };
 
-                _message2 = new Message()
-                {
-                    IdMessage = 2,
-                    IdConversation = _conversation.IdConversation,
-                    IdCompte = 1,
-                    ContenuMessage = "Oui, il est disponible",
-                    DateEnvoiMessage = DateTime.Now
-                };
+            await _context.MisesEnAvant.AddAsync(miseEnAvant);
+            await _context.Pays.AddAsync(pays);
+            await _context.Adresses.AddAsync(adresse);
+            await _context.EtatAnnonces.AddAsync(etatAnnonce);
+            await _context.EtatAnnonces.AddAsync(etatAnnonceMasque);
+            await _context.TypesCompte.AddAsync(typeCompte);
+            await _context.Comptes.AddAsync(compte);
+            await _context.Voitures.AddAsync(voiture);
+            await _context.Annonces.AddAsync(annonce);
+            await _context.Favoris.AddAsync(favori);
+            await _context.TypesSignalement.AddAsync(_typeSignalement);
+            await _context.EtatSignalementsPlaintes.AddAsync(_etatSignalement);
+            await _context.Signalements.AddAsync(_signalement);
+            await _context.Conversations.AddAsync(_conversation);
+            await _context.APourConversations.AddAsync(_aPourConversation);
+            await _context.Messages.AddRangeAsync(_message1, _message2);
 
-                _commande = new Commande()
-                {
-                    IdCommande = 1,
-                    IdAnnonce = annonce.IdAnnonce,
-                    IdAcheteur = 2,
-                };
+            await _context.SaveChangesAsync();
+            _objetcommun = annonce;
+        }
 
-                await _context.MisesEnAvant.AddAsync(miseEnAvant);
-                await _context.Pays.AddAsync(pays);
-                await _context.Adresses.AddAsync(adresse);
-                await _context.EtatAnnonces.AddAsync(etatAnnonce);
-                await _context.EtatAnnonces.AddAsync(etatAnnonceMasque);
-                await _context.TypesCompte.AddAsync(typeCompte);
-                await _context.Comptes.AddAsync(compte);
-                await _context.Voitures.AddAsync(voiture);
-                await _context.Annonces.AddAsync(annonce);
-                await _context.Favoris.AddAsync(favori);
-                await _context.TypesSignalement.AddAsync(_typeSignalement);
-                await _context.EtatSignalements.AddAsync(_etatSignalement);
-                await _context.Signalements.AddAsync(_signalement);
-                await _context.Conversations.AddAsync(_conversation);
-                await _context.APourConversations.AddAsync(_aPourConversation);
-                await _context.Messages.AddRangeAsync(_message1, _message2);
-
-                await _context.SaveChangesAsync();
-                _objetcommun = annonce;
-            }
-
-            [TestMethod]
+        [TestMethod]
         public async Task GetByIdTest()
         {
             // Act
@@ -1019,6 +1019,60 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value);
+        }
+
+        [TestMethod]
+        public async Task GetAnnonceSimilaireTests()
+        {
+            Voiture voiture = new Voiture()
+            {
+                IdVoiture = 2,
+                IdMarque = 1,
+                IdMotricite = 1,
+                IdCarburant = 1,
+                IdBoiteDeVitesse = 1,
+                IdCategorie = 1,
+                Kilometrage = 10000,
+                Annee = 2021,
+                Puissance = 150,
+                MiseEnCirculation = DateTime.Now,
+                IdModele = 1,
+                NbPlace = 5,
+                NbPorte = 5
+            };
+
+            Annonce annonce = new Annonce()
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test similaire",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description de l'annonce similaire",
+                IdMiseEnAvant = 1,
+                IdVoiture = 2,
+                DatePublication = DateTime.Now
+            };
+            await _context.Voitures.AddAsync(voiture);
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
+
+            var result = await _controller.GetSimilaires(_objetcommun.IdAnnonce);
+
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == annonce.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAnnonceSimilaireTests()
+        {
+            var result = await _controller.GetSimilaires(0);
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

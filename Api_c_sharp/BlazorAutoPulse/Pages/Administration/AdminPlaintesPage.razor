@@ -1,0 +1,114 @@
+@page "/admin/plaintes"
+@layout AdminLayout
+@using BlazorAutoPulse.ViewModel.Administration
+@using AutoPulse.Shared.DTO
+@inject AdminPlainteViewModel VM
+
+<PageTitle>Gestion des plaintes - Admin</PageTitle>
+
+<div class="admin-page">
+    @* --- EN-TÊTE --- *@
+    <div class="page-header">
+        <div class="header-left">
+            <h1>⚖️ Gestion des plaintes</h1>
+            @if (VM.Plaintes != null)
+            {
+                <p class="subtitle">@VM.Plaintes.Count() plainte(s) en attente de traitement</p>
+            }
+        </div>
+    </div>
+
+    @* --- LISTE DES PLAINTES --- *@
+    @if (VM.Plaintes == null)
+    {
+        <div class="loading-state">
+            <div class="loader"></div>
+            <p>Chargement des plaintes...</p>
+        </div>
+    }
+    else if (!VM.Plaintes.Any())
+    {
+        <div class="empty-state">
+            <p>🎉 Aucune plainte à traiter.</p>
+        </div>
+    }
+    else
+    {
+        <div class="plaintes-grid">
+            @foreach (var plainte in VM.Plaintes)
+            {
+                @* Au clic, on assigne directement la plainte au ViewModel *@
+                <div class="plainte-card @(plainte.IdEtat == 1 ? "border-warning" : plainte.IdEtat == 2 ? "border-success" : "border-danger")"
+                     @onclick="() => VM.SelectedPlainte = plainte">
+
+                    <div class="plainte-header">
+                        <span class="plainte-id">#@plainte.IdPlainte</span>
+                        <span class="plainte-date">@plainte.DateCreation.ToShortDateString()</span>
+                    </div>
+                    <div class="plainte-body">
+                        <p class="plainte-desc">
+                            "@(plainte.Description?.Length > 80 ? plainte.Description.Substring(0, 80) + "..." : plainte.Description)"
+                        </p>
+                    </div>
+                    <div class="plainte-footer">
+                        <span class="status-badge">
+                            @(plainte.IdEtat switch { 1 => "En attente", 2 => "Acceptée", 3 => "Refusée", _ => "Autre" })
+                        </span>
+                        <button class="btn-action">Examiner →</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @* --- MODAL DE DÉCISION --- *@
+    @if (VM.SelectedPlainte != null)
+    {
+        <div class="modal-backdrop" @onclick="() => VM.SelectedPlainte = null">
+            <div class="modal-content" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <h2>Traitement de la plainte #@VM.SelectedPlainte.IdPlainte</h2>
+                    <button class="btn-close" @onclick="() => VM.SelectedPlainte = null">✖</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="info-group">
+                        <label>Date :</label>
+                        <span>@VM.SelectedPlainte.DateCreation</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Description complète :</label>
+                        <p class="full-description">@VM.SelectedPlainte.Description</p>
+                    </div>
+                    <div class="alert-info">
+                        Lier au signalement #@VM.SelectedPlainte.IdSignalement
+                        (Compte #@VM.SelectedPlainte.IdCompte)
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    @* Bouton REFUSER *@
+                    <button class="btn-refuse"
+                            @onclick="@(async () => { await VM.RefuserPlainte(); VM.SelectedPlainte = null; await VM.InitializeAsync(StateHasChanged); })">
+                        🛑 Refuser la plainte
+                        <small>(Maintenir la suspension)</small>
+                    </button>
+
+                    @* Bouton ACCEPTER *@
+                    <button class="btn-accept"
+                            @onclick="@(async () => { await VM.AccepterPlainte(); VM.SelectedPlainte = null; await VM.InitializeAsync(StateHasChanged); })">
+                        ✅ Accepter la plainte
+                        <small>(Lever la suspension)</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+}

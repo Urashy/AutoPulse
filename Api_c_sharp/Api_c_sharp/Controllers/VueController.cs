@@ -20,15 +20,17 @@ namespace Api_c_sharp.Controllers
         /// <summary>
         /// Crée une nouvelle vue d'une annonce.
         /// </summary>
-        /// <param name="dto">Objet <see cref="VueDTO"/> contenant les informations de l'adresse à créer.</param>
+        /// <param name="dto">Objet <see cref="VueDTO"/> contenant les informations de la vue à créer.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
+        /// <item><description><see cref="CreatedAtActionResult"/> avec la vue créée (201).</description></item>
         /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(VueDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<VueDTO>> Post([FromBody] VueDTO dto)
         {
             if (!ModelState.IsValid)
@@ -55,11 +57,14 @@ namespace Api_c_sharp.Controllers
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
         /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune vue ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{idannonce}/{idCompte}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int idannonce, int idCompte, [FromBody] VueDTO dto)
         {
             if (!ModelState.IsValid)
@@ -76,17 +81,19 @@ namespace Api_c_sharp.Controllers
             return NoContent();
         }
         /// <summary>
-        /// Supprime une adresse existante.
+        /// Supprime une vue existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse à supprimer.</param>
+        /// <param name="id">Identifiant unique de la vue à supprimer.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune vue ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{idConversation}/{idCompte}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int idConversation, int idCompte)
         {
             var entity = await _manager.GetVueByIdsAsync(idCompte, idConversation);
@@ -98,13 +105,14 @@ namespace Api_c_sharp.Controllers
             return NoContent();
         }
         /// <summary>
-        /// Récupère la liste de toutes les adresses.
+        /// Récupère la liste de toutes les vues.
         /// </summary>
         /// <returns>
         /// Une liste de <see cref="APourConversationDTO"/> (200 OK).
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<VueDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<VueDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -113,15 +121,17 @@ namespace Api_c_sharp.Controllers
         /// <summary>
         /// Récupère une vue à partir de ses identifiant.
         /// </summary>
-        /// <param name="id">Identifiant unique de l'adresse recherchée.</param>
+        /// <param name="id">Identifiant unique de la vue recherchée.</param>
         /// <returns>
         /// <list type="bullet">
-        /// <item><description><see cref="VueDTO"/> si l'adresse existe (200 OK).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+        /// <item><description><see cref="VueDTO"/> si la vue existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune vue ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("GetByIds")]
         [HttpGet("{idannonce}/{idCompte}")]
+        [ProducesResponseType(typeof(VueDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<VueDTO>> GetByIDs(int idannonce, int idCompte)
         {
             var result = await _manager.GetVueByIdsAsync(idCompte, idannonce);

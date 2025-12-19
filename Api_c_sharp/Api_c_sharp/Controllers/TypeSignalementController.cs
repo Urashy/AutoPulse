@@ -27,6 +27,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(TypeSignalementDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TypeSignalementDTO>> GetById(int id)
         {
             var result = await _manager.GetByIdAsync(id);
@@ -44,6 +46,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [HttpGet]
         [ActionName("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<TypeSignalementDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<TypeSignalementDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();

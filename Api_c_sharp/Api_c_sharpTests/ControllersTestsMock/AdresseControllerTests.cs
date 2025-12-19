@@ -53,7 +53,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Injection dans le controller
             _controller = new AdresseController(_mockManager.Object, _mapper);
         }
-
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -120,7 +120,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task PostAdresseTest()
         {
@@ -179,7 +181,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Adresse>()), Times.Never);
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteAdresseTest()
         {
@@ -211,7 +215,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutAdresseTest()
         {
@@ -308,7 +314,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Adresse>(), It.IsAny<Adresse>()), Times.Never);
         }
+        #endregion
 
+        #region GetAdressesByCompteID
         [TestMethod]
         public async Task GetAdressesByCompteIDTest()
         {
@@ -358,5 +366,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
     }
 }

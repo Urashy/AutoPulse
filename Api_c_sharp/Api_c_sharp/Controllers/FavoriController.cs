@@ -29,6 +29,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<FavoriDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<FavoriDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -47,6 +48,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(FavoriDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<FavoriDTO>> Post([FromBody] FavoriDTO dto)
         {
             if (!ModelState.IsValid)
@@ -73,11 +76,14 @@ namespace Api_c_sharp.Controllers
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
         /// <item><description><see cref="BadRequestResult"/> si l'ID fourni ne correspond pas à celui du DTO (400).</description></item>
-        /// <item><description><see cref="NotFoundResult"/> si aucune commande ne correspond (404).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucun favori ne correspond (404).</description></item>
         /// </list>
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{idcompte}/{idannonce}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int idcompte, int idannonce, [FromBody] FavoriDTO dto)
         {
             if (!ModelState.IsValid)
@@ -107,6 +113,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
             var entity = await _manager.GetFavoriByIdsAsync(idCompte, idAnnonce);
@@ -129,6 +137,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("IsFavorite")]
         [HttpGet]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         public async Task<ActionResult<bool>> IsFavorite([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
             var result = await _manager.ExistsAsync(idCompte, idAnnonce);
@@ -136,15 +145,20 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Récupère un favori par ses identifiants.
+        /// Récupère un favori à partir de l'identifiant du compte et de l'identifiant de l'annonce.
         /// </summary>
         /// <param name="idCompte">Identifiant unique du compte.</param>
         /// <param name="idAnnonce">Identifiant unique de l'annonce.</param>
         /// <returns>
-        /// <see cref="FavoriDTO"/> si le favori existe (200 OK).
+        /// <list type="bullet">
+        /// <item><description><see cref="FavoriDTO"/> si le favori existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucun favori ne correspond (404).</description></item>
+        /// </list>
         /// </returns>
         [ActionName("GetByIDS")]
         [HttpGet]
+        [ProducesResponseType(typeof(FavoriDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<FavoriDTO>> GetByIDS([FromQuery] int idCompte, [FromQuery] int idAnnonce)
         {
             var result = await _manager.GetFavoriByIdsAsync(idCompte, idAnnonce);
@@ -156,10 +170,17 @@ namespace Api_c_sharp.Controllers
         }
 
         /// <summary>
-        /// Récupère tous les favoris d'un compte.
+        /// Récupère tous les favoris associés à un compte spécifique.
         /// </summary>
+        /// <param name="idCompte">Identifiant unique du compte.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description>Une collection de <see cref="FavoriDTO"/> (200 OK).</description></item>
+        /// </list>
+        /// </returns>
         [ActionName("GetByCompteId")]
         [HttpGet("{idCompte}")]
+        [ProducesResponseType(typeof(IEnumerable<FavoriDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<FavoriDTO>>> GetByCompteId(int idCompte)
         {
             var favoris = await _manager.GetByCompteIdAsync(idCompte);

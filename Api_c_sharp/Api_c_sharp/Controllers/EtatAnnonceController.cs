@@ -22,14 +22,16 @@ public class EtatAnnonceController(EtatAnnonceManager _manager, IMapper _mapper)
     /// <summary>
     /// Récupère un etat d'nnonce à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique du modele recherchée.</param>
+    /// <param name="id">Identifiant unique de l'état recherchée.</param>
     /// <returns>
-    /// <item><description><see cref="EtatAnnonceDTO"/> si l'annonce existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune annonce ne correspond (404).</description></item>
+    /// <item><description><see cref="EtatAnnonceDTO"/> si l'état annonce existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun état ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(EtatAnnonceDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<EtatAnnonceDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -41,13 +43,20 @@ public class EtatAnnonceController(EtatAnnonceManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Récupère la liste de toutes les etats d'annonce.
+    /// Récupère la liste de tous les états d'annonce.
     /// </summary>
     /// <returns>
-    /// Une liste de <see cref="MotriciteDTO"/> (200 OK).
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// Une collection de <see cref="EtatAnnonceDTO"/> (200 OK).
+    /// </description>
+    /// </item>
+    /// </list>
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<EtatAnnonceDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<EtatAnnonceDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

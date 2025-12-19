@@ -70,7 +70,6 @@ namespace BlazorAutoPulse.ViewModel.Administration
         public async Task InitializeAsync(Action refreshUI)
         {
             _refreshUI = refreshUI;
-            // Au démarrage, on charge TOUT ("all") pour pouvoir initialiser les compteurs fixes
             FilterType = "all";
             await LoadSignalementsFromApi();
         }

@@ -20,7 +20,7 @@ namespace Api_c_sharp.Controllers;
 public class MotriciteController(MotriciteManager _manager, IMapper _motriciteMapper) : ControllerBase
 {
     /// <summary>
-    /// Récupère une marque à partir de son identifiant.
+    /// Récupère une motricité à partir de son identifiant.
     /// </summary>
     /// <param name="id">Identifiant unique du modele recherchée.</param>
     /// <returns>
@@ -30,6 +30,8 @@ public class MotriciteController(MotriciteManager _manager, IMapper _motriciteMa
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(MotriciteDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MotriciteDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class MotriciteController(MotriciteManager _manager, IMapper _motriciteMa
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<MotriciteDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<MotriciteDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

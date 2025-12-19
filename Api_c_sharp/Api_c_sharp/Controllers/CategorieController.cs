@@ -30,6 +30,8 @@ public class CategorieController(CategorieManager _manager, IMapper _categorieMa
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(CategorieDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategorieDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class CategorieController(CategorieManager _manager, IMapper _categorieMa
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<CategorieDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CategorieDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

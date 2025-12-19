@@ -24,12 +24,14 @@ public class BoiteDeVitesseController(BoiteDeVitesseManager _manager, IMapper _m
     /// </summary>
     /// <param name="id">Identifiant unique du modele recherchée.</param>
     /// <returns>
-    /// <item><description><see cref="boite de vitesseDTO"/> si la boite de vitesse existe (200 OK).</description></item>
+    /// <item><description><see cref="BoiteDeVitesseDTO"/> si la boite de vitesse existe (200 OK).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucune boite de vitesse ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(BoiteDeVitesseDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BoiteDeVitesseDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class BoiteDeVitesseController(BoiteDeVitesseManager _manager, IMapper _m
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<BoiteDeVitesseDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<BoiteDeVitesseDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

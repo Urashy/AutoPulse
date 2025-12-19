@@ -20,10 +20,19 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     private const long MaxFileSize = 10 * 1024 * 1024; // 10 MB
 
     /// <summary>
-    /// Upload un ou plusieurs fichiers encodés en Base64
+    /// Upload un ou plusieurs fichiers encodés en Base64.
     /// </summary>
+    /// <param name="uploadDtos">Liste des pièces jointes à uploader.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>La liste des pièces jointes uploadées (200).</description></item>
+    /// <item><description><see cref="BadRequestObjectResult"/> si aucun fichier n'est fourni (400).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("Upload")]
     [HttpPost]
+    [ProducesResponseType(typeof(List<PieceJointeDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<PieceJointeDTO>>> Upload([FromBody] List<PieceJointeUploadDTO> uploadDtos)
     {
         if (uploadDtos == null || !uploadDtos.Any())
@@ -89,10 +98,19 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Récupérer une pièce jointe avec son contenu encodé en Base64
+    /// Récupère une pièce jointe avec son contenu encodé en Base64.
     /// </summary>
+    /// <param name="id">Identifiant unique de la pièce jointe.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>La pièce jointe avec son contenu (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune pièce jointe ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(PieceJointeDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PieceJointeDTO>> GetById(int id)
     {
         var pieceJointe = await _manager.GetByIdWithContentAsync(id);
@@ -107,10 +125,19 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Télécharger un fichier (retourne le binaire brut)
+    /// Télécharge une pièce jointe sous forme binaire.
     /// </summary>
+    /// <param name="id">Identifiant unique de la pièce jointe.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Le fichier téléchargé (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune pièce jointe ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("Download")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Download(int id)
     {
         var pieceJointe = await _manager.GetByIdWithContentAsync(id);
@@ -122,10 +149,19 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Supprimer une pièce jointe
+    /// Supprime une pièce jointe.
     /// </summary>
+    /// <param name="id">Identifiant unique de la pièce jointe.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune pièce jointe ne correspond (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var pieceJointe = await _manager.GetByIdWithContentAsync(id);
@@ -138,10 +174,17 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Récupérer les pièces jointes d'un message AVEC leur contenu Base64
+    /// Récupère les pièces jointes associées à un message avec leur contenu encodé en Base64.
     /// </summary>
+    /// <param name="idMessage">Identifiant unique du message.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Une collection de pièces jointes avec leur contenu (200).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetByMessage")]
     [HttpGet("{idMessage}")]
+    [ProducesResponseType(typeof(IEnumerable<PieceJointeDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<PieceJointeDTO>>> GetByMessage(int idMessage)
     {
         var piecesJointes = await _manager.GetByMessageIdAsync(idMessage);
@@ -157,10 +200,17 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Récupérer les métadonnées des pièces jointes (sans le contenu)
+    /// Récupère les métadonnées des pièces jointes associées à un message, sans le contenu.
     /// </summary>
+    /// <param name="idMessage">Identifiant unique du message.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>Une collection de métadonnées de pièces jointes (200).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetMetadataByMessage")]
     [HttpGet("{idMessage}")]
+    [ProducesResponseType(typeof(IEnumerable<PieceJointeDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<PieceJointeDTO>>> GetMetadataByMessage(int idMessage)
     {
         var piecesJointes = await _manager.GetByMessageIdAsync(idMessage);
@@ -181,17 +231,19 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Crée une nouvelle piecejointe.
+    /// Crée une nouvelle pièce jointe.
     /// </summary>
-    /// <param name="dto">Objet <see cref="PieceJointeCreateDTO"/> contenant les informations de la piece jointe à créer.</param>
+    /// <param name="dto">Objet <see cref="PieceJointeCreateDTO"/> contenant les informations de la pièce jointe.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/> avec l'adresse créée (201).</description></item>
+    /// <item><description><see cref="CreatedAtActionResult"/> avec la pièce jointe créée (201).</description></item>
     /// <item><description><see cref="BadRequestObjectResult"/> si le modèle est invalide (400).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(PieceJointeDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PieceJointeDTO>> Post([FromBody] PieceJointeCreateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -204,13 +256,16 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Récupère la liste de toutes les pieces jointes.
+    /// Récupère la liste de toutes les pièces jointes.
     /// </summary>
     /// <returns>
-    /// Une liste de <see cref="AdresseDTO"/> (200 OK).
+    /// <list type="bullet">
+    /// <item><description>Une collection de <see cref="PieceJointeDTO"/> (200).</description></item>
+    /// </list>
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<PieceJointeDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<PieceJointeDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -218,19 +273,22 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     }
 
     /// <summary>
-    /// Met à jour une piece jointe existante.
+    /// Met à jour une pièce jointe existante.
     /// </summary>
-    /// <param name="id">Identifiant unique de la piece jointe à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="PieceJointeDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="id">Identifiant unique de la pièce jointe.</param>
+    /// <param name="dto">Objet contenant les nouvelles données de la pièce jointe.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune adresse ne correspond (404).</description></item>
+    /// <item><description><see cref="BadRequestResult"/> si les données sont invalides (400).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucune pièce jointe ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] PieceJointeUploadDTO dto)
     {
         if (!ModelState.IsValid)

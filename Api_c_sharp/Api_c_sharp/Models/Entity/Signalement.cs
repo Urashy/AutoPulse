@@ -41,8 +41,8 @@ namespace Api_c_sharp.Models.Entity
         public int IdEtatSignalement { get; set; }
 
         [ForeignKey(nameof(IdEtatSignalement))]
-        [InverseProperty(nameof(EtatSignalement.Signalements))]
-        public virtual EtatSignalement EtatSignalementNav { get; set; } = null!;
+        [InverseProperty(nameof(EtatSignalementPlainte.Signalements))]
+        public virtual EtatSignalementPlainte EtatSignalementNav { get; set; } = null!;
 
         [ForeignKey(nameof(IdCompteSignalant))]
         [InverseProperty(nameof(Compte.SignalementsFaits))]
