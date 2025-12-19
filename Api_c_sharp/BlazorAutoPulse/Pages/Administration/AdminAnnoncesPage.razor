@@ -8,49 +8,63 @@
 
 <div class="admin-page">
     <div class="page-header">
-        <h1>🚗 Gestion des annonces</h1>
-        <input type="text"
-               placeholder="🔍 Rechercher..."
-               @bind="VM.SearchQuery"
-               @bind:event="oninput"
-               @onkeyup="VM.SearchAnnonces"
-               class="search-input"
-               style="max-width: 300px; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+        <div class="header-left">
+            <h1>🚗 Gestion des annonces</h1>
+            <p class="subtitle">@VM.FilteredAnnonces.Count annonce(s) affichée(s)</p>
+        </div>
+        <div class="header-actions">
+            <input type="text"
+                   placeholder="🔍 Rechercher une annonce..."
+                   @bind="VM.SearchQuery"
+                   @bind:event="oninput"
+                   @onkeyup="VM.SearchAnnonces"
+                   class="search-input">
+        </div>
     </div>
 
     @if (VM.IsLoading)
     {
-        <p>Chargement...</p>
+        <div class="loading-state">
+            <div class="loader"></div>
+            <p>Chargement des annonces...</p>
+        </div>
     }
     else
     {
-        <div class="annonces-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px 0;">
+        <div class="annonces-grid">
             @foreach (var annonce in VM.GetPagedAnnonces())
             {
-                <div class="admin-annonce-wrapper" style="position: relative; display: flex; flex-direction: column;">
-
+                <div class="admin-annonce-wrapper">
                     <AnnonceComposant Annonce="@annonce" />
 
-                    <button class="btn btn-danger"
-                            style="margin-top: 10px; width: 100%;"
-                            @onclick="@(() => VM.DeleteAnnonce(annonce))">
-                        🗑️ Supprimer
+                    <button class="btn-danger"
+                            @onclick="@(() => VM.DeleteAnnonce(annonce))"
+                            title="Supprimer cette annonce">
+                        🗑️ Supprimer l'annonce
                     </button>
 
+                    @* Badge suspect optionnel (décommente si besoin) *@
                     @* @if(annonce.Prix < 5000) { 
-                        <div style="background: red; color: white; padding: 5px; text-align: center; margin-top: 5px;">⚠️ SUSPECT</div> 
-                    } 
-                    *@
+                        <div class="badge-suspect">⚠️ SUSPECT - Prix bas</div> 
+                    } *@
                 </div>
             }
         </div>
 
         @if (VM.TotalPages > 1)
         {
-            <div class="pagination" style="display: flex; justify-content: center; gap: 15px; margin-top: 20px; align-items: center;">
-                <button class="btn btn-secondary" @onclick="VM.PreviousPage" disabled="@(!VM.CanGoPrevious)">←</button>
+            <div class="pagination">
+                <button class="btn-secondary"
+                        @onclick="VM.PreviousPage"
+                        disabled="@(!VM.CanGoPrevious)">
+                    ← Précédent
+                </button>
                 <span>@VM.PaginationInfo</span>
-                <button class="btn btn-secondary" @onclick="VM.NextPage" disabled="@(!VM.CanGoNext)">→</button>
+                <button class="btn-secondary"
+                        @onclick="VM.NextPage"
+                        disabled="@(!VM.CanGoNext)">
+                    Suivant →
+                </button>
             </div>
         }
     }
