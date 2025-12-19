@@ -1,72 +1,108 @@
-@page "/admin/annonces"
+@page "/admin/plaintes"
 @layout AdminLayout
 @using BlazorAutoPulse.ViewModel.Administration
-@using BlazorAutoPulse.Composant
-@inject AdminAnnoncesViewModel VM
+@using AutoPulse.Shared.DTO
+@inject AdminPlainteViewModel VM
 
-<PageTitle>Gestion des annonces - Admin</PageTitle>
+<PageTitle>Gestion des plaintes - Admin</PageTitle>
 
 <div class="admin-page">
+    @* --- EN-TÊTE --- *@
     <div class="page-header">
         <div class="header-left">
-            <h1>🚗 Gestion des annonces</h1>
-            <p class="subtitle">@VM.FilteredAnnonces.Count annonce(s) affichée(s)</p>
-        </div>
-        <div class="header-actions">
-            <input type="text"
-                   placeholder="🔍 Rechercher une annonce..."
-                   @bind="VM.SearchQuery"
-                   @bind:event="oninput"
-                   @onkeyup="VM.SearchAnnonces"
-                   class="search-input">
+            <h1>⚖️ Gestion des plaintes</h1>
+            @if (VM.Plaintes != null)
+            {
+                <p class="subtitle">@VM.Plaintes.Count() plainte(s) en attente de traitement</p>
+            }
         </div>
     </div>
 
-    @if (VM.IsLoading)
+    @* --- LISTE DES PLAINTES --- *@
+    @if (VM.Plaintes == null)
     {
         <div class="loading-state">
             <div class="loader"></div>
-            <p>Chargement des annonces...</p>
+            <p>Chargement des plaintes...</p>
+        </div>
+    }
+    else if (!VM.Plaintes.Any())
+    {
+        <div class="empty-state">
+            <p>🎉 Aucune plainte à traiter.</p>
         </div>
     }
     else
     {
-        <div class="annonces-grid">
-            @foreach (var annonce in VM.GetPagedAnnonces())
+        <div class="plaintes-grid">
+            @foreach (var plainte in VM.Plaintes)
             {
-                <div class="admin-annonce-wrapper">
-                    <AnnonceComposant Annonce="@annonce" />
+                @* Au clic, on assigne directement la plainte au ViewModel *@
+                <div class="plainte-card @(plainte.IdEtat == 1 ? "border-warning" : plainte.IdEtat == 2 ? "border-success" : "border-danger")"
+                     @onclick="() => VM.SelectedPlainte = plainte">
 
-                    <button class="btn-danger"
-                            @onclick="@(() => VM.DeleteAnnonce(annonce))"
-                            title="Supprimer cette annonce">
-                        🗑️ Supprimer l'annonce
-                    </button>
-
-                    @* Badge suspect optionnel (décommente si besoin) *@
-                    @* @if(annonce.Prix < 5000) { 
-                        <div class="badge-suspect">⚠️ SUSPECT - Prix bas</div> 
-                    } *@
+                    <div class="plainte-header">
+                        <span class="plainte-id">#@plainte.IdPlainte</span>
+                        <span class="plainte-date">@plainte.DateCreation.ToShortDateString()</span>
+                    </div>
+                    <div class="plainte-body">
+                        <p class="plainte-desc">
+                            "@(plainte.Description?.Length > 80 ? plainte.Description.Substring(0, 80) + "..." : plainte.Description)"
+                        </p>
+                    </div>
+                    <div class="plainte-footer">
+                        <span class="status-badge">
+                            @(plainte.IdEtat switch { 1 => "En attente", 2 => "Acceptée", 3 => "Refusée", _ => "Autre" })
+                        </span>
+                        <button class="btn-action">Examiner →</button>
+                    </div>
                 </div>
             }
         </div>
+    }
 
-        @if (VM.TotalPages > 1)
-        {
-            <div class="pagination">
-                <button class="btn-secondary"
-                        @onclick="VM.PreviousPage"
-                        disabled="@(!VM.CanGoPrevious)">
-                    ← Précédent
-                </button>
-                <span>@VM.PaginationInfo</span>
-                <button class="btn-secondary"
-                        @onclick="VM.NextPage"
-                        disabled="@(!VM.CanGoNext)">
-                    Suivant →
-                </button>
+    @* --- MODAL DE DÉCISION --- *@
+    @if (VM.SelectedPlainte != null)
+    {
+        <div class="modal-backdrop" @onclick="() => VM.SelectedPlainte = null">
+            <div class="modal-content" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <h2>Traitement de la plainte #@VM.SelectedPlainte.IdPlainte</h2>
+                    <button class="btn-close" @onclick="() => VM.SelectedPlainte = null">✖</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="info-group">
+                        <label>Date :</label>
+                        <span>@VM.SelectedPlainte.DateCreation</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Description complète :</label>
+                        <p class="full-description">@VM.SelectedPlainte.Description</p>
+                    </div>
+                    <div class="alert-info">
+                        Lier au signalement #@VM.SelectedPlainte.IdSignalement
+                        (Compte #@VM.SelectedPlainte.IdCompte)
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    @* Bouton REFUSER *@
+                    <button class="btn-refuse"
+                            @onclick="@(async () => { await VM.RefuserPlainte(); VM.SelectedPlainte = null; await VM.InitializeAsync(StateHasChanged); })">
+                        🛑 Refuser la plainte
+                        <small>(Maintenir la suspension)</small>
+                    </button>
+
+                    @* Bouton ACCEPTER *@
+                    <button class="btn-accept"
+                            @onclick="@(async () => { await VM.AccepterPlainte(); VM.SelectedPlainte = null; await VM.InitializeAsync(StateHasChanged); })">
+                        ✅ Accepter la plainte
+                        <small>(Lever la suspension)</small>
+                    </button>
+                </div>
             </div>
-        }
+        </div>
     }
 </div>
 

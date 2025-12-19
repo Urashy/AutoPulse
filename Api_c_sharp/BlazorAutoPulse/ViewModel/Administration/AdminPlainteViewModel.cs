@@ -8,7 +8,7 @@ namespace BlazorAutoPulse.ViewModel.Administration
         private readonly ICompteService _compteService;
         private readonly IPlainteService _plainteService;
 
-        private IEnumerable<PlainteDTO> plaintes;
+        public IEnumerable<PlainteDTO> Plaintes;
         public AdminPlainteViewModel(ICompteService compteService, IPlainteService plainteService)
         {
             _compteService = compteService;
@@ -26,8 +26,15 @@ namespace BlazorAutoPulse.ViewModel.Administration
 
         private async Task LoadPlaintes()
         {
-            plaintes = await _plainteService.GetAllAsync();
-            _refreshUI?.Invoke();
+            try
+            {
+                Plaintes = await _plainteService.GetAllPlaintesAsync();
+                _refreshUI?.Invoke();
+            }
+            catch
+            {
+                Plaintes = Array.Empty<PlainteDTO>();
+            }
         }
 
         public async Task RefuserPlainte()
@@ -43,6 +50,7 @@ namespace BlazorAutoPulse.ViewModel.Administration
             PlainteUpdateDTO plaintemodifiee = Creerplainteupdate();
             plaintemodifiee.IdEtat = 2;
             await _plainteService.UpdatePlainteAsync(SelectedPlainte.IdPlainte, plaintemodifiee);
+            await _compteService.ToggleSuspention(SelectedPlainte.IdCompte, true);
         }
         public PlainteUpdateDTO Creerplainteupdate()
         {
