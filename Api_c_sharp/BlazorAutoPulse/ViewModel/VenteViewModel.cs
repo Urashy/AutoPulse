@@ -25,6 +25,7 @@ namespace BlazorAutoPulse.ViewModel
         //-------------------------------- Modèles
         public List<ImageUpload> imageUpload;
         public List<AdresseDTO> compteAdresses;
+        public string envoieApi;
         
         public AnnonceCreateDTO annonce;
         public VoitureDetailDTO VoitureDetailDto;
@@ -164,14 +165,14 @@ namespace BlazorAutoPulse.ViewModel
                 var result = await _iaService.PredictAIAsync(dataCnn);
                 Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
-                if (result is ResultatPrediction prediction)
+                if (result is ResultatCNN prediction)
                 {
-                    priceResult = prediction;
-                    Console.WriteLine("Cast réussi vers ResultatPrediction");
+                    cnnResult = prediction;
+                    Console.WriteLine("Cast réussi vers ResultatCNN");
                 }
                 else
                 {
-                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
+                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatCNN");
                 }
 
                 showCnnLoadingPopup = false;
@@ -373,14 +374,14 @@ namespace BlazorAutoPulse.ViewModel
                 var result = await _iaService.PredictAIAsync(dataAdjustment);
                 Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
-                if (result is ResultatPrediction prediction)
+                if (result is ResultatAjustement prediction)
                 {
-                    priceResult = prediction;
-                    Console.WriteLine("Cast réussi vers ResultatPrediction");
+                    adjustmentResult = prediction;
+                    Console.WriteLine("Cast réussi vers ResultatAjustement");
                 }
                 else
                 {
-                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
+                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatAjustement");
                 }
 
                 showAdjustmentLoadingPopup = false;
@@ -406,7 +407,7 @@ namespace BlazorAutoPulse.ViewModel
         public void AcceptPriceAdjustment()
         {
             annonce.Prix = (int)Math.Round(adjustmentResult.AdjustedPrice);
-            ClosePriceWarningPopup();
+            CloseAdjustmentResultPopup();
         }
 
         public void CloseAdjustmentResultPopup()

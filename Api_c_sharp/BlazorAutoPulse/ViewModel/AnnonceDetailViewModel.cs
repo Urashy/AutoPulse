@@ -538,14 +538,14 @@ namespace BlazorAutoPulse.ViewModel
                 var result = await _iaService.PredictAIAsync(dataPrediction);
                 Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
-                if (result is ResultatPrediction prediction)
+                if (result is ResultatAjustement prediction)
                 {
-                    priceResult = prediction;
-                    Console.WriteLine("Cast réussi vers ResultatPrediction");
+                    adjustmentResult = prediction;
+                    Console.WriteLine("Cast réussi vers ResultatAjustement");
                 }
                 else
                 {
-                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
+                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatAjustement");
                 }
 
                 showPriceLoadingPopup = false;
