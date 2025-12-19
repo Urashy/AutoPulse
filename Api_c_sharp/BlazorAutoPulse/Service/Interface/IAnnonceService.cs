@@ -15,6 +15,7 @@ namespace BlazorAutoPulse.Service.Interface
         Task<bool> EstMasquerAsync(int id);
         
         Task<AnnonceDetailDTO> GetAnnonceDetailById(int id);
+        Task<IEnumerable<AnnonceDTO>> GetAnnoncesSimilaires(int annonceId);
     }
 
 }

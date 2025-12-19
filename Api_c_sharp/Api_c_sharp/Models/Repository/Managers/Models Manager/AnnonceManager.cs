@@ -242,6 +242,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                                 && a.VoitureAnnonceNav.Annee >= anneeMin
                                 && a.VoitureAnnonceNav.Annee <= anneeMax)
                 .OrderBy(a => Math.Abs(a.VoitureAnnonceNav.Annee - anneeReference))
+                .Take(20)
                 .ToListAsync();
 
             return listannonce;

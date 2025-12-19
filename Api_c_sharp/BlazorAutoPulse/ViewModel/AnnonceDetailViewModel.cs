@@ -22,6 +22,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IService<VueDTO> _vueService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
+        public IEnumerable<AnnonceDTO> AnnonceSimilaires { get; private set; } 
         public List<int> ImageIds { get; private set; } = new();
         public int CurrentImageIndex { get; private set; } = 0;
         public bool IsLoading { get; private set; } = true;
@@ -125,6 +126,7 @@ namespace BlazorAutoPulse.ViewModel
                     modifAnnonceUrl = $"/modifier-annonce/{Annonce.IdAnnonce}";
                 }
 
+                AnnonceSimilaires = await _annonceService.GetAnnoncesSimilaires(idAnnonce);
                 
 
                 couleurDisponible = await _couleurService.GetCouleursByVoitureId(Annonce.IdVoiture);
