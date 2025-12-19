@@ -147,8 +147,16 @@ namespace BlazorAutoPulse.ViewModel.Administration
                     }
                     else
                     {
-                        response = await _compteService.GetByTypeCompteAsync(idTypeCompte);
-                        FilteredUtilisateurs = ConvertToDetailDTO(response);
+                        try
+                        {
+                            response = await _compteService.GetByTypeCompteAsync(idTypeCompte);
+                            FilteredUtilisateurs = ConvertToDetailDTO(response);
+
+                        }
+                        catch
+                        {
+                            FilteredUtilisateurs = new List<CompteDetailDTO>(); ;
+                        }
                     }
                 }
 

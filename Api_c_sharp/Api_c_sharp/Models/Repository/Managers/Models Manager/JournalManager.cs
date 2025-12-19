@@ -21,21 +21,22 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             {
                 query = dbSet.Where(journal => journal.IdTypeJournal == recherche.IdType);
             }
-            
+
             // Appliquer le filtre de date de début si fourni
             if (recherche.DebutIntervalle.HasValue)
             {
-                query = query.Where(j => j.DateJournal >= recherche.DebutIntervalle.Value);
+                var debutUtc = DateTime.SpecifyKind(recherche.DebutIntervalle.Value, DateTimeKind.Utc);
+                query = query.Where(j => j.DateJournal >= debutUtc);
             }
 
-            // Appliquer le filtre de date de fin si fourni
             if (recherche.FinIntervalle.HasValue)
             {
-                query = query.Where(j => j.DateJournal <= recherche.FinIntervalle.Value);
+                var finUtc = DateTime.SpecifyKind(recherche.FinIntervalle.Value, DateTimeKind.Utc);
+                query = query.Where(j => j.DateJournal <= finUtc);
             }
 
 
-            
+
             // Appliquer le tri selon l'ordre
             query = recherche.Order == 1
                 ? query.OrderBy(j => j.DateJournal)
