@@ -32,7 +32,7 @@ namespace Api_c_sharp.Controllers;
 [ApiController]
 public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config, IJournalService _journalService) : ControllerBase
 {
-    #region CRUD Classique
+#region CRUD Classique
     /// <summary>
     /// Récupère un compte à partir de son identifiant.
     /// </summary>
@@ -45,6 +45,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(CompteDetailDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CompteDetailDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -67,6 +69,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </returns>
     [ActionName("GetByString")]
     [HttpGet("{str}")]
+    [ProducesResponseType(typeof(CompteDetailDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CompteDetailDTO>> GetByString(string str)
     {
         var result = await _manager.GetByNameAsync(str);
@@ -87,6 +91,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<CompteGetDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CompteGetDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -105,6 +110,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(Compte), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Compte>> Post([FromBody] CompteCreateDTO dto)
     {
         if(!ModelState.IsValid)
@@ -137,6 +144,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] CompteUpdateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -158,18 +168,19 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Met à jour un compte existant.
+    /// Anonymise un compte existant.
     /// </summary>
-    /// <param name="id">Identifiant unique du compte à mettre à jour.</param>
+    /// <param name="id">Identifiant unique du compte à anonymiser.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
+    /// <item><description><see cref="NoContentResult"/> si l’anonymisation réussit (204).</description></item>
     /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("PutAnonymise")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> PutAnonymise(int id)
     {
         Compte compte = await _manager.GetByIdAsync(id);
@@ -191,19 +202,20 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Met à jour un compt existant.
+    /// Met à jour le type de compte d’un compte existant.
     /// </summary>
-    /// <param name="id">Identifiant unique du compte à mettre à jour.</param>
-    /// <param name="dto">Objet <see cref="CompteModifTypeCompteDTO"/> contenant les nouvelles valeurs.</param>
+    /// <param name="id">Identifiant unique du compte à modifier.</param>
+    /// <param name="dto">Objet <see cref="CompteModifTypeCompteDTO"/> contenant le nouveau type de compte.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
-    /// <item><description><see cref="BadRequestResult"/> si l’ID fourni ne correspond pas à celui du DTO (400).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond à l’identifiant fourni (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("PutTypeCompte")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> PutTypeCompte(int id, [FromBody] CompteModifTypeCompteDTO dto)
     {
         Compte compte = await _manager.GetByIdAsync(id);
@@ -233,6 +245,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _manager.GetByIdAsync(id);
@@ -245,10 +259,23 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
     #endregion
 
-#region Autre methode
+    #region Autre methode
+    /// <summary>
+    /// Récupère les informations du compte actuellement authentifié.
+    /// </summary>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="CompteDetailDTO"/> du compte connecté (200).</description></item>
+    /// <item><description><see cref="UnauthorizedResult"/> si l’utilisateur n’est pas authentifié (401).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si le compte n’existe plus (404).</description></item>
+    /// </list>
+    /// </returns>
     [ActionName("GetMe")]
     [Authorize]
     [HttpGet]
+    [ProducesResponseType(typeof(CompteDetailDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CompteDetailDTO>> GetMe()
     {
         var claim = User.FindFirst("idUser")?.Value;
@@ -264,19 +291,21 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         CompteDetailDTO dto = _compteMapper.Map<CompteDetailDTO>(user);
         return Ok(dto);
     }
-    
+
     /// <summary>
-    /// Récupère un compte à partir d'un id de type de compte.
+    /// Récupère la liste des comptes en fonction de leur type de compte.
     /// </summary>
-    /// <param name="type">Identifiant unique du compte recherchée.</param>
+    /// <param name="type">Identifiant du type de compte.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteGetDTO"/> si le compte existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
+    /// <item><description>Une collection de <see cref="CompteGetDTO"/> si des comptes existent (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond au type fourni (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetByTypeCompte")]
     [HttpGet("{type}")]
+    [ProducesResponseType(typeof(IEnumerable<CompteGetDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<CompteGetDTO>>> GetByTypeCompte(int type)
     {
         var result = await _manager.GetComptesByTypes(type);
@@ -288,17 +317,19 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Récupère des comptes qui ont mis en favoris à partir d'une annonce.
+    /// Récupère les comptes ayant ajouté une annonce en favoris.
     /// </summary>
-    /// <param name="type">Identifiant unique de la compte recherchée.</param>
+    /// <param name="idannonce">Identifiant unique de l’annonce.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteGetDTO"/> si les comptes existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
+    /// <item><description>Une collection de <see cref="CompteGetDTO"/> si des comptes existent (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte n’a mis l’annonce en favoris (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetComptesByFavoris")]
     [HttpGet("{idannonce}")]
+    [ProducesResponseType(typeof(IEnumerable<CompteGetDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<CompteGetDTO>>> GetCompteByAnnonceFavori(int idannonce)
     {
         var result = await _manager.GetCompteByIdAnnonceFavori(idannonce);
@@ -311,17 +342,19 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
 
     /// <summary>
-    /// Récupère un profil public à partir de son identifiant.
+    /// Récupère le profil public d’un compte à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique du compte recherchée.</param>
+    /// <param name="id">Identifiant unique du compte.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteDTO"/> si le compte existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
+    /// <item><description><see cref="CompteProfilPublicDTO"/> si le compte existe (200).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond à l’identifiant fourni (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetProfilPublic")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(CompteProfilPublicDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CompteProfilPublicDTO>> GetProfilPublic(int id)
     {
         var result = await _manager.GetProfilPublic(id);
@@ -333,17 +366,20 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     }
 
     /// <summary>
-    /// Récupère un compte à partir d'un id de type de compte.
+    /// Active ou désactive l’état d’un compte.
     /// </summary>
-    /// <param name="idcompte">Identifiant unique du compte recherchée.</param>
+    /// <param name="idcompte">Identifiant unique du compte.</param>
+    /// <param name="estretirer">Indique si le compte doit être retiré (true) ou réactivé (false).</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CompteGetDTO"/> si le compte existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
+    /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond à l’identifiant fourni (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("ToggleEtatCompte")]
     [HttpPut("{idcompte}/{estretirer}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> ToggleEtatCompte(int idcompte, bool estretirer = false)
     {
         Compte compte = await _manager.GetByIdAsync(idcompte);

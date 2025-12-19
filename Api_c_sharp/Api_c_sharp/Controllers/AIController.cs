@@ -34,6 +34,11 @@ public class IAController : ControllerBase
     /// </returns>
     [ActionName("Predict")]
     [HttpPost]
+    [ProducesResponseType(typeof(ResultatCNN), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResultatPrediction), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResultatAjustement), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult<ResultatAI>> Predict([FromBody] DataAI data)
     {
         if (!ModelState.IsValid)
@@ -88,6 +93,8 @@ public class IAController : ControllerBase
     /// </summary>
     [ActionName("Health")]
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult> Health()
     {
         try

@@ -30,6 +30,8 @@ public class CarburantController(CarburantManager _manager, IMapper _carburantMa
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(CarburantDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CarburantDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class CarburantController(CarburantManager _manager, IMapper _carburantMa
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<CarburantDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CarburantDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

@@ -32,6 +32,8 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(VoitureDetailDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<VoitureDetailDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -50,6 +52,7 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<VoitureDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<VoitureDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -68,6 +71,8 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(VoitureDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<VoitureDTO>> Post([FromBody] VoitureCreateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -94,6 +99,9 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] VoitureUpdateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -124,6 +132,8 @@ public class VoitureController(VoitureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _manager.GetByIdAsync(id);

@@ -32,6 +32,8 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(CommandeDetailDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CommandeDetailDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -50,6 +52,7 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<CommandeDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CommandeDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -68,6 +71,8 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(CommandeDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CommandeDTO>> Post([FromBody] CommandeCreateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -94,6 +99,9 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] CommandeUpdateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -122,6 +130,8 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _manager.GetByIdAsync(id);
@@ -136,15 +146,17 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// <summary>
     /// Récupère des commandes à partir du compte.
     /// </summary>
-    /// <param name="idCompte">Identifiant unique du type recherchée.</param>
+    /// <param name="idCompte">Identifiant unique du compte recherchée.</param>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="Commande"/> si la commande existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune commande ne correspond (404).</description></item>
+    /// <item><description><see cref="CommandeDTO"/> si le compte a des commande (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun compte ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetCommandeByCompteID")]
     [HttpGet("{idCompte}")]
+    [ProducesResponseType(typeof(IEnumerable<CommandeDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<CommandeDTO>>> GetCommandeByCompteID(int idCompte)
     {
         var result = await _manager.GetCommandesByCompteId(idCompte);

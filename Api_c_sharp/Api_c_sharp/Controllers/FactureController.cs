@@ -32,6 +32,8 @@ public class FactureController(FactureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(FactureDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FactureDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -50,6 +52,7 @@ public class FactureController(FactureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<FactureDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FactureDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -68,6 +71,8 @@ public class FactureController(FactureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(Facture), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Facture>> Post([FromBody] FactureDTO dto)
     {
         if (!ModelState.IsValid)
@@ -93,6 +98,9 @@ public class FactureController(FactureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] FactureDTO dto)
     {
         if (id != dto.IdFacture)
@@ -121,6 +129,8 @@ public class FactureController(FactureManager _manager, IMapper _mapper) : Contr
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _manager.GetByIdAsync(id);

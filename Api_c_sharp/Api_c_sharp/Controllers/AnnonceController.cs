@@ -35,6 +35,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(AnnonceDetailDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AnnonceDetailDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -57,6 +59,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetByString")]
     [HttpGet("{str}")]
+    [ProducesResponseType(typeof(AnnonceDetailDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AnnonceDetailDTO>> GetByString(string str)
     {
         var result = await _manager.GetByNameAsync(str);
@@ -77,6 +81,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<AnnonceDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -95,6 +100,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(AnnonceDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AnnonceDTO>> Post([FromBody] AnnonceCreateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -126,6 +133,9 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] AnnonceUpdateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -181,6 +191,9 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _manager.GetByIdAsync(id);
@@ -216,6 +229,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetByIdMiseEnAvant")]
     [HttpGet("{idmiseenavant}")]
+    [ProducesResponseType(typeof(IEnumerable<AnnonceDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByIdMiseEnAvant(
         int idmiseenavant,
         [FromQuery] int pageNumber = 1,
@@ -238,6 +253,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetFiltered")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<AnnonceDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetFiltered(
         [FromQuery] ParametreRecherche param = null)
     {
@@ -263,6 +280,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetByCompteFavoris")]
     [HttpGet("{compteid}")]
+    [ProducesResponseType(typeof(IEnumerable<AnnonceDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetByCompteFavoris(int compteid)
     {
         var result = await _manager.GetAnnoncesByCompteFavoris(compteid);
@@ -282,6 +301,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetAnnoncesByCompteId")]
     [HttpGet("{idcompte}")]
+    [ProducesResponseType(typeof(IEnumerable<AnnonceDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetAnnoncesByCompteID(int idcompte)
     {
         var list = await _manager.GetAnnoncesByCompteID(idcompte);
@@ -301,6 +322,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("EstMasquer")]
     [HttpGet("{idannonce}")]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<ActionResult<bool>> EstMasque(int idannonce)
     {
         bool result = await _manager.EstMasque(idannonce);
@@ -316,6 +338,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// </returns>
     [ActionName("GetSimilaires")]
     [HttpGet("{idannonce}")]
+    [ProducesResponseType(typeof(IEnumerable<AnnonceDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetSimilaires(int idannonce)
     {
         Annonce entity = await _manager.GetByIdAsync(idannonce);

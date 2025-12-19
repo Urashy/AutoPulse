@@ -27,6 +27,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(CouleurDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CouleurDTO>> GetById(int id)
         {
             var result = await _manager.GetByIdAsync(id);
@@ -44,6 +46,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [HttpGet]
         [ActionName("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<CouleurDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<CouleurDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -59,6 +62,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetCouleursByVoitureID")]
         [HttpGet("{voitureId}")]
+        [ProducesResponseType(typeof(IEnumerable<CouleurDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<CouleurDTO>>> GetCouleursByVoitureID(int voitureId)
         {
             var list = await _manager.GetCouleursByVoitureId(voitureId);

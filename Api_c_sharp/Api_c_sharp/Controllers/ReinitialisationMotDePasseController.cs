@@ -26,6 +26,8 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ReinitialisationMotDePasse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ReinitialisationMotDePasse>> Get(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -46,6 +48,7 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<ReinitialisationMotDePasse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ReinitialisationMotDePasse>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -64,6 +67,8 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
     /// </returns>
     [ActionName("GetByString")]
     [HttpGet("{str}")]
+    [ProducesResponseType(typeof(ReinitialisationMotDePasse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ReinitialisationMotDePasse>> GetByString(string str)
     {
         var result = await _manager.GetByNameAsync(str);
@@ -88,6 +93,8 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(ReinitialisationMotDePasse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ReinitialisationMotDePasse>> Post([FromBody] ReinitialiseMdpDTO dto)
     {
         if (!ModelState.IsValid)
@@ -148,6 +155,9 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] ReinitialisationMotDePasse dto)
     {
         if(!ModelState.IsValid)
@@ -175,6 +185,8 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{token}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(string token)
     {
         var entity = await _manager.GetByNameAsync(token);
@@ -201,6 +213,9 @@ public class ReinitialisationMotDePasseController(ReinitialisationMotDePasseMana
     /// </returns>
     [ActionName("VerifCode")]
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> VerifCode([FromBody] ReinitialiseMdpDTO dto)
     {
         if(!ModelState.IsValid)

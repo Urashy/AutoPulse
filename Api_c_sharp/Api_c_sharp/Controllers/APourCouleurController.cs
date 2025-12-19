@@ -29,6 +29,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(APourCouleurDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APourCouleurDTO>> Post([FromBody] APourCouleurDTO dto)
         {
             if (!ModelState.IsValid)
@@ -54,6 +56,9 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{idvoiture}/{idcouleur}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int idvoiture,int idcouleur, [FromBody] APourCouleurDTO dto)
         {
             if (!ModelState.IsValid)
@@ -81,6 +86,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{idvoiture}/{idcouleur}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int idvoiture,int idcouleur)
         {
             var entity = await _manager.GetAPourCouleursByIDS(idvoiture, idcouleur);
@@ -99,6 +106,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<APourCouleurDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<APourCouleurDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -117,6 +125,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetByIds")]
         [HttpGet("{idvoiture}/{idcouleur}")]
+        [ProducesResponseType(typeof(APourCouleurDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APourCouleurDTO>> GetByIDs(int idvoiture, int idcouleur)
         {
             var result = await _manager.GetAPourCouleursByIDS(idvoiture,idcouleur);

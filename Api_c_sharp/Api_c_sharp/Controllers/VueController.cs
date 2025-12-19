@@ -29,6 +29,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(VueDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<VueDTO>> Post([FromBody] VueDTO dto)
         {
             if (!ModelState.IsValid)
@@ -60,6 +62,9 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{idannonce}/{idCompte}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int idannonce, int idCompte, [FromBody] VueDTO dto)
         {
             if (!ModelState.IsValid)
@@ -87,6 +92,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{idConversation}/{idCompte}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int idConversation, int idCompte)
         {
             var entity = await _manager.GetVueByIdsAsync(idCompte, idConversation);
@@ -105,6 +112,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<VueDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<VueDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -122,6 +130,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetByIds")]
         [HttpGet("{idannonce}/{idCompte}")]
+        [ProducesResponseType(typeof(VueDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<VueDTO>> GetByIDs(int idannonce, int idCompte)
         {
             var result = await _manager.GetVueByIdsAsync(idCompte, idannonce);

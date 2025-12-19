@@ -30,6 +30,8 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ModeleDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ModeleDTO>> Get(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<ModeleDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ModeleDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -62,6 +65,8 @@ public class ModeleController(ModeleManager _manager, IMapper _marqueMapper) : C
     /// </returns>
     [ActionName("GetAllByMarque")]
     [HttpGet("{marqueId}")]
+    [ProducesResponseType(typeof(IEnumerable<ModeleDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<ModeleDTO>>> GetAllByMarque(int marqueId)
     {
         var list = await _manager.GetModelesByMarqueIdAsync(marqueId);

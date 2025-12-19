@@ -30,6 +30,8 @@ public class MotriciteController(MotriciteManager _manager, IMapper _motriciteMa
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(MotriciteDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MotriciteDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class MotriciteController(MotriciteManager _manager, IMapper _motriciteMa
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<MotriciteDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<MotriciteDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
