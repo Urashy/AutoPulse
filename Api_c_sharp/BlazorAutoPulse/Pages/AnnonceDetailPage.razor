@@ -598,7 +598,89 @@ else
                 </button>
             }
         </div>
-        
+
+
+
+        @if (VM.AnnonceSimilaires?.Any() == true)
+        {
+            <div class="similar-ads-section">
+                <h2>🚗 Annonces similaires</h2>
+
+                <div class="carousel-container">
+                    <button class="carousel-nav prev" @onclick="VM.PreviousSimilar" disabled="@(!VM.CanGoPreviousSimilar)">
+                        ◀
+                    </button>
+
+                    <div class="carousel-track">
+                        <div class="carousel-inner" style="transform: @VM.GetCarouselTransform(); display: flex; gap: 20px; transition: transform 0.4s ease-in-out;">
+                            @foreach (var annonce in VM.GetVisibleSimilarAds())
+                            {
+                                <div class="similar-ad-card" @onclick="() => VM.NavigateToSimilarAd(annonce.IdAnnonce)">
+                                    <div class="similar-ad-image">
+                                        <img src="@VM.GetSimilarAdImage(annonce.IdVoiture)"
+                                             alt="@annonce.Marque @annonce.Modele"
+                                             onerror="this.src='https://via.placeholder.com/300x200?text=Pas+d%27image'" />
+                                    </div>
+
+                                    <div class="similar-ad-content">
+                                        <h3 class="similar-ad-title">@annonce.Libelle</h3>
+
+                                        <div class="similar-ad-specs">
+                                            <div class="spec-badge">
+                                                <span class="spec-icon">📅</span>
+                                                <span>@annonce.Annee</span>
+                                            </div>
+                                            <div class="spec-badge">
+                                                <span class="spec-icon">📊</span>
+                                                <span>@annonce.Kilometrage.ToString("N0") km</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="similar-ad-price">
+                                            @if (annonce.Prix.HasValue)
+                                            {
+                                                <span>@annonce.Prix.Value.ToString("N0") €</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="price-contact">Prix sur demande</span>
+                                            }
+                                        </div>
+
+                                        <div class="similar-ad-location">
+                                            📍 @annonce.Ville (@annonce.CodePostal)
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <button class="carousel-nav next" @onclick="VM.NextSimilar" disabled="@(!VM.CanGoNextSimilar)">
+                        ▶
+                    </button>
+                </div>
+
+                @if (VM.TotalSimilarPages > 1)
+                {
+                    <div class="carousel-dots">
+                        @for (int i = 0; i < VM.TotalSimilarPages; i++)
+                        {
+                            var pageIndex = i;
+                            <button class="carousel-dot @(VM.CurrentSimilarPage == pageIndex ? "active" : "")"
+                                    @onclick="() => VM.GoToSimilarPage(pageIndex)"
+                                    title="Position @(pageIndex + 1)">
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+
+
+
+
         @if (!string.IsNullOrEmpty(VM.erreurSupprimeAnnonce))
         {
             <div class="error-message-box">
