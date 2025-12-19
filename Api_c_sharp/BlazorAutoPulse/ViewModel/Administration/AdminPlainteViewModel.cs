@@ -56,6 +56,7 @@ namespace BlazorAutoPulse.ViewModel.Administration
         {
             PlainteUpdateDTO plaintemodifiee = new PlainteUpdateDTO
             {
+                IdPlainte = SelectedPlainte.IdPlainte,
                 Description = SelectedPlainte.Description,
                 IdCompte = SelectedPlainte.IdCompte,
                 IdSignalement = SelectedPlainte.IdSignalement   
