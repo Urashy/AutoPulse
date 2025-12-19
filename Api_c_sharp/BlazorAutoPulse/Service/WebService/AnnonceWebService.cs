@@ -122,5 +122,14 @@ namespace BlazorAutoPulse.Service
 
             return await response.Content.ReadFromJsonAsync<AnnonceDetailDTO>();
         }
+
+        public async Task<IEnumerable<AnnonceDTO>> GetAnnoncesSimilaires(int annonceId)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetSimilaires/{annonceId}"));
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<AnnonceDTO>>()
+                   ?? Enumerable.Empty<AnnonceDTO>();
+        }
     }
 }
