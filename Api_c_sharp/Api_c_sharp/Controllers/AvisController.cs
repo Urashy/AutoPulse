@@ -32,6 +32,8 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(AvisDetailDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AvisDetailDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -50,6 +52,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<AvisListDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AvisListDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -68,6 +71,8 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(AvisDetailDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AvisDetailDTO>> Post([FromBody] AvisCreateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -94,6 +99,9 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] AvisUpdateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -121,6 +129,8 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _manager.GetByIdAsync(id);
@@ -144,6 +154,8 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// </returns>
     [ActionName("GetAvisByCompteID")]
     [HttpGet("{idcompte}")]
+    [ProducesResponseType(typeof(IEnumerable<AvisListDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<AvisListDTO>>> GetAvisByCompteID(int idcompte)
     {
         var result = await _manager.GetAvisByCompteId(idcompte);

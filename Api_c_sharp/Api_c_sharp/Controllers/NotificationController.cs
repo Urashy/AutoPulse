@@ -29,6 +29,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(NotificationCreateDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<NotificationCreateDTO>> Post([FromBody] NotificationCreateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -54,6 +56,9 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int id, [FromBody] NotificationUpdateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -81,6 +86,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             var entity = await _manager.GetByIdAsync(id);
@@ -99,6 +106,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<NotificationDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<NotificationDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -117,6 +125,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(NotificationDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<NotificationDTO>> GetByID(int id)
         {
             var result = await _manager.GetByIdAsync(id);
@@ -139,6 +149,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetNotificationByCompteID")]
         [HttpGet("{idcompte}")]
+        [ProducesResponseType(typeof(IEnumerable<NotificationDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<NotificationDTO>>> GetNotificationByCompteID(int idcompte)
         {
             IEnumerable<Notification> list = await _manager.GetNotificationsByCompteAsync(idcompte);
@@ -161,6 +173,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetUnreadNotificationByCompte")]
         [HttpGet("{idcompte}")]
+        [ProducesResponseType(typeof(IEnumerable<NotificationDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<NotificationDTO>>> GetUnreadNotificationByCompte(int idcompte)
         {
             IEnumerable<Notification> list = await _manager.GetUnreadNotificationsByCompteAsync(idcompte);
@@ -182,6 +196,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetUnreadCountByCompte")]
         [HttpGet("{idcompte}")]
+        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
         public async Task<ActionResult<int>> GetUnreadCountByCompte(int idcompte)
         {
             return await _manager.GetUnreadCountAsync(idcompte);
@@ -199,6 +214,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("MarkAsRead")]
         [HttpPut("{idNotification}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> MarkAsRead(int idNotification)
         {
             var toUpdate = await _manager.GetByIdAsync(idNotification);
@@ -224,6 +241,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("MarkAllAsRead")]
         [HttpPut("{idCompte}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> MarkAllAsRead(int idCompte)
         {
             Compte compte = await _comptemanager.GetByIdAsync(idCompte);
@@ -247,6 +266,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("DeleteOldNotification")]
         [HttpDelete("{daysold}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteOldNotification(int daysold)
         {
             await _manager.DeleteOldNotificationsAsync(daysold);

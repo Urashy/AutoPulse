@@ -32,6 +32,8 @@ public class MessageController(
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(MessageDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MessageDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -43,15 +45,16 @@ public class MessageController(
     }
 
     /// <summary>
-    /// Récupère la liste de tous les messages.
+    /// Récupère tous les messages.
     /// </summary>
     /// <returns>
     /// <list type="bullet">
-    /// <item><description><see cref="CreatedAtActionResult"/>Une collection de messages si des données existent (200).</description></item>
+    /// <item><description>Une liste de <see cref="MessageDTO"/> (200 OK).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<MessageDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<MessageDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -70,6 +73,8 @@ public class MessageController(
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(MessageCreateDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<MessageCreateDTO>> Post([FromBody] MessageCreateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -110,6 +115,9 @@ public class MessageController(
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] MessageUpdateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -140,6 +148,8 @@ public class MessageController(
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _manager.GetByIdAsync(id);
@@ -165,6 +175,8 @@ public class MessageController(
     /// </returns>
     [ActionName("GetAllByConversationAndMarkAsRead")]
     [HttpGet("{idconversation}/{iduser}")]
+    [ProducesResponseType(typeof(IEnumerable<MessageDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<MessageDTO>>> GetByConversationAndMarkAsRead(int idconversation, int iduser)
     {
         // Api_c_sharpel de la méthode qui marque les messages comme lus via la fonction BD
@@ -194,6 +206,7 @@ public class MessageController(
     /// </returns>
     [ActionName("GetUnreadCount")]
     [HttpGet("{conversationId}/{userId}")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
     public async Task<ActionResult<int>> GetUnreadCount(int conversationId, int userId)
     {
         var count = await _manager.GetUnreadMessageCount(conversationId, userId);

@@ -29,6 +29,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(BloqueDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<BloqueDTO>> Post([FromBody] BloqueDTO dto)
         {
             if (!ModelState.IsValid)
@@ -56,6 +58,9 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{idBloquant}/{idBloque}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int idBloquant, int idBloque, [FromBody] BloqueDTO dto)
         {
             if (!ModelState.IsValid)
@@ -86,6 +91,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{idBloquant}/{idBloque}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int idBloquant, int idBloque)
         {
             var entity = await _manager.GetBloqueByIdsAsync(idBloque, idBloquant);
@@ -104,6 +111,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<BloqueDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<BloqueDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -121,6 +129,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{idBloquant}/{idBloque}")]
+        [ProducesResponseType(typeof(BloqueDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<BloqueDTO>> GetByID(int idBloquant, int idBloque)
         {
             var result = await _manager.GetBloqueByIdsAsync(idBloque, idBloquant);
@@ -141,6 +151,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("HasBloque")]
         [HttpGet]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         public async Task<ActionResult<bool>> HasBloque([FromQuery] int idBloque, [FromQuery] int idBloquant, bool premierestbloquant)
         {
             bool result;

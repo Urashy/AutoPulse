@@ -30,6 +30,8 @@ public class ModeleBlenderController(ModeleBlenderManager _manager, IMapper _mod
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ModeleBlenderDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ModeleBlenderDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class ModeleBlenderController(ModeleBlenderManager _manager, IMapper _mod
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<ModeleBlenderDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ModeleBlenderDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

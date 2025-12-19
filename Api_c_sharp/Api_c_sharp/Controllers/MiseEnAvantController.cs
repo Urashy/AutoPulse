@@ -30,6 +30,8 @@ public class MiseEnAvantController(MiseEnAvantManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(MiseEnAvantDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MiseEnAvantDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class MiseEnAvantController(MiseEnAvantManager _manager, IMapper _mapper)
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<MiseEnAvantDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<MiseEnAvantDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

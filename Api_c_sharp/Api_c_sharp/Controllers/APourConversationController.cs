@@ -29,6 +29,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(APourConversationDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APourConversationDTO>> Post([FromBody] APourConversationDTO dto)
         {
             if (!ModelState.IsValid)
@@ -55,6 +57,9 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{idConversation}/{idCompte}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int idConversation, int idCompte, [FromBody] APourConversationDTO dto)
         {
             if (!ModelState.IsValid)
@@ -82,6 +87,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{idConversation}/{idCompte}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int idConversation, int idCompte)
         {
             var entity = await _manager.GetAPourConversationByIDS(idCompte, idConversation);
@@ -100,6 +107,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<APourConversationDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<APourConversationDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -117,6 +125,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{idConversation}/{idCompte}")]
+        [ProducesResponseType(typeof(APourConversationDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<APourConversationDTO>> GetByID(int idConversation, int idCompte)
         {
             var result = await _manager.GetAPourConversationByIDS(idCompte, idConversation);

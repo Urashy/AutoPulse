@@ -29,6 +29,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(PlainteDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<PlainteDTO>> Post([FromBody] PlainteCreateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -54,6 +56,9 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int id, [FromBody] PlainteUpdateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -81,6 +86,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             var entity = await _manager.GetByIdAsync(id);
@@ -99,6 +106,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<PlainteDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<PlainteDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -116,6 +124,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(PlainteDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PlainteDTO>> GetByID(int id)
         {
             var result = await _manager.GetByIdAsync(id);

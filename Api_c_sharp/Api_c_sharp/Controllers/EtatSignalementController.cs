@@ -22,14 +22,16 @@ public class EtatSignalementController(EtatSignalementManager _manager, IMapper 
     /// <summary>
     /// Récupère un etat de signalemnt à partir de son identifiant.
     /// </summary>
-    /// <param name="id">Identifiant unique du modele recherchée.</param>
+    /// <param name="id">Identifiant unique de l'état recherchée.</param>
     /// <returns>
-    /// <item><description><see cref="EtatSignalementDTO"/> si la motricité existe (200 OK).</description></item>
-    /// <item><description><see cref="NotFoundResult"/> si aucune motricité ne correspond (404).</description></item>
+    /// <item><description><see cref="EtatSignalementDTO"/> si l'état existe (200 OK).</description></item>
+    /// <item><description><see cref="NotFoundResult"/> si aucun état ne correspond (404).</description></item>
     /// </list>
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(EtatSignalementDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<EtatSignalementDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class EtatSignalementController(EtatSignalementManager _manager, IMapper 
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<EtatSignalementDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<EtatSignalementDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

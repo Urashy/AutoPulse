@@ -30,6 +30,8 @@ public class TypeJournalController(TypeJournalManager _manager, IMapper _typejou
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(TypeJournalDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TypeJournalDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class TypeJournalController(TypeJournalManager _manager, IMapper _typejou
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<TypeJournalDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<TypeJournalDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

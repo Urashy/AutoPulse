@@ -29,6 +29,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(AdresseDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<AdresseDTO>> Post([FromBody] AdresseCreateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -54,6 +56,9 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int id, [FromBody] AdresseUpdateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -81,6 +86,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             var entity = await _manager.GetByIdAsync(id);
@@ -99,6 +106,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<AdresseDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<AdresseDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -116,6 +124,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetById")]
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(AdresseDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<AdresseDTO>> GetByID(int id)
         {
             var result = await _manager.GetByIdAsync(id);
@@ -128,13 +138,19 @@ namespace Api_c_sharp.Controllers
 
 
         /// <summary>
-        /// Récupère la liste de toutes les adresses pour un compte donnée.
+        /// Récupère la liste des adresses associées à un compte.
         /// </summary>
+        /// <param name="idcompte">Identifiant unique du compte.</param>
         /// <returns>
-        /// Une liste de <see cref="AdresseDTO"/> (200 OK).
+        /// <list type="bullet">
+        /// <item><description>Une collection de <see cref="AdresseDTO"/> si des adresses existent (200).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune adresse n'est associée au compte (404).</description></item>
+        /// </list>
         /// </returns>
         [ActionName("GetAdressesByCompteID")]
         [HttpGet("{idcompte}")]
+        [ProducesResponseType(typeof(IEnumerable<AdresseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<AdresseDTO>>> GetAdressesByCompteID(int idcompte)
         {
             var list = await _manager.GetAdresseByCompteID(idcompte);

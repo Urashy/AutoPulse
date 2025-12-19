@@ -30,6 +30,8 @@ public class PaysController(PaysManager _manager, IMapper _paysMapper) : Control
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(PaysDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PaysDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -48,6 +50,7 @@ public class PaysController(PaysManager _manager, IMapper _paysMapper) : Control
     /// </returns>
     [HttpGet]
     [ActionName("GetAll")]
+    [ProducesResponseType(typeof(IEnumerable<PaysDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<PaysDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();

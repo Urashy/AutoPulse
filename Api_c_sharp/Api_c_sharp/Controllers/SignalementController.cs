@@ -32,6 +32,8 @@ public class SignalementController(
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(SignalementDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<SignalementDTO>> GetByID(int id)
     {
         var result = await _manager.GetByIdAsync(id);
@@ -52,6 +54,7 @@ public class SignalementController(
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<SignalementDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -72,6 +75,9 @@ public class SignalementController(
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(SignalementDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<SignalementDTO>> Post([FromBody] SignalementCreateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -138,6 +144,9 @@ public class SignalementController(
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] SignalementUpdateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -166,6 +175,8 @@ public class SignalementController(
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var entity = await _manager.GetByIdAsync(id);
@@ -190,6 +201,7 @@ public class SignalementController(
     /// </returns>
     [ActionName("GetFilteredSignalement")]
     [HttpGet("{etatId}/{typeId}")]
+    [ProducesResponseType(typeof(IEnumerable<SignalementDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<SignalementDTO>>> GetFilteredSignalement(int etatId, int typeId, [FromQuery] string? recherche)
     {
         var result = await _manager.GetSignalementsByEtatAndType(etatId, typeId, recherche ?? "");
@@ -212,6 +224,9 @@ public class SignalementController(
     /// </returns>
     [ActionName("UpdateEtat")]
     [HttpPut("{idSignalement}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UpdateEtat(int idSignalement, [FromBody] SignalementUpdateDTO dto)
     {
         if (!ModelState.IsValid)

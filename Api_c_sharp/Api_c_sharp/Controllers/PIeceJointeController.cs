@@ -31,6 +31,8 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("Upload")]
     [HttpPost]
+    [ProducesResponseType(typeof(List<PieceJointeDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<PieceJointeDTO>>> Upload([FromBody] List<PieceJointeUploadDTO> uploadDtos)
     {
         if (uploadDtos == null || !uploadDtos.Any())
@@ -107,6 +109,8 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("GetById")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(PieceJointeDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PieceJointeDTO>> GetById(int id)
     {
         var pieceJointe = await _manager.GetByIdWithContentAsync(id);
@@ -132,6 +136,8 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("Download")]
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Download(int id)
     {
         var pieceJointe = await _manager.GetByIdWithContentAsync(id);
@@ -154,6 +160,8 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("Delete")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         var pieceJointe = await _manager.GetByIdWithContentAsync(id);
@@ -176,6 +184,7 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("GetByMessage")]
     [HttpGet("{idMessage}")]
+    [ProducesResponseType(typeof(IEnumerable<PieceJointeDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<PieceJointeDTO>>> GetByMessage(int idMessage)
     {
         var piecesJointes = await _manager.GetByMessageIdAsync(idMessage);
@@ -201,6 +210,7 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("GetMetadataByMessage")]
     [HttpGet("{idMessage}")]
+    [ProducesResponseType(typeof(IEnumerable<PieceJointeDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<PieceJointeDTO>>> GetMetadataByMessage(int idMessage)
     {
         var piecesJointes = await _manager.GetByMessageIdAsync(idMessage);
@@ -232,6 +242,8 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
+    [ProducesResponseType(typeof(PieceJointeDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PieceJointeDTO>> Post([FromBody] PieceJointeCreateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -253,6 +265,7 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<PieceJointeDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<PieceJointeDTO>>> GetAll()
     {
         var list = await _manager.GetAllAsync();
@@ -273,6 +286,9 @@ public class PieceJointeController(PieceJointeManager _manager, IMapper _mapper)
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] PieceJointeUploadDTO dto)
     {
         if (!ModelState.IsValid)

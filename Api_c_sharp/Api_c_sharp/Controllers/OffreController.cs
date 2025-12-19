@@ -29,6 +29,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(OffreDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<OffreDTO>> Post([FromBody] OffreCreateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -55,6 +57,9 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{idannonce}/{idCompte}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int idoffre, [FromBody] OffreUpdateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -82,6 +87,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{idoffre}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int idoffre)
         {
             var entity = await _manager.GetByIdAsync(idoffre);
@@ -100,6 +107,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<OffreDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<OffreDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -117,6 +125,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetByIds")]
         [HttpGet("{idoffre}")]
+        [ProducesResponseType(typeof(OffreDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<OffreDTO>> GetByID(int idoffre)
         {
             var result = await _manager.GetByIdAsync(idoffre);

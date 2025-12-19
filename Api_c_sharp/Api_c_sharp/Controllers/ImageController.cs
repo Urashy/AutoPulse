@@ -11,9 +11,20 @@ namespace Api_c_sharp.Controllers
     [ApiController]
     public class ImageController(ImageManager _manager, IMapper _mapper) : ControllerBase
     {
-        // GET BY ID
+        /// <summary>
+        /// Récupère une image à partir de son identifiant.
+        /// </summary>
+        /// <param name="id">Identifiant unique de l'image.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description>Le fichier image si elle existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune image ne correspond (404).</description></item>
+        /// </list>
+        /// </returns>
         [ActionName("GetById")]
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ImageDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ImageDTO>> GetById(int id)
         {
             var imageEntity = await _manager.GetByIdAsync(id);
@@ -31,6 +42,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAll")]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<ImageDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<ImageDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
@@ -48,6 +60,7 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Post")]
         [HttpPost]
+        [ProducesResponseType(typeof(ImageDTO), StatusCodes.Status201Created)]
         public async Task<ActionResult<ImageDTO>> Post([FromForm] ImageUploadDTO dto)
         {
             using var ms = new MemoryStream();
@@ -81,6 +94,9 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Put")]
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Put(int id, [FromForm] ImageUploadDTO dto)
         {
             if (id != dto.IdImage)
@@ -121,6 +137,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("Delete")]
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> Delete(int id)
         {
             var entity = await _manager.GetByIdAsync(id);
@@ -145,6 +163,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetFirstImage")]
         [HttpGet("{voitureId}")]
+        [ProducesResponseType(typeof(ImageDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ImageDTO>> GetImagesByVoitureId(int voitureId)
         {
             var imageEntity = await _manager.GetFirstImageByVoitureID(voitureId);
@@ -168,6 +188,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetAllImagesByVoitureId")]
         [HttpGet("{voitureId}")]
+        [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<ActionResult<IEnumerable<int>>> GetAllImagesByVoitureId(int voitureId)
         {
             var listId = await _manager.GetAllImagesByVoitureId(voitureId);
@@ -189,6 +211,8 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetImageByCompte")]
         [HttpGet("{compteId}")]
+        [ProducesResponseType(typeof(ImageDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ImageDTO>> GetImageByCompteID(int compteId)
         {
             var imageEntity = await _manager.GetImageByCompteID(compteId);
