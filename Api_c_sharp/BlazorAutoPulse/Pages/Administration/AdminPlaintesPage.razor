@@ -1,0 +1,78 @@
+@page "/admin/annonces"
+@layout AdminLayout
+@using BlazorAutoPulse.ViewModel.Administration
+@using BlazorAutoPulse.Composant
+@inject AdminAnnoncesViewModel VM
+
+<PageTitle>Gestion des annonces - Admin</PageTitle>
+
+<div class="admin-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h1>🚗 Gestion des annonces</h1>
+            <p class="subtitle">@VM.FilteredAnnonces.Count annonce(s) affichée(s)</p>
+        </div>
+        <div class="header-actions">
+            <input type="text"
+                   placeholder="🔍 Rechercher une annonce..."
+                   @bind="VM.SearchQuery"
+                   @bind:event="oninput"
+                   @onkeyup="VM.SearchAnnonces"
+                   class="search-input">
+        </div>
+    </div>
+
+    @if (VM.IsLoading)
+    {
+        <div class="loading-state">
+            <div class="loader"></div>
+            <p>Chargement des annonces...</p>
+        </div>
+    }
+    else
+    {
+        <div class="annonces-grid">
+            @foreach (var annonce in VM.GetPagedAnnonces())
+            {
+                <div class="admin-annonce-wrapper">
+                    <AnnonceComposant Annonce="@annonce" />
+
+                    <button class="btn-danger"
+                            @onclick="@(() => VM.DeleteAnnonce(annonce))"
+                            title="Supprimer cette annonce">
+                        🗑️ Supprimer l'annonce
+                    </button>
+
+                    @* Badge suspect optionnel (décommente si besoin) *@
+                    @* @if(annonce.Prix < 5000) { 
+                        <div class="badge-suspect">⚠️ SUSPECT - Prix bas</div> 
+                    } *@
+                </div>
+            }
+        </div>
+
+        @if (VM.TotalPages > 1)
+        {
+            <div class="pagination">
+                <button class="btn-secondary"
+                        @onclick="VM.PreviousPage"
+                        disabled="@(!VM.CanGoPrevious)">
+                    ← Précédent
+                </button>
+                <span>@VM.PaginationInfo</span>
+                <button class="btn-secondary"
+                        @onclick="VM.NextPage"
+                        disabled="@(!VM.CanGoNext)">
+                    Suivant →
+                </button>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+}

@@ -62,6 +62,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IVoitureService, VoitureWebService>();
             builder.Services.AddScoped<IIAService, IAWebService>();
             builder.Services.AddScoped<IJournalService, JournalWebService>();
+            builder.Services.AddScoped<IPlainteService, PlainteWebService>();
 
 
             //----------------------- View Model
@@ -94,6 +95,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<NotificationViewModel>();
             builder.Services.AddScoped<AdminJournauxViewModel>();
             builder.Services.AddScoped<ModifierAnnonceViewModel>();
+            builder.Services.AddScoped<AdminPlainteViewModel>();
 
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService, SignalRWebService>();
