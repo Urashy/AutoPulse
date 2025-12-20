@@ -36,6 +36,14 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var plainte = await _manager.GetPlainteByCompteID(dto.IdCompte);
+
+            var plaintesExistantes = await _manager.GetPlainteByCompteID(dto.IdCompte);
+            if (plaintesExistantes.Any(p => p.IdEtat == 1))
+            {
+                return BadRequest("Vous avez déjà une plainte en attente de traitement.");
+            }
+
             var entity = _adresseMapper.Map<Plainte>(dto);
             await _manager.AddAsync(entity);
 

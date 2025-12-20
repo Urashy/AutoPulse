@@ -21,8 +21,6 @@ namespace BlazorAutoPulse.ViewModel
         private readonly INotificationService _notificationService;
         private readonly NotificationService _notificationToastService;
         private ConversationStateService _conversationStateService;
-
-        public bool PeutEnvooyerPlainte { get; set; }
         public bool IsConnected { get; private set; }
         public bool IsAdmin { get; private set; }
         public bool IsAccountSuspended { get; private set; }
