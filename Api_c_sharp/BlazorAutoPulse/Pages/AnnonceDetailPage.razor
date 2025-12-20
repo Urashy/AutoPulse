@@ -10,6 +10,7 @@
 <PageTitle>@(VM.Annonce?.Libelle ?? "Détail de l'annonce") - AutoPulse</PageTitle>
 
 @* Popup Contact Vendeur *@
+
 @if (VM.showContactPopup)
 {
     <div class="popup-overlay" @onclick="VM.CloseContactPopup">
@@ -30,20 +31,64 @@
                     <div class="annonce-ref">
                         <span class="ref-label">Annonce:</span>
                         <span class="ref-value">@VM.Annonce?.Libelle</span>
+                        <span class="ref-price">@VM.Annonce?.Prix.ToString("N0") €</span>
                     </div>
                 </div>
 
+                <!-- Toggle mode offre -->
+                <div class="offre-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox"
+                               checked="@VM.showOffreMode"
+                               @onchange="e => VM.ToggleOffreMode()" />
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label">💰 Faire une offre</span>
+                </div>
+
+                <!-- Champ montant offre (si mode offre activé) -->
+                @if (VM.showOffreMode)
+                {
+                    <div class="offre-input-group">
+                        <label for="offreAmount">Montant de votre offre</label>
+                        <div class="input-with-currency">
+                            <input type="number"
+                                   id="offreAmount"
+                                   class="offre-input"
+                                   placeholder="Ex: 15000"
+                                   min="1"
+                                   max="@VM.Annonce?.Prix"
+                                   step="100"
+                                   @bind="VM.offreAmount"
+                                   @bind:event="oninput"
+                                   disabled="@VM.isLoadingContact" />
+                            <span class="currency-symbol">€</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(VM.offreError))
+                        {
+                            <small class="error-text">⚠️ @VM.offreError</small>
+                        }
+                        else if (VM.offreAmount > 0 && VM.Annonce != null)
+                        {
+                            var reduction = VM.Annonce.Prix - VM.offreAmount;
+                            var percentage = (reduction / VM.Annonce.Prix) * 100;
+                            <small class="offre-info">
+                                Réduction de @reduction.ToString("N0") € (@percentage.ToString("F1")%)
+                            </small>
+                        }
+                    </div>
+                }
+
                 <div class="message-input-group">
                     <label for="contactMessage">Votre message</label>
-                    <textarea
-                        id="contactMessage"
-                        class="contact-textarea"
-                        placeholder="Bonjour, je suis intéressé par votre annonce..."
-                        rows="6"
-                        maxlength="1000"
-                        @bind="VM.contactMessage"
-                        @bind:event="oninput"
-                        disabled="@VM.isLoadingContact"></textarea>
+                    <textarea id="contactMessage"
+                              class="contact-textarea"
+                              placeholder="@(VM.showOffreMode ? "Motivez votre offre..." : "Bonjour, je suis intéressé par votre annonce...")"
+                              rows="6"
+                              maxlength="1000"
+                              @bind="VM.contactMessage"
+                              @bind:event="oninput"
+                              disabled="@VM.isLoadingContact"></textarea>
                     <div class="char-counter">
                         @VM.contactMessage.Length / 1000 caractères
                     </div>
@@ -60,13 +105,19 @@
                 <button class="btn-cancel" @onclick="VM.CloseContactPopup" disabled="@VM.isLoadingContact">
                     Annuler
                 </button>
-                <button class="btn-confirm btn-send" @onclick="VM.SendContactMessage" disabled="@VM.isLoadingContact">
+                <button class="btn-confirm btn-send"
+                        @onclick="VM.SendContactMessageWithOffre"
+                        disabled="@VM.isLoadingContact">
                     @if (VM.isLoadingContact)
                     {
                         <span class="btn-loading">
                             <span class="mini-spinner"></span>
                             Envoi...
                         </span>
+                    }
+                    else if (VM.showOffreMode)
+                    {
+                        <span>💰 Envoyer l'offre</span>
                     }
                     else
                     {

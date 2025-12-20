@@ -20,6 +20,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly NotificationService _notificationService;
         private readonly IConversationService _conversationService;
         private readonly IService<VueDTO> _vueService;
+        private readonly IOffreService _offreService;
+        private readonly IMessageService _messageService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public IEnumerable<AnnonceDTO> AnnonceSimilaires { get; private set; } 
@@ -84,6 +86,14 @@ namespace BlazorAutoPulse.ViewModel
         // Propriété calculée pour le style de transformation CSS
         public int CurrentSimilarPage => CurrentSimilarIndex; // Pour les dots
 
+        // OFFRES
+
+        public bool showOffreMode { get; set; } = false;
+        public decimal offreAmount { get; set; } = 0;
+        public string offreError { get; set; } = "";
+
+
+
         private Action? _refreshUI;
         private IJSRuntime? _jsRuntime;
         private NavigationManager _nav;
@@ -97,7 +107,9 @@ namespace BlazorAutoPulse.ViewModel
             ICouleurService couleurService,
             IService<VueDTO> vueService,
             IConversationService conversationService,
-            NotificationService notificationService)
+            NotificationService notificationService,
+            IOffreService offreService,
+            IMessageService messageService)
         {
             _annonceService = annonceService;
             _postImageService = postImageService;
@@ -108,6 +120,9 @@ namespace BlazorAutoPulse.ViewModel
             _notificationService = notificationService;
             _conversationService = conversationService;
             _vueService = vueService;
+            _offreService = offreService;
+            _messageService = messageService;
+
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime, NavigationManager nav)
@@ -858,6 +873,127 @@ namespace BlazorAutoPulse.ViewModel
 
             CurrentSimilarIndex = 0;
             AnnonceSimilaires = Enumerable.Empty<AnnonceDTO>();
+        }
+
+        //OFFRES
+
+        public void ToggleOffreMode()
+        {
+            showOffreMode = !showOffreMode;
+            if (!showOffreMode)
+            {
+                offreAmount = 0;
+                offreError = "";
+            }
+            _refreshUI?.Invoke();
+        }
+
+        public void UpdateOffreAmount(decimal amount)
+        {
+            offreAmount = amount;
+            offreError = "";
+            _refreshUI?.Invoke();
+        }
+
+        public async Task SendContactMessageWithOffre()
+        {
+            if (!CurrentUserId.HasValue || Annonce == null)
+            {
+                contactError = "Vous devez être connecté pour envoyer un message";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(contactMessage))
+            {
+                contactError = "Le message ne peut pas être vide";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            if (showOffreMode && offreAmount <= 0)
+            {
+                offreError = "Le montant de l'offre doit être supérieur à 0";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            if (showOffreMode && offreAmount > Annonce.Prix)
+            {
+                offreError = "Le montant de l'offre ne peut pas être supérieur au prix de l'annonce";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            isLoadingContact = true;
+            contactError = "";
+            offreError = "";
+            _refreshUI?.Invoke();
+
+            try
+            {
+                // Créer ou récupérer la conversation
+                var conversationDto = new ConversationCreateDTO
+                {
+                    IdAnnonce = Annonce.IdAnnonce,
+                    message = contactMessage,
+                    DateDernierMessage = DateTime.Now
+                };
+
+                var conversation = await _conversationService.PostComplet(
+                    conversationDto,
+                    CurrentUserId.Value,
+                    Annonce.IdVendeur
+                );
+
+                // Si mode offre activé, créer l'offre
+                if (showOffreMode && conversation != null)
+                {
+                    // Créer un message pour l'offre
+                    var messageDto = new MessageDTO
+                    {
+                        IdConversation = conversation.IdConversation,
+                        IdCompte = CurrentUserId.Value,
+                        ContenuMessage = $"💰 Offre: {offreAmount:N0} €\n\n{contactMessage}"
+                    };
+
+                    var createdMessage = await _messageService.CreateAsync(messageDto);
+
+                    if (createdMessage != null)
+                    {
+                        var offreDto = new OffreCreateDTO
+                        {
+                            IdAnnonce = Annonce.IdAnnonce,
+                            IdMessage = createdMessage.IdMessage,
+                            Valeur = offreAmount
+                        };
+
+                        await _offreService.CreateAsync(offreDto);
+                    }
+                }
+
+                _notificationService.ShowSuccess(
+                    showOffreMode ? "Offre envoyée" : "Message envoyé",
+                    showOffreMode
+                        ? $"Votre offre de {offreAmount:N0} € a été envoyée au vendeur"
+                        : "Votre message a été envoyé au vendeur avec succès"
+                );
+
+                contactMessage = "";
+                offreAmount = 0;
+                showOffreMode = false;
+                showContactPopup = false;
+            }
+            catch (Exception ex)
+            {
+                contactError = "Erreur lors de l'envoi. Veuillez réessayer.";
+                Console.WriteLine($"Erreur envoi message/offre: {ex.Message}");
+            }
+            finally
+            {
+                isLoadingContact = false;
+                _refreshUI?.Invoke();
+            }
         }
     }
 }

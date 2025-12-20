@@ -65,6 +65,7 @@
         else
         {
             <div class="conversation-header">
+
                 <div class="conversation-avatar">
                     @if (VM.ImageSources.ContainsKey(VM.SelectedConversation.IdParticipant) &&
                          !string.IsNullOrEmpty(VM.ImageSources[VM.SelectedConversation.IdParticipant]))
@@ -90,16 +91,67 @@
                 </div>
             </div>
 
-            <MessageContainer
-                Messages="@VM.Messages"
-                CurrentUserId="@VM.CurrentUserId"
-                ParticipantId="@VM.SelectedConversation.IdParticipant"
-                IsLoadingMessages="@VM.IsLoadingMessages"
-                IsTyping="@VM.IsTyping"
-                ConversationId="@VM.SelectedConversation.IdConversation"
-                BlocageType="@VM.BlocageType"/>
+            <MessageContainer Messages="@VM.Messages"
+                              CurrentUserId="@VM.CurrentUserId"
+                              ParticipantId="@VM.SelectedConversation.IdParticipant"
+                              IsLoadingMessages="@VM.IsLoadingMessages"
+                              IsTyping="@VM.IsTyping"
+                              ConversationId="@VM.SelectedConversation.IdConversation"
+                              BlocageType="@VM.BlocageType"
+                              OnOffreAccept="@VM.AccepterOffre"
+                              OnOffreRefuse="@VM.RefuserOffre" />
 
             <div class="message-input-area">
+                <!-- Bouton pour activer le mode offre -->
+                <div class="input-toolbar">
+                    <button class="toolbar-btn @(VM.ShowOffreMode ? "active" : "")"
+                            @onclick="VM.ToggleOffreMode"
+                            title="Faire une offre"
+                            disabled="@VM.EstBloquer">
+                        💰
+                    </button>
+
+                    <FileUploadComponent OnFilesSelected="@VM.OnFilesSelected" />
+                </div>
+
+                <!-- Zone offre si activée -->
+                @if (VM.ShowOffreMode)
+                {
+                    <div class="offre-input-zone">
+                        <div class="offre-input-header">
+                            <span class="offre-label">💰 Montant de l'offre</span>
+                            @if (VM.AnnoncePrixMax.HasValue)
+                            {
+                                <span class="offre-max">Max: @VM.AnnoncePrixMax.Value.ToString("N0") €</span>
+                            }
+                        </div>
+                        <div class="offre-input-wrapper">
+                            <input type="number"
+                                   class="offre-input-field"
+                                   placeholder="Ex: 15000"
+                                   min="1"
+                                   max="@VM.AnnoncePrixMax"
+                                   step="100"
+                                   value="@VM.OffreAmount"
+                                   @oninput="@(e => VM.UpdateOffreAmount(e.Value?.ToString() ?? "0"))"
+                                   disabled="@VM.EstBloquer" />
+                            <span class="offre-currency">€</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(VM.OffreError))
+                        {
+                            <small class="offre-error">⚠️ @VM.OffreError</small>
+                        }
+                        else if (VM.OffreAmount > 0 && VM.AnnoncePrixMax.HasValue)
+                        {
+                            var reduction = VM.AnnoncePrixMax.Value - VM.OffreAmount;
+                            var percentage = (reduction / VM.AnnoncePrixMax.Value) * 100;
+                            <small class="offre-reduction">
+                                Réduction de @reduction.ToString("N0") € (@percentage.ToString("F1")%)
+                            </small>
+                        }
+                    </div>
+                }
+
                 @if (VM.SelectedFiles.Any())
                 {
                     <div class="selected-files-preview">
@@ -114,24 +166,25 @@
                 }
 
                 <div class="message-input-container">
-                    @* ✅ CRITIQUE : value + oninput au lieu de @bind *@
                     <input type="text"
-                           placeholder="Tapez votre message..."
+                           placeholder="@(VM.ShowOffreMode ? "Ajoutez un message avec votre offre..." : "Tapez votre message...")"
                            value="@VM.NewMessage"
                            @oninput="VM.OnInputChanged"
                            @onkeyup="VM.HandleTyping"
                            @onkeydown="VM.HandleKeyPress"
                            class="message-input"
-                           disabled="@( (VM.IsUploadingFiles || VM.EstBloquer) ? true : (bool?)null )" />
+                           disabled="@((VM.IsUploadingFiles || VM.EstBloquer) ? true : (bool?)null)" />
 
-                    <FileUploadComponent OnFilesSelected="@VM.OnFilesSelected" />
-
-                    <button @onclick="VM.SendMessage"
-                            class="send-btn"
-                            disabled="@((string.IsNullOrWhiteSpace(VM.NewMessage) && !VM.SelectedFiles.Any()) || VM.IsUploadingFiles)">
+                    <button @onclick="@(VM.ShowOffreMode? VM.SendMessageWithOffre: VM.SendMessage)"
+                            class="send-btn @(VM.ShowOffreMode ? "offre-mode" : "")"
+                            disabled="@((string.IsNullOrWhiteSpace(VM.NewMessage) && !VM.SelectedFiles.Any() && (!VM.ShowOffreMode || VM.OffreAmount <= 0)) || VM.IsUploadingFiles)">
                         @if (VM.IsUploadingFiles)
                         {
                             <span class="spinner">⏳</span>
+                        }
+                        else if (VM.ShowOffreMode)
+                        {
+                            <span>💰</span>
                         }
                         else
                         {
