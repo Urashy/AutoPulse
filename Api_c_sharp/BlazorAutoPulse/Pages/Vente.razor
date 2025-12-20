@@ -557,6 +557,11 @@
                     </div>
 
                     <div class="address-form-fields">
+                        <div class="form-group">
+                            <label>Rentrer votre adresse entière</label>
+                            <input type="text" placeholder="Ex: 1 Rue de Exemple..." @bind="VM.envoieApi" required>
+                            <span class="error-message">@VM.GetError("nomadresse")</span>
+                        </div>
                         <div class="form-group @(VM.HasError("nomadresse") ? "has-error" : "")">
                             <label>Nom de l'adresse</label>
                             <input type="text" placeholder="Ex: Domicile, Bureau, Garage..." @bind="VM.adresse.Nom" required>
@@ -577,7 +582,7 @@
                             </div>
                             <div class="form-group @(VM.HasError("rueadresse") ? "has-error" : "")">
                                 <label>Rue</label>
-                                <input type="text" placeholder="Rue de l'exemple" @bind="VM.adresse.Rue" required>
+                                <input type="text" placeholder="Non renseignable" @bind="VM.adresse.Rue" disabled>
                                 @if (VM.HasError("rueadresse"))
                                 {
                                     <span class="error-message">@VM.GetError("rueadresse")</span>
@@ -588,7 +593,7 @@
                         <div class="form-row">
                             <div class="form-group @(VM.HasError("codepostal") ? "has-error" : "")">
                                 <label>Code postal</label>
-                                <input type="text" placeholder="73000" @bind="VM.adresse.CodePostal" required>
+                                <input type="text" placeholder="Non renseignable" @bind="VM.adresse.CodePostal" disabled>
                                 @if (VM.HasError("codepostal"))
                                 {
                                     <span class="error-message">@VM.GetError("codepostal")</span>
@@ -596,7 +601,7 @@
                             </div>
                             <div class="form-group @(VM.HasError("ville") ? "has-error" : "")">
                                 <label>Ville</label>
-                                <input type="text" placeholder="Chambéry" @bind="VM.adresse.LibelleVille" required>
+                                <input type="text" placeholder="Non renseignable" @bind="VM.adresse.LibelleVille" disabled>
                                 @if (VM.HasError("ville"))
                                 {
                                     <span class="error-message">@VM.GetError("ville")</span>
