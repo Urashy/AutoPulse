@@ -22,6 +22,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly NotificationService _notificationToastService;
         private ConversationStateService _conversationStateService;
 
+        public bool PeutEnvooyerPlainte { get; set; }
         public bool IsConnected { get; private set; }
         public bool IsAdmin { get; private set; }
         public bool IsAccountSuspended { get; private set; }
@@ -81,6 +82,7 @@ namespace BlazorAutoPulse.ViewModel
             {
                 await CheckConnexion();
             }
+
         }
 
         private async Task CheckConnexion()
@@ -128,10 +130,8 @@ namespace BlazorAutoPulse.ViewModel
         {
             try
             {
-                // Récupérer tous les signalements
                 var signalements = await _signalementService.GetAllSignalementsAsync();
 
-                // Trouver un signalement en attente pour ce compte
                 var signalement = signalements.FirstOrDefault(s =>
                     s.IdCompteSignale == _currentUserId &&
                     s.IdEtatSignalement == 1);

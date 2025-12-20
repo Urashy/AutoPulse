@@ -135,5 +135,31 @@ namespace Api_c_sharp.Controllers
 
             return _adresseMapper.Map<PlainteDTO>(result);
         }
+
+
+        /// <summary>
+        /// Récupère une plainte à partir de son identifiant de compte.
+        /// </summary>
+        /// <param name="id">Identifiant unique de la plainte recherchée.</param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see cref="PlainteDTO"/> si la plainte existe (200 OK).</description></item>
+        /// <item><description><see cref="NotFoundResult"/> si aucune plainte ne correspond (404).</description></item>
+        /// </list>
+        /// </returns>
+        [ActionName("GetByIdCompte")]
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(PlainteDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<PlainteDTO>> GetByIDCompte(int id)
+        {
+            var result = await _manager.GetPlainteByCompteID(id);
+
+            if (result is null)
+                return NotFound();
+
+            return _adresseMapper.Map<PlainteDTO>(result);
+        }
+
     }
 }
