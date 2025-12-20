@@ -309,19 +309,19 @@ namespace BlazorAutoPulse.ViewModel
                     return;
                 }
 
-                // Créer la plainte
+                // Créer la plainte avec gestion d'erreur
                 var plainteDto = new PlainteCreateDTO
                 {
                     IdCompte = _currentUserId.Value,
                     IdSignalement = _signalementId.Value,
                     Description = PlainteContenu,
                     IdEtat = 1
-
                 };
 
+                // MODIFICATION ICI : Utiliser PostWithErrorHandlingAsync au lieu de CreateAsync
                 var result = await _plainteService.PostWithErrorHandlingAsync(plainteDto);
 
-                if (result != null)
+                if (result.Success && result.Data != null)
                 {
                     _notificationToastService.ShowSuccess(
                         "Plainte envoyée",
@@ -334,16 +334,31 @@ namespace BlazorAutoPulse.ViewModel
                 }
                 else
                 {
-                    PlainteError = "Une erreur est survenue lors de l'envoi de votre plainte";
+                    // Gérer les erreurs retournées par le backend
+                    if (!string.IsNullOrEmpty(result.ErrorMessage))
+                    {
+                        PlainteError = result.ErrorMessage;
+                    }
+                    else
+                    {
+                        PlainteError = "Une erreur est survenue lors de l'envoi de votre plainte";
+                    }
+
                     _notificationToastService.ShowError(
                         "Plainte non envoyée",
-                        PlainteError);
+                        PlainteError
+                    );
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de l'envoi de la plainte: {ex.Message}");
                 PlainteError = "Une erreur est survenue lors de l'envoi de votre plainte";
+
+                _notificationToastService.ShowError(
+                    "Erreur",
+                    PlainteError
+                );
             }
             finally
             {
