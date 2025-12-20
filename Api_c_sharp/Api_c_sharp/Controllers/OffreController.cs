@@ -138,5 +138,62 @@ namespace Api_c_sharp.Controllers
         }
 
 
+        /// <summary>
+        /// Récupère toutes les offres liées à un message.
+        /// </summary>
+        /// <param name="idMessage">Identifiant du message.</param>
+        /// <returns>Liste des offres associées au message.</returns>
+        [ActionName("GetByMessage")]
+        [HttpGet("{idMessage}")]
+        [ProducesResponseType(typeof(IEnumerable<OffreDTO>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<OffreDTO>>> GetByMessage(int idMessage)
+        {
+            var offres = await _manager.GetOffresByMessageIdAsync(idMessage);
+            return Ok(_offremapper.Map<IEnumerable<OffreDTO>>(offres));
+        }
+
+        /// <summary>
+        /// Accepte une offre.
+        /// </summary>
+        /// <param name="idOffre">Identifiant de l'offre à accepter.</param>
+        /// <returns>NoContent si succès, NotFound si l'offre n'existe pas.</returns>
+        [ActionName("AccepterOffre")]
+        [HttpPut("{idOffre}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AccepterOffre(int idOffre)
+        {
+            var offre = await _manager.GetByIdAsync(idOffre);
+
+            if (offre == null)
+                return NotFound();
+
+            offre.EstAccepte = true;
+            await _manager.UpdateAsync(offre, offre);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Refuse une offre.
+        /// </summary>
+        /// <param name="idOffre">Identifiant de l'offre à refuser.</param>
+        /// <returns>NoContent si succès, NotFound si l'offre n'existe pas.</returns>
+        [ActionName("RefuserOffre")]
+        [HttpPut("{idOffre}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> RefuserOffre(int idOffre)
+        {
+            var offre = await _manager.GetByIdAsync(idOffre);
+
+            if (offre == null)
+                return NotFound();
+
+            offre.EstAccepte = false;
+            await _manager.UpdateAsync(offre, offre);
+
+            return NoContent();
+        }
     }
 }

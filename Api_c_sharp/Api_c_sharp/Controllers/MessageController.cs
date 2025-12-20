@@ -30,7 +30,7 @@ public class MessageController(
     /// <item><description><see cref="NotFoundResult"/> si aucun message ne correspond (404).</description></item>
     /// </list>
     /// </returns>
-    [ActionName("GetById")]
+    [ActionName("GetByID")]
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(MessageDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

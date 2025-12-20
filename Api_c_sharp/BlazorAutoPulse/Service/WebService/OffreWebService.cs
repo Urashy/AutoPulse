@@ -77,7 +77,7 @@ namespace BlazorAutoPulse.Service.WebService
             {
                 var request = new HttpRequestMessage(
                     HttpMethod.Post,
-                    BuildUrl($"/")
+                    BuildUrl($"Post")
                 )
                 {
                     Content = JsonContent.Create(offreDto)

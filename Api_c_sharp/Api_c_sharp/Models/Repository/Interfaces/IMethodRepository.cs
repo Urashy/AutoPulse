@@ -120,4 +120,9 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     {
         Task<IEnumerable<Plainte>> GetPlainteByCompteID(int idCompte);
     }
+
+    public interface IOffreRepository
+    {
+        Task<IEnumerable<Offre>> GetOffresByMessageIdAsync(int idMessage);
+    }
 }

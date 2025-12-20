@@ -10,4 +10,6 @@ public class MessageDTO
     public string PseudoCompte { get; set; }
     public bool EstLu { get; set; }
     public IEnumerable<PieceJointeDTO> PiecesJointes { get; set; }
+    public IEnumerable<OffreDTO> Offres { get; set; } = new List<OffreDTO>();
+
 }

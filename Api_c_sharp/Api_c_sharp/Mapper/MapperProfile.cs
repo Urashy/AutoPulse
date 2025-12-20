@@ -323,22 +323,22 @@ public class MapperProfile : Profile
 
         //---------------------------------Message---------------------------------
 
+        
         CreateMap<Message, MessageDTO>()
             .ForMember(dest => dest.PseudoCompte,
-                opt => opt.MapFrom(src => src.MessageCompteNav.Pseudo)).ReverseMap();
-
-        CreateMap<Message, MessageDTO>()
+        opt => opt.MapFrom(src => src.MessageCompteNav.Pseudo))
             .ForMember(dest => dest.PiecesJointes, opt => opt.MapFrom(src =>
-                src.PiecesJointes.Select(pj => new PieceJointeDTO
-                {
-                    IdPieceJointe = pj.IdPieceJointe,
-                    IdMessage = pj.IdMessage,
-                    NomFichier = pj.NomFichier,
-                    TypeMime = pj.TypeMime,
-                    Extension = pj.Extension,
-                    TailleFichier = pj.TailleFichier,
-                    ContenuBase64 = Convert.ToBase64String(pj.Contenu)
-                })));
+        src.PiecesJointes.Select(pj => new PieceJointeDTO
+        {
+            IdPieceJointe = pj.IdPieceJointe,
+            IdMessage = pj.IdMessage,
+            NomFichier = pj.NomFichier,
+            TypeMime = pj.TypeMime,
+            Extension = pj.Extension,
+            TailleFichier = pj.TailleFichier,
+            ContenuBase64 = Convert.ToBase64String(pj.Contenu)
+        })))
+            .ForMember(dest => dest.Offres, opt => opt.MapFrom(src => src.Offres));
 
         CreateMap<MessageCreateDTO, Message>().ReverseMap();
         CreateMap<MessageUpdateDTO, Message>().ReverseMap();
