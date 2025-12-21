@@ -56,7 +56,7 @@ namespace Api_c_sharp.Controllers
         /// </list>
         /// </returns>
         [ActionName("Put")]
-        [HttpPut("{idannonce}/{idCompte}")]
+        [HttpPut("{idoffre}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -152,48 +152,5 @@ namespace Api_c_sharp.Controllers
             return Ok(_offremapper.Map<IEnumerable<OffreDTO>>(offres));
         }
 
-        /// <summary>
-        /// Accepte une offre.
-        /// </summary>
-        /// <param name="idOffre">Identifiant de l'offre à accepter.</param>
-        /// <returns>NoContent si succès, NotFound si l'offre n'existe pas.</returns>
-        [ActionName("AccepterOffre")]
-        [HttpPut("{idOffre}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> AccepterOffre(int idOffre)
-        {
-            var offre = await _manager.GetByIdAsync(idOffre);
-
-            if (offre == null)
-                return NotFound();
-
-            offre.EstAccepte = true;
-            await _manager.UpdateAsync(offre, offre);
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Refuse une offre.
-        /// </summary>
-        /// <param name="idOffre">Identifiant de l'offre à refuser.</param>
-        /// <returns>NoContent si succès, NotFound si l'offre n'existe pas.</returns>
-        [ActionName("RefuserOffre")]
-        [HttpPut("{idOffre}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> RefuserOffre(int idOffre)
-        {
-            var offre = await _manager.GetByIdAsync(idOffre);
-
-            if (offre == null)
-                return NotFound();
-
-            offre.EstAccepte = false;
-            await _manager.UpdateAsync(offre, offre);
-
-            return NoContent();
-        }
     }
 }

@@ -4,8 +4,6 @@ using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service.WebService
 {
-    
-
     public class OffreWebService : BaseWebService<OffreDTO>, IOffreService
     {
         public OffreWebService(HttpClient httpClient) : base(httpClient)
@@ -38,16 +36,54 @@ namespace BlazorAutoPulse.Service.WebService
         {
             try
             {
+                Console.WriteLine($"🔄 Acceptation offre {idOffre}...");
+
+                // ✅ Récupérer l'offre actuelle
+                var offre = await GetByIdAsync(idOffre);
+                if (offre == null)
+                {
+                    Console.WriteLine($"❌ Offre {idOffre} introuvable");
+                    return false;
+                }
+
+                // ✅ Créer le DTO de mise à jour avec EstAccepte = true
+                var updateDto = new OffreUpdateDTO
+                {
+                    IdOffre = offre.IdOffre,
+                    IdMessage = offre.IdMessage,
+                    Valeur = offre.Valeur,
+                    DateOffre = offre.DateOffre,
+                    EstAccepte = true // ✅ ACCEPTER
+                    // ⚠️ IdAnnonce n'est pas dans OffreDTO, donc on ne peut pas le récupérer
+                    // Il faudrait soit l'ajouter dans le DTO, soit le backend ne devrait pas le demander
+                };
+
                 var request = new HttpRequestMessage(
                     HttpMethod.Put,
-                    BuildUrl($"AccepterOffre/{idOffre}")
-                );
+                    BuildUrl($"Put/{idOffre}")
+                )
+                {
+                    Content = JsonContent.Create(updateDto)
+                };
+
                 var response = await SendWithCredentialsAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"✅ Offre {idOffre} acceptée avec succès");
+                }
+                else
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"❌ Erreur acceptation ({response.StatusCode}): {error}");
+                }
+
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur AccepterOffreAsync: {ex.Message}");
+                Console.WriteLine($"❌ Exception AccepterOffreAsync: {ex.Message}");
+                Console.WriteLine($"Stack: {ex.StackTrace}");
                 return false;
             }
         }
@@ -56,21 +92,57 @@ namespace BlazorAutoPulse.Service.WebService
         {
             try
             {
+                Console.WriteLine($"🔄 Refus offre {idOffre}...");
+
+                // ✅ Récupérer l'offre actuelle
+                var offre = await GetByIdAsync(idOffre);
+                if (offre == null)
+                {
+                    Console.WriteLine($"❌ Offre {idOffre} introuvable");
+                    return false;
+                }
+
+                // ✅ Créer le DTO de mise à jour avec EstAccepte = false
+                var updateDto = new OffreUpdateDTO
+                {
+                    IdOffre = offre.IdOffre,
+                    IdMessage = offre.IdMessage,
+                    Valeur = offre.Valeur,
+                    DateOffre = offre.DateOffre,
+                    EstAccepte = false // ✅ REFUSER
+                    // ⚠️ IdAnnonce n'est pas dans OffreDTO
+                };
+
                 var request = new HttpRequestMessage(
                     HttpMethod.Put,
-                    BuildUrl($"RefuserOffre/{idOffre}")
-                );
+                    BuildUrl($"Put/{idOffre}")
+                )
+                {
+                    Content = JsonContent.Create(updateDto)
+                };
+
                 var response = await SendWithCredentialsAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"✅ Offre {idOffre} refusée avec succès");
+                }
+                else
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"❌ Erreur refus ({response.StatusCode}): {error}");
+                }
+
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur RefuserOffreAsync: {ex.Message}");
+                Console.WriteLine($"❌ Exception RefuserOffreAsync: {ex.Message}");
+                Console.WriteLine($"Stack: {ex.StackTrace}");
                 return false;
             }
         }
-    
-        
+
         public async Task CreateAsync(OffreCreateDTO offreDto)
         {
             try
