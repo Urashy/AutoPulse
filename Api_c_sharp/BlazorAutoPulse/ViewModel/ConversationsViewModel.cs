@@ -57,6 +57,9 @@ public class ConversationViewModel : IDisposable
     public int? AnnonceIdForOffre { get; set; }
     public decimal? AnnoncePrixMax { get; set; }
 
+    public string OffreInfoMessage { get; private set; } = "";
+    public string OffreInfoClass { get; private set; } = "";
+
     public ConversationViewModel(
         ConversationStateService conversationState,
         ISignalRService signalR,
@@ -412,6 +415,7 @@ public class ConversationViewModel : IDisposable
         {
             OffreAmount = 0;
             OffreError = "";
+            OffreInfoMessage = ""; // Reset du message
         }
 
         NotifyStateChanged();
@@ -423,11 +427,37 @@ public class ConversationViewModel : IDisposable
         {
             OffreAmount = amount;
             OffreError = "";
+
+            // ✅ LOGIQUE DE CALCUL DÉPLACÉE ICI
+            if (AnnoncePrixMax.HasValue && AnnoncePrixMax.Value > 0)
+            {
+                var diff = AnnoncePrixMax.Value - OffreAmount;
+                var percentage = (Math.Abs(diff) / AnnoncePrixMax.Value) * 100;
+
+                if (diff > 0)
+                {
+                    // Prix inférieur à l'annonce (Réduction)
+                    OffreInfoMessage = $"Réduction de {diff:N0} € (-{percentage:F1}%)";
+                    OffreInfoClass = "offre-reduction"; // Classe CSS pour vert/positif
+                }
+                else if (diff < 0)
+                {
+                    OffreInfoMessage = $"Augmentation de {Math.Abs(diff):N0} € (+{percentage:F1}%)";
+                    OffreInfoClass = "offre-increase";
+                }
+                else
+                {
+                    OffreInfoMessage = "Prix identique à l'annonce";
+                    OffreInfoClass = "offre-neutral";
+                }
+            }
         }
         else
         {
             OffreError = "Montant invalide";
+            OffreInfoMessage = "";
         }
+        NotifyStateChanged(); // Important pour rafraîchir l'UI immédiatement
     }
 
     public async Task SendMessageWithOffre()
@@ -438,7 +468,6 @@ public class ConversationViewModel : IDisposable
         if (string.IsNullOrWhiteSpace(NewMessage) && !ShowOffreMode)
             return;
 
-        // Validation de l'offre
         if (ShowOffreMode)
         {
             if (OffreAmount <= 0)
@@ -448,12 +477,6 @@ public class ConversationViewModel : IDisposable
                 return;
             }
 
-            if (AnnoncePrixMax.HasValue && OffreAmount > AnnoncePrixMax.Value)
-            {
-                OffreError = $"Le montant ne peut pas dépasser {AnnoncePrixMax.Value:N0} €";
-                NotifyStateChanged();
-                return;
-            }
         }
 
         var messageContent = ShowOffreMode
@@ -464,9 +487,9 @@ public class ConversationViewModel : IDisposable
         var offreAmountToSend = OffreAmount;
         var annonceIdToSend = AnnonceIdForOffre;
 
-        // Nettoyer l'UI
         _newMessage = "";
         OffreAmount = 0;
+        OffreInfoMessage = ""; 
         ShowOffreMode = false;
         SelectedFiles.Clear();
         NotifyStateChanged();
@@ -475,7 +498,6 @@ public class ConversationViewModel : IDisposable
         {
             IsUploadingFiles = true;
 
-            // Créer le message
             var messageDto = new MessageDTO
             {
                 IdConversation = SelectedConversation.IdConversation,
@@ -493,7 +515,6 @@ public class ConversationViewModel : IDisposable
                 return;
             }
 
-            // Si c'est une offre, la créer
             if (offreAmountToSend > 0 && annonceIdToSend.HasValue)
             {
                 try
@@ -507,6 +528,8 @@ public class ConversationViewModel : IDisposable
 
                     await _offreService.CreateAsync(offreDto);
                     Console.WriteLine($"✅ Offre de {offreAmountToSend:N0} € créée");
+
+                    await LoadMessages(SelectedConversation.IdConversation);
                 }
                 catch (Exception ex)
                 {
@@ -514,7 +537,6 @@ public class ConversationViewModel : IDisposable
                 }
             }
 
-            // Upload des fichiers
             if (filesToUpload.Any())
             {
                 _ = Task.Run(async () =>
@@ -556,7 +578,6 @@ public class ConversationViewModel : IDisposable
             if (success)
             {
                 Console.WriteLine($"✅ Offre {idOffre} acceptée");
-                // Recharger les messages pour voir le changement
                 if (SelectedConversation != null)
                 {
                     await LoadMessages(SelectedConversation.IdConversation);

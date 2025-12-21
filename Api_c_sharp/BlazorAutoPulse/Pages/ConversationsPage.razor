@@ -119,10 +119,13 @@
                 {
                     <div class="offre-input-zone">
                         <div class="offre-input-header">
-                            <span class="offre-label">💰 Montant de l'offre</span>
+                            <span class="offre-label">
+                                💰
+                                Montant de l'offre
+                            </span>
                             @if (VM.AnnoncePrixMax.HasValue)
                             {
-                                <span class="offre-max">Max: @VM.AnnoncePrixMax.Value.ToString("N0") €</span>
+                                <span class="offre-max">Prix demandé: @VM.AnnoncePrixMax.Value.ToString("N0") €</span>
                             }
                         </div>
                         <div class="offre-input-wrapper">
@@ -130,23 +133,21 @@
                                    class="offre-input-field"
                                    placeholder="Ex: 15000"
                                    min="1"
-                                   max="@VM.AnnoncePrixMax"
                                    step="100"
                                    value="@VM.OffreAmount"
                                    @oninput="@(e => VM.UpdateOffreAmount(e.Value?.ToString() ?? "0"))"
                                    disabled="@VM.EstBloquer" />
                             <span class="offre-currency">€</span>
                         </div>
+
                         @if (!string.IsNullOrEmpty(VM.OffreError))
                         {
                             <small class="offre-error">⚠️ @VM.OffreError</small>
                         }
-                        else if (VM.OffreAmount > 0 && VM.AnnoncePrixMax.HasValue)
+                        else if (!string.IsNullOrEmpty(VM.OffreInfoMessage))
                         {
-                            var reduction = VM.AnnoncePrixMax.Value - VM.OffreAmount;
-                            var percentage = (reduction / VM.AnnoncePrixMax.Value) * 100;
-                            <small class="offre-reduction">
-                                Réduction de @reduction.ToString("N0") € (@percentage.ToString("F1")%)
+                            <small class="@VM.OffreInfoClass">
+                                @VM.OffreInfoMessage
                             </small>
                         }
                     </div>
