@@ -56,7 +56,7 @@ namespace Api_c_sharp.Controllers
         /// </list>
         /// </returns>
         [ActionName("Put")]
-        [HttpPut("{idannonce}/{idCompte}")]
+        [HttpPut("{idoffre}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -136,5 +136,21 @@ namespace Api_c_sharp.Controllers
 
             return _offremapper.Map<OffreDTO>(result);
         }
+
+
+        /// <summary>
+        /// Récupère toutes les offres liées à un message.
+        /// </summary>
+        /// <param name="idMessage">Identifiant du message.</param>
+        /// <returns>Liste des offres associées au message.</returns>
+        [ActionName("GetByMessage")]
+        [HttpGet("{idMessage}")]
+        [ProducesResponseType(typeof(IEnumerable<OffreDTO>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<OffreDTO>>> GetByMessage(int idMessage)
+        {
+            var offres = await _manager.GetOffresByMessageIdAsync(idMessage);
+            return Ok(_offremapper.Map<IEnumerable<OffreDTO>>(offres));
+        }
+
     }
 }

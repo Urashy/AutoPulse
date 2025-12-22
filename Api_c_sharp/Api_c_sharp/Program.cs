@@ -21,7 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+var connectionString = builder.Configuration.GetConnectionString("localeConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -80,6 +80,7 @@ builder.Services.AddScoped<IConversationEnrichmentService, ConversationEnrichmen
 builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalManager>());
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
 builder.Services.AddScoped<INotificationService>(sp => sp.GetRequiredService<NotificationManager>());
+builder.Services.AddScoped<IOffreRepository>(sp => sp.GetRequiredService<OffreManager>());
 
 // Enregistrement du service IA avec HttpClient
 builder.Services.AddHttpClient<IIAService, IAManager>(client =>

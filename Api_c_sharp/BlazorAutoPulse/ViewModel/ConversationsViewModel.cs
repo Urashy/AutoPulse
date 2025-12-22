@@ -17,6 +17,8 @@ public class ConversationViewModel : IDisposable
     private readonly IPieceJointeService _pieceJointeService;
     private readonly IBloqueService _bloqueService;
     private readonly IJSRuntime _jsRuntime;
+    private readonly IOffreService _offreService;
+    private readonly IAnnonceService _annonceService;
 
     public List<MessageDTO> Messages { get; private set; } = new();
     public ConversationListDTO? SelectedConversation { get; private set; }
@@ -48,13 +50,25 @@ public class ConversationViewModel : IDisposable
     public bool EstBloquer { get; set; }
     public string BlocageType { get; set; }
 
+
+    public bool ShowOffreMode { get; set; } = false;
+    public decimal OffreAmount { get; set; } = 0;
+    public string OffreError { get; set; } = "";
+    public int? AnnonceIdForOffre { get; set; }
+    public decimal? AnnoncePrixMax { get; set; }
+
+    public string OffreInfoMessage { get; private set; } = "";
+    public string OffreInfoClass { get; private set; } = "";
+
     public ConversationViewModel(
         ConversationStateService conversationState,
         ISignalRService signalR,
         IMessageService msgService,
         IPieceJointeService pieceJointeService,
         IBloqueService bloqueService,
-        IJSRuntime jsRuntime)
+        IJSRuntime jsRuntime,
+        IOffreService offreService,
+        IAnnonceService annonceService)
     {
         _conversationState = conversationState;
         _signalR = signalR;
@@ -62,6 +76,8 @@ public class ConversationViewModel : IDisposable
         _pieceJointeService = pieceJointeService;
         _bloqueService = bloqueService;
         _jsRuntime = jsRuntime;
+        _offreService = offreService;
+        _annonceService = annonceService;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
         _signalR.OnUserTyping += HandleUserTyping;
@@ -370,5 +386,228 @@ public class ConversationViewModel : IDisposable
         _signalR.OnMessagesRead -= HandleMessagesRead;
         _conversationState.OnStateChanged -= HandleGlobalStateChanged;
         _typingTimer?.Dispose();
+    }
+
+
+    //OFFRES
+
+    public async Task ToggleOffreMode()
+    {
+        ShowOffreMode = !ShowOffreMode;
+
+        if (ShowOffreMode && SelectedConversation != null)
+        {
+            try
+            {
+                var annonce = await _annonceService.GetAnnonceDetailById(SelectedConversation.IdAnnonce);
+                if (annonce != null)
+                {
+                    AnnonceIdForOffre = annonce.IdAnnonce;
+                    AnnoncePrixMax = annonce.Prix;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur chargement annonce: {ex.Message}");
+            }
+        }
+        else
+        {
+            OffreAmount = 0;
+            OffreError = "";
+            OffreInfoMessage = ""; // Reset du message
+        }
+
+        NotifyStateChanged();
+    }
+
+    public void UpdateOffreAmount(string value)
+    {
+        if (decimal.TryParse(value, out var amount))
+        {
+            OffreAmount = amount;
+            OffreError = "";
+
+            // ✅ LOGIQUE DE CALCUL DÉPLACÉE ICI
+            if (AnnoncePrixMax.HasValue && AnnoncePrixMax.Value > 0)
+            {
+                var diff = AnnoncePrixMax.Value - OffreAmount;
+                var percentage = (Math.Abs(diff) / AnnoncePrixMax.Value) * 100;
+
+                if (diff > 0)
+                {
+                    // Prix inférieur à l'annonce (Réduction)
+                    OffreInfoMessage = $"Réduction de {diff:N0} € (-{percentage:F1}%)";
+                    OffreInfoClass = "offre-reduction"; // Classe CSS pour vert/positif
+                }
+                else if (diff < 0)
+                {
+                    OffreInfoMessage = $"Augmentation de {Math.Abs(diff):N0} € (+{percentage:F1}%)";
+                    OffreInfoClass = "offre-increase";
+                }
+                else
+                {
+                    OffreInfoMessage = "Prix identique à l'annonce";
+                    OffreInfoClass = "offre-neutral";
+                }
+            }
+        }
+        else
+        {
+            OffreError = "Montant invalide";
+            OffreInfoMessage = "";
+        }
+        NotifyStateChanged(); // Important pour rafraîchir l'UI immédiatement
+    }
+
+    public async Task SendMessageWithOffre()
+    {
+        if (SelectedConversation == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(NewMessage) && !ShowOffreMode)
+            return;
+
+        if (ShowOffreMode)
+        {
+            if (OffreAmount <= 0)
+            {
+                OffreError = "Le montant doit être supérieur à 0";
+                NotifyStateChanged();
+                return;
+            }
+
+        }
+
+        var messageContent = ShowOffreMode
+            ? $"💰 Offre: {OffreAmount:N0} €\n\n{NewMessage.Trim()}"
+            : NewMessage.Trim();
+
+        var filesToUpload = new List<IBrowserFile>(SelectedFiles);
+        var offreAmountToSend = OffreAmount;
+        var annonceIdToSend = AnnonceIdForOffre;
+
+        _newMessage = "";
+        OffreAmount = 0;
+        OffreInfoMessage = ""; 
+        ShowOffreMode = false;
+        SelectedFiles.Clear();
+        NotifyStateChanged();
+
+        try
+        {
+            IsUploadingFiles = true;
+
+            var messageDto = new MessageDTO
+            {
+                IdConversation = SelectedConversation.IdConversation,
+                IdCompte = CurrentUserId,
+                ContenuMessage = messageContent,
+            };
+
+            var createdMessage = await _messageService.CreateAsync(messageDto);
+
+            if (createdMessage == null)
+            {
+                Console.WriteLine("❌ Erreur : message non créé");
+                _newMessage = messageContent;
+                NotifyStateChanged();
+                return;
+            }
+
+            if (offreAmountToSend > 0 && annonceIdToSend.HasValue)
+            {
+                try
+                {
+                    var offreDto = new OffreCreateDTO
+                    {
+                        IdAnnonce = annonceIdToSend.Value,
+                        IdMessage = createdMessage.IdMessage,
+                        Valeur = offreAmountToSend
+                    };
+
+                    await _offreService.CreateAsync(offreDto);
+                    Console.WriteLine($"✅ Offre de {offreAmountToSend:N0} € créée");
+
+                    await LoadMessages(SelectedConversation.IdConversation);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Erreur création offre: {ex.Message}");
+                }
+            }
+
+            if (filesToUpload.Any())
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
+                            createdMessage.IdMessage,
+                            filesToUpload);
+
+                        createdMessage.PiecesJointes = uploadedFiles;
+                        await Task.Delay(200);
+                        NotifyStateChanged();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Erreur upload: {ex.Message}");
+                    }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur envoi message: {ex.Message}");
+            _newMessage = messageContent;
+        }
+        finally
+        {
+            IsUploadingFiles = false;
+            NotifyStateChanged();
+        }
+    }
+
+    public async Task AccepterOffre(int idOffre)
+    {
+        try
+        {
+            var success = await _offreService.AccepterOffreAsync(idOffre);
+            if (success)
+            {
+                Console.WriteLine($"✅ Offre {idOffre} acceptée");
+                if (SelectedConversation != null)
+                {
+                    await LoadMessages(SelectedConversation.IdConversation);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur acceptation offre: {ex.Message}");
+        }
+    }
+
+    public async Task RefuserOffre(int idOffre)
+    {
+        try
+        {
+            var success = await _offreService.RefuserOffreAsync(idOffre);
+            if (success)
+            {
+                Console.WriteLine($"✅ Offre {idOffre} refusée");
+                // Recharger les messages
+                if (SelectedConversation != null)
+                {
+                    await LoadMessages(SelectedConversation.IdConversation);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur refus offre: {ex.Message}");
+        }
     }
 }

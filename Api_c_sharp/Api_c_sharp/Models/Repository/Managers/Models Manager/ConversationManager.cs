@@ -28,14 +28,64 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual async Task<Conversation> PostComplet(Conversation conversation, string contenumessage, int idcompteenvoi, int idcompterecoi)
         {
+            var existingConversation = await dbSet
+                .Include(c => c.ApourConversations)
+                .Include(c => c.Messages)
+                .FirstOrDefaultAsync(c =>
+                    c.IdAnnonce == conversation.IdAnnonce &&
+                    c.ApourConversations.Any(ac => ac.IdCompte == idcompteenvoi) &&
+                    c.ApourConversations.Any(ac => ac.IdCompte == idcompterecoi));
+
+            if (existingConversation != null)
+            {
+                var newMessage = new Message
+                {
+                    IdConversation = existingConversation.IdConversation,
+                    EstLu = false,
+                    DateEnvoiMessage = DateTime.UtcNow,
+                    ContenuMessage = contenumessage,
+                    IdCompte = idcompteenvoi
+                };
+
+                context.Messages.Add(newMessage);
+
+                existingConversation.DateDernierMessage = DateTime.UtcNow;
+
+                await context.SaveChangesAsync();
+                return existingConversation;
+            }
+
             await dbSet.AddAsync(conversation);
             await context.SaveChangesAsync();
-            
-            context.APourConversations.Add(new APourConversation { IdCompte = idcompteenvoi, IdConversation = conversation.IdConversation });
-            context.APourConversations.Add(new APourConversation { IdCompte = idcompterecoi, IdConversation = conversation.IdConversation });
 
-            context.Messages.Add(new Message { IdConversation = conversation.IdConversation, EstLu = false, DateEnvoiMessage = DateTime.UtcNow, ContenuMessage = contenumessage, IdCompte = idcompteenvoi });
+            var participant1 = new APourConversation
+            {
+                IdCompte = idcompteenvoi,
+                IdConversation = conversation.IdConversation
+            };
+
+            var participant2 = new APourConversation
+            {
+                IdCompte = idcompterecoi,
+                IdConversation = conversation.IdConversation
+            };
+
+            context.APourConversations.Add(participant1);
+            context.APourConversations.Add(participant2);
+
+            var firstMessage = new Message
+            {
+                IdConversation = conversation.IdConversation,
+                EstLu = false,
+                DateEnvoiMessage = DateTime.UtcNow,
+                ContenuMessage = contenumessage,
+                IdCompte = idcompteenvoi
+            };
+
+            context.Messages.Add(firstMessage);
+
             await context.SaveChangesAsync();
+
             return conversation;
         }
     }

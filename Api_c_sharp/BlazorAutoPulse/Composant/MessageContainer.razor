@@ -19,6 +19,20 @@
                     <div class="message-bubble">
                         <p>@msg.ContenuMessage</p>
 
+                        @* Affichage des offres liées au message *@
+                        @if (msg.Offres != null && msg.Offres.Any())
+                        {
+                            <div class="message-offres">
+                                @foreach (var offre in msg.Offres)
+                                {
+                                    <OffreMessageComponent Offre="@offre"
+                                                           ShowActions="@(msg.IdCompte != CurrentUserId)"
+                                                           OnAccept="@(async (idOffre) => await OnOffreAccept.InvokeAsync(idOffre))"
+                                                           OnRefuse="@(async (idOffre) => await OnOffreRefuse.InvokeAsync(idOffre))" />
+                                }
+                            </div>
+                        }
+
                         @if (msg.PiecesJointes != null && msg.PiecesJointes.Any())
                         {
                             <div class="message-attachments">
@@ -101,7 +115,9 @@
     [Parameter] public bool IsLoadingMessages { get; set; }
     [Parameter] public bool IsTyping { get; set; }
     [Parameter] public int? ConversationId { get; set; }
-    
+    [Parameter] public EventCallback<int> OnOffreAccept { get; set; }
+    [Parameter] public EventCallback<int> OnOffreRefuse { get; set; }
+
     // Paramètres de blocage
     [Parameter] public string BlocageType { get; set; } = "";
 

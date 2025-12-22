@@ -1,0 +1,56 @@
+@using AutoPulse.Shared.DTO;
+
+@if (Offre != null)
+{
+    <div class="offre-card @GetOffreStatusClass()">
+        <div class="offre-header">
+            <span class="offre-icon">💰</span>
+            <span class="offre-title">Offre de prix</span>
+            @if (Offre.EstAccepte.HasValue)
+            {
+                <span class="offre-status">
+                    @(Offre.EstAccepte.Value ? "✅ Acceptée" : "❌ Refusée")
+                </span>
+            }
+            else
+            {
+                <span class="offre-status pending">⏳ En attente</span>
+            }
+        </div>
+
+        <div class="offre-amount">
+            @Offre.Valeur.ToString("N0") €
+        </div>
+
+        <div class="offre-date">
+            Proposée le @Offre.DateOffre.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")
+        </div>
+
+        @if (!Offre.EstAccepte.HasValue && ShowActions)
+        {
+            <div class="offre-actions">
+                <button class="btn-accept" @onclick="() => OnAccept.InvokeAsync(Offre.IdOffre)">
+                    ✓ Accepter
+                </button>
+                <button class="btn-refuse" @onclick="() => OnRefuse.InvokeAsync(Offre.IdOffre)">
+                    ✕ Refuser
+                </button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public OffreDTO? Offre { get; set; }
+    [Parameter] public bool ShowActions { get; set; }
+    [Parameter] public EventCallback<int> OnAccept { get; set; }
+    [Parameter] public EventCallback<int> OnRefuse { get; set; }
+
+    private string GetOffreStatusClass()
+    {
+        if (!Offre?.EstAccepte.HasValue ?? true)
+            return "offre-pending";
+
+        return Offre.EstAccepte.Value ? "offre-accepted" : "offre-refused";
+    }
+}
