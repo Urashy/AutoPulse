@@ -962,7 +962,7 @@ namespace BlazorAutoPulse.ViewModel
                         var offreDto = new OffreCreateDTO
                         {
                             IdAnnonce = Annonce.IdAnnonce,
-                            IdMessage = ,
+                            IdMessage = createdMessage.IdMessage,
                             Valeur = offreAmount
                         };
 

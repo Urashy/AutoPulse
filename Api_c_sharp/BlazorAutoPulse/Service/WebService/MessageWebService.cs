@@ -12,7 +12,7 @@ public class MessageWebService: BaseWebService<MessageDTO>, IMessageService
 
     protected override string ApiEndpoint => "Message";
 
-    public async Task<MessageCreateDTO> CreateMessageAsync(MessageCreateDTO messageCreateDTO)
+    public async Task<MessageDTO> CreateMessageAsync(MessageCreateDTO messageCreateDTO)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("Post"))
         {
@@ -23,13 +23,13 @@ public class MessageWebService: BaseWebService<MessageDTO>, IMessageService
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<MessageCreateDTO>();
+            return await response.Content.ReadFromJsonAsync<MessageDTO>();
         }
         else
         {
             var error = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"Erreur Post : {error}");
-            return await response.Content.ReadFromJsonAsync<MessageCreateDTO>();
+            return await response.Content.ReadFromJsonAsync<MessageDTO>();
         }
     }
 

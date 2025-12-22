@@ -73,9 +73,9 @@ public class MessageController(
     /// </returns>
     [ActionName("Post")]
     [HttpPost]
-    [ProducesResponseType(typeof(MessageCreateDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(MessageDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<MessageCreateDTO>> Post([FromBody] MessageCreateDTO dto)
+    public async Task<ActionResult<MessageDTO>> Post([FromBody] MessageCreateDTO dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -85,9 +85,9 @@ public class MessageController(
         entity.EstLu = false;
 
         await _journalService.LogEnvoiMessageAsync(dto.IdCompte, dto.IdConversation, dto.ContenuMessage);
-        await _manager.AddAsync(entity);
+        entity = await _manager.AddAsync(entity);
 
-        if(_hubContext != null)
+        if (_hubContext != null)
         {
             await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
             .SendAsync("ReceiveMessage",
@@ -97,7 +97,13 @@ public class MessageController(
                 entity.DateEnvoiMessage);
         }
 
-        return CreatedAtAction(nameof(GetByID), new { id = entity.IdMessage }, entity);
+        var messageDto = _messagemapper.Map<MessageDTO>(entity);
+
+        return CreatedAtAction(
+            nameof(GetByID),
+            new { id = entity.IdMessage },
+            messageDto
+        );
     }
 
 
