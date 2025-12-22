@@ -138,11 +138,9 @@ public class ConversationViewModel : IDisposable
         var messageContent = NewMessage.Trim();
         var filesToUpload = new List<IBrowserFile>(SelectedFiles);
         
-        // ✅ Nettoyer immédiatement
         _newMessage = "";
         SelectedFiles.Clear();
         
-        // ✅ UN SEUL rafraîchissement
         NotifyStateChanged();
 
         try
@@ -459,14 +457,21 @@ public class ConversationViewModel : IDisposable
         NotifyStateChanged(); // Important pour rafraîchir l'UI immédiatement
     }
 
+
     public async Task SendMessageWithOffre()
     {
         if (SelectedConversation == null)
             return;
 
-        if (string.IsNullOrWhiteSpace(NewMessage) && !ShowOffreMode)
+        // ✅ Autoriser l'envoi si : message texte OU offre OU fichiers
+        bool hasContent = !string.IsNullOrWhiteSpace(NewMessage) ||
+                          (ShowOffreMode && OffreAmount > 0) ||
+                          SelectedFiles.Any();
+
+        if (!hasContent)
             return;
 
+        // ✅ Valider l'offre si le mode offre est activé
         if (ShowOffreMode && OffreAmount <= 0)
         {
             OffreError = "Le montant doit être supérieur à 0";
@@ -474,15 +479,19 @@ public class ConversationViewModel : IDisposable
             return;
         }
 
-        // ✅ PAS de formatage ici, juste sauvegarder les valeurs
-        var messageText = NewMessage.Trim();
+        // ✅ Sauvegarder les valeurs avant reset
+        var messageText = string.IsNullOrWhiteSpace(NewMessage)
+            ? (ShowOffreMode ? $"💰 Offre de {OffreAmount:N0} €" : "[Fichier(s) joint(s)]")
+            : NewMessage.Trim();
+
         var filesToUpload = new List<IBrowserFile>(SelectedFiles);
-        var offreAmountToSend = OffreAmount;
+        var offreAmountToSend = ShowOffreMode ? OffreAmount : 0;
         var annonceIdToSend = AnnonceIdForOffre;
 
         // ✅ Reset immédiat
         _newMessage = "";
         OffreAmount = 0;
+        OffreError = "";
         OffreInfoMessage = "";
         ShowOffreMode = false;
         SelectedFiles.Clear();
@@ -492,12 +501,12 @@ public class ConversationViewModel : IDisposable
         {
             IsUploadingFiles = true;
 
-            // ✅ Créer le message texte simple
+            // ✅ Créer le message texte
             var messageDto = new MessageDTO
             {
                 IdConversation = SelectedConversation.IdConversation,
                 IdCompte = CurrentUserId,
-                ContenuMessage = messageText,  // ✅ Texte brut sans "💰 Offre..."
+                ContenuMessage = messageText,
             };
 
             var createdMessage = await _messageService.CreateAsync(messageDto);
@@ -510,7 +519,7 @@ public class ConversationViewModel : IDisposable
                 return;
             }
 
-            // ✅ Créer l'offre LIÉE au message
+            // ✅ Créer l'offre LIÉE au message (SI mode offre était activé)
             if (offreAmountToSend > 0 && annonceIdToSend.HasValue)
             {
                 try
@@ -523,7 +532,7 @@ public class ConversationViewModel : IDisposable
                     };
 
                     await _offreService.CreateAsync(offreDto);
-                    Console.WriteLine($"✅ Offre de {offreAmountToSend:N0} € créée");
+                    Console.WriteLine($"✅ Offre de {offreAmountToSend:N0} € créée pour le message {createdMessage.IdMessage}");
 
                     // ✅ Recharger pour afficher l'offre via le composant
                     await LoadMessages(SelectedConversation.IdConversation);
@@ -534,7 +543,7 @@ public class ConversationViewModel : IDisposable
                 }
             }
 
-            // Upload des fichiers...
+            // Upload des fichiers en arrière-plan
             if (filesToUpload.Any())
             {
                 _ = Task.Run(async () =>

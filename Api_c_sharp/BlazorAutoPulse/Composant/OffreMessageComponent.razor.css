@@ -1,406 +1,345 @@
-/* ========== WRAPPER POUR LE BLOCAGE ========== */
-.messages-wrapper {
-    position: relative;
-    flex: 1;
-    display: flex;
-    min-height: 0;
+/* ========== CARTE D'OFFRE ========== */
+.offre-card {
+    background: linear-gradient(135deg, rgba(20, 20, 25, 0.95), rgba(15, 15, 20, 0.95));
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideIn 0.4s ease-out;
 }
 
-/* ========== MESSAGES CONTAINER ========== */
-.messages-container {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 20px;
-    transition: filter 0.3s ease, opacity 0.3s ease;
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.messages-container.blocked {
-    filter: blur(3px) grayscale(60%);
-    opacity: 0.4;
-    pointer-events: none;
-    user-select: none;
+.offre-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
-.messages-container::-webkit-scrollbar {
-    width: 8px;
+/* ========== ÉTATS DE L'OFFRE ========== */
+.offre-card.offre-pending {
+    border-left: 4px solid #fbbf24;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(20, 20, 25, 0.95));
 }
 
-.messages-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
+.offre-card.offre-accepted {
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(20, 20, 25, 0.95));
 }
 
-.messages-container::-webkit-scrollbar-thumb {
-    background: rgba(0, 212, 255, 0.5);
-    border-radius: 4px;
+.offre-card.offre-refused {
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(20, 20, 25, 0.95));
+    opacity: 0.7;
 }
 
-.messages-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 212, 255, 0.7);
-}
-
-/* ========== OVERLAY DE BLOCAGE ========== */
-.block-overlay {
-    position: absolute;
-    inset: 0;
+/* ========== HEADER DE L'OFFRE ========== */
+.offre-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 1000;
-    animation: fadeIn 0.4s ease;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.offre-icon {
+    font-size: 24px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+.offre-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.3px;
+}
+
+.offre-status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: fadeIn 0.5s ease;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: scale(0.95);
+        transform: scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
     }
 }
 
-.block-card {
-    background: linear-gradient(135deg, rgba(30, 30, 35, 0.98), rgba(20, 20, 25, 0.98));
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    padding: 40px 32px;
-    max-width: 420px;
-    width: 100%;
-    box-shadow:
-            0 20px 60px rgba(0, 0, 0, 0.5),
-            0 0 0 1px rgba(255, 255, 255, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    text-align: center;
-    animation: slideUp 0.5s ease;
+.offre-status.pending {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.offre-status:not(.pending) {
+    animation: statusPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-.block-icon-container {
-    position: relative;
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 24px;
-}
-
-.block-icon {
-    width: 80px;
-    height: 80px;
-    padding: 18px;
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    border-radius: 50%;
-    color: #fff;
-    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
-    position: relative;
-    z-index: 1;
-    animation: iconPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-@keyframes iconPop {
+@keyframes statusPop {
     0% {
         transform: scale(0) rotate(-180deg);
     }
+
     50% {
         transform: scale(1.1) rotate(10deg);
     }
+
     100% {
         transform: scale(1) rotate(0deg);
     }
 }
 
-.block-pulse {
-    position: absolute;
-    inset: -10px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    opacity: 0.3;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 0.3;
-    }
-    50% {
-        transform: scale(1.2);
-        opacity: 0;
-    }
-}
-
-.block-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: #fff;
-    margin: 0 0 12px 0;
-    letter-spacing: -0.5px;
-}
-
-.block-message {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.7);
-    line-height: 1.6;
-    margin: 0 0 24px 0;
-}
-
-.block-divider {
-    height: 1px;
-    background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.1),
-            transparent
-    );
-    margin: 24px 0;
-}
-
-.block-info {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.5);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.block-info::before {
-    content: "ⓘ";
-    font-size: 16px;
-    opacity: 0.7;
-}
-
-/* ========== LOADING DES MESSAGES ========== */
-.messages-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    gap: 20px;
-}
-
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(0, 212, 255, 0.2);
-    border-top: 4px solid #00d4ff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-.messages-loading p {
-    color: #888;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* ========== MESSAGES ========== */
-.message {
-    display: flex;
-    align-items: flex-end;
-}
-
-.message.sent {
-    justify-content: flex-end;
-}
-
-.message-bubble {
-    max-width: 70%;
-    padding: 12px 16px;
-    border-radius: 18px;
+/* ========== MONTANT DE L'OFFRE ========== */
+.offre-amount {
+    font-size: 32px;
+    font-weight: 800;
     background: linear-gradient(135deg, #00d4ff, #0099ff);
-    color: #fff;
-    word-wrap: break-word;
-    word-break: break-word;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 12px 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
 }
 
-.message.received .message-bubble {
-    background: rgba(255, 255, 255, 0.1);
+.offre-card.offre-accepted .offre-amount {
+    background: linear-gradient(135deg, #10b981, #059669);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.message-bubble p {
-    margin: 0 0 5px 0;
-    white-space: pre-wrap;
+.offre-card.offre-refused .offre-amount {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.6;
 }
 
-.message-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-}
-
-.message-time {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
-.read-indicator {
+/* ========== DATE DE L'OFFRE ========== */
+.offre-date {
     font-size: 12px;
-    color: #fff;
-    opacity: 0.8;
-}
-
-/* ========== PIÈCES JOINTES ========== */
-.message-attachments {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.attachment-item {
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.attachment-image {
-    max-width: 100%;
-    max-height: 300px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.attachment-image:hover {
-    transform: scale(1.02);
-}
-
-.attachment-file {
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 14px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    text-decoration: none;
-    color: inherit;
-    transition: background 0.2s;
+    gap: 6px;
 }
 
-.attachment-file:hover {
-    background: rgba(0, 0, 0, 0.4);
-}
-
-.file-icon {
-    font-size: 24px;
-}
-
-.file-details {
-    display: flex;
-    flex-direction: column;
-}
-
-.file-name {
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.file-size {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
-/* ========== TYPING INDICATOR ========== */
-.typing-indicator {
-    display: flex;
-    gap: 5px;
-    padding: 10px;
-}
-
-.typing-indicator span {
-    width: 8px;
-    height: 8px;
-    background: #00d4ff;
-    border-radius: 50%;
-    animation: typing 1.4s infinite;
-}
-
-.typing-indicator span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.typing-indicator span:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-@keyframes typing {
-    0%, 60%, 100% {
-        transform: translateY(0);
+    .offre-date::before {
+        content: "🕒";
+        font-size: 14px;
     }
-    30% {
-        transform: translateY(-10px);
+
+/* ========== ACTIONS (BOUTONS) ========== */
+.offre-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+    .offre-actions button {
+        flex: 1;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .offre-actions button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        .offre-actions button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .offre-actions button:active {
+            transform: scale(0.95);
+        }
+
+/* ========== BOUTON ACCEPTER ========== */
+.btn-accept {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+    .btn-accept:hover {
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        transform: translateY(-2px);
+    }
+
+    .btn-accept:active {
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+/* ========== BOUTON REFUSER ========== */
+.btn-refuse {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+    .btn-refuse:hover {
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+        transform: translateY(-2px);
+    }
+
+    .btn-refuse:active {
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+/* ========== BADGE DE STATUT (ACCEPTÉE / REFUSÉE) ========== */
+.offre-card.offre-accepted .offre-status {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.offre-card.offre-refused .offre-status {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* ========== EFFET DE PULSE POUR LES OFFRES EN ATTENTE ========== */
+.offre-card.offre-pending::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+    animation: pulse-line 2s ease-in-out infinite;
+}
+
+@keyframes pulse-line {
+    0%, 100% {
+        opacity: 0.3;
+        transform: translateX(-100%);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateX(100%);
     }
 }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
-    .message-bubble {
-        max-width: 85%;
+    .offre-card {
+        padding: 14px;
     }
 
-    .block-card {
-        padding: 32px 24px;
-        max-width: 90%;
+    .offre-amount {
+        font-size: 28px;
     }
 
-    .block-icon-container {
-        width: 70px;
-        height: 70px;
+    .offre-actions {
+        flex-direction: column;
     }
 
-    .block-icon {
-        width: 70px;
-        height: 70px;
-        padding: 16px;
-    }
+        .offre-actions button {
+            padding: 12px 16px;
+        }
 
-    .block-title {
+    .offre-icon {
         font-size: 20px;
     }
 
-    .block-message {
-        font-size: 14px;
+    .offre-title {
+        font-size: 13px;
+    }
+
+    .offre-status {
+        font-size: 11px;
+        padding: 3px 10px;
     }
 }
 
-.btn-primary {
-    padding: 10px 20px;
-    margin-bottom: 30px;
-    background: linear-gradient(135deg, #00d4ff, #0099ff);
-    border: none;
-    color: #fff;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
+/* ========== ANIMATION AU CHARGEMENT ========== */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+
+    100% {
+        background-position: 1000px 0;
+    }
 }
 
-.btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 212, 255, 0.4);
+.offre-card.loading {
+    background: linear-gradient( 90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75% );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
 }
+
+/* ========== AMÉLIORATION DE LA LISIBILITÉ ========== */
+.offre-card * {
+    position: relative;
+    z-index: 1;
+}
+
+/* ========== GLOW EFFECT POUR LES OFFRES ACCEPTÉES ========== */
+.offre-card.offre-accepted {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 40px rgba(16, 185, 129, 0.2);
+}
+
+    .offre-card.offre-accepted:hover {
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 60px rgba(16, 185, 129, 0.3);
+    }

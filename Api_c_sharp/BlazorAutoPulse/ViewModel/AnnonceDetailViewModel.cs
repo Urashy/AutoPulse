@@ -733,61 +733,6 @@ namespace BlazorAutoPulse.ViewModel
             contactMessage = message;
         }
 
-        public async Task SendContactMessage()
-        {
-            if (!CurrentUserId.HasValue || Annonce == null)
-            {
-                contactError = "Vous devez être connecté pour envoyer un message";
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(contactMessage))
-            {
-                contactError = "Le message ne peut pas être vide";
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            isLoadingContact = true;
-            contactError = "";
-            _refreshUI?.Invoke();
-
-            try
-            {
-                var conversationDto = new ConversationCreateDTO
-                {
-                    IdAnnonce = Annonce.IdAnnonce,
-                    message = contactMessage,
-                    DateDernierMessage = DateTime.Now
-                };
-                
-                await _conversationService.PostComplet(
-                    conversationDto, 
-                    CurrentUserId.Value, 
-                    Annonce.IdVendeur
-                );
-
-                // Succès : fermer la popup et vider le message
-                _notificationService.ShowSuccess(
-                    "Message envoyé",
-                    "Votre message a été envoyé au vendeur avec succès"
-                );
-        
-                contactMessage = "";
-                showContactPopup = false;
-            }
-            catch (Exception ex)
-            {
-                contactError = "Erreur lors de l'envoi du message. Veuillez réessayer.";
-                Console.WriteLine($"Erreur envoi message: {ex.Message}");
-            }
-            finally
-            {
-                isLoadingContact = false;
-                _refreshUI?.Invoke();
-            }
-        }
 
         public IEnumerable<AnnonceDTO> GetVisibleSimilarAds()
         {
@@ -908,18 +853,22 @@ namespace BlazorAutoPulse.ViewModel
                 return;
             }
 
-            if (showOffreMode && offreAmount <= 0)
+            // ✅ Validation de l'offre SI le mode offre est activé
+            if (showOffreMode)
             {
-                offreError = "Le montant de l'offre doit être supérieur à 0";
-                _refreshUI?.Invoke();
-                return;
-            }
+                if (offreAmount <= 0)
+                {
+                    offreError = "Le montant de l'offre doit être supérieur à 0";
+                    _refreshUI?.Invoke();
+                    return;
+                }
 
-            if (showOffreMode && offreAmount > Annonce.Prix)
-            {
-                offreError = "Le montant de l'offre ne peut pas être supérieur au prix de l'annonce";
-                _refreshUI?.Invoke();
-                return;
+                if (offreAmount > Annonce.Prix)
+                {
+                    offreError = "Le montant de l'offre ne peut pas être supérieur au prix de l'annonce";
+                    _refreshUI?.Invoke();
+                    return;
+                }
             }
 
             isLoadingContact = true;
@@ -929,7 +878,7 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // Créer ou récupérer la conversation
+                // ✅ Créer ou récupérer la conversation
                 var conversationDto = new ConversationCreateDTO
                 {
                     IdAnnonce = Annonce.IdAnnonce,
@@ -943,9 +892,10 @@ namespace BlazorAutoPulse.ViewModel
                     Annonce.IdVendeur
                 );
 
-                // Si mode offre activé, créer l'offre
+                // ✅ Si mode offre activé ET conversation créée avec succès
                 if (showOffreMode && conversation != null)
                 {
+                    // D'abord créer le message
                     var messageDto = new MessageCreateDTO
                     {
                         IdConversation = conversation.IdConversation,
@@ -955,8 +905,7 @@ namespace BlazorAutoPulse.ViewModel
 
                     var createdMessage = await _messageService.CreateMessageAsync(messageDto);
 
-
-
+                    // Puis créer l'offre liée au message
                     if (createdMessage != null)
                     {
                         var offreDto = new OffreCreateDTO
@@ -967,9 +916,12 @@ namespace BlazorAutoPulse.ViewModel
                         };
 
                         await _offreService.CreateAsync(offreDto);
+
+                        Console.WriteLine($"✅ Offre de {offreAmount:N0} € créée pour message {createdMessage.IdMessage}");
                     }
                 }
 
+                // ✅ Notification de succès
                 _notificationService.ShowSuccess(
                     showOffreMode ? "Offre envoyée" : "Message envoyé",
                     showOffreMode
@@ -977,6 +929,7 @@ namespace BlazorAutoPulse.ViewModel
                         : "Votre message a été envoyé au vendeur avec succès"
                 );
 
+                // ✅ Reset et fermeture
                 contactMessage = "";
                 offreAmount = 0;
                 showOffreMode = false;

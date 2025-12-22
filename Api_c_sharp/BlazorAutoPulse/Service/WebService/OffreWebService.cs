@@ -31,14 +31,13 @@ namespace BlazorAutoPulse.Service.WebService
                 return Enumerable.Empty<OffreDTO>();
             }
         }
-
         public async Task<bool> AccepterOffreAsync(int idOffre)
         {
             try
             {
                 Console.WriteLine($"🔄 Acceptation offre {idOffre}...");
 
-                // ✅ Récupérer l'offre actuelle
+                // ✅ Récupérer l'offre actuelle (maintenant avec IdAnnonce inclus)
                 var offre = await GetByIdAsync(idOffre);
                 if (offre == null)
                 {
@@ -52,10 +51,9 @@ namespace BlazorAutoPulse.Service.WebService
                     IdOffre = offre.IdOffre,
                     IdMessage = offre.IdMessage,
                     Valeur = offre.Valeur,
+                    IdAnnonce = offre.IdAnnonce,
                     DateOffre = offre.DateOffre,
                     EstAccepte = true // ✅ ACCEPTER
-                    // ⚠️ IdAnnonce n'est pas dans OffreDTO, donc on ne peut pas le récupérer
-                    // Il faudrait soit l'ajouter dans le DTO, soit le backend ne devrait pas le demander
                 };
 
                 var request = new HttpRequestMessage(
@@ -83,7 +81,6 @@ namespace BlazorAutoPulse.Service.WebService
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Exception AccepterOffreAsync: {ex.Message}");
-                Console.WriteLine($"Stack: {ex.StackTrace}");
                 return false;
             }
         }
@@ -109,8 +106,8 @@ namespace BlazorAutoPulse.Service.WebService
                     IdMessage = offre.IdMessage,
                     Valeur = offre.Valeur,
                     DateOffre = offre.DateOffre,
+                    IdAnnonce = offre.IdAnnonce,
                     EstAccepte = false // ✅ REFUSER
-                    // ⚠️ IdAnnonce n'est pas dans OffreDTO
                 };
 
                 var request = new HttpRequestMessage(
@@ -138,11 +135,9 @@ namespace BlazorAutoPulse.Service.WebService
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Exception RefuserOffreAsync: {ex.Message}");
-                Console.WriteLine($"Stack: {ex.StackTrace}");
                 return false;
             }
         }
-
         public async Task CreateAsync(OffreCreateDTO offreDto)
         {
             try
