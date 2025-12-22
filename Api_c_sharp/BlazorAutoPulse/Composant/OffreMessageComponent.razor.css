@@ -1,5 +1,6 @@
 /* ========== CARTE D'OFFRE ========== */
 .offre-card {
+    position: relative; /* ✅ AJOUT pour contenir le ::after */
     background: linear-gradient(135deg, rgba(20, 20, 25, 0.95), rgba(15, 15, 20, 0.95));
     backdrop-filter: blur(10px);
     border-radius: 16px;
@@ -9,6 +10,7 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     animation: slideIn 0.4s ease-out;
+    overflow: hidden; /* ✅ AJOUT pour masquer le débordement */
 }
 
 @keyframes slideIn {

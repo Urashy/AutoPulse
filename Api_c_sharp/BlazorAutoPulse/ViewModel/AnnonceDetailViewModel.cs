@@ -837,6 +837,7 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
+        // ✅ MÉTHODE CORRIGÉE - Plus de double message
         public async Task SendContactMessageWithOffre()
         {
             if (!CurrentUserId.HasValue || Annonce == null)
@@ -878,7 +879,6 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // ✅ Créer ou récupérer la conversation
                 var conversationDto = new ConversationCreateDTO
                 {
                     IdAnnonce = Annonce.IdAnnonce,
@@ -892,32 +892,34 @@ namespace BlazorAutoPulse.ViewModel
                     Annonce.IdVendeur
                 );
 
-                // ✅ Si mode offre activé ET conversation créée avec succès
                 if (showOffreMode && conversation != null)
                 {
-                    // D'abord créer le message
-                    var messageDto = new MessageCreateDTO
-                    {
-                        IdConversation = conversation.IdConversation,
-                        IdCompte = CurrentUserId.Value,
-                        ContenuMessage = contactMessage
-                    };
 
-                    var createdMessage = await _messageService.CreateMessageAsync(messageDto);
+                    // 🔍 SOLUTION : Récupérer les messages de la conversation pour trouver le dernier
+                    var messages = await _messageService.GetMessagesByConversationAndMarkAsRead(
+                        conversation.IdConversation,
+                        CurrentUserId.Value
+                    );
 
-                    // Puis créer l'offre liée au message
-                    if (createdMessage != null)
+                    var lastMessage = messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault();
+
+                    if (lastMessage != null)
                     {
+                        // ✅ Créer l'offre liée au message EXISTANT
                         var offreDto = new OffreCreateDTO
                         {
                             IdAnnonce = Annonce.IdAnnonce,
-                            IdMessage = createdMessage.IdMessage,
+                            IdMessage = lastMessage.IdMessage,
                             Valeur = offreAmount
                         };
 
                         await _offreService.CreateAsync(offreDto);
 
-                        Console.WriteLine($"✅ Offre de {offreAmount:N0} € créée pour message {createdMessage.IdMessage}");
+                        Console.WriteLine($"✅ Offre de {offreAmount:N0} € créée pour message {lastMessage.IdMessage}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("❌ Impossible de trouver le message créé");
                     }
                 }
 
