@@ -946,22 +946,23 @@ namespace BlazorAutoPulse.ViewModel
                 // Si mode offre activé, créer l'offre
                 if (showOffreMode && conversation != null)
                 {
-                    // Créer un message pour l'offre
-                    var messageDto = new MessageDTO
+                    var messageDto = new MessageCreateDTO
                     {
                         IdConversation = conversation.IdConversation,
                         IdCompte = CurrentUserId.Value,
-                        ContenuMessage = $"💰 Offre: {offreAmount:N0} €\n\n{contactMessage}"
+                        ContenuMessage = contactMessage
                     };
 
-                    var createdMessage = await _messageService.CreateAsync(messageDto);
+                    var createdMessage = await _messageService.CreateMessageAsync(messageDto);
+
+
 
                     if (createdMessage != null)
                     {
                         var offreDto = new OffreCreateDTO
                         {
                             IdAnnonce = Annonce.IdAnnonce,
-                            IdMessage = createdMessage.IdMessage,
+                            IdMessage = ,
                             Valeur = offreAmount
                         };
 

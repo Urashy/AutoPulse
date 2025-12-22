@@ -203,8 +203,8 @@ public class ConversationController(
             return BadRequest(ModelState);
 
         var entity = _mapper.Map<Conversation>(dto);
-        await _manager.PostComplet(entity, dto.message,idcompteenvoi,idcompterecoi);
-        
+        entity = await _manager.PostComplet(entity, dto.message, idcompteenvoi, idcompterecoi);
+
         if (_hubContext != null)
         {
             await MessageHub.NotifyNewConversation(
