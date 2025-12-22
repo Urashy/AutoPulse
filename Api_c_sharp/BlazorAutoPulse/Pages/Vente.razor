@@ -452,7 +452,11 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre d'airbag</label>
+                        <input type="number" placeholder="Par défaut : 4" @bind="VM.VoitureDetailDto.NbAirbag" required>
+                    </div>
                     <label class="custom-checkbox-wrapper">
                         <input type="checkbox"
                                class="custom-checkbox-input"

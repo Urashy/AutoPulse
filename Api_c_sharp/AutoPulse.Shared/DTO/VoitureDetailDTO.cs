@@ -18,6 +18,7 @@ public class VoitureDetailDTO
     public DateTime MiseEnCirculation { get; set; }
     public int NbPlace { get; set; }
     public int NbPorte { get; set; }
+    public int NbAirbag { get; set; }
     public bool InterieurCuire { get; set; }
     public double CylindrerMoteur { get; set; }
     public bool PositionVolant { get; set; }

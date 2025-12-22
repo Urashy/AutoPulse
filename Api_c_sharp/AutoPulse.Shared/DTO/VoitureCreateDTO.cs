@@ -15,6 +15,7 @@ public class VoitureCreateDTO
     public int Puissance { get; set; }
     public int Couple { get; set; }
     public int NbCylindres { get; set; }
+    public int NbAirbag { get; set; }
     public bool InterieurCuire { get; set; }
     public double CylindrerMoteur { get; set; }
     public bool PositionVolant { get; set; }

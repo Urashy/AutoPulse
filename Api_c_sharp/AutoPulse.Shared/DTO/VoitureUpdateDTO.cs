@@ -11,6 +11,7 @@ public class VoitureUpdateDTO
     public int IdCategorie { get; set; }
     public int NbPlace { get; set; }
     public int NbPorte { get; set; }
+    public int NbAirbag { get; set; }
     public int Kilometrage { get; set; }
     public int Annee { get; set; }
     public int Puissance { get; set; }

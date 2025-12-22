@@ -97,6 +97,7 @@ namespace BlazorAutoPulse.ViewModel
             ICouleurService couleurService,
             IService<VueDTO> vueService,
             IConversationService conversationService,
+            IIAService  iaService,
             NotificationService notificationService)
         {
             _annonceService = annonceService;
@@ -107,6 +108,7 @@ namespace BlazorAutoPulse.ViewModel
             _couleurService = couleurService;
             _notificationService = notificationService;
             _conversationService = conversationService;
+            _iaService = iaService;
             _vueService = vueService;
         }
 
@@ -548,15 +550,14 @@ namespace BlazorAutoPulse.ViewModel
                     Wheel = "Left wheel",
                     Color = Annonce.Couleur ?? "Black",
                     Airbags = 4,
-                    Levy = 0f
                 };
 
                 var result = await _iaService.PredictAIAsync(dataPrediction);
                 Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
-                if (result is ResultatAjustement prediction)
+                if (result is ResultatPrediction prediction)
                 {
-                    adjustmentResult = prediction;
+                    priceResult = prediction;
                     Console.WriteLine("Cast réussi vers ResultatAjustement");
                 }
                 else
@@ -634,9 +635,9 @@ namespace BlazorAutoPulse.ViewModel
                 var result = await _iaService.PredictAIAsync(dataAdjustment);
                 Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
-                if (result is ResultatPrediction prediction)
+                if (result is ResultatAjustement prediction)
                 {
-                    priceResult = prediction;
+                    adjustmentResult = prediction;
                     Console.WriteLine("Cast réussi vers ResultatPrediction");
                 }
                 else
@@ -788,10 +789,11 @@ namespace BlazorAutoPulse.ViewModel
         /// </summary>
         public string GetCarouselTransform()
         {
-            // Chaque déplacement est de 20% (1/5) + le gap proportionnel
-            // Pour simplifier, on utilise calc dans le CSS
-            var percentage = CurrentSimilarIndex * 20; // 20% par carte (100/5)
-            return $"translateX(-{percentage}%)";
+            var cardWidth = 260;
+            var gap = 20;
+            var offset = CurrentSimilarIndex * (cardWidth + gap);
+    
+            return $"translateX(-{offset}px)";
         }
 
         /// <summary>

@@ -50,7 +50,4 @@ public class DataPrediction : DataAI
 
     [JsonPropertyName("airbags")]
     public int? Airbags { get; set; }
-
-    [JsonPropertyName("levy")]
-    public float? Levy { get; set; }
 }

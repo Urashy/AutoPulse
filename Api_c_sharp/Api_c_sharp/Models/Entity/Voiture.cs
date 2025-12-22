@@ -58,6 +58,9 @@ namespace Api_c_sharp.Models.Entity
         [Column("voi_nbcylindres")]
         public int NbCylindres { get; set; }
         
+        [Column("voi_nbairbag")]
+        public int NbAirbag { get; set; }
+        
         [Column("voi_interieurcuire")]
         public bool InterieurCuire { get; set; }
         

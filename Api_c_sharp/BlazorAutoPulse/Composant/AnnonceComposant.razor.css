@@ -115,3 +115,32 @@
     font-weight: bold;
     transition: all 0.3s;
 }
+
+/* Chaque carte prend une largeur fixe calculée par rapport au viewport du carousel-track */
+.similar-ad-card {
+    /* ✅ Utiliser une largeur fixe plutôt que flex-basis pour éviter les problèmes de calcul */
+    width: calc((100vw - 160px) / 5); /* Ajuster selon votre layout */
+    min-width: 200px; /* Largeur minimum pour éviter les cartes trop petites */
+    max-width: 300px; /* Largeur maximum */
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0; /* ✅ Important : empêche les cartes de rétrécir */
+}
+
+.similar-ad-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+    border-color: #00d4ff;
+}
+
+.similar-ad-card:hover{
+    transform: scale(1.1);
+}
+

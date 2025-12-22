@@ -3,7 +3,7 @@
 @inject AnnonceComposantViewModel VM
 @inject NavigationManager Navigation
 
-<div class="car-card" @onclick="NavigateToDetail">
+<div class="@divClass" @onclick="NavigateToDetail">
     <div class="car-image">
         @if (Annonce.DatePublication >= DateTime.Now.AddMonths(-1))
         {
@@ -41,6 +41,9 @@
 @code {
     [Parameter]
     public AnnonceDTO Annonce { get; set; }
+    
+    [Parameter]
+    public string divClass { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,6 +60,6 @@
 
     private void NavigateToDetail()
     {
-        Navigation.NavigateTo($"/annonce/{Annonce.IdAnnonce}");
+        Navigation.NavigateTo($"/annonce/{Annonce.IdAnnonce}", forceLoad:true);
     }
 }

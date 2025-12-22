@@ -97,6 +97,7 @@ namespace BlazorAutoPulse.ViewModel
                 Puissance = 0,
                 Couple = 0,
                 NbCylindres = 0,
+                NbAirbag = 4,
                 MiseEnCirculation = DateTime.Now,
                 InterieurCuire = false,
                 CylindrerMoteur = 0,
@@ -299,8 +300,7 @@ namespace BlazorAutoPulse.ViewModel
                     Doors = VoitureDetailDto.NbPorte.ToString() ?? "4", // Valeur par défaut
                     Wheel = VoitureDetailDto.PositionVolant ? "Left wheel" : "Right wheel",
                     Color = selectedCouleurs.Any() ? GetFirstCouleurLibelle() : "Black",
-                    Airbags = 4, // Valeur par défaut - Non disponible dans le formulaire
-                    Levy = 0f // Valeur par défaut - Non disponible dans le formulaire
+                    Airbags = VoitureDetailDto.NbAirbag,
                 };
 
                 var result = await _iaService.PredictAIAsync(dataPrediction);

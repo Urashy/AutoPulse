@@ -615,43 +615,7 @@ else
                         <div class="carousel-inner" style="transform: @VM.GetCarouselTransform(); display: flex; gap: 20px; transition: transform 0.4s ease-in-out;">
                             @foreach (var annonce in VM.GetVisibleSimilarAds())
                             {
-                                <div class="similar-ad-card" @onclick="() => VM.NavigateToSimilarAd(annonce.IdAnnonce)">
-                                    <div class="similar-ad-image">
-                                        <img src="@VM.GetSimilarAdImage(annonce.IdVoiture)"
-                                             alt="@annonce.Marque @annonce.Modele"
-                                             onerror="this.src='https://via.placeholder.com/300x200?text=Pas+d%27image'" />
-                                    </div>
-
-                                    <div class="similar-ad-content">
-                                        <h3 class="similar-ad-title">@annonce.Libelle</h3>
-
-                                        <div class="similar-ad-specs">
-                                            <div class="spec-badge">
-                                                <span class="spec-icon">📅</span>
-                                                <span>@annonce.Annee</span>
-                                            </div>
-                                            <div class="spec-badge">
-                                                <span class="spec-icon">📊</span>
-                                                <span>@annonce.Kilometrage.ToString("N0") km</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="similar-ad-price">
-                                            @if (annonce.Prix.HasValue)
-                                            {
-                                                <span>@annonce.Prix.Value.ToString("N0") €</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="price-contact">Prix sur demande</span>
-                                            }
-                                        </div>
-
-                                        <div class="similar-ad-location">
-                                            📍 @annonce.Ville (@annonce.CodePostal)
-                                        </div>
-                                    </div>
-                                </div>
+                                <AnnonceComposant Annonce="annonce" divClass="similar-ad-card"/>
                             }
                         </div>
                     </div>
@@ -676,10 +640,6 @@ else
                 }
             </div>
         }
-
-
-
-
 
         @if (!string.IsNullOrEmpty(VM.erreurSupprimeAnnonce))
         {
