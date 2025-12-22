@@ -123,7 +123,7 @@ namespace Api_c_sharp.Controllers
         /// <item><description><see cref="NotFoundResult"/> si aucune offre ne correspond (404).</description></item>
         /// </list>
         /// </returns>
-        [ActionName("GetByIds")]
+        [ActionName("GetById")]
         [HttpGet("{idoffre}")]
         [ProducesResponseType(typeof(OffreDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

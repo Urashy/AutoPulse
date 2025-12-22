@@ -428,7 +428,6 @@ public class ConversationViewModel : IDisposable
             OffreAmount = amount;
             OffreError = "";
 
-            // ✅ LOGIQUE DE CALCUL DÉPLACÉE ICI
             if (AnnoncePrixMax.HasValue && AnnoncePrixMax.Value > 0)
             {
                 var diff = AnnoncePrixMax.Value - OffreAmount;
@@ -468,28 +467,23 @@ public class ConversationViewModel : IDisposable
         if (string.IsNullOrWhiteSpace(NewMessage) && !ShowOffreMode)
             return;
 
-        if (ShowOffreMode)
+        if (ShowOffreMode && OffreAmount <= 0)
         {
-            if (OffreAmount <= 0)
-            {
-                OffreError = "Le montant doit être supérieur à 0";
-                NotifyStateChanged();
-                return;
-            }
-
+            OffreError = "Le montant doit être supérieur à 0";
+            NotifyStateChanged();
+            return;
         }
 
-        var messageContent = ShowOffreMode
-            ? $"💰 Offre: {OffreAmount:N0} €\n\n{NewMessage.Trim()}"
-            : NewMessage.Trim();
-
+        // ✅ PAS de formatage ici, juste sauvegarder les valeurs
+        var messageText = NewMessage.Trim();
         var filesToUpload = new List<IBrowserFile>(SelectedFiles);
         var offreAmountToSend = OffreAmount;
         var annonceIdToSend = AnnonceIdForOffre;
 
+        // ✅ Reset immédiat
         _newMessage = "";
         OffreAmount = 0;
-        OffreInfoMessage = ""; 
+        OffreInfoMessage = "";
         ShowOffreMode = false;
         SelectedFiles.Clear();
         NotifyStateChanged();
@@ -498,11 +492,12 @@ public class ConversationViewModel : IDisposable
         {
             IsUploadingFiles = true;
 
+            // ✅ Créer le message texte simple
             var messageDto = new MessageDTO
             {
                 IdConversation = SelectedConversation.IdConversation,
                 IdCompte = CurrentUserId,
-                ContenuMessage = messageContent,
+                ContenuMessage = messageText,  // ✅ Texte brut sans "💰 Offre..."
             };
 
             var createdMessage = await _messageService.CreateAsync(messageDto);
@@ -510,11 +505,12 @@ public class ConversationViewModel : IDisposable
             if (createdMessage == null)
             {
                 Console.WriteLine("❌ Erreur : message non créé");
-                _newMessage = messageContent;
+                _newMessage = messageText;
                 NotifyStateChanged();
                 return;
             }
 
+            // ✅ Créer l'offre LIÉE au message
             if (offreAmountToSend > 0 && annonceIdToSend.HasValue)
             {
                 try
@@ -529,6 +525,7 @@ public class ConversationViewModel : IDisposable
                     await _offreService.CreateAsync(offreDto);
                     Console.WriteLine($"✅ Offre de {offreAmountToSend:N0} € créée");
 
+                    // ✅ Recharger pour afficher l'offre via le composant
                     await LoadMessages(SelectedConversation.IdConversation);
                 }
                 catch (Exception ex)
@@ -537,6 +534,7 @@ public class ConversationViewModel : IDisposable
                 }
             }
 
+            // Upload des fichiers...
             if (filesToUpload.Any())
             {
                 _ = Task.Run(async () =>
@@ -561,7 +559,7 @@ public class ConversationViewModel : IDisposable
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Erreur envoi message: {ex.Message}");
-            _newMessage = messageContent;
+            _newMessage = messageText;
         }
         finally
         {
