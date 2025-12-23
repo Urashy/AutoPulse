@@ -30,6 +30,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             // ✅ Récupérer la liste complète des messages avec les pièces jointes
             var allMessages = await dbSet
                 .Include(m => m.MessageCompteNav)
+                .Include(m => m.Offres)
                 .Include(m => m.PiecesJointes) 
                 .Where(m => m.IdConversation == conversationId)
                 .OrderBy(m => m.DateEnvoiMessage)

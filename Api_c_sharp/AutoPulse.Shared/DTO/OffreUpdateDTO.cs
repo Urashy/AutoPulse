@@ -15,6 +15,8 @@ namespace AutoPulse.Shared.DTO
         public int IdMessage { get; set; }
 
         public decimal Valeur { get; set; }
+        public int IdAnnonce { get; set; }
+
 
         public DateTime DateOffre { get; set; } = DateTime.UtcNow;
 

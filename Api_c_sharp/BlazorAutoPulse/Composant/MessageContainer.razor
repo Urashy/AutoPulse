@@ -91,12 +91,12 @@
                     </svg>
                     <div class="block-pulse"></div>
                 </div>
-                
+
                 <h3 class="block-title">@BlockTitle</h3>
                 <p class="block-message">@BlockMessage</p>
-                
+
                 <div class="block-divider"></div>
-                
+
                 <button class="btn-primary" @onclick="@RedirectionCompte">
                     Dirigez vous sur son compte pour le débloquer
                 </button>
@@ -126,11 +126,11 @@
     private int _previousMessageCount = 0;
 
     private bool IsBlocked => BlocageType == "je suis bloquer" || BlocageType == "est bloquer";
-    
-    private string BlockTitle => BlocageType == "je suis bloquer" 
-        ? "Utilisateur bloqué" 
+
+    private string BlockTitle => BlocageType == "je suis bloquer"
+        ? "Utilisateur bloqué"
         : "Vous avez été bloqué";
-    
+
     private string BlockMessage => BlocageType == "je suis bloquer"
         ? "Vous avez bloqué cet utilisateur. Vous ne pouvez plus échanger de messages."
         : "Cet utilisateur vous a bloqué. Vous ne pouvez plus lui envoyer de messages.";
@@ -139,7 +139,7 @@
     {
         bool conversationChanged = ConversationId.HasValue && ConversationId != _previousConversationId;
         bool newMessagesAdded = Messages.Count > _previousMessageCount;
-        
+
         if (conversationChanged || newMessagesAdded || IsTyping)
         {
             _previousConversationId = ConversationId;
