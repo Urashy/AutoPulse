@@ -699,10 +699,18 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                adresse.IdAdresse = 0;
-                adresse.IdPays = 1;
-                adresse.IdCompte = 1;
-                Adresse resultAdr = await _adresseService.CreateAsync(adresse);
+                Adresse resultAdr = new Adresse();
+                if (selectedAddressId == null)
+                {
+                    adresse.IdAdresse = 0;
+                    adresse.IdPays = 1;
+                    adresse.IdCompte = 1;
+                    resultAdr = await _adresseService.CreateAsync(adresse);
+                }
+                else
+                {
+                    resultAdr = await _adresseService.GetByIdAsync(selectedAddressId.Value);
+                }
                 VoitureDetailDTO resultVoitureDetailDto = await _voitureService.CreateAsync(VoitureDetailDto);
                 
                 foreach (ImageUpload image in imageUpload)

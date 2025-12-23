@@ -1,31 +1,34 @@
 using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service.Interface;
+using BlazorAutoPulse.Services;
 
 namespace BlazorAutoPulse.ViewModel
 {
     public class AnnonceComposantViewModel
     {
         private readonly IImageService _imageService;
-        private readonly IFavorisService _favorisService;
         private readonly ICompteService _compteService;
+        private readonly FavoriStateService _favorisStateService;
 
         public bool IsFavorite { get; private set; }
         private int? _currentUserId;
         private Action? _refreshUI;
+        private int _currentAnnonceId;
 
         public AnnonceComposantViewModel(
             IImageService imageService,
-            IFavorisService favorisService,
-            ICompteService compteService)
+            ICompteService compteService,
+            FavoriStateService favorisStateService)
         {
             _imageService = imageService;
-            _favorisService = favorisService;
             _compteService = compteService;
+            _favorisStateService = favorisStateService;
         }
 
         public async Task InitializeAsync(AnnonceDTO annonce, Action refreshUI)
         {
             _refreshUI = refreshUI;
+            _currentAnnonceId = annonce.IdAnnonce;
 
             try
             {
@@ -34,7 +37,8 @@ namespace BlazorAutoPulse.ViewModel
 
                 if (_currentUserId.HasValue && annonce != null)
                 {
-                    IsFavorite = await _favorisService.IsFavorite(_currentUserId.Value, annonce.IdAnnonce);
+                    // ✅ Utilisation du FavorisStateService pour vérifier le statut
+                    IsFavorite = _favorisStateService.IsFavorite(annonce.IdAnnonce);
                 }
             }
             catch
@@ -62,15 +66,17 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                IsFavorite = !IsFavorite;
-                _favorisService.ToggleFavorite(_currentUserId.Value, idannonce); 
+                // ✅ Utilisation du FavorisStateService qui gère automatiquement SignalR
+                bool newStatus = await _favorisStateService.ToggleFavorisAsync(idannonce);
+                IsFavorite = newStatus;
+                
+                Console.WriteLine($"✅ Favori toggled pour annonce {idannonce}: {IsFavorite}");
+                
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur toggle favori: {ex.Message}");
-                IsFavorite = !IsFavorite;
-                _refreshUI?.Invoke();
+                Console.WriteLine($"❌ Erreur toggle favori: {ex.Message}");
             }
         }
     }

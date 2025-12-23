@@ -64,9 +64,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IJournalService, JournalWebService>();
             builder.Services.AddScoped<IPlainteService, PlainteWebService>();
             builder.Services.AddScoped<IOffreService, OffreWebService>();
-
-
-
+            builder.Services.AddScoped<ConversationStateService>();
+            
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
             builder.Services.AddScoped<ConnexionViewModel>();
@@ -100,11 +99,17 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<AdminPlainteViewModel>();
 
             //----------------------- Singleton
-            builder.Services.AddSingleton<ISignalRService, SignalRWebService>();
+            builder.Services.AddSingleton<ISignalRService>(sp => new SignalRWebService());
             builder.Services.AddSingleton<NotificationService>();
-            builder.Services.AddSingleton<ISignalRService>(sp =>
+            builder.Services.AddSingleton<FavoriStateService>();
+
+            // ✅ HttpClient en Scoped (standard pour Blazor WebAssembly)
+            builder.Services.AddScoped(sp =>
             {
-                return new SignalRWebService();
+                return new HttpClient
+                {
+                    BaseAddress = new Uri("http://localhost:5086/api/")
+                };
             });
             
             //----------------------- State service

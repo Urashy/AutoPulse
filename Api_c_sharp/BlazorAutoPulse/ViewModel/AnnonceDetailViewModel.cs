@@ -6,6 +6,7 @@ using Microsoft.JSInterop;
 using BlazorAutoPulse.Service;
 using Microsoft.AspNetCore.Components;
 using BlazorAutoPulse.Service.WebService;
+using BlazorAutoPulse.Services;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -22,6 +23,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IService<VueDTO> _vueService;
         private readonly IOffreService _offreService;
         private readonly IMessageService _messageService;
+        private readonly FavoriStateService _favorisStateService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public IEnumerable<AnnonceDTO> AnnonceSimilaires { get; private set; } 
@@ -107,7 +109,8 @@ namespace BlazorAutoPulse.ViewModel
             IIAService  iaService,
             NotificationService notificationService,
             IOffreService offreService,
-            IMessageService messageService)
+            IMessageService messageService,
+            FavoriStateService favorisStateService)
         {
             _annonceService = annonceService;
             _postImageService = postImageService;
@@ -120,7 +123,7 @@ namespace BlazorAutoPulse.ViewModel
             _vueService = vueService;
             _offreService = offreService;
             _messageService = messageService;
-
+            _favorisStateService = favorisStateService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime, NavigationManager nav)
@@ -162,7 +165,7 @@ namespace BlazorAutoPulse.ViewModel
                 // Vérifier si l'annonce est en favoris
                 if (Annonce != null && CurrentUserId.HasValue)
                 {
-                    IsFavorite = await _favorisService.IsFavorite(CurrentUserId.Value, idAnnonce);
+                    IsFavorite = _favorisStateService.IsFavorite(idAnnonce);
 
                     await _vueService.CreateAsync(new VueDTO
                     {
@@ -239,12 +242,17 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                IsFavorite = await _favorisService.ToggleFavorite(CurrentUserId.Value, Annonce.IdAnnonce);
+                // ✅ Utilisation du FavorisStateService qui gère automatiquement SignalR
+                bool newStatus = await _favorisStateService.ToggleFavorisAsync(Annonce.IdAnnonce);
+                IsFavorite = newStatus;
+        
+                Console.WriteLine($"✅ Favori toggled pour annonce {Annonce.IdAnnonce}: {IsFavorite}");
+        
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur lors de l'ajout/suppression du favori: {ex.Message}");
+                Console.WriteLine($"❌ Erreur lors de l'ajout/suppression du favori: {ex.Message}");
             }
         }
 

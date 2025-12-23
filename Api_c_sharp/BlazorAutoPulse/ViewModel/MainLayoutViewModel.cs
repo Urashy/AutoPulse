@@ -21,6 +21,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly INotificationService _notificationService;
         private readonly NotificationService _notificationToastService;
         private ConversationStateService _conversationStateService;
+        private readonly FavoriStateService _favorisStateService;
+        
         public bool IsConnected { get; private set; }
         public bool IsAdmin { get; private set; }
         public bool IsAccountSuspended { get; private set; }
@@ -38,7 +40,6 @@ namespace BlazorAutoPulse.ViewModel
 
         private int? _currentUserId;
         private int? _signalementId;
-        private List<int> _favorisAnnonceIds = new();
 
         private Action? _refreshUI;
         private NavigationManager? _nav;
@@ -52,7 +53,8 @@ namespace BlazorAutoPulse.ViewModel
             IAnnonceService annonceService,
             ISignalRService signalRService,
             INotificationService notificationService,
-            NotificationService notificationToastService)
+            NotificationService notificationToastService,
+            FavoriStateService favorisStateService)
         {
             _compteService = compteService;
             _imageService = imageService;
@@ -63,6 +65,7 @@ namespace BlazorAutoPulse.ViewModel
             _signalRService = signalRService;
             _notificationService = notificationService;
             _notificationToastService = notificationToastService;
+            _favorisStateService = favorisStateService;
         }
 
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav, ConversationStateService conversationStateService)
@@ -104,8 +107,10 @@ namespace BlazorAutoPulse.ViewModel
                         unreadCount = _conversationStateService.GetTotalUnreadCount();
                         _conversationStateService.OnStateChanged += UpdateUnreadCount;
 
-                        // Initialisation des notifications et favoris
-                        await JoinFavorisHubs(compte.IdCompte);
+                        // ✅ Initialisation du service favoris qui gère SignalR automatiquement
+                        await _favorisStateService.InitializeAsync(compte.IdCompte);
+                        _favorisStateService.OnFavorisChanged += HandleFavorisChanged;
+                        
                         _signalRService.OnPriceDropReceived += HandlePriceDropNotification;
                         notificationsCount = await _notificationService.GetUnreadCountAsync(compte.IdCompte);
                     }
@@ -145,24 +150,11 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        private async Task JoinFavorisHubs(int idCompte)
+        // ✅ Callback appelé quand les favoris changent
+        private void HandleFavorisChanged()
         {
-            try
-            {
-                var annoncesFavoris = await _annonceService.GetAnnoncesFavoritesByCompteId(idCompte);
-                _favorisAnnonceIds = annoncesFavoris.Select(a => a.IdAnnonce).ToList();
-
-                foreach (var idAnnonce in _favorisAnnonceIds)
-                {
-                    await _signalRService.JoinFavorisAnnonce(idAnnonce);
-                }
-
-                Console.WriteLine($"✅ Rejoint {_favorisAnnonceIds.Count} annonces favorites");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Erreur lors de la jointure aux hubs favoris: {ex.Message}");
-            }
+            Console.WriteLine($"📊 Favoris mis à jour: {_favorisStateService.GetFavorisIds().Count} annonces");
+            _refreshUI?.Invoke();
         }
 
         private void HandlePriceDropNotification(PriceDropNotification notif)
@@ -290,7 +282,6 @@ namespace BlazorAutoPulse.ViewModel
 
                     if (createdSignalement != null)
                     {
-                        // Récupérer l'ID du signalement créé
                         var signalements = await _signalementService.GetAllSignalementsAsync();
                         var newSignalement = signalements
                             .OrderByDescending(s => s.DateCreationSignalement)
@@ -309,7 +300,6 @@ namespace BlazorAutoPulse.ViewModel
                     return;
                 }
 
-                // Créer la plainte avec gestion d'erreur
                 var plainteDto = new PlainteCreateDTO
                 {
                     IdCompte = _currentUserId.Value,
@@ -318,7 +308,6 @@ namespace BlazorAutoPulse.ViewModel
                     IdEtat = 1
                 };
 
-                // MODIFICATION ICI : Utiliser PostWithErrorHandlingAsync au lieu de CreateAsync
                 var result = await _plainteService.PostWithErrorHandlingAsync(plainteDto);
 
                 if (result.Success && result.Data != null)
@@ -334,7 +323,6 @@ namespace BlazorAutoPulse.ViewModel
                 }
                 else
                 {
-                    // Gérer les erreurs retournées par le backend
                     if (!string.IsNullOrEmpty(result.ErrorMessage))
                     {
                         PlainteError = result.ErrorMessage;
@@ -392,6 +380,11 @@ namespace BlazorAutoPulse.ViewModel
             if (_signalRService != null)
             {
                 _signalRService.OnPriceDropReceived -= HandlePriceDropNotification;
+            }
+
+            if (_favorisStateService != null)
+            {
+                _favorisStateService.OnFavorisChanged -= HandleFavorisChanged;
             }
         }
     }
