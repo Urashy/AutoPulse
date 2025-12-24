@@ -201,7 +201,11 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
         if (entity == null)
             return NotFound();
         
-        await _notifService.NotifSuppressionAnnonce(entity.IdAnnonce);
+        string userId = User.FindFirst("idUser")?.Value;
+        if (userId == "1")
+        {
+            await _notifService.NotifSuppressionAnnonce(entity.IdAnnonce);
+        }
         bool result = await _manager.DeleteAsync(entity);
 
         if (!result)

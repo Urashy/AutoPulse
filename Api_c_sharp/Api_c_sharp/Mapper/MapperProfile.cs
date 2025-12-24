@@ -109,6 +109,8 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.Couple))
             .ForMember(dest => dest.NbCylindres,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.NbCylindres))
+            .ForMember(dest => dest.NbAirbag,
+                opt => opt.MapFrom(src => src.VoitureAnnonceNav.NbAirbag))
             .ForMember(dest => dest.MiseEnCirculation,
                 opt => opt.MapFrom(src => src.VoitureAnnonceNav.MiseEnCirculation))
             .ForMember(dest => dest.NbPlaces,

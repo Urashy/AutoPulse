@@ -7,6 +7,7 @@ using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Helper;
 using VoitureDetailDTO = AutoPulse.Shared.DTO.VoitureDetailDTO;
 
 namespace BlazorAutoPulse.ViewModel
@@ -289,20 +290,20 @@ namespace BlazorAutoPulse.ViewModel
                     Manufacturer = GetMarqueLibelle(),
                     Model = GetModeleLibelle(),
                     ProdYear = VoitureDetailDto.Annee,
-                    Category = GetCategorieLibelle(),
+                    Category = IADataMapper.TranslateCategory(GetCategorieLibelle()),
                     LeatherInterior = VoitureDetailDto.InterieurCuire ? "Yes" : "No",
-                    FuelType = GetCarburantLibelle(),
+                    FuelType = IADataMapper.TranslateFuelType(GetCarburantLibelle()),
                     EngineVolume = (float)VoitureDetailDto.CylindrerMoteur,
                     Mileage = VoitureDetailDto.Kilometrage.ToString(),
                     Cylinders = VoitureDetailDto.NbCylindres > 0 ? (float)VoitureDetailDto.NbCylindres : 4f,
-                    GearBoxType = GetBoiteLibelle(),
-                    DriveWheels = GetMotriciteLibelle(),
-                    Doors = VoitureDetailDto.NbPorte.ToString() ?? "4", // Valeur par défaut
+                    GearBoxType = IADataMapper.TranslateGearBoxType(GetBoiteLibelle()),
+                    DriveWheels = IADataMapper.TranslateDriveWheels(GetMotriciteLibelle()),
+                    Doors = VoitureDetailDto.NbPorte.ToString() ?? "4",
                     Wheel = VoitureDetailDto.PositionVolant ? "Left wheel" : "Right wheel",
-                    Color = selectedCouleurs.Any() ? GetFirstCouleurLibelle() : "Black",
+                    Color = IADataMapper.TranslateColor(selectedCouleurs.Any() ? GetFirstCouleurLibelle() : "Black"),
                     Airbags = VoitureDetailDto.NbAirbag,
                 };
-
+                
                 var result = await _iaService.PredictAIAsync(dataPrediction);
                 Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 

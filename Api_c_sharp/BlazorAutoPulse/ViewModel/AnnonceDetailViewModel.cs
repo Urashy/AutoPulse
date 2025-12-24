@@ -1,6 +1,7 @@
 ﻿using AutoPulse.Shared.DTO;
 using AutoPulse.Shared.DTO.IA.Data;
 using AutoPulse.Shared.DTO.IA.Result;
+using BlazorAutoPulse.Helper;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.JSInterop;
 using BlazorAutoPulse.Service;
@@ -118,6 +119,7 @@ namespace BlazorAutoPulse.ViewModel
             _compteService = compteService;
             _imageService = imageService;
             _couleurService = couleurService;
+            _iaService = iaService;
             _notificationService = notificationService;
             _conversationService = conversationService;
             _vueService = vueService;
@@ -557,18 +559,18 @@ namespace BlazorAutoPulse.ViewModel
                     Manufacturer = Annonce.Marque ?? "Unknown",
                     Model = Annonce.Modele ?? "Unknown",
                     ProdYear = Annonce.Annee,
-                    Category = Annonce.Categorie ?? "Unknown",
-                    LeatherInterior = "No",
-                    FuelType = Annonce.Carburant ?? "Unknown",
-                    EngineVolume = 2.0f,
+                    Category = IADataMapper.TranslateCategory(Annonce.Categorie ?? "Unknown"),
+                    LeatherInterior = Annonce.InterieurCuire ? "Yes" : "No",
+                    FuelType = IADataMapper.TranslateFuelType(Annonce.Carburant ?? "Unknown"),
+                    EngineVolume = (float)Annonce.CylindrerMoteur,
                     Mileage = Annonce.Kilometrage.ToString(),
                     Cylinders = Annonce.NbCylindres > 0 ? (float)Annonce.NbCylindres : 4f,
-                    GearBoxType = Annonce.BoiteDeVitesse ?? "Unknown",
-                    DriveWheels = Annonce.Motricite ?? "Unknown",
-                    Doors = "4",
-                    Wheel = "Left wheel",
-                    Color = Annonce.Couleur ?? "Black",
-                    Airbags = 4,
+                    GearBoxType = IADataMapper.TranslateGearBoxType(Annonce.BoiteDeVitesse ?? "Unknown"),
+                    DriveWheels = IADataMapper.TranslateDriveWheels(Annonce.Motricite ?? "Unknown"),
+                    Doors = Annonce.NbPortes.ToString(),
+                    Wheel = Annonce.PositionVolant ? "Left wheel" : "Right wheel",
+                    Color = IADataMapper.TranslateColor(Annonce.Couleur ?? "Black"),
+                    Airbags = Annonce.NbAirbag,
                 };
 
                 var result = await _iaService.PredictAIAsync(dataPrediction);

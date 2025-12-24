@@ -45,6 +45,7 @@ public class AnnonceDetailDTO
     public int Puissance { get; set; }
     public int Couple { get; set; }
     public int NbCylindres { get; set; }
+    public int NbAirbag { get; set; }
     public DateTime MiseEnCirculation { get; set; }
     public int NbPlaces { get; set; }
     public int NbPortes { get; set; }
