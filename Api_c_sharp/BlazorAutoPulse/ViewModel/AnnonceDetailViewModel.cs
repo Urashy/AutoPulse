@@ -25,6 +25,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IOffreService _offreService;
         private readonly IMessageService _messageService;
         private readonly FavoriStateService _favorisStateService;
+        private readonly ConversationStateService _conversationStateService; // ✅ AJOUT
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public IEnumerable<AnnonceDTO> AnnonceSimilaires { get; private set; } 
@@ -111,7 +112,8 @@ namespace BlazorAutoPulse.ViewModel
             NotificationService notificationService,
             IOffreService offreService,
             IMessageService messageService,
-            FavoriStateService favorisStateService)
+            FavoriStateService favorisStateService,
+            ConversationStateService conversationStateService)
         {
             _annonceService = annonceService;
             _postImageService = postImageService;
@@ -126,6 +128,7 @@ namespace BlazorAutoPulse.ViewModel
             _offreService = offreService;
             _messageService = messageService;
             _favorisStateService = favorisStateService;
+            _conversationStateService = conversationStateService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime, NavigationManager nav)
@@ -847,7 +850,6 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        // ✅ MÉTHODE CORRIGÉE - Plus de double message
         public async Task SendContactMessageWithOffre()
         {
             if (!CurrentUserId.HasValue || Annonce == null)
@@ -864,7 +866,6 @@ namespace BlazorAutoPulse.ViewModel
                 return;
             }
 
-            // ✅ Validation de l'offre SI le mode offre est activé
             if (showOffreMode)
             {
                 if (offreAmount <= 0)
@@ -904,7 +905,6 @@ namespace BlazorAutoPulse.ViewModel
 
                 if (showOffreMode && conversation != null)
                 {
-
                     // 🔍 SOLUTION : Récupérer les messages de la conversation pour trouver le dernier
                     var messages = await _messageService.GetMessagesByConversationAndMarkAsRead(
                         conversation.IdConversation,
@@ -933,7 +933,9 @@ namespace BlazorAutoPulse.ViewModel
                     }
                 }
 
-                // ✅ Notification de succès
+                await _conversationStateService.ReloadConversationsAsync();
+                Console.WriteLine("✅ Conversations rechargées après création");
+
                 _notificationService.ShowSuccess(
                     showOffreMode ? "Offre envoyée" : "Message envoyé",
                     showOffreMode
