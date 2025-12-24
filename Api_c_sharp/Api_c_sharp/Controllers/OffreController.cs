@@ -4,6 +4,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
 
 namespace Api_c_sharp.Controllers
 {
@@ -15,7 +16,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class OffreController(OffreManager _manager, IMapper _offremapper) : ControllerBase
+    public class OffreController(OffreManager _manager, IMapper _offremapper, INotificationService _notifService) : ControllerBase
     {
         /// <summary>
         /// Crée une nouvelle offre.
@@ -39,6 +40,8 @@ namespace Api_c_sharp.Controllers
             var entity = _offremapper.Map<Offre>(dto);
 
             await _manager.AddAsync(entity);
+
+            await _notifService.NotifOffreAnnonce(entity.IdAnnonce);
 
             // Retourne bien les deux clés
             return CreatedAtAction(nameof(GetByID), new { idoffre = entity.IdOffre }, entity);

@@ -136,5 +136,22 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             string type = "error";
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
         }
+        
+        public virtual async Task NotifOffreAnnonce(int idannonce)
+        {
+            List <int> idcomptes = await context.Annonces
+                .Where(a => a.IdAnnonce == idannonce)
+                .Select(a => a.IdCompte)
+                .ToListAsync();
+
+            Annonce annonce = await context.Annonces
+                .FirstOrDefaultAsync(a => a.IdAnnonce == idannonce);
+
+            string url = $"/annonce/{idannonce}";
+            string titre = "Offre sur une annonce";
+            string message = $"On vous a fait une offre sur votre annonce #{annonce.Libelle}";
+            string type = "info";
+            await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
+        }
     }
 }
