@@ -1,13 +1,14 @@
-﻿using System.Text.RegularExpressions;
+﻿using AutoPulse.Shared.DTO;
 using AutoPulse.Shared.DTO;
 using AutoPulse.Shared.DTO.IA.Data;
 using AutoPulse.Shared.DTO.IA.Result;
+using BlazorAutoPulse.Helper;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
+using BlazorAutoPulse.Service.WebService;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using AutoPulse.Shared.DTO;
-using BlazorAutoPulse.Helper;
+using System.Text.RegularExpressions;
 using VoitureDetailDTO = AutoPulse.Shared.DTO.VoitureDetailDTO;
 
 namespace BlazorAutoPulse.ViewModel
@@ -22,6 +23,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IPostImageService _postImageService;
         private readonly IService<APourCouleur> _aPourCouleurService;
         private readonly IIAService _iaService;
+        private readonly IAutoCompleteService _adresseAutoCompleteService;
 
         //-------------------------------- Modèles
         public List<ImageUpload> imageUpload;
@@ -63,6 +65,15 @@ namespace BlazorAutoPulse.ViewModel
         private NavigationManager _nav;
         private GetAllViewModel _vmAll;
 
+
+        // Nouvelles propriétés pour l'autocomplétion
+        public string searchQuery { get; set; } = "";
+        public List<NominatimResult> addressSuggestions { get; set; } = new();
+        public bool showAddressSuggestions { get; set; } = false;
+        public bool isSearchingAddress { get; set; } = false;
+
+        private System.Threading.Timer? _debounceTimer;
+
         public VenteViewModel(
             ICompteService compteService,
             IAnnonceService annonceService, 
@@ -70,7 +81,8 @@ namespace BlazorAutoPulse.ViewModel
             IPostImageService postImageService,
             IAdresseService adresseService,
             IService<APourCouleur> aPourCouleurService,
-            IIAService iaService)
+            IIAService iaService,
+            IAutoCompleteService autoCompleteService)
         {
             _compteService = compteService;
             _annonceService = annonceService;
@@ -79,7 +91,8 @@ namespace BlazorAutoPulse.ViewModel
             _adresseService = adresseService;
             _aPourCouleurService = aPourCouleurService;
             _iaService = iaService;
-            
+            _adresseAutoCompleteService = autoCompleteService;
+
             imageUpload = new List<ImageUpload>();
             
             annonce = new AnnonceCreateDTO()
@@ -651,32 +664,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             return errors.ContainsKey(fieldName) ? errors[fieldName] : "";
         }
-        
-        public void LoadAddress(AdresseDTO addr)
-        {
-            selectedAddressId = addr.IdAdresse;
-            adresse.Nom = addr.Nom;
-            adresse.Numero = addr.Numero;
-            adresse.Rue = addr.Rue;
-            adresse.CodePostal = addr.CodePostal;
-            adresse.LibelleVille = addr.LibelleVille;
-    
-            if (errors.ContainsKey("nomadresse")) errors.Remove("nomadresse");
-            if (errors.ContainsKey("numeroadresse")) errors.Remove("numeroadresse");
-            if (errors.ContainsKey("rueadresse")) errors.Remove("rueadresse");
-            if (errors.ContainsKey("codepostal")) errors.Remove("codepostal");
-            if (errors.ContainsKey("ville")) errors.Remove("ville");
-    
-            _refreshUI?.Invoke();
-        }
-
-        public void ResetAddress()
-        {
-            selectedAddressId = null;
-            adresse = new Adresse();
-            _refreshUI?.Invoke();
-        }
-        
+                
         public void OnPositionVolantChange(ChangeEventArgs e)
         {
             if (bool.TryParse(e.Value?.ToString(), out bool value))
@@ -746,6 +734,138 @@ namespace BlazorAutoPulse.ViewModel
                 errors.Add("general", "Une erreur est survenue lors de la publication de l'annonce. Veuillez réessayer.");
                 _refreshUI?.Invoke();
             }
+        }
+
+        //---------------------------------------------------------------------------
+        // Appelle API d'autocomplétion pour les adresses
+        public async Task OnSearchQueryChanged(string value)
+        {
+            searchQuery = value;
+
+            // Réinitialiser les champs si la recherche est vidée
+            if (string.IsNullOrWhiteSpace(searchQuery))
+            {
+                addressSuggestions.Clear();
+                showAddressSuggestions = false;
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            // Si moins de 3 caractères, ne rien faire
+            if (searchQuery.Length < 3)
+            {
+                return;
+            }
+
+            // Annuler le timer précédent s'il existe
+            _debounceTimer?.Dispose();
+
+            // Créer un nouveau timer de 3 secondes
+            _debounceTimer = new System.Threading.Timer(async _ =>
+            {
+                await SearchAddressWithDebounce();
+            }, null, 1000, Timeout.Infinite);
+
+            _refreshUI?.Invoke();
+        }
+
+        // Nouvelle méthode: Rechercher des adresses après le délai
+        private async Task SearchAddressWithDebounce()
+        {
+            isSearchingAddress = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                addressSuggestions = await _adresseAutoCompleteService.SearchAddressAsync(searchQuery);
+                showAddressSuggestions = addressSuggestions.Any();
+            }
+            catch (Exception ex)
+            {
+                addressSuggestions.Clear();
+                showAddressSuggestions = false;
+            }
+            finally
+            {
+                isSearchingAddress = false;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        // Nouvelle méthode: Sélectionner une adresse depuis les suggestions
+        public void SelectAddressSuggestion(NominatimResult suggestion)
+        {
+            // Remplir automatiquement les champs
+            adresse.Numero = int.TryParse(suggestion.Address.HouseNumber, out int num) ? num : 1;
+            adresse.Rue = suggestion.Address.Road ?? "";
+            adresse.CodePostal = suggestion.Address.Postcode ?? "";
+            adresse.LibelleVille = suggestion.Address.GetCity();
+
+            // Mettre à jour la requête de recherche avec l'adresse complète
+            searchQuery = suggestion.DisplayName;
+
+            // Masquer les suggestions
+            showAddressSuggestions = false;
+            addressSuggestions.Clear();
+
+            // Réinitialiser l'ID d'adresse sélectionnée (nouvelle adresse)
+            selectedAddressId = null;
+
+            // Effacer les erreurs si les champs sont maintenant valides
+            if (adresse.Numero > 0 && errors.ContainsKey("numeroadresse"))
+                errors.Remove("numeroadresse");
+            if (!string.IsNullOrWhiteSpace(adresse.Rue) && errors.ContainsKey("rueadresse"))
+                errors.Remove("rueadresse");
+            if (!string.IsNullOrWhiteSpace(adresse.CodePostal) && errors.ContainsKey("codepostal"))
+                errors.Remove("codepostal");
+            if (!string.IsNullOrWhiteSpace(adresse.LibelleVille) && errors.ContainsKey("ville"))
+                errors.Remove("ville");
+
+            _refreshUI?.Invoke();
+        }
+
+        // Nouvelle méthode: Fermer les suggestions
+        public void CloseAddressSuggestions()
+        {
+            showAddressSuggestions = false;
+            _refreshUI?.Invoke();
+        }
+
+        // Mise à jour de ResetAddress pour aussi réinitialiser la recherche
+        public void ResetAddress()
+        {
+            selectedAddressId = null;
+            adresse = new Adresse();
+            searchQuery = "";
+            addressSuggestions.Clear();
+            showAddressSuggestions = false;
+            _refreshUI?.Invoke();
+        }
+
+        // Mise à jour de LoadAddress pour aussi mettre à jour la recherche
+        public void LoadAddress(AdresseDTO addr)
+        {
+            selectedAddressId = addr.IdAdresse;
+            adresse.Nom = addr.Nom;
+            adresse.Numero = addr.Numero;
+            adresse.Rue = addr.Rue;
+            adresse.CodePostal = addr.CodePostal;
+            adresse.LibelleVille = addr.LibelleVille;
+
+            // Mettre à jour la recherche avec l'adresse complète
+            searchQuery = $"{addr.Numero} {addr.Rue}, {addr.CodePostal} {addr.LibelleVille}";
+
+            // Masquer les suggestions
+            showAddressSuggestions = false;
+            addressSuggestions.Clear();
+
+            if (errors.ContainsKey("nomadresse")) errors.Remove("nomadresse");
+            if (errors.ContainsKey("numeroadresse")) errors.Remove("numeroadresse");
+            if (errors.ContainsKey("rueadresse")) errors.Remove("rueadresse");
+            if (errors.ContainsKey("codepostal")) errors.Remove("codepostal");
+            if (errors.ContainsKey("ville")) errors.Remove("ville");
+
+            _refreshUI?.Invoke();
         }
     }
 }

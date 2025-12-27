@@ -561,11 +561,46 @@
                     </div>
 
                     <div class="address-form-fields">
-                        <div class="form-group">
-                            <label>Rentrer votre adresse entière</label>
-                            <input type="text" placeholder="Ex: 1 Rue de Exemple..." @bind="VM.envoieApi" required>
-                            <span class="error-message">@VM.GetError("nomadresse")</span>
+                        @* NOUVEAU: Champ de recherche d'adresse avec autocomplétion *@
+                        <div class="form-group address-search-container">
+                            <label>Rechercher une adresse</label>
+                            <div style="position: relative;">
+                                <input type="text"
+                                       placeholder="Ex: 1 Rue de la République, 75001 Paris..."
+                                       value="@VM.searchQuery"
+                                       @oninput="@(async (ChangeEventArgs e) => await VM.OnSearchQueryChanged(e.Value?.ToString() ?? ""))"
+                                       class="address-search-input"
+                                       autocomplete="off" />
+
+                                @if (VM.isSearchingAddress)
+                                {
+                                    <div class="address-search-loader">
+                                        <span class="spinner-small"></span>
+                                    </div>
+                                }
+
+                                @if (VM.showAddressSuggestions && VM.addressSuggestions.Any())
+                                {
+                                    <div class="address-suggestions-dropdown">
+                                        @foreach (var suggestion in VM.addressSuggestions)
+                                        {
+                                            <div class="address-suggestion-item"
+                                                 @onclick="() => VM.SelectAddressSuggestion(suggestion)"
+                                                 @onclick:stopPropagation="true">
+                                                <div class="suggestion-icon">📍</div>
+                                                <div class="suggestion-text">
+                                                    <div class="suggestion-main">@suggestion.DisplayName</div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <small style="color: #888; margin-top: 5px; display: block;">
+                                Commencez à taper pour rechercher une adresse (minimum 3 caractères)
+                            </small>
                         </div>
+
                         <div class="form-group @(VM.HasError("nomadresse") ? "has-error" : "")">
                             <label>Nom de l'adresse</label>
                             <input type="text" placeholder="Ex: Domicile, Bureau, Garage..." @bind="VM.adresse.Nom" required>
@@ -586,7 +621,7 @@
                             </div>
                             <div class="form-group @(VM.HasError("rueadresse") ? "has-error" : "")">
                                 <label>Rue</label>
-                                <input type="text" placeholder="Non renseignable" @bind="VM.adresse.Rue" disabled>
+                                <input type="text" placeholder="Rue de..." @bind="VM.adresse.Rue" required>
                                 @if (VM.HasError("rueadresse"))
                                 {
                                     <span class="error-message">@VM.GetError("rueadresse")</span>
@@ -597,7 +632,7 @@
                         <div class="form-row">
                             <div class="form-group @(VM.HasError("codepostal") ? "has-error" : "")">
                                 <label>Code postal</label>
-                                <input type="text" placeholder="Non renseignable" @bind="VM.adresse.CodePostal" disabled>
+                                <input type="text" placeholder="75001" @bind="VM.adresse.CodePostal" required>
                                 @if (VM.HasError("codepostal"))
                                 {
                                     <span class="error-message">@VM.GetError("codepostal")</span>
@@ -605,7 +640,7 @@
                             </div>
                             <div class="form-group @(VM.HasError("ville") ? "has-error" : "")">
                                 <label>Ville</label>
-                                <input type="text" placeholder="Non renseignable" @bind="VM.adresse.LibelleVille" disabled>
+                                <input type="text" placeholder="Paris" @bind="VM.adresse.LibelleVille" required>
                                 @if (VM.HasError("ville"))
                                 {
                                     <span class="error-message">@VM.GetError("ville")</span>
@@ -614,6 +649,13 @@
                         </div>
                     </div>
                 </div>
+
+                @* Overlay pour fermer les suggestions quand on clique à l'extérieur *@
+                @if (VM.showAddressSuggestions)
+                {
+                    <div @onclick="VM.CloseAddressSuggestions"
+                         style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:998;background:transparent;"></div>
+                }
 
                 <div class="form-group">
                     <label>Description</label>

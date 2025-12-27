@@ -21,7 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("localeConnection");
+var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
