@@ -150,6 +150,7 @@ namespace Api_c_sharp.Controllers
         [ActionName("GetByMessage")]
         [HttpGet("{idMessage}")]
         [ProducesResponseType(typeof(IEnumerable<OffreDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<OffreDTO>>> GetByMessage(int idMessage)
         {
             var offres = await _manager.GetOffresByMessageIdAsync(idMessage);
