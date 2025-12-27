@@ -65,7 +65,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IPlainteService, PlainteWebService>();
             builder.Services.AddScoped<IOffreService, OffreWebService>();
             builder.Services.AddScoped<ConversationStateService>();
-            
+            builder.Services.AddScoped<IAutoCompleteService,AdresseAutoCompleteService>();
+
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
             builder.Services.AddScoped<ConnexionViewModel>();
@@ -102,6 +103,13 @@ namespace BlazorAutoPulse
             builder.Services.AddSingleton<ISignalRService>(sp => new SignalRWebService());
             builder.Services.AddSingleton<NotificationService>();
             builder.Services.AddSingleton<FavoriStateService>();
+
+            builder.Services.AddHttpClient<IAutoCompleteService, AdresseAutoCompleteService>(client =>
+            {
+                client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
+                client.DefaultRequestHeaders.Add("User-Agent", "BlazorAutoPulse/1.0");
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
 
             // ✅ HttpClient en Scoped (standard pour Blazor WebAssembly)
             builder.Services.AddScoped(sp =>
