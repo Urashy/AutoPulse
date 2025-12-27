@@ -16,6 +16,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests
 {
@@ -27,6 +28,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private OffreManager _manager;
         private IMapper _mapper;
         private Offre _objetcommun;
+        private INotificationService _notificationService;
 
         [TestInitialize]
         public async Task Initialize()
@@ -44,7 +46,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _mapper = config.CreateMapper();
 
             _manager = new OffreManager(_context);
-            _controller = new OffreController(_manager, _mapper);
+            _notificationService = new NotificationManager(_context);
+            _controller = new OffreController(_manager, _mapper,_notificationService);
 
             _context.Offres.RemoveRange(_context.Offres);
             await _context.SaveChangesAsync();
@@ -280,6 +283,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var actionResult = await _controller.Post(Offre);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task GetByMessage()
+        {
+            // Act
+            var result = await _controller.GetByMessage(_objetcommun.IdMessage);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<OffreDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Valeur == _objetcommun.Valeur));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByMessage()
+        {
+            // Act
+            var result = await _controller.GetByMessage(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

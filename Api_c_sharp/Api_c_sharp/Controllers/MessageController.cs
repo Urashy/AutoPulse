@@ -102,7 +102,7 @@ public class MessageController(
         return CreatedAtAction(
             nameof(GetByID),
             new { id = entity.IdMessage },
-            messageDto
+            entity
         );
     }
 

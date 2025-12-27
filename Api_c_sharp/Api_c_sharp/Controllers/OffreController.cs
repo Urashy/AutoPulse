@@ -1,10 +1,11 @@
-﻿using AutoPulse.Shared.DTO;
+﻿using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
-using Api_c_sharp.Models.Entity;
-using Api_c_sharp.Models.Repository.Interfaces;
+using System.Collections.Generic;
 
 namespace Api_c_sharp.Controllers
 {
@@ -152,7 +153,11 @@ namespace Api_c_sharp.Controllers
         public async Task<ActionResult<IEnumerable<OffreDTO>>> GetByMessage(int idMessage)
         {
             var offres = await _manager.GetOffresByMessageIdAsync(idMessage);
-            return Ok(_offremapper.Map<IEnumerable<OffreDTO>>(offres));
+
+            if (offres == null || !offres.Any())
+                return NotFound();
+
+            return new ActionResult<IEnumerable<OffreDTO>>(_offremapper.Map<IEnumerable<OffreDTO>>(offres));
         }
 
     }

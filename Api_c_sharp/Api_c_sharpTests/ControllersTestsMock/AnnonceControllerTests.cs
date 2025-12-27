@@ -7,6 +7,7 @@ using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,6 +15,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Api_c_sharp.ControllersMock.Tests
@@ -212,6 +214,8 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdEtatAnnonce = 1
             };
 
+            SetupUserContext("2");
+
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
                        .ReturnsAsync(annonceSimple);
             _mockManager.Setup(m => m.DeleteAsync(annonceSimple))
@@ -230,6 +234,9 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task DeleteAnnonceWithSignalementsTest()
         {
             // Arrange
+
+            SetupUserContext("2");
+
             var typeSignalement = new TypeSignalement
             {
                 IdTypeSignalement = 1,
@@ -304,6 +311,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task DeleteAnnonceWithSignalementsAndConversationsTest()
         {
             // Arrange
+            SetupUserContext("2");
+
             var typeSignalement = new TypeSignalement
             {
                 IdTypeSignalement = 1,
@@ -448,6 +457,8 @@ namespace Api_c_sharp.ControllersMock.Tests
                 SignalementsRecus = new List<Signalement> { signalement1, signalement2 }
             };
 
+            SetupUserContext("2");
+
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
                        .ReturnsAsync(annonceWithMultipleSignalements);
 
@@ -493,6 +504,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task DeleteAnnonceWithCommandeAndSignalementTest()
         {
+            SetupUserContext("2");
+
             // Arrange
             var typeSignalement = new TypeSignalement
             {
@@ -581,6 +594,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task BadRequestDeleteAnnonceTest()
         {
             // Arrange
+            
+
             var annonceWithCommande = new Annonce
             {
                 IdAnnonce = 1,
@@ -591,15 +606,51 @@ namespace Api_c_sharp.ControllersMock.Tests
                     new Commande { IdCommande = 1, IdAnnonce = 1, IdAcheteur = 2 }
                 }
             };
+            SetupUserContext("2");
 
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
                        .ReturnsAsync(annonceWithCommande);
-
             // Act
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteAnnonceTest_AdminTriggersNotification()
+        {
+            // Arrange
+            SetupUserContext("1"); // ⚠️ Admin (userId = "1")
+
+            var annonceSimple = new Annonce
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(annonceSimple);
+            _mockManager.Setup(m => m.DeleteAsync(annonceSimple))
+                       .ReturnsAsync(true);
+
+            // Mock pour NotifSuppressionAnnonce
+            _mockNotificationService.Setup(n => n.NotifSuppressionAnnonce(_objetcommun.IdAnnonce))
+                                   .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdAnnonce);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            // Vérifier que la notification a été appelée pour l'admin
+            _mockNotificationService.Verify(
+                n => n.NotifSuppressionAnnonce(_objetcommun.IdAnnonce),
+                Times.Once
+            );
         }
 
         [TestMethod]
@@ -1400,6 +1451,24 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        private void SetupUserContext(string userId = "2")
+        {
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", userId)
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = claimsPrincipal
+                }
+            };
         }
     }
 }

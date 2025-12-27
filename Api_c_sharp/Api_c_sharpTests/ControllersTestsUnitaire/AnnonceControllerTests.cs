@@ -9,6 +9,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Google.Apis.Util;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests
@@ -336,6 +338,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Conversations.Remove(_conversation);
             await _context.SaveChangesAsync();
 
+            SetupUserContext("2");
             // Act
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
@@ -354,6 +357,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Conversations.Remove(_conversation);
             await _context.SaveChangesAsync();
 
+            SetupUserContext("2");
             // Act
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
@@ -381,6 +385,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Signalements.Remove(_signalement);
             await _context.SaveChangesAsync();
 
+            SetupUserContext("2");
             // Act
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
@@ -409,6 +414,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task DeleteAnnonceWithSignalementsAndConversationsTest()
         {
             // Act - Tous les objets nécessaires sont déjà créés dans Initialize
+            SetupUserContext("2");
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
             // Assert
@@ -441,6 +447,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.APourConversations.Remove(_aPourConversation);
             _context.Conversations.Remove(_conversation);
             await _context.SaveChangesAsync();
+            SetupUserContext("2");
 
             var signalement2 = new Signalement()
             {
@@ -487,6 +494,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.Commandes.AddAsync(_commande);
             await _context.SaveChangesAsync();
 
+            SetupUserContext("2");
             // Act
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
@@ -509,6 +517,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestDeleteAnnonceTest()
         {
+            SetupUserContext("2");
+
             Commande commande = new Commande()
             {
                 IdCommande = 1,
@@ -529,6 +539,21 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _controller.Delete(0);
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task DeleteAnnonceTest_AdminCallsNotification()
+        {
+            SetupUserContext("1"); // Admin (userId = "1")
+
+            _context.Messages.RemoveRange(_message1, _message2);
+            _context.APourConversations.Remove(_aPourConversation);
+            _context.Conversations.Remove(_conversation);
+            await _context.SaveChangesAsync();
+
+            var result = await _controller.Delete(_objetcommun.IdAnnonce);
+
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
 
         [TestMethod]
@@ -1073,6 +1098,25 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _controller.GetSimilaires(0);
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+
+        private void SetupUserContext(string userId = "2")
+        {
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", userId)
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = claimsPrincipal
+                }
+            };
         }
     }
 }

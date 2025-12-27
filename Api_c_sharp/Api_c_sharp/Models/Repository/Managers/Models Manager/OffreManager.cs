@@ -1,6 +1,6 @@
 ﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {

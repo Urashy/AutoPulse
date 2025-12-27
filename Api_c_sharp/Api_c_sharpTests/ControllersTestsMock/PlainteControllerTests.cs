@@ -123,21 +123,77 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task Post_ReturnsCreated()
         {
-            var dto = new PlainteCreateDTO { Description = "une plainte", IdCompte = 1, IdSignalement = 2 };
+            var dto = new PlainteCreateDTO
+            {
+                Description = "une plainte",
+                IdCompte = 2,
+                IdSignalement = 1,
+                IdEtat = 1 // N'oubliez pas d'ajouter IdEtat
+            };
+
             var entity = new Plainte
             {
                 IdPlainte = 2,
                 Description = "une plainte",
-                IdCompte = 1,
-                IdSignalement = 2
+                IdCompte = 2,
+                IdSignalement = 1,
+                IdEtat = 1,
+                DateCreation = DateTime.UtcNow
             };
 
+            // Mock pour GetPlainteByCompteID - retourne une liste vide 
+            // (pas de plainte en attente pour ce compte)
+            _mockManager.Setup(m => m.GetPlainteByCompteID(2))
+                        .ReturnsAsync(new List<Plainte>());
+
+            // Mock pour AddAsync
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Plainte>()))
                         .ReturnsAsync(entity);
 
             var result = await _controller.Post(dto);
 
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
+            var createdResult = result.Result as CreatedAtActionResult;
+            Assert.IsNotNull(createdResult);
+            Assert.AreEqual("GetByID", createdResult.ActionName);
+        }
+
+        [TestMethod]
+        public async Task Post_ReturnsBadRequest_WhenPlainteEnAttente()
+        {
+            var dto = new PlainteCreateDTO
+            {
+                Description = "une plainte",
+                IdCompte = 2,
+                IdSignalement = 1,
+                IdEtat = 1
+            };
+
+            // Mock pour simuler une plainte déjà en attente (IdEtat = 1)
+            var plaintesExistantes = new List<Plainte>
+            {
+                new Plainte
+                {
+                    IdPlainte = 1,
+                    Description = "plainte existante",
+                    IdCompte = 2,
+                    IdSignalement = 1,
+                    IdEtat = 1, // Plainte en attente
+                    DateCreation = DateTime.UtcNow
+                }
+            };
+
+            _mockManager.Setup(m => m.GetPlainteByCompteID(2))
+                        .ReturnsAsync(plaintesExistantes);
+
+            var result = await _controller.Post(dto);
+
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            var badRequest = result.Result as BadRequestObjectResult;
+            Assert.AreEqual("Vous avez déjà une plainte en attente de traitement.", badRequest.Value);
+
+            // Vérifier que AddAsync n'a jamais été appelé
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Plainte>()), Times.Never);
         }
 
         [TestMethod]

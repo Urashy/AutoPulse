@@ -15,7 +15,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.OrderBy(p => p.DateCreation).ToListAsync();
         }
 
-        public async Task<IEnumerable<Plainte>> GetPlainteByCompteID(int idCompte)
+        public virtual async Task<IEnumerable<Plainte>> GetPlainteByCompteID(int idCompte)
         {
             return await dbSet.Where(p => p.IdCompte == idCompte)
                 .OrderBy(p => p.DateCreation)

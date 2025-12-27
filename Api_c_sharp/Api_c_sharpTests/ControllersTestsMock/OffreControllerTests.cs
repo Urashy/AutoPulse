@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using Api_c_sharp.Models.Repository.Interfaces;
 
 namespace Api_c_sharp.ControllersMock.Tests
 {
@@ -22,6 +23,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         private OffreController _controller;
         private IMapper _mapper;
         private Offre _objetcommun;
+        private Mock<INotificationService> _notificationService;
 
         [TestInitialize]
         public void Initialize()
@@ -47,8 +49,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             });
             _mapper = config.CreateMapper();
 
+            _notificationService = new Mock<INotificationService>();
             // Injection dans le controller
-            _controller = new OffreController(_mockManager.Object, _mapper);
+            _controller = new OffreController(_mockManager.Object, _mapper,_notificationService.Object);
         }
 
         [TestMethod]
@@ -282,6 +285,41 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Offre>(), It.IsAny<Offre>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task GetByMessage()
+        {
+            // Arrange
+            var annoncesList = new List<Offre> { _objetcommun };
+
+            _mockManager.Setup(m => m.GetOffresByMessageIdAsync(1))
+                       .ReturnsAsync(annoncesList);
+
+            // Act
+            var result = await _controller.GetByMessage(1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<OffreDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Valeur == _objetcommun.Valeur));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByMessage()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetOffresByMessageIdAsync(0))
+                       .ReturnsAsync((IEnumerable<Offre>)null);
+
+            // Act
+            var result = await _controller.GetByMessage(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }
