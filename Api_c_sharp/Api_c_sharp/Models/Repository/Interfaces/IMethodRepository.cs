@@ -28,6 +28,11 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task UpdateTypeCompte(Compte compteamodif,CompteModifTypeCompteDTO compteModifTypeCompteDTO, bool estpro);
         Task<Compte> GetProfilPublic(int idcompte);
         Task ToggleEtatCompte(int idcompte, bool estretirer);
+        Task EnregistrerA2f(TokenEmail tokenEmail);
+        Task ActiverA2f(int idCompte);
+        Task DesactiverA2f(int idCompte);
+        Task<bool> DoitReactiverA2f(int idCompte);
+        Task<(bool A2fActif, DateTime? DerniereActivation)> GetStatutA2f(int idCompte);
     }
 
     public interface IMessageRepository
@@ -70,9 +75,13 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<APourCouleur> GetAPourCouleursByIDS(int voitureId, int couleurId);
     }
 
-    public interface IReinitialisationMotDePasse
+    // Ajouter dans IMethodRepository.cs :
+
+    public interface ITokenEmail
     {
-        Task<ReinitialisationMotDePasse> VerificationCode(string email, string code);
+        Task<TokenEmail?> VerificationCode(string email, string code, string typeToken);
+        Task InvaliderTokensParType(int idCompte, string typeToken);
+        Task NettoyerTokensExpires();
     }
 
     public interface IAdresseRepository

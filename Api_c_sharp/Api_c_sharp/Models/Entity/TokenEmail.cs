@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_c_sharp.Models.Entity;
 
-[Table("t_e_reinitialisationmotdepasse_rei")]
-public class ReinitialisationMotDePasse
+[Table("t_e_tokenemail_tke")]
+public class TokenEmail
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    [Column("rei_id")]
-    public int IdReinitialisationMdp { get; set; }
+    [Column("tke_id")]
+    public int IdTokenEmail { get; set; }
     
     [Column("com_id")]
     [Required]
@@ -19,15 +19,24 @@ public class ReinitialisationMotDePasse
     [Required]
     public string Email { get; set; } = null!;
     
-    [Column("rei_token")]
+    [Column("tke_token")]
     [Required]
-    public string Token { get; set; }
+    public string Token { get; set; } = null!;
     
-    [Column("rei_expiration")]
+    [Column("tke_expiration")]
     [Required]
     public DateTime Expiration { get; set; }
     
-    [Column("rei_utilise")]
+    [Column("tke_utilise")]
     [Required]
     public bool Utilise { get; set; }
+    
+    [Column("tke_type")]
+    [Required]
+    [StringLength(50)]
+    public string TypeToken { get; set; } = null!;
+    
+    [ForeignKey(nameof(IdCompte))]
+    [InverseProperty(nameof(Compte.TokensEmail))]
+    public virtual Compte CompteTokenNav { get; set; } = null!;
 }

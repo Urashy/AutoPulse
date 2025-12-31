@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass]
-    public class ReinitialisationMotDePasseControllerTests
+    public class TokenEmailControllerTests
     {
         private AutoPulseBdContext _context;
-        private ReinitialisationMotDePasseManager _manager;
-        private ReinitialisationMotDePasseController _controller;
+        private TokenEmailManager _manager;
+        private TokenEmailController _controller;
 
         [TestInitialize]
         public async Task Initialize()
@@ -29,7 +29,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 .Options;
 
             _context = new AutoPulseBdContext(options);
-            _manager = new ReinitialisationMotDePasseManager(_context);
+            _manager = new TokenEmailManager(_context);
 
             var fakeConfig = new ConfigurationBuilder().AddInMemoryCollection(
                 new Dictionary<string, string?>
@@ -39,18 +39,18 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 }
             ).Build();
 
-            _controller = new ReinitialisationMotDePasseController(_manager, fakeConfig);
+            _controller = new TokenEmailController(_manager, fakeConfig);
 
-            ReinitialisationMotDePasse seed = new ReinitialisationMotDePasse
+            TokenEmail seed = new TokenEmail
             {
-                IdCompte = 1,
+                IdTokenEmail = 1,
                 Email = "test@mail.com",
                 Token = "TOKEN123",
                 Expiration = DateTime.UtcNow.AddMinutes(30),
                 Utilise = false
             };
 
-            await _context.ReinitialisationMotDePasses.AddAsync(seed);
+            await _context.TokenEmails.AddAsync(seed);
             await _context.SaveChangesAsync();
         }
 
@@ -62,10 +62,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task GetById_OK()
         {
             // Arrange
-            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+            var entity = await _context.TokenEmails.FirstAsync();
 
             // Act
-            var result = await _controller.Get(entity.IdReinitialisationMdp);
+            var result = await _controller.Get(entity.IdTokenEmail);
 
             // Assert
             Assert.IsNotNull(result.Value);
@@ -100,8 +100,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.IsNotNull(result.Value);
-            var list = (IEnumerable<ReinitialisationMotDePasse>)result.Value;
-            Assert.AreEqual(1, ((List<ReinitialisationMotDePasse>)list).Count);
+            var list = (IEnumerable<TokenEmail>)result.Value;
+            Assert.AreEqual(1, ((List<TokenEmail>)list).Count);
         }
 
         // ---------------------------------------------------------
@@ -143,7 +143,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         {
             // Arrange
             _controller.ModelState.AddModelError("Email", "Required");
-            var dto = new ReinitialiseMdpDTO();
+            var dto = new TokenEmailDTO();
 
             // Act
             var result = await _controller.Post(dto);
@@ -160,12 +160,11 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task Put_OK()
         {
             // Arrange
-            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+            var entity = await _context.TokenEmails.FirstAsync();
 
-            var updated = new ReinitialisationMotDePasse
+            var updated = new TokenEmail
             {
-                IdReinitialisationMdp = entity.IdReinitialisationMdp,
-                IdCompte = entity.IdCompte,
+                IdTokenEmail = entity.IdTokenEmail,
                 Email = "updated@mail.com",
                 Token = entity.Token,
                 Expiration = DateTime.UtcNow.AddHours(1),
@@ -173,12 +172,12 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             };
 
             // Act
-            var result = await _controller.Put(entity.IdReinitialisationMdp, updated);
+            var result = await _controller.Put(entity.IdTokenEmail, updated);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var dbEntity = await _context.ReinitialisationMotDePasses.FindAsync(entity.IdReinitialisationMdp);
+            var dbEntity = await _context.TokenEmails.FindAsync(entity.IdTokenEmail);
             Assert.AreEqual("updated@mail.com", dbEntity.Email);
         }
 
@@ -187,9 +186,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         {
             // Arrange
             int invalidId = 999;
-            var dto = new ReinitialisationMotDePasse
+            var dto = new TokenEmail
             {
-                IdReinitialisationMdp = invalidId,
+                IdTokenEmail = invalidId,
                 Email = "x"
             };
 
@@ -205,10 +204,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         {
             // Arrange
             _controller.ModelState.AddModelError("Email", "Required");
-            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+            var entity = await _context.TokenEmails.FirstAsync();
 
             // Act
-            var result = await _controller.Put(entity.IdReinitialisationMdp, entity);
+            var result = await _controller.Put(entity.IdTokenEmail, entity);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
@@ -255,7 +254,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerificationCode_OK()
         {
             // Arrange
-            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+            var entity = await _context.TokenEmails.FirstAsync();
 
             // Act
             var result = await _manager.VerificationCode(entity.Email, entity.Token);
@@ -269,7 +268,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerificationCode_BadToken()
         {
             // Arrange
-            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+            var entity = await _context.TokenEmails.FirstAsync();
 
             // Act
             var result = await _manager.VerificationCode(entity.Email, "WRONGTOKEN");
@@ -282,7 +281,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerificationCode_BadEmail()
         {
             // Arrange
-            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+            var entity = await _context.TokenEmails.FirstAsync();
 
             // Act
             var result = await _manager.VerificationCode("wrong@mail.com", entity.Token);
@@ -295,16 +294,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerificationCode_Expired()
         {
             // Arrange
-            var expired = new ReinitialisationMotDePasse
+            var expired = new TokenEmail
             {
-                IdCompte = 10,
+                IdTokenEmail = 10,
                 Email = "expired@mail.com",
                 Token = "EXPIRED123",
                 Expiration = DateTime.UtcNow.AddMinutes(-10),
                 Utilise = false
             };
 
-            await _context.ReinitialisationMotDePasses.AddAsync(expired);
+            await _context.TokenEmails.AddAsync(expired);
             await _context.SaveChangesAsync();
 
             // Act
@@ -318,9 +317,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerifCode_OK()
         {
             // Arrange
-            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+            var entity = await _context.TokenEmails.FirstAsync();
 
-            var dto = new ReinitialiseMdpDTO
+            var dto = new TokenEmailDTO
             {
                 Email = entity.Email,
                 Code = entity.Token
@@ -343,9 +342,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerifCode_InvalidCode()
         {
             // Arrange
-            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+            var entity = await _context.TokenEmails.FirstAsync();
 
-            var dto = new ReinitialiseMdpDTO
+            var dto = new TokenEmailDTO
             {
                 Email = entity.Email,
                 Code = "WRONGCODE"
@@ -368,19 +367,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerifCode_ExpiredCode()
         {
             // Arrange
-            var expired = new ReinitialisationMotDePasse
+            var expired = new TokenEmail
             {
-                IdCompte = 10,
+                IdTokenEmail = 10,
                 Email = "expired@mail.com",
                 Token = "EXPIRED123",
                 Expiration = DateTime.UtcNow.AddMinutes(-10),
                 Utilise = false
             };
 
-            await _context.ReinitialisationMotDePasses.AddAsync(expired);
+            await _context.TokenEmails.AddAsync(expired);
             await _context.SaveChangesAsync();
 
-            var dto = new ReinitialiseMdpDTO
+            var dto = new TokenEmailDTO
             {
                 Email = expired.Email,
                 Code = expired.Token
@@ -403,7 +402,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerifCode_EmptyCode()
         {
             // Arrange
-            var dto = new ReinitialiseMdpDTO
+            var dto = new TokenEmailDTO
             {
                 Email = "test@mail.com",
                 Code = ""
@@ -420,7 +419,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerifCode_NullCode()
         {
             // Arrange
-            var dto = new ReinitialiseMdpDTO
+            var dto = new TokenEmailDTO
             {
                 Email = "test@mail.com",
                 Code = null
@@ -439,7 +438,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Arrange
             _controller.ModelState.AddModelError("Email", "Required");
 
-            var dto = new ReinitialiseMdpDTO
+            var dto = new TokenEmailDTO
             {
                 Email = "",
                 Code = "CODE123"
@@ -456,9 +455,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerifCode_WrongEmail()
         {
             // Arrange
-            var entity = await _context.ReinitialisationMotDePasses.FirstAsync();
+            var entity = await _context.TokenEmails.FirstAsync();
 
-            var dto = new ReinitialiseMdpDTO
+            var dto = new TokenEmailDTO
             {
                 Email = "wrongemail@mail.com",
                 Code = entity.Token

@@ -437,7 +437,8 @@ public class MapperProfile : Profile
 
         //---------------------------------ReinitialisationMotDePasse---------------------------------
 
-        CreateMap<ReinitialisationMotDePasse, ReinitialiseMdpDTO>().ReverseMap();
+        CreateMap<TokenEmail, TokenEmailDTO>().ReverseMap();
+        CreateMap<TokenEmail, TokenEmailCreateDTO>().ReverseMap();
 
         //---------------------------------Signalement---------------------------------
 

@@ -45,7 +45,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Pays> Pays { get; set; }
         public DbSet<PieceJointe> PiecesJointes { get; set; }
         public DbSet<Plainte> Plaintes { get; set; }
-        public DbSet<ReinitialisationMotDePasse> ReinitialisationMotDePasses { get; set; }
+        public DbSet<TokenEmail> TokenEmails { get; set; }
         public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
         public DbSet<TypeJournal> TypesJournal { get; set; }
@@ -63,8 +63,8 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<Adresse>()
                 .HasKey(a => a.IdAdresse); 
             
-            modelBuilder.Entity<ReinitialisationMotDePasse>()
-                .HasKey(r => r.IdReinitialisationMdp); 
+            modelBuilder.Entity<TokenEmail>()
+                .HasKey(r => r.IdTokenEmail); 
 
             modelBuilder.Entity<Adresse>()
                 .HasOne(a => a.PaysAdresseNav)
@@ -394,8 +394,8 @@ namespace Api_c_sharp.Models.Repository
                 .HasForeignKey(p => p.IdEtat);
 
             //-----------------------------ReinitialisationMotDePasse-----------------------------
-            modelBuilder.Entity<ReinitialisationMotDePasse>()
-                .HasKey(e => e.IdReinitialisationMdp);
+            modelBuilder.Entity<TokenEmail>()
+                .HasKey(e => e.IdTokenEmail);
 
             //-----------------------------Signalement-----------------------------
             modelBuilder.Entity<Signalement>()

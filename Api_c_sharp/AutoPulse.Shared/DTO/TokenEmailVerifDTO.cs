@@ -1,8 +1,8 @@
 namespace AutoPulse.Shared.DTO;
 
-public class ReinitialiseMdpDTO
+public class TokenEmailVerifDTO
 {
-    public int IdCompte { get; set; }
     public string Email { get; set; }
     public string? Code { get; set; }
+    public string TypeToken { get; set; } = null!;
 }

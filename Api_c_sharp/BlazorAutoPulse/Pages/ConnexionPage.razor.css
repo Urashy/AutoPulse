@@ -22,6 +22,7 @@
     background: linear-gradient(135deg, #fff, #00d4ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 /* MESSAGE D'ERREUR */
@@ -103,7 +104,7 @@
     transform: none;
 }
 
-/* ✨ NOUVEAU : SÉPARATEUR */
+/* SÉPARATEUR */
 .separator {
     display: flex;
     align-items: center;
@@ -125,7 +126,7 @@
     font-weight: bold;
 }
 
-/* ✨ NOUVEAU : BOUTON GOOGLE */
+/* BOUTON GOOGLE */
 .btn-google {
     width: 100%;
     padding: 15px;
@@ -178,4 +179,119 @@
 
 .auth-switch a:hover {
     text-decoration: underline;
+}
+
+/* A2F CONTAINER */
+.a2f-container {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* INFO BOX */
+.info-box {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid #00d4ff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.info-box.warning {
+    background: rgba(255, 165, 0, 0.1);
+    border-color: #ffa500;
+}
+
+.info-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.info-box h4 {
+    margin: 0 0 8px 0;
+    color: #00d4ff;
+    font-size: 18px;
+}
+
+.info-box.warning h4 {
+    color: #ffa500;
+}
+
+.info-box p {
+    margin: 0;
+    color: #aaa;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* CODE INPUT */
+.code-input {
+    text-align: center !important;
+    font-size: 24px !important;
+    letter-spacing: 8px !important;
+    font-weight: bold !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+/* A2F ACTIONS */
+.a2f-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    align-items: center;
+}
+
+.btn-link {
+    background: transparent;
+    border: none;
+    color: #00d4ff;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: underline;
+    padding: 8px;
+    transition: color 0.3s;
+}
+
+.btn-link:hover:not(:disabled) {
+    color: #0099ff;
+}
+
+.btn-link:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 20px;
+    }
+
+    .auth-box {
+        padding: 30px 20px;
+    }
+
+    .auth-box h2 {
+        font-size: 28px;
+    }
+
+    .info-box {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .info-icon {
+        font-size: 48px;
+    }
 }

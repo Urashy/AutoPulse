@@ -17,6 +17,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IAvisService _avisService;
         private readonly ICommandeService _commandeService;
         private readonly NotificationService _notificationService;
+        private readonly IA2fService _a2fService;
+        private readonly ITokenEmailService _tokenEmailService;
 
         public CompteDetailDTO compte;
         public CompteDetailDTO compteEdit;
@@ -50,18 +52,30 @@ namespace BlazorAutoPulse.ViewModel
         public bool passerPro = false;
         public CompteModifTypeCompteDTO compteModifType;
         public string? erreurChangeTypeCompte = null;
+        
+        public bool showModalA2f { get; set; }
+        public bool a2fActif { get; set; }
+        public DateTime? dateActivationA2f { get; set; }
+        public bool doitReactiverA2f { get; set; }
+        public string codeA2fActivation { get; set; }
+        public bool codeA2fEnvoye { get; set; }
+        public bool isLoadingA2f { get; set; }
+        public string erreurA2f { get; set; }
 
         private Action? _refreshUI;
         public NavigationManager _nav { get; set; }
 
-        public CompteViewModel(ICompteService compteService,
-                               IPostImageService postImageService,
-                               IImageService imageService,
-                               IAnnonceService annonceService,
-                               IAdresseService adresseService,
-                               IAvisService avisService,
-                               ICommandeService commandeService,
-                               NotificationService notificationService)
+        public CompteViewModel(
+            ICompteService compteService,
+            IPostImageService postImageService,
+            IImageService imageService,
+            IAnnonceService annonceService,
+            IAdresseService adresseService,
+            IAvisService avisService,
+            ICommandeService commandeService,
+            NotificationService notificationService,
+            IA2fService a2fService,
+            ITokenEmailService tokenEmailService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
@@ -71,6 +85,8 @@ namespace BlazorAutoPulse.ViewModel
             _avisService = avisService;
             _commandeService = commandeService;
             _notificationService = notificationService;
+            _a2fService = a2fService;
+            _tokenEmailService = tokenEmailService;
         }
 
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -140,6 +156,8 @@ namespace BlazorAutoPulse.ViewModel
             {
                 commandes = null;
             }
+            
+            await ChargerStatutA2f();
         }
 
         public async Task UpdateProfileImage(InputFileChangeEventArgs e)
@@ -488,6 +506,196 @@ namespace BlazorAutoPulse.ViewModel
             }
 
             _refreshUI?.Invoke();
+        }
+        
+        public async Task ChargerStatutA2f()
+        {
+            try
+            {
+                var statut = await _a2fService.GetStatutA2f(compte.IdCompte);
+                a2fActif = statut.A2fActif;
+                dateActivationA2f = statut.DateDerniereActivation;
+                doitReactiverA2f = statut.DoitReactiver;
+                
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur ChargerStatutA2f: {ex.Message}");
+            }
+        }
+        public void OpenModalA2f()
+        {
+            showModalA2f = true;
+            erreurA2f = null;
+            codeA2fActivation = string.Empty;
+            codeA2fEnvoye = false;
+            _refreshUI?.Invoke();
+        }
+        
+        public void CloseModalA2f()
+        {
+            showModalA2f = false;
+            erreurA2f = null;
+            codeA2fActivation = string.Empty;
+            codeA2fEnvoye = false;
+            isLoadingA2f = false;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task EnvoyerCodeActivationA2f()
+        {
+            isLoadingA2f = true;
+            erreurA2f = null;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                var dto = new TokenEmailCreateDTO
+                {
+                    IdCompte = compte.IdCompte,
+                    Email = compte.Email,
+                    TypeToken = "A2F_ACTIVATION"
+                };
+
+                bool success = await _tokenEmailService.EnvoyerToken(dto);
+
+                if (success)
+                {
+                    codeA2fEnvoye = true;
+                    erreurA2f = null;
+                    
+                    _notificationService.ShowInfo(
+                        "Code envoyé",
+                        "Un code d'activation a été envoyé à votre adresse email"
+                    );
+                }
+                else
+                {
+                    erreurA2f = "Erreur lors de l'envoi du code";
+                }
+            }
+            catch (Exception ex)
+            {
+                erreurA2f = "Erreur lors de l'envoi du code";
+                Console.WriteLine($"Erreur EnvoyerCodeActivationA2f: {ex.Message}");
+            }
+            finally
+            {
+                isLoadingA2f = false;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        public async Task ValiderCodeActivationA2f()
+        {
+            if (string.IsNullOrWhiteSpace(codeA2fActivation))
+            {
+                erreurA2f = "Veuillez saisir le code reçu par email";
+                _refreshUI?.Invoke();
+                return;
+            }
+
+            isLoadingA2f = true;
+            erreurA2f = null;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                // Vérifier le code
+                var verifDto = new TokenEmailVerifDTO
+                {
+                    Email = compte.Email,
+                    Code = codeA2fActivation,
+                    TypeToken = "A2F_ACTIVATION"
+                };
+
+                bool codeValide = await _tokenEmailService.VerifierCode(verifDto);
+
+                if (!codeValide)
+                {
+                    erreurA2f = "Code invalide ou expiré";
+                    isLoadingA2f = false;
+                    _refreshUI?.Invoke();
+                    return;
+                }
+
+                // Activer l'A2F
+                var activationDto = new A2fActivationDTO
+                {
+                    IdCompte = compte.IdCompte
+                };
+
+                bool success = await _a2fService.ActiverA2f(activationDto);
+
+                if (success)
+                {
+                    a2fActif = true;
+                    dateActivationA2f = DateTime.UtcNow;
+                    doitReactiverA2f = false;
+                    
+                    _notificationService.ShowSuccess(
+                        "A2F activé",
+                        "L'authentification à deux facteurs a été activée avec succès"
+                    );
+                    
+                    CloseModalA2f();
+                }
+                else
+                {
+                    erreurA2f = "Erreur lors de l'activation de l'A2F";
+                }
+            }
+            catch (Exception ex)
+            {
+                erreurA2f = "Erreur lors de la validation du code";
+                Console.WriteLine($"Erreur ValiderCodeActivationA2f: {ex.Message}");
+            }
+            finally
+            {
+                isLoadingA2f = false;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        public async Task DesactiverA2f()
+        {
+            isLoadingA2f = true;
+            erreurA2f = null;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                bool success = await _a2fService.DesactiverA2f(compte.IdCompte);
+
+                if (success)
+                {
+                    a2fActif = false;
+                    dateActivationA2f = null;
+                    doitReactiverA2f = false;
+                    
+                    _notificationService.ShowInfo(
+                        "A2F désactivé",
+                        "L'authentification à deux facteurs a été désactivée"
+                    );
+                    
+                    CloseModalA2f();
+                }
+                else
+                {
+                    erreurA2f = "Erreur lors de la désactivation de l'A2F";
+                }
+            }
+            catch (Exception ex)
+            {
+                erreurA2f = "Erreur lors de la désactivation de l'A2F";
+                Console.WriteLine($"Erreur DesactiverA2f: {ex.Message}");
+            }
+            finally
+            {
+                isLoadingA2f = false;
+                _refreshUI?.Invoke();
+            }
         }
     }
 }

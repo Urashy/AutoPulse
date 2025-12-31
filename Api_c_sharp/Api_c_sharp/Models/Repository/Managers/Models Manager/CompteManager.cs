@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
-    public class CompteManager : BaseManager<Compte,string> , ICompteRepository
+    public class CompteManager : BaseManager<Compte,string>, ICompteRepository
     {
         public CompteManager(AutoPulseBdContext context) : base(context)
         {
@@ -154,6 +154,64 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 compte.IdEtatCompte = 1;
                 await context.SaveChangesAsync();
             }
+        }
+
+        public virtual async Task EnregistrerA2f(TokenEmail tokenEmail)
+        {
+            context.TokenEmails.AddAsync(tokenEmail);
+            await context.SaveChangesAsync();
+        }
+
+        public virtual async Task ActiverA2f(int idCompte)
+        {
+            var compte = await dbSet.FirstOrDefaultAsync(c => c.IdCompte == idCompte);
+    
+            if (compte != null)
+            {
+                compte.A2fActif = true;
+                compte.DateDerniereActivationA2f = DateTime.UtcNow;
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public virtual async Task DesactiverA2f(int idCompte)
+        {
+            var compte = await dbSet.FirstOrDefaultAsync(c => c.IdCompte == idCompte);
+    
+            if (compte != null)
+            {
+                compte.A2fActif = false;
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public virtual async Task<bool> DoitReactiverA2f(int idCompte)
+        {
+            var compte = await dbSet
+                .Where(c => c.IdCompte == idCompte)
+                .Select(c => new { c.A2fActif, c.DateDerniereActivationA2f })
+                .FirstOrDefaultAsync();
+
+            if (compte == null || !compte.A2fActif)
+                return false;
+
+            if (!compte.DateDerniereActivationA2f.HasValue)
+                return true;
+
+            var jourDepuisActivation = (DateTime.UtcNow - compte.DateDerniereActivationA2f.Value).TotalDays;
+            return jourDepuisActivation > 30;
+        }
+
+        public virtual async Task<(bool A2fActif, DateTime? DerniereActivation)> GetStatutA2f(int idCompte)
+        {
+            var compte = await dbSet
+                .Where(c => c.IdCompte == idCompte)
+                .Select(c => new { c.A2fActif, c.DateDerniereActivationA2f })
+                .FirstOrDefaultAsync();
+
+            return compte != null 
+                ? (compte.A2fActif, compte.DateDerniereActivationA2f)
+                : (false, null);
         }
     }
 }

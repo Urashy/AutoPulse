@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
@@ -14,37 +15,17 @@ public class ConnexionWebService : IServiceConnexion
         _httpClient = httpClient;
     }
 
-    public async Task<HttpStatusCode> LoginUser(LoginRequest compte)
+    public async Task<HttpResponseMessage> LoginUser(LoginRequest compte)
     {
-        try
+        var request = new HttpRequestMessage(HttpMethod.Post, "Compte/Login")
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "Compte/Login")
-            {
-                Content = JsonContent.Create(compte)
-            };
-            
-            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-            var response = await _httpClient.SendAsync(request);
-            
-            // Ne pas lancer d'exception si 401 (credentials invalides)
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                return HttpStatusCode.Unauthorized;
-            }
-            
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                return HttpStatusCode.BadRequest;
-            }
-            
-            response.EnsureSuccessStatusCode();
-            return response.StatusCode;
-        }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"Erreur LoginUser: {ex.Message}");
-            return HttpStatusCode.InternalServerError;
-        }
+            Content = JsonContent.Create(compte)
+        };
+
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        var response = await _httpClient.SendAsync(request);
+        
+        return response;
     }
 
     public async Task<HttpStatusCode> LogOutUser()
@@ -63,6 +44,27 @@ public class ConnexionWebService : IServiceConnexion
             Console.WriteLine($"Erreur LogOutUser: {ex.Message}");
             // On retourne OK même en cas d'erreur car le cookie sera supprimé côté client
             return HttpStatusCode.OK;
+        }
+    }
+    
+    public async Task<(HttpStatusCode StatusCode, HttpResponseMessage Response)> ValidateA2fLogin(TokenEmailVerifDTO dto)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, $"Compte/ValidateA2fLogin")
+            {
+                Content = JsonContent.Create(dto)
+            };
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            
+            var response = await _httpClient.SendAsync(request);
+            
+            return (response.StatusCode, response);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur ValidateA2fLogin : {ex.Message}");
+            return (HttpStatusCode.InternalServerError, null);
         }
     }
     

@@ -72,6 +72,15 @@ namespace Api_c_sharp.Models.Entity
 
         [Column("com_auth_provider")]
         public string? AuthProvider { get; set; }
+        
+        [Column("com_a2f_actif")]
+        public bool A2fActif { get; set; } = false;
+
+        [Column("com_date_derniere_activation_a2f")]
+        public DateTime? DateDerniereActivationA2f { get; set; }
+
+        [InverseProperty(nameof(TokenEmail.CompteTokenNav))]
+        public virtual ICollection<TokenEmail> TokensEmail { get; set; } = new List<TokenEmail>();
 
         [ForeignKey(nameof(IdEtatCompte))]
         [InverseProperty(nameof(EtatCompte.Comptes))]

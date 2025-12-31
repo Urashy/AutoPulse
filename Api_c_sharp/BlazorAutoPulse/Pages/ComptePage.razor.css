@@ -128,8 +128,8 @@
 }
 
 .success-message-box {
-    background: rgba(0, 255, 68, 0.1);
-    border: 1px solid #00ff44;
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid #4caf50;
     border-radius: 8px;
     padding: 15px;
     color: #66ff88;
@@ -377,6 +377,70 @@
     transform: translateY(-2px);
 }
 
+.btn-security {
+    padding: 15px 30px;
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid #4caf50;
+    color: #4caf50;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.btn-security:hover {
+    background: rgba(76, 175, 80, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+.badge-warning {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4444;
+    color: #fff;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+.btn-delete-account {
+    padding: 15px 30px;
+    background: rgba(139, 0, 0, 0.1);
+    border: 1px solid #8b0000;
+    color: #ff6b6b;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-delete-account:hover {
+    background: rgba(139, 0, 0, 0.2);
+    border-color: #ff4444;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(139, 0, 0, 0.3);
+}
+
 .btn-danger {
     padding: 15px 30px;
     background: transparent;
@@ -448,129 +512,17 @@
 }
 
 .section-placeholder {
-    text-align: center;
-    padding: 60px 20px;
-}
-
-.section-placeholder h3 {
-    font-size: 32px;
-    margin-bottom: 20px;
-    background: linear-gradient(135deg, #fff, #00d4ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    padding: 30px 20px;
 }
 
 .section-placeholder p {
+    grid-column: 1 / -1;
+    text-align: center;
     color: #aaa;
     font-size: 18px;
-}
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 1024px) {
-    .profile-header {
-        grid-template-columns: 1fr;
-        gap: 40px;
-        text-align: center;
-    }
-
-    .profile-left {
-        justify-content: center;
-    }
-
-    .profile-actions {
-        justify-content: center;
-    }
-
-    .btn-danger {
-        margin-left: 0;
-    }
-}
-
-@media (max-width: 768px) {
-    .compte-container {
-        padding: 20px;
-    }
-
-    .profile-header {
-        padding: 30px 20px;
-    }
-
-    .profile-photo-wrapper {
-        width: 150px;
-        height: 150px;
-    }
-
-    .info-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .account-navbar {
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    .content-section {
-        padding: 30px 20px;
-    }
-
-    .profile-actions {
-        flex-direction: column;
-    }
-
-    .profile-actions button {
-        width: 100%;
-    }
-
-    .modal-content {
-        width: 95%;
-    }
-
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-        padding: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .profile-photo-wrapper {
-        width: 120px;
-        height: 120px;
-        border-width: 3px;
-    }
-
-    .info-value {
-        font-size: 16px;
-    }
-
-    .section-placeholder h3 {
-        font-size: 24px;
-    }
-
-    .section-placeholder p {
-        font-size: 16px;
-    }
-}
-
-/* Bouton de suppression de compte */
-.btn-delete-account {
-    padding: 15px 30px;
-    background: rgba(139, 0, 0, 0.1);
-    border: 1px solid #8b0000;
-    color: #ff6b6b;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-delete-account:hover {
-    background: rgba(139, 0, 0, 0.2);
-    border-color: #ff4444;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(139, 0, 0, 0.3);
 }
 
 /* Box d'avertissement */
@@ -594,7 +546,7 @@
     font-weight: 700;
 }
 
-/* Box de danger (confirmation finale) */
+/* Box de danger */
 .danger-box {
     background: linear-gradient(135deg, rgba(139, 0, 0, 0.15), rgba(139, 0, 0, 0.05));
     border: 2px solid #8b0000;
@@ -606,10 +558,10 @@
 .danger-icon {
     font-size: 64px;
     margin-bottom: 15px;
-    animation: pulse 2s infinite;
+    animation: dangerPulse 2s infinite;
 }
 
-@keyframes pulse {
+@keyframes dangerPulse {
     0%, 100% {
         transform: scale(1);
     }
@@ -630,29 +582,6 @@
     font-size: 16px;
     line-height: 1.6;
     margin: 15px 0;
-}
-
-.danger-list {
-    list-style: none;
-    padding: 0;
-    margin: 20px 0;
-    text-align: left;
-}
-
-.danger-list li {
-    color: #ff9999;
-    font-size: 15px;
-    padding: 8px 0;
-    padding-left: 30px;
-    position: relative;
-}
-
-.danger-list li:before {
-    content: "✗";
-    position: absolute;
-    left: 0;
-    color: #ff4444;
-    font-weight: bold;
 }
 
 .final-warning {
@@ -676,6 +605,7 @@
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
+    margin-top: 15px;
 }
 
 .btn-danger-full:hover {
@@ -688,11 +618,6 @@
     transform: translateY(0);
 }
 
-/* Ajustements pour le form-group dans la modal de suppression */
-.modal-body .form-group label strong {
-    color: #ffa500;
-}
-
 /* Box de succès */
 .success-box {
     background: linear-gradient(135deg, rgba(0, 255, 68, 0.15), rgba(0, 255, 68, 0.05));
@@ -700,20 +625,6 @@
     border-radius: 15px;
     padding: 40px 30px;
     text-align: center;
-}
-
-@keyframes successPulse {
-    0% {
-        transform: scale(0);
-        opacity: 0;
-    }
-    50% {
-        transform: scale(1.2);
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
 }
 
 .success-box h4 {
@@ -785,31 +696,188 @@
     font-style: italic;
 }
 
-.section-placeholder {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 25px;
-    padding: 30px 20px;
+/* INFO BOX */
+.info-box {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid #00d4ff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
 }
 
-/* Message quand il n'y a pas de contenu */
-.section-placeholder p {
-    grid-column: 1 / -1; /* Prend toute la largeur */
-    text-align: center;
-    color: #aaa;
+.info-box.security {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: #4caf50;
+}
+
+.info-box.security h4 {
+    color: #4caf50;
+}
+
+.info-box.active {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: #00d4ff;
+}
+
+.info-box.active h4 {
+    color: #00d4ff;
+}
+
+.info-box.active small {
+    color: #888;
+    font-size: 12px;
+}
+
+.info-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.info-box h4 {
+    margin: 0 0 8px 0;
     font-size: 18px;
 }
 
-/* Responsive : 1 colonne sur mobile */
+.info-box p {
+    margin: 0;
+    color: #aaa;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* CODE INPUT */
+.code-input {
+    text-align: center !important;
+    font-size: 24px !important;
+    letter-spacing: 8px !important;
+    font-weight: bold !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+/* A2F DANGER ZONE */
+.a2f-danger-zone {
+    background: rgba(139, 0, 0, 0.1);
+    border: 1px solid #8b0000;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.a2f-danger-zone h4 {
+    color: #ff6b6b;
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.a2f-danger-zone p {
+    color: #ffb3b3;
+    margin: 0 0 15px 0;
+    font-size: 14px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+    .profile-header {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        text-align: center;
+    }
+
+    .profile-left {
+        justify-content: center;
+    }
+
+    .profile-actions {
+        justify-content: center;
+    }
+
+    .btn-danger {
+        margin-left: 0;
+    }
+}
+
 @media (max-width: 768px) {
+    .compte-container {
+        padding: 20px;
+    }
+
+    .profile-header {
+        padding: 30px 20px;
+    }
+
+    .profile-photo-wrapper {
+        width: 150px;
+        height: 150px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .account-navbar {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .content-section {
+        padding: 30px 20px;
+    }
+
+    .profile-actions {
+        flex-direction: column;
+    }
+
+    .profile-actions button {
+        width: 100%;
+    }
+
+    .modal-content {
+        width: 95%;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 20px;
+    }
+
     .section-placeholder {
         grid-template-columns: 1fr;
         gap: 20px;
     }
+
+    .btn-security {
+        width: 100%;
+    }
+
+    .badge-warning {
+        right: 10px;
+    }
+
+    .info-box {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .info-icon {
+        font-size: 48px;
+    }
 }
 
-/* Responsive : 1 colonne sur très petits écrans */
 @media (max-width: 480px) {
+    .profile-photo-wrapper {
+        width: 120px;
+        height: 120px;
+        border-width: 3px;
+    }
+
+    .info-value {
+        font-size: 16px;
+    }
+
     .section-placeholder {
         padding: 20px 10px;
         gap: 15px;

@@ -148,7 +148,6 @@
 }
 
 <!-- Modal passer en compte professionnel -->
-<!-- Modal passer en compte professionnel -->
 @if (VM.passerPro)
 {
     <div class="modal-overlay" @onclick="VM.CloseProModal">
@@ -201,6 +200,135 @@
                 <button class="btn-pro" @onclick="VM.ValidateProAccount">
                     Valider
                 </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (VM.showModalA2f)
+{
+    <div class="modal-overlay" @onclick="VM.CloseModalA2f">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>🔐 Authentification à deux facteurs</h3>
+                <button class="modal-close" @onclick="VM.CloseModalA2f">✕</button>
+            </div>
+
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(VM.erreurA2f))
+                {
+                    <div class="error-message-box">
+                        @VM.erreurA2f
+                    </div>
+                }
+
+                @if (!VM.a2fActif)
+                {
+                    <!-- Activation A2F -->
+                    <div class="info-box security">
+                        <span class="info-icon">🔒</span>
+                        <div>
+                            <h4>Protégez votre compte</h4>
+                            <p>L'A2F ajoute une couche de sécurité supplémentaire en demandant un code à chaque connexion.</p>
+                        </div>
+                    </div>
+
+                    @if (!VM.codeA2fEnvoye)
+                    {
+                        <button class="btn-primary"
+                                @onclick="VM.EnvoyerCodeActivationA2f"
+                                disabled="@VM.isLoadingA2f">
+                            @if (VM.isLoadingA2f)
+                            {
+                                <span>Envoi en cours...</span>
+                            }
+                            else
+                            {
+                                <span>Envoyer le code d'activation</span>
+                            }
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="success-message-box">
+                            ✓ Un code a été envoyé à votre adresse email
+                        </div>
+
+                        <div class="form-group">
+                            <label>Code de vérification</label>
+                            <input type="text"
+                                   placeholder="1234567"
+                                   @bind="VM.codeA2fActivation"
+                                   disabled="@VM.isLoadingA2f"
+                                   maxlength="7"
+                                   class="code-input">
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn-secondary"
+                                    @onclick="VM.EnvoyerCodeActivationA2f"
+                                    disabled="@VM.isLoadingA2f">
+                                Renvoyer
+                            </button>
+                            <button class="btn-primary"
+                                    @onclick="VM.ValiderCodeActivationA2f"
+                                    disabled="@VM.isLoadingA2f">
+                                @if (VM.isLoadingA2f)
+                                {
+                                    <span>Validation...</span>
+                                }
+                                else
+                                {
+                                    <span>Activer l'A2F</span>
+                                }
+                            </button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- Désactivation A2F -->
+                    <div class="info-box active">
+                        <span class="info-icon">✓</span>
+                        <div>
+                            <h4>A2F activé</h4>
+                            <p>
+                                Votre compte est protégé par l'authentification à deux facteurs.
+                                @if (VM.dateActivationA2f.HasValue)
+                                {
+                                    <br/>
+                                    <small>Activé le @VM.dateActivationA2f.Value.ToString("dd/MM/yyyy")</small>
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    @if (VM.doitReactiverA2f)
+                    {
+                        <div class="warning-box">
+                            <p class="warning-text">
+                                ⚠️ Votre A2F doit être réactivé pour des raisons de sécurité (plus de 30 jours).
+                            </p>
+                        </div>
+                    }
+
+                    <div class="a2f-danger-zone">
+                        <h4>Zone de danger</h4>
+                        <p>Désactiver l'A2F rendra votre compte moins sécurisé.</p>
+                        <button class="btn-danger-full"
+                                @onclick="VM.DesactiverA2f"
+                                disabled="@VM.isLoadingA2f">
+                            @if (VM.isLoadingA2f)
+                            {
+                                <span>Désactivation...</span>
+                            }
+                            else
+                            {
+                                <span>Désactiver l'A2F</span>
+                            }
+                        </button>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -313,6 +441,13 @@
                 {
                     <button class="btn-primary" @onclick="VM.ToggleEdit">Modifier le profil</button>
                     <button class="btn-password" @onclick="VM.OpenPasswordModal">🔒 Changer le mot de passe</button>
+                    <button class="btn-security" @onclick="VM.OpenModalA2f">
+                        🔐 @(VM.a2fActif ? "Gérer l'A2F" : "Activer l'A2F")
+                        @if (VM.doitReactiverA2f)
+                        {
+                            <span class="badge-warning">!</span>
+                        }
+                    </button>
                     <button class="btn-delete-account" @onclick="VM.OpenSuppressionModal">🗑️ Supprimer mon compte</button>
                 }
                 else
