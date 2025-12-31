@@ -55,9 +55,9 @@ public class GetAllViewModel
         allCouleurs = (await _couleurService.GetAllAsync()).ToArray();
     }
     
-    public async Task OnMarqueChanged(ChangeEventArgs e)
+    public async Task OnMarqueChanged(int marqueId)
     {
-        string SelectedMarque = e.Value?.ToString() ?? "0";
+        string SelectedMarque = marqueId.ToString() ?? "0";
         string SelectedModele = "";
 
         if (SelectedMarque == "0")

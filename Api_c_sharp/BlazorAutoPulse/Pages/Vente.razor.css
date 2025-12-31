@@ -944,3 +944,91 @@ input[disabled] {
         font-size: 13px;
     }
 }
+
+/* ============================================================================
+   BOUTON IMMATRICULATION
+   ============================================================================ */
+
+/* Container en-tête avec bouton immat */
+.sell-header-with-immat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+}
+
+.sell-header-with-immat .section-title {
+    margin: 0;
+    flex: 1;
+}
+
+/* Bouton déclencheur du modal */
+.btn-immat-trigger {
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+}
+
+.btn-immat-trigger:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.5);
+    background: linear-gradient(135deg, #00e5ff 0%, #00aaff 100%);
+}
+
+.btn-immat-trigger:active {
+    transform: translateY(-1px);
+}
+
+.immat-icon {
+    font-size: 20px;
+    animation: carBounce 2s ease-in-out infinite;
+}
+
+@keyframes carBounce {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(5px);
+    }
+}
+
+.immat-text {
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sell-header-with-immat {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .btn-immat-trigger {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-immat-trigger {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+
+    .immat-icon {
+        font-size: 18px;
+    }
+}

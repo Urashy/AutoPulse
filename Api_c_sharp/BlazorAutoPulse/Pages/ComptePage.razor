@@ -351,6 +351,67 @@
         </div>
 
         <div class="profile-info">
+            <!-- Menu d'options (roue crantée) -->
+            <div class="options-menu-compte">
+                <button @onclick="VM.ToggleOptionsMenu" class="btn-options-compte">
+                    <span class="menu-icon">⚙️</span>
+                </button>
+
+                @if (VM.IsOptionsMenuOpen)
+                {
+                    <div class="options-dropdown-compte">
+                        @if (!VM.isEditing)
+                        {
+                            <button @onclick="VM.ToggleEdit" class="option-item-compte">
+                                <span class="option-icon">✏️</span>
+                                <span>Modifier le profil</span>
+                            </button>
+
+                            <button @onclick="VM.OpenPasswordModal" class="option-item-compte">
+                                <span class="option-icon">🔒</span>
+                                <span>Changer le mot de passe</span>
+                            </button>
+
+                            <button @onclick="VM.OpenModalA2f" class="option-item-compte">
+                                <span class="option-icon">🔐</span>
+                                <span>@(VM.a2fActif ? "Gérer l'A2F" : "Activer l'A2F")</span>
+                                @if (VM.doitReactiverA2f)
+                                {
+                                    <span class="badge-warning-mini">!</span>
+                                }
+                            </button>
+
+                            <button @onclick="(VM.compte.IdTypeCompte == 1? VM.OpenProModal : VM.ValidateProAccount)" class="option-item-compte">
+                                <span class="option-icon">💼</span>
+                                <span>@(VM.compte.IdTypeCompte == 1? "Passer en compte pro": "Passer en personnel")</span>
+                            </button>
+                            
+                            <button @onclick="ConnexionVM.DeconnexionUtilisateur" class="option-item-compte danger">
+                                <span class="option-icon">🚪</span>
+                                <span>Déconnexion</span>
+                            </button>
+
+                            <button @onclick="VM.OpenSuppressionModal" class="option-item-compte danger">
+                                <span class="option-icon">🗑️</span>
+                                <span>Supprimer mon compte</span>
+                            </button>
+                        }
+                        else
+                        {
+                            <button @onclick="VM.SaveProfile" class="option-item-compte">
+                                <span class="option-icon">💾</span>
+                                <span>Enregistrer</span>
+                            </button>
+
+                            <button @onclick="VM.CancelEdit" class="option-item-compte">
+                                <span class="option-icon">✕</span>
+                                <span>Annuler</span>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
             @if (VM?.compte == null)
             {
                 <p>Chargement...</p>
@@ -435,30 +496,6 @@
                     }
                 </div>
             }
-
-            <div class="profile-actions">
-                @if (!VM.isEditing)
-                {
-                    <button class="btn-primary" @onclick="VM.ToggleEdit">Modifier le profil</button>
-                    <button class="btn-password" @onclick="VM.OpenPasswordModal">🔒 Changer le mot de passe</button>
-                    <button class="btn-security" @onclick="VM.OpenModalA2f">
-                        🔐 @(VM.a2fActif ? "Gérer l'A2F" : "Activer l'A2F")
-                        @if (VM.doitReactiverA2f)
-                        {
-                            <span class="badge-warning">!</span>
-                        }
-                    </button>
-                    <button class="btn-delete-account" @onclick="VM.OpenSuppressionModal">🗑️ Supprimer mon compte</button>
-                }
-                else
-                {
-                    <button class="btn-primary" @onclick="VM.SaveProfile">Enregistrer</button>
-                    <button class="btn-secondary" @onclick="VM.CancelEdit">Annuler</button>
-                    <button class="btn-primary" @onclick="(VM.compte.IdTypeCompte == 1? VM.OpenProModal : VM.ValidateProAccount)">@(VM.compte.IdTypeCompte == 1?  "Passer en compte pro": "Passer à un compte personnel")</button>
-                }
-
-                <button class="btn-danger" @onclick="ConnexionVM.DeconnexionUtilisateur">Déconnexion</button>
-            </div>
         </div>
     </div>
 
@@ -484,7 +521,6 @@
         </nav>
 
         <div class="content-section">
-            <!-- Ici seront injectés les différents composants selon la section active -->
             <div class="section-placeholder">
                 @switch(VM.activeSection)
                 {
@@ -502,7 +538,7 @@
                         }
                         break;
 
-                        case "avis":
+                    case "avis":
                         if (@VM.avis != null)
                         {
                             @foreach (var av in VM.avis)
@@ -530,7 +566,7 @@
                         }
                         break;
 
-                        case "commandes":
+                    case "commandes":
                         if (@VM.commandes != null)
                         {
                             @foreach (var commande in VM.commandes)
@@ -550,7 +586,6 @@
 </div>
 
 @code {
-
     protected override async Task OnInitializedAsync()
     {
         ConnexionVM.SetNavigation(Navigation);

@@ -61,6 +61,8 @@ namespace BlazorAutoPulse.ViewModel
         public bool codeA2fEnvoye { get; set; }
         public bool isLoadingA2f { get; set; }
         public string erreurA2f { get; set; }
+        
+        public bool IsOptionsMenuOpen { get; set; } = false;
 
         private Action? _refreshUI;
         public NavigationManager _nav { get; set; }
@@ -158,6 +160,12 @@ namespace BlazorAutoPulse.ViewModel
             }
             
             await ChargerStatutA2f();
+        }
+        
+        public void ToggleOptionsMenu()
+        {
+            IsOptionsMenuOpen = !IsOptionsMenuOpen;
+            _refreshUI?.Invoke();
         }
 
         public async Task UpdateProfileImage(InputFileChangeEventArgs e)

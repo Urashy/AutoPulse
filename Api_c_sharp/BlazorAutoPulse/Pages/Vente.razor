@@ -1,10 +1,16 @@
 @page "/vente"
 @using BlazorAutoPulse.ViewModel
+@using AutoPulse.Shared.DTO.Immat
 @inject VenteViewModel VM
 @inject GetAllViewModel VMAll
 @inject NavigationManager nav
 
 <PageTitle>AutoPulse - Vendre</PageTitle>
+
+@* Composant Modal Immatriculation *@
+<ImmatModal IsVisible="@VM.showImmatModal"
+            IsVisibleChanged="@((bool value) => VM.showImmatModal = value)"
+            OnApplyData="@VM.HandleImmatDataApplied" />
 
 @* Overlay pour fermer le dropdown *@
 @if (VM.dropdownOpen)
@@ -194,7 +200,16 @@
 
 <div id="sell" class="page active">
     <div class="sell-container">
-        <h2 class="section-title">Vendez Votre Voiture</h2>
+        <div class="sell-header-with-immat">
+            <h2 class="section-title">Vendez Votre Voiture</h2>
+
+            @* NOUVEAU BOUTON IMMATRICULATION *@
+            <button type="button" class="btn-immat-trigger" @onclick="VM.OpenImmatModal">
+                <span class="immat-icon">🚗</span>
+                <span class="immat-text">Recherche par plaque</span>
+            </button>
+        </div>
+
         <div class="sell-form">
             <form>
                 <h3 style="margin-bottom: 30px; color: #00d4ff;">Informations du véhicule</h3>
@@ -250,17 +265,13 @@
                 <div class="form-row">
                     <div class="form-group @(VM.HasError("marque") ? "has-error" : "")">
                         <label>Marque</label>
-                        <select @onchange="async e =>
-                            {
-                                await VMAll.OnMarqueChanged(e);
-                                VM.OnMarqueChanged(e);
-                            }">
+                        <select @bind="VM.selectedMarqueId">
                             <option value="0">Toutes les marques</option>
                             @if (VMAll.allMarques != null)
                             {
                                 @foreach (var marque in VMAll.allMarques)
                                 {
-                                    <option value="@marque.IdMarque" selected="@(VM.VoitureDetailDto.IdMarque == marque.IdMarque)">@marque.LibelleMarque</option>
+                                    <option value="@marque.IdMarque">@marque.LibelleMarque</option>
                                 }
                             }
                         </select>
@@ -271,13 +282,13 @@
                     </div>
                     <div class="form-group @(VM.HasError("modele") ? "has-error" : "")">
                         <label>Modèle</label>
-                        <select @onchange="VM.OnModeleChanged">
+                        <select @bind="VM.selectedModeleId">
                             <option value="0">Tous les modèles</option>
                             @if (VMAll.filteredModeles != null)
                             {
                                 @foreach (var modele in VMAll.filteredModeles)
                                 {
-                                    <option value="@modele.IdModele" selected="@(VM.VoitureDetailDto.IdModele == modele.IdModele)">@modele.LibelleModele</option>
+                                    <option value="@modele.IdModele">@modele.LibelleModele</option>
                                 }
                             }
                         </select>
@@ -421,8 +432,6 @@
                         }
                     </div>
                 </div>
-
-                @* PLACER CE CODE JUSTE AVANT LA SECTION "Adresse de vente" *@
 
                 <div class="form-row">
                     <div class="form-group @(VM.HasError("cylindrermoteur") ? "has-error" : "")">

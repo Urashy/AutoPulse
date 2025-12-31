@@ -9,6 +9,7 @@ using BlazorAutoPulse.Service.WebService;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Text.RegularExpressions;
+using AutoPulse.Shared.DTO.Immat;
 using VoitureDetailDTO = AutoPulse.Shared.DTO.VoitureDetailDTO;
 
 namespace BlazorAutoPulse.ViewModel
@@ -71,6 +72,24 @@ namespace BlazorAutoPulse.ViewModel
         public List<NominatimResult> addressSuggestions { get; set; } = new();
         public bool showAddressSuggestions { get; set; } = false;
         public bool isSearchingAddress { get; set; } = false;
+        
+        // Plaque d'immatriculation
+        [Parameter]
+        public bool IsVisible { get; set; }
+
+        [Parameter]
+        public EventCallback<bool> IsVisibleChanged { get; set; }
+
+        [Parameter]
+        public EventCallback<VehicleDataDTO> OnApplyData { get; set; }
+
+        public string PlateNumber { get; set; } = "";
+        public bool IsLoading { get; set; }
+        public bool IsExpanded { get; set; }
+        public string ErrorMessage { get; set; } = "";
+        public VehicleDataDTO? VehicleData { get; set; }
+        
+        public bool showImmatModal = false;
 
         private System.Threading.Timer? _debounceTimer;
 
@@ -498,24 +517,28 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        public void OnMarqueChanged(ChangeEventArgs e)
+        public void OnMarqueChanged(int marqueId)
         {
-            VoitureDetailDto.IdMarque = int.Parse(e.Value.ToString());
+            VoitureDetailDto.IdMarque = marqueId;
+            selectedMarqueId = VoitureDetailDto.IdMarque;
             if (VoitureDetailDto.IdMarque != 0 && errors.ContainsKey("marque"))
                 errors.Remove("marque");
             _refreshUI?.Invoke();
         }
         
-        public void OnModeleChanged(ChangeEventArgs e)
+        public void OnModeleChanged(int modeleId)
         {
-            VoitureDetailDto.IdModele = int.Parse(e.Value.ToString());
+            VoitureDetailDto.IdModele = modeleId;
+            selectedModeleId =  VoitureDetailDto.IdModele;
             if (VoitureDetailDto.IdModele != 0 && errors.ContainsKey("modele"))
                 errors.Remove("modele");
+            _refreshUI?.Invoke();
         }
 
         public void OnCarburantChange(ChangeEventArgs e)
         {
             VoitureDetailDto.IdCarburant = int.Parse(e.Value.ToString());
+            selectedCarburantId = VoitureDetailDto.IdCarburant;
             if (VoitureDetailDto.IdCarburant == 4)
             {
                 VoitureDetailDto.IdBoiteDeVitesse = 2;
@@ -530,6 +553,7 @@ namespace BlazorAutoPulse.ViewModel
         public void OnMotriciteChange(ChangeEventArgs e)
         {
             VoitureDetailDto.IdMotricite = int.Parse(e.Value.ToString());
+            selectedMotriciteId = VoitureDetailDto.IdMotricite;
             if (VoitureDetailDto.IdMotricite != 0 && errors.ContainsKey("motricite"))
                 errors.Remove("motricite");
         }
@@ -537,6 +561,7 @@ namespace BlazorAutoPulse.ViewModel
         public void OnBoiteDeVitesseChange(ChangeEventArgs e)
         {
             VoitureDetailDto.IdBoiteDeVitesse = int.Parse(e.Value.ToString());
+            selectedBoiteId = VoitureDetailDto.IdBoiteDeVitesse;
             if (VoitureDetailDto.IdBoiteDeVitesse != 0 && errors.ContainsKey("boitedevitesse"))
                 errors.Remove("boitedevitesse");
         }
@@ -544,6 +569,7 @@ namespace BlazorAutoPulse.ViewModel
         public void OnCategorieChange(ChangeEventArgs e)
         {
             VoitureDetailDto.IdCategorie = int.Parse(e.Value.ToString());
+            selectedCategorieId = VoitureDetailDto.IdCategorie;
             if (VoitureDetailDto.IdCategorie != 0 && errors.ContainsKey("categorie"))
                 errors.Remove("categorie");
         }
@@ -864,6 +890,231 @@ namespace BlazorAutoPulse.ViewModel
             if (errors.ContainsKey("rueadresse")) errors.Remove("rueadresse");
             if (errors.ContainsKey("codepostal")) errors.Remove("codepostal");
             if (errors.ContainsKey("ville")) errors.Remove("ville");
+
+            _refreshUI?.Invoke();
+        }
+
+        // Variables pour le binding des select
+        private int _selectedMarqueId;
+        public int selectedMarqueId
+        {
+            get => _selectedMarqueId;
+            set
+            {
+                if (_selectedMarqueId == value) return;
+
+                _selectedMarqueId = value;
+                _ = OnMarqueChangedInternal(value);
+            }
+        }
+
+        private async Task OnMarqueChangedInternal(int marqueId)
+        {
+            await _vmAll.OnMarqueChanged(marqueId);
+            OnMarqueChanged(marqueId);
+        }
+
+        private int _selectedModeleId;
+        public int selectedModeleId
+        {
+            get => _selectedModeleId;
+            set
+            {
+                if (_selectedModeleId == value) return;
+
+                _selectedModeleId = value;
+                _ = OnModeleChangedInternal(value);
+            }
+        }
+        
+        private async Task OnModeleChangedInternal(int marqueId)
+        {
+            OnModeleChanged(marqueId);
+        }
+
+        public int selectedCarburantId
+        {
+            get => VoitureDetailDto.IdCarburant;
+            set => VoitureDetailDto.IdCarburant = value;
+        }
+
+        public int selectedMotriciteId
+        {
+            get => VoitureDetailDto.IdMotricite;
+            set => VoitureDetailDto.IdMotricite = value;
+        }
+
+        public int selectedBoiteId
+        {
+            get => VoitureDetailDto.IdBoiteDeVitesse;
+            set => VoitureDetailDto.IdBoiteDeVitesse = value;
+        }
+
+        public int selectedCategorieId
+        {
+            get => VoitureDetailDto.IdCategorie;
+            set => VoitureDetailDto.IdCategorie = value;
+        }
+
+        public void OpenImmatModal()
+        {
+            showImmatModal = true;
+        }
+
+        public async Task HandleImmatDataApplied(VehicleDataDTO vehicleData)
+        {
+            if (vehicleData == null) return;
+
+            // Appliquer les données sélectionnées
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Manufacturer), false)
+                && !string.IsNullOrWhiteSpace(vehicleData.Manufacturer))
+            {
+                var marque = _vmAll.allMarques?.FirstOrDefault(m =>
+                    m.LibelleMarque.Equals(vehicleData.Manufacturer, StringComparison.OrdinalIgnoreCase));
+                if (marque != null)
+                {
+                    selectedMarqueId = marque.IdMarque;
+                    VoitureDetailDto.IdMarque = marque.IdMarque;
+                    await _vmAll.FiltrerModeleParMarquePublic(marque.IdMarque);
+                }
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Model), false)
+                && !string.IsNullOrWhiteSpace(vehicleData.Model))
+            {
+                var modele = _vmAll.filteredModeles?.FirstOrDefault(m =>
+                    m.LibelleModele.Equals(vehicleData.Model, StringComparison.OrdinalIgnoreCase));
+                if (modele != null)
+                {
+                    selectedModeleId = modele.IdModele;
+                    VoitureDetailDto.IdModele = modele.IdModele;
+                }
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Year), false)
+                && vehicleData.Year.HasValue && vehicleData.Year > 0)
+            {
+                VoitureDetailDto.Annee = vehicleData.Year.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Category), false)
+                && !string.IsNullOrWhiteSpace(vehicleData.Category))
+            {
+                var categorie = _vmAll.allCategories?.FirstOrDefault(c =>
+                    c.LibelleCategorie.Equals(vehicleData.Category, StringComparison.OrdinalIgnoreCase));
+                if (categorie != null)
+                {
+                    selectedCategorieId = categorie.IdCategorie;
+                    VoitureDetailDto.IdCategorie = categorie.IdCategorie;
+                }
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.FuelType), false)
+                && !string.IsNullOrWhiteSpace(vehicleData.FuelType))
+            {
+                var carburant = _vmAll.allCarburants?.FirstOrDefault(c =>
+                    c.LibelleCarburant.Equals(vehicleData.FuelType, StringComparison.OrdinalIgnoreCase));
+                if (carburant != null)
+                {
+                    selectedCarburantId = carburant.IdCarburant;
+                    VoitureDetailDto.IdCarburant = carburant.IdCarburant;
+                }
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.GearBox), false)
+                && !string.IsNullOrWhiteSpace(vehicleData.GearBox))
+            {
+                var boite = _vmAll.allBoiteDeVitesse?.FirstOrDefault(b =>
+                    b.LibelleBoite.Equals(vehicleData.GearBox, StringComparison.OrdinalIgnoreCase));
+                if (boite != null)
+                {
+                    selectedBoiteId = boite.IdBoiteDeVitesse;
+                    VoitureDetailDto.IdBoiteDeVitesse = boite.IdBoiteDeVitesse;
+                }
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.DriveWheels), false)
+                && !string.IsNullOrWhiteSpace(vehicleData.DriveWheels))
+            {
+                var motricite = _vmAll.allMotricite?.FirstOrDefault(m =>
+                    m.LibelleMotricite.Equals(vehicleData.DriveWheels, StringComparison.OrdinalIgnoreCase));
+                if (motricite != null)
+                {
+                    selectedMotriciteId = motricite.IdMotricite;
+                    VoitureDetailDto.IdMotricite = motricite.IdMotricite;
+                }
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Horsepower), false)
+                && vehicleData.Horsepower.HasValue && vehicleData.Horsepower > 0)
+            {
+                VoitureDetailDto.Puissance = vehicleData.Horsepower.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Torque), false)
+                && vehicleData.Torque.HasValue && vehicleData.Torque > 0)
+            {
+                VoitureDetailDto.Couple = vehicleData.Torque.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Cylinders), false)
+                && vehicleData.Cylinders.HasValue && vehicleData.Cylinders > 0)
+            {
+                VoitureDetailDto.NbCylindres = vehicleData.Cylinders.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.EngineVolume), false)
+                && vehicleData.EngineVolume.HasValue && vehicleData.EngineVolume > 0)
+            {
+                VoitureDetailDto.CylindrerMoteur = vehicleData.EngineVolume.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Doors), false)
+                && vehicleData.Doors.HasValue && vehicleData.Doors > 0)
+            {
+                VoitureDetailDto.NbPorte = vehicleData.Doors.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Seats), false)
+                && vehicleData.Seats.HasValue && vehicleData.Seats > 0)
+            {
+                VoitureDetailDto.NbPlace = vehicleData.Seats.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Color), false)
+                && !string.IsNullOrWhiteSpace(vehicleData.Color))
+            {
+                var couleur = _vmAll.allCouleurs?.FirstOrDefault(c =>
+                    c.LibelleCouleur.Equals(vehicleData.Color, StringComparison.OrdinalIgnoreCase));
+                if (couleur != null && !selectedCouleurs.Contains(couleur.IdCouleur))
+                {
+                    selectedCouleurs.Add(couleur.IdCouleur);
+                }
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.Airbags), false)
+                && vehicleData.Airbags.HasValue && vehicleData.Airbags > 0)
+            {
+                VoitureDetailDto.NbAirbag = vehicleData.Airbags.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.LeatherInterior), false)
+                && vehicleData.LeatherInterior.HasValue)
+            {
+                VoitureDetailDto.InterieurCuire = vehicleData.LeatherInterior.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.LeftHandDrive), false)
+                && vehicleData.LeftHandDrive.HasValue)
+            {
+                VoitureDetailDto.PositionVolant = vehicleData.LeftHandDrive.Value;
+            }
+
+            if (vehicleData.SelectedFields.GetValueOrDefault(nameof(vehicleData.FirstRegistration), false)
+                && vehicleData.FirstRegistration.HasValue)
+            {
+                VoitureDetailDto.MiseEnCirculation = vehicleData.FirstRegistration.Value;
+            }
 
             _refreshUI?.Invoke();
         }

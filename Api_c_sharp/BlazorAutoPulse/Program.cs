@@ -68,6 +68,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IAutoCompleteService,AdresseAutoCompleteService>();
             builder.Services.AddScoped<IA2fService, A2fWebService>();
             builder.Services.AddScoped<ITokenEmailService, TokenEmailWebService>();
+            builder.Services.AddScoped<IImmatService, ImmatWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();

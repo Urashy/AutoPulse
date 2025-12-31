@@ -1,0 +1,451 @@
+@using AutoPulse.Shared.DTO.Immat
+@using BlazorAutoPulse.Service.Interface
+@inject IImmatService ImmatService
+
+<div class="immat-modal-overlay @(IsVisible ? "show" : "")" @onclick="CloseModal">
+    <div class="immat-modal-container @GetModalSizeClass()" @onclick:stopPropagation="true">
+        
+        @* En-tête avec input plaque *@
+        <div class="immat-modal-header @(IsExpanded ? "expanded" : "")">
+            <h3>🔍 Recherche par plaque d'immatriculation</h3>
+            
+            <div class="immat-input-group">
+                <input type="text" 
+                       class="immat-plate-input @(HasError ? "error" : "")"
+                       placeholder="AB-123-CD"
+                       @bind="PlateNumber"
+                       @bind:event="oninput"
+                       @onkeyup="OnPlateInputKeyUp"
+                       disabled="@(IsLoading || IsExpanded)"
+                       maxlength="11" />
+                
+                @if (!IsExpanded)
+                {
+                    <button class="immat-search-btn" 
+                            @onclick="SearchByPlate" 
+                            disabled="@(IsLoading || string.IsNullOrWhiteSpace(PlateNumber))">
+                        @if (IsLoading)
+                        {
+                            <span class="spinner-small"></span>
+                        }
+                        else
+                        {
+                            <span>Rechercher</span>
+                        }
+                    </button>
+                }
+            </div>
+
+            @if (HasError && !string.IsNullOrWhiteSpace(ErrorMessage))
+            {
+                <div class="immat-error-message">⚠️ @ErrorMessage</div>
+            }
+
+            @if (!IsExpanded)
+            {
+                <button class="immat-close-btn" @onclick="CloseModal">✕</button>
+            }
+        </div>
+
+        @* Contenu - Affichage des résultats *@
+        @if (IsExpanded && VehicleData != null)
+        {
+            <div class="immat-modal-content">
+                <div class="immat-results-grid">
+                    
+                    @* Section Informations générales *@
+                    <div class="immat-section">
+                        <h4 class="immat-section-title">🚗 Informations générales</h4>
+                        
+                        @if (!string.IsNullOrWhiteSpace(VehicleData.Manufacturer))
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Manufacturer))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Manufacturer)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Marque</span>
+                                    <span class="immat-field-value">@VehicleData.Manufacturer</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(VehicleData.Model))
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Model))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Model)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Modèle</span>
+                                    <span class="immat-field-value">@VehicleData.Model</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.Year.HasValue && VehicleData.Year > 0)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Year))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Year)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Année</span>
+                                    <span class="immat-field-value">@VehicleData.Year</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(VehicleData.Category))
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Category))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Category)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Catégorie</span>
+                                    <span class="immat-field-value">@VehicleData.Category</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(VehicleData.Color))
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Color))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Color)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Couleur</span>
+                                    <span class="immat-field-value">@VehicleData.Color</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @* Section Motorisation *@
+                    <div class="immat-section">
+                        <h4 class="immat-section-title">⚙️ Motorisation</h4>
+                        
+                        @if (!string.IsNullOrWhiteSpace(VehicleData.FuelType))
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.FuelType))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.FuelType)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Carburant</span>
+                                    <span class="immat-field-value">@VehicleData.FuelType</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.Horsepower.HasValue && VehicleData.Horsepower > 0)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Horsepower))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Horsepower)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Puissance</span>
+                                    <span class="immat-field-value">@VehicleData.Horsepower CV</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.Torque.HasValue && VehicleData.Torque > 0)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Torque))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Torque)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Couple</span>
+                                    <span class="immat-field-value">@VehicleData.Torque Nm</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.Cylinders.HasValue && VehicleData.Cylinders > 0)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Cylinders))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Cylinders)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Cylindres</span>
+                                    <span class="immat-field-value">@VehicleData.Cylinders</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.EngineVolume.HasValue && VehicleData.EngineVolume > 0)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.EngineVolume))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.EngineVolume)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Cylindrée</span>
+                                    <span class="immat-field-value">@VehicleData.EngineVolume L</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @* Section Transmission et structure *@
+                    <div class="immat-section">
+                        <h4 class="immat-section-title">🔧 Transmission</h4>
+                        
+                        @if (!string.IsNullOrWhiteSpace(VehicleData.GearBox))
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.GearBox))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.GearBox)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Boîte de vitesse</span>
+                                    <span class="immat-field-value">@VehicleData.GearBox</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(VehicleData.DriveWheels))
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.DriveWheels))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.DriveWheels)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Motricité</span>
+                                    <span class="immat-field-value">@VehicleData.DriveWheels</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.Doors.HasValue && VehicleData.Doors > 0)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Doors))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Doors)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Portes</span>
+                                    <span class="immat-field-value">@VehicleData.Doors</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.Seats.HasValue && VehicleData.Seats > 0)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Seats))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Seats)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Places</span>
+                                    <span class="immat-field-value">@VehicleData.Seats</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @* Section Équipements *@
+                    <div class="immat-section">
+                        <h4 class="immat-section-title">🛡️ Équipements</h4>
+                        
+                        @if (VehicleData.Airbags.HasValue && VehicleData.Airbags > 0)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.Airbags))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.Airbags)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Airbags</span>
+                                    <span class="immat-field-value">@VehicleData.Airbags</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.LeatherInterior.HasValue)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.LeatherInterior))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.LeatherInterior)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Intérieur cuir</span>
+                                    <span class="immat-field-value">@(VehicleData.LeatherInterior.Value ? "Oui" : "Non")</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.LeftHandDrive.HasValue)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.LeftHandDrive))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.LeftHandDrive)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Position volant</span>
+                                    <span class="immat-field-value">@(VehicleData.LeftHandDrive.Value ? "Gauche" : "Droite")</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (VehicleData.FirstRegistration.HasValue)
+                        {
+                            <div class="immat-field-item" @onclick="() => ToggleField(nameof(VehicleData.FirstRegistration))">
+                                <input type="checkbox" 
+                                       checked="@VehicleData.SelectedFields[nameof(VehicleData.FirstRegistration)]"
+                                       class="immat-checkbox" />
+                                <div class="immat-field-content">
+                                    <span class="immat-field-label">Mise en circulation</span>
+                                    <span class="immat-field-value">@VehicleData.FirstRegistration.Value.ToString("dd/MM/yyyy")</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* Footer avec actions *@
+            <div class="immat-modal-footer">
+                <button class="immat-btn-secondary" @onclick="ResetSearch">
+                    ↺ Nouvelle recherche
+                </button>
+                <button class="immat-btn-primary" @onclick="ApplySelectedFields">
+                    ✓ Appliquer les champs sélectionnés
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<VehicleDataDTO> OnApplyData { get; set; }
+
+    private string PlateNumber { get; set; } = "";
+    private bool IsLoading { get; set; }
+    private bool IsExpanded { get; set; }
+    private bool HasError { get; set; }
+    private string ErrorMessage { get; set; } = "";
+    private VehicleDataDTO? VehicleData { get; set; }
+
+    private string GetModalSizeClass()
+    {
+        if (!IsExpanded) return "immat-modal-small";
+        return "immat-modal-large";
+    }
+
+    private void OnPlateInputKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(PlateNumber))
+        {
+            _ = SearchByPlate();
+        }
+
+        // Formater automatiquement la plaque
+        PlateNumber = FormatPlateNumber(PlateNumber);
+    }
+
+    private string FormatPlateNumber(string input)
+    {
+        // Enlever tous les caractères non alphanumériques
+        var cleaned = new string(input.Where(c => char.IsLetterOrDigit(c)).ToArray()).ToUpper();
+
+        if (cleaned.Length <= 2) return cleaned;
+        if (cleaned.Length <= 5) return $"{cleaned.Substring(0, 2)}-{cleaned.Substring(2)}";
+        if (cleaned.Length <= 7) return $"{cleaned.Substring(0, 2)}-{cleaned.Substring(2, 3)}-{cleaned.Substring(5)}";
+        
+        return $"{cleaned.Substring(0, 2)}-{cleaned.Substring(2, 3)}-{cleaned.Substring(5, Math.Min(2, cleaned.Length - 5))}";
+    }
+
+    private async Task SearchByPlate()
+    {
+        HasError = false;
+        ErrorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(PlateNumber))
+        {
+            HasError = true;
+            ErrorMessage = "Veuillez entrer une plaque d'immatriculation";
+            return;
+        }
+
+        IsLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Appel au service réel
+            var result = await ImmatService.SearchByPlateNumberAsync(PlateNumber);
+
+            if (result.Success && result.VehicleData != null)
+            {
+                VehicleData = result.VehicleData;
+                IsExpanded = true;
+            }
+            else
+            {
+                HasError = true;
+                ErrorMessage = result.Error ?? "Aucun véhicule trouvé pour cette plaque";
+            }
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleField(string fieldName)
+    {
+        if (VehicleData != null && VehicleData.SelectedFields.ContainsKey(fieldName))
+        {
+            VehicleData.SelectedFields[fieldName] = !VehicleData.SelectedFields[fieldName];
+            StateHasChanged();
+        }
+    }
+
+    private async Task ApplySelectedFields()
+    {
+        if (VehicleData != null)
+        {
+            await OnApplyData.InvokeAsync(VehicleData);
+            await CloseModal();
+        }
+    }
+
+    private void ResetSearch()
+    {
+        IsExpanded = false;
+        VehicleData = null;
+        HasError = false;
+        ErrorMessage = "";
+        StateHasChanged();
+    }
+
+    private async Task CloseModal()
+    {
+        IsVisible = false;
+        IsExpanded = false;
+        VehicleData = null;
+        PlateNumber = "";
+        HasError = false;
+        ErrorMessage = "";
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+}
