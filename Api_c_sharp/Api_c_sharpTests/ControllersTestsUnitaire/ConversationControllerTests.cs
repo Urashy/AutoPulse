@@ -354,6 +354,108 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
+        public async Task PostCompletTest_ExistingConversation_AddsMessageOnly()
+        {
+            // Arrange - Créer un acheteur
+            var acheteur = new Compte
+            {
+                IdCompte = 2,
+                Nom = "Acheteur",
+                Prenom = "Jean",
+                Email = "jean.acheteur@gmail.com",
+                Pseudo = "jeanacheteur",
+                MotDePasse = "Password123!",
+                DateCreation = DateTime.Now,
+                DateNaissance = new DateTime(1995, 5, 10),
+                DateDerniereConnexion = DateTime.Now,
+                IdTypeCompte = 1
+            };
+            await _context.Comptes.AddAsync(acheteur);
+
+            var oldDate = DateTime.UtcNow.AddHours(-2);
+            var existingConversation = new Conversation
+            {
+                IdConversation = 10,
+                DateDernierMessage = oldDate,
+                IdAnnonce = _objetcommun.IdAnnonce
+            };
+            await _context.Conversations.AddAsync(existingConversation);
+
+            var participant1 = new APourConversation
+            {
+                IdCompte = 1,
+                IdConversation = existingConversation.IdConversation
+            };
+            var participant2 = new APourConversation
+            {
+                IdCompte = acheteur.IdCompte,
+                IdConversation = existingConversation.IdConversation
+            };
+            await _context.APourConversations.AddAsync(participant1);
+            await _context.APourConversations.AddAsync(participant2);
+
+            var initialMessage = new Message
+            {
+                IdMessage = 1,
+                IdConversation = existingConversation.IdConversation,
+                ContenuMessage = "Premier message",
+                DateEnvoiMessage = DateTime.UtcNow.AddHours(-2),
+                EstLu = true,
+                IdCompte = acheteur.IdCompte
+            };
+            await _context.Messages.AddAsync(initialMessage);
+            await _context.SaveChangesAsync();
+
+            var conversationsCountBefore = await _context.Conversations.CountAsync();
+            var messagesCountBefore = await _context.Messages.CountAsync();
+
+            var conversationDto = new ConversationCreateDTO
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                DateDernierMessage = DateTime.Now, 
+                message = "Nouveau message dans conversation existante"
+            };
+
+            // Act
+            var actionResult = await _controller.PostComplet(acheteur.IdCompte, 1, conversationDto);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var returnedConversation = (Conversation)created.Value;
+
+            var conversationsCountAfter = await _context.Conversations.CountAsync();
+            Assert.AreEqual(conversationsCountBefore, conversationsCountAfter,
+                "Aucune nouvelle conversation ne devrait être créée");
+
+            Assert.AreEqual(existingConversation.IdConversation, returnedConversation.IdConversation);
+
+            var messagesCountAfter = await _context.Messages.CountAsync();
+            Assert.AreEqual(messagesCountBefore + 1, messagesCountAfter,
+                "Un nouveau message devrait être ajouté");
+
+            var newMessage = await _context.Messages
+                .Where(m => m.IdConversation == existingConversation.IdConversation)
+                .OrderByDescending(m => m.DateEnvoiMessage)
+                .FirstOrDefaultAsync();
+
+            Assert.IsNotNull(newMessage);
+            Assert.AreEqual(conversationDto.message, newMessage.ContenuMessage);
+            Assert.AreEqual(acheteur.IdCompte, newMessage.IdCompte);
+            Assert.IsFalse(newMessage.EstLu);
+
+            var updatedConversation = await _context.Conversations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.IdConversation == existingConversation.IdConversation);
+
+            Assert.IsNotNull(updatedConversation);
+            Assert.IsTrue(updatedConversation.DateDernierMessage > oldDate,
+                $"DateDernierMessage devrait être mis à jour. Ancienne: {oldDate:O}, Nouvelle: {updatedConversation.DateDernierMessage:O}");
+        }
+
+        [TestMethod]
         public async Task BadRequestPostCompletTest()
         {
             // Arrange

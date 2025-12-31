@@ -524,5 +524,134 @@ namespace Api_c_sharp.ControllersMock.Tests
                 Times.Once,
                 "Le message ReceiveMessage devrait être envoyé avec les bons paramètres");
         }
+
+        // À ajouter dans ConversationControllerTests.cs (Mock Tests)
+
+        [TestMethod]
+        public async Task PostCompletTest_ExistingConversation_AddsMessageOnly()
+        {
+            // Arrange
+            var conversationDto = new ConversationCreateDTO
+            {
+                IdAnnonce = 1,
+                DateDernierMessage = DateTime.Now,
+                message = "Nouveau message dans conversation existante"
+            };
+
+            // Simuler une conversation existante
+            var existingConversation = new Conversation
+            {
+                IdConversation = 10,
+                IdAnnonce = conversationDto.IdAnnonce,
+                DateDernierMessage = DateTime.Now.AddHours(-1)
+            };
+
+            int idCompteEnvoi = 2;
+            int idCompteRecoi = 1;
+
+            // Configurer le mock pour retourner la conversation existante
+            _mockManager.Setup(m => m.PostComplet(
+                    It.IsAny<Conversation>(),
+                    conversationDto.message,
+                    idCompteEnvoi,
+                    idCompteRecoi))
+                .ReturnsAsync(existingConversation)
+                .Callback<Conversation, string, int, int>((conv, msg, idEnvoi, idRecoi) =>
+                {
+                    // Simuler la mise à jour de DateDernierMessage
+                    existingConversation.DateDernierMessage = DateTime.UtcNow;
+                })
+                .Verifiable();
+
+            // Act
+            var actionResult = await _controller.PostComplet(idCompteEnvoi, idCompteRecoi, conversationDto);
+
+            // Assert
+            Assert.IsNotNull(actionResult);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            var created = (CreatedAtActionResult)actionResult.Result;
+            Assert.IsNotNull(created.Value);
+
+            var returnedConversation = (Conversation)created.Value;
+
+            // Vérifier que la conversation existante est retournée (même ID)
+            Assert.AreEqual(existingConversation.IdConversation, returnedConversation.IdConversation);
+            Assert.AreEqual(conversationDto.IdAnnonce, returnedConversation.IdAnnonce);
+
+            // Vérifier que PostComplet a été appelé avec les bons paramètres
+            _mockManager.Verify(m => m.PostComplet(
+                It.Is<Conversation>(c => c.IdAnnonce == conversationDto.IdAnnonce),
+                conversationDto.message,
+                idCompteEnvoi,
+                idCompteRecoi),
+                Times.Once);
+
+            // Vérifier que le HubContext a été utilisé pour la notification
+            _mockHubClients.Verify(
+                c => c.Group($"conversation_{existingConversation.IdConversation}"),
+                Times.Once,
+                "Le groupe de conversation devrait être ciblé même pour une conversation existante");
+
+            _mockClientProxy.Verify(
+                c => c.SendCoreAsync(
+                    "ReceiveMessage",
+                    It.Is<object[]>(args =>
+                        args.Length == 4 &&
+                        (int)args[0] == existingConversation.IdConversation &&
+                        (int)args[1] == idCompteRecoi &&
+                        (string)args[2] == conversationDto.message),
+                    default(CancellationToken)),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task PostCompletTest_ExistingConversation_UpdatesDateDernierMessage()
+        {
+            // Arrange
+            var conversationDto = new ConversationCreateDTO
+            {
+                IdAnnonce = 1,
+                DateDernierMessage = DateTime.Now,
+                message = "Message de test"
+            };
+
+            var oldDate = DateTime.Now.AddDays(-2);
+            var existingConversation = new Conversation
+            {
+                IdConversation = 15,
+                IdAnnonce = conversationDto.IdAnnonce,
+                DateDernierMessage = oldDate
+            };
+
+            int idCompteEnvoi = 2;
+            int idCompteRecoi = 1;
+
+            _mockManager.Setup(m => m.PostComplet(
+                    It.IsAny<Conversation>(),
+                    conversationDto.message,
+                    idCompteEnvoi,
+                    idCompteRecoi))
+                .ReturnsAsync(existingConversation)
+                .Callback<Conversation, string, int, int>((conv, msg, idEnvoi, idRecoi) =>
+                {
+                    // Simuler la mise à jour de la date
+                    existingConversation.DateDernierMessage = DateTime.UtcNow;
+                });
+
+            // Act
+            var actionResult = await _controller.PostComplet(idCompteEnvoi, idCompteRecoi, conversationDto);
+
+            // Assert
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var returnedConversation = (Conversation)created.Value;
+
+            // Vérifier que la date a été mise à jour
+            Assert.IsTrue(returnedConversation.DateDernierMessage > oldDate,
+                "DateDernierMessage devrait être mis à jour pour une conversation existante");
+
+            // Vérifier que c'est bien la conversation existante qui est retournée
+            Assert.AreEqual(existingConversation.IdConversation, returnedConversation.IdConversation);
+        }
     }
 }
