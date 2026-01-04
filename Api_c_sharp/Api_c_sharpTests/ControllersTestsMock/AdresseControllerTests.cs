@@ -26,11 +26,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestInitialize]
         public void Initialize()
         {
-            // Création du mock du manager avec un paramètre null pour le context
-            // (le mock n'utilisera pas le context réel)
             _mockManager = new Mock<AdresseManager>(null);
 
-            // Création de l'adresse de référence
             _objetcommun = new Adresse
             {
                 IdAdresse = 1,
@@ -43,14 +40,12 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdCompte = 1
             };
 
-            // Configuration AutoMapper
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<MapperProfile>();
             });
             _mapper = config.CreateMapper();
 
-            // Injection dans le controller
             _controller = new AdresseController(_mockManager.Object, _mapper);
         }
         #region GET

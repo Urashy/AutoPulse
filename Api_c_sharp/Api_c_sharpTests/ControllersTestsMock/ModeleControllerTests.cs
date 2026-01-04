@@ -47,6 +47,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new ModeleController(_mockManager.Object, _mapper);
         }
 
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -143,5 +144,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
     }
 }

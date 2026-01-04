@@ -45,11 +45,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockClients = new Mock<IHubClients>();
             _mockClientProxy = new Mock<IClientProxy>();
 
-            // Configuration du hub context
             _mockHubContext.Setup(h => h.Clients).Returns(_mockClients.Object);
             _mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(_mockClientProxy.Object);
 
-            // Création de l'annonce de référence
             _objetcommun = new Annonce
             {
                 IdAnnonce = 1,
@@ -64,17 +62,15 @@ namespace Api_c_sharp.ControllersMock.Tests
                 DatePublication = DateTime.Now
             };
 
-            // Configuration AutoMapper
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<MapperProfile>();
             });
             _mapper = config.CreateMapper();
 
-            // Injection dans le controller
             _controller = new AnnonceController(_mockManager.Object, _mapper, _mockJournalService.Object,_mockNotificationService.Object, _mockHubContext.Object);
         }
-
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -143,7 +139,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task PostAnnonceTest_Entity()
         {
@@ -201,7 +199,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Annonce>()), Times.Never);
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteAnnonceTest()
         {
@@ -272,7 +272,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
                        .ReturnsAsync(annonceWithSignalement);
 
-            // ✅ CORRECTION : Simuler le comportement du manager qui modifie les signalements
+            // Simuler le comportement du manager qui modifie les signalements
             _mockManager.Setup(m => m.DeleteAsync(It.IsAny<Annonce>()))
                        .Callback<Annonce>(annonce =>
                        {
@@ -376,7 +376,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
                        .ReturnsAsync(annonceWithBoth);
 
-            // ✅ CORRECTION : Simuler le comportement complet du manager
+            // Simuler le comportement complet du manager
             _mockManager.Setup(m => m.DeleteAsync(It.IsAny<Annonce>()))
                        .Callback<Annonce>(annonce =>
                        {
@@ -393,7 +393,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                                        + sig.TypeSignalementSignalementNav.LibelleTypeSignalement;
                                }
                            }
-                           // Les conversations sont supprimées (pas besoin de les modifier ici)
+                           // Les conversations sont supprimées
                        })
                        .ReturnsAsync(true)
                        .Verifiable();
@@ -462,7 +462,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
                        .ReturnsAsync(annonceWithMultipleSignalements);
 
-            // ✅ CORRECTION : Simuler la modification de TOUS les signalements
+            // Simuler la modification de TOUS les signalements
             _mockManager.Setup(m => m.DeleteAsync(It.IsAny<Annonce>()))
                        .Callback<Annonce>(annonce =>
                        {
@@ -550,7 +550,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
                        .ReturnsAsync(annonceWithCommandeAndSignalement);
 
-            // ✅ CORRECTION : Simuler le comportement quand il y a une commande
+            // Simule le comportement quand il y a une commande
             // Le manager modifie quand même les signalements, change l'état, puis retourne false
             _mockManager.Setup(m => m.DeleteAsync(It.IsAny<Annonce>()))
                        .Callback<Annonce>(annonce =>
@@ -574,7 +574,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                                annonce.IdEtatAnnonce = 6; // Archivée
                            }
                        })
-                       .ReturnsAsync(false); // Retourne false car il y a une commande
+                       .ReturnsAsync(false);
 
             // Act
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
@@ -586,7 +586,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNull(signalement.IdAnnonceSignale);
             Assert.AreEqual(2, signalement.IdEtatSignalement);
 
-            // Vérifier que l'état de l'annonce est passé à "Archivée" (6)
+            // Vérifie que l'état de l'annonce est passé à "Archivée" (6)
             Assert.AreEqual(6, annonceWithCommandeAndSignalement.IdEtatAnnonce);
         }
 
@@ -621,7 +621,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task DeleteAnnonceTest_AdminTriggersNotification()
         {
             // Arrange
-            SetupUserContext("1"); // ⚠️ Admin (userId = "1")
+            SetupUserContext("1");
 
             var annonceSimple = new Annonce
             {
@@ -636,7 +636,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.DeleteAsync(annonceSimple))
                        .ReturnsAsync(true);
 
-            // Mock pour NotifSuppressionAnnonce
             _mockNotificationService.Setup(n => n.NotifSuppressionAnnonce(_objetcommun.IdAnnonce))
                                    .Returns(Task.CompletedTask);
 
@@ -646,7 +645,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            // Vérifier que la notification a été appelée pour l'admin
+            // Vérifie que la notification a été appelée pour l'admin
             _mockNotificationService.Verify(
                 n => n.NotifSuppressionAnnonce(_objetcommun.IdAnnonce),
                 Times.Once
@@ -710,7 +709,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Annonce>(), It.IsAny<Annonce>()), Times.Once);
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutAnnonceWithPriceDropTest()
         {
@@ -752,11 +753,11 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            // CORRECTION: Vérifier que le hub a été appelé avec "PriceDropNotification" 
+            // CORRECTION: Vérifier l'appel avec "PriceDropNotification" 
             // et un objet (pas des paramètres séparés)
             _mockClientProxy.Verify(
                 c => c.SendCoreAsync(
-                    "PriceDropNotification",  // ⚠️ CORRECTION: Nom correct
+                    "PriceDropNotification",  // Nom correct
                     It.Is<object[]>(args =>
                         args.Length == 1 &&
                         args[0] != null
@@ -871,7 +872,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Annonce>(), It.IsAny<Annonce>()), Times.Never);
         }
+        #endregion
 
+        #region GetBy
         [TestMethod]
         public async Task GetbystringTest()
         {
@@ -1377,7 +1380,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdAnnonce = _objetcommun.IdAnnonce,
                 Libelle = "Annonce Test",
                 IdCompte = 1,
-                IdEtatAnnonce = 4, // Etat "Masqué"
+                IdEtatAnnonce = 4, // Etat Masqué
                 IdAdresse = 1,
                 Prix = 20000,
                 Description = "Description de l'annonce",
@@ -1386,7 +1389,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 DatePublication = DateTime.Now
             };
 
-            // Mock de la méthode EstMasque qui retourne directement true
+            
             _mockManager.Setup(m => m.EstMasque(_objetcommun.IdAnnonce))
                        .ReturnsAsync(true);
 
@@ -1419,11 +1422,11 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             var annoncesList = new List<Annonce> { annonceSimilaire };
 
-            // Le controller appelle d'abord GetByIdAsync pour récupérer l'annonce
+            
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
                        .ReturnsAsync(_objetcommun);
 
-            // Puis il appelle GetAnnoncesSimilaires avec l'entité complète
+           
             _mockManager.Setup(m => m.GetAnnoncesSimilaires(_objetcommun))
                        .ReturnsAsync(annoncesList);
 
@@ -1452,6 +1455,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
         private void SetupUserContext(string userId = "2")
         {

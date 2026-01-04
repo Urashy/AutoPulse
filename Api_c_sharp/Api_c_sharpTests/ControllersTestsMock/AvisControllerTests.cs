@@ -40,12 +40,11 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new AvisController(_mockManager.Object, _mapper, _mockJournal.Object);
         }
 
-        // -----------------------------------------------------
-        //                      GET BY ID
-        // -----------------------------------------------------
+        #region GET
         [TestMethod]
         public async Task GetById_ReturnsOk_WhenExists()
         {
+            // Arrange
             var avis = new Avis
             {
                 IdAvis = 1,
@@ -59,8 +58,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(1))
                         .ReturnsAsync(avis);
 
+            // Act
             var result = await _controller.GetByID(1);
 
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(AvisDetailDTO));
             Assert.AreEqual(1, result.Value.IdAvis);
@@ -69,41 +70,46 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetById_ReturnsNotFound_WhenNotExists()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(1))
                         .ReturnsAsync((Avis)null);
 
+            // Act
             var result = await _controller.GetByID(1);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
-        // -----------------------------------------------------
-        //                      GET ALL
-        // -----------------------------------------------------
+
         [TestMethod]
         public async Task GetAll_ReturnsList()
         {
+            // Arrange
             var data = new List<Avis>
             {
                 new Avis { IdAvis = 1, ContenuAvis = "A", NoteAvis = 4 },
                 new Avis { IdAvis = 2, ContenuAvis = "B", NoteAvis = 5 }
             };
 
+            
             _mockManager.Setup(m => m.GetAllAsync())
                         .ReturnsAsync(data);
 
+            // Act
             var result = await _controller.GetAll();
 
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
 
-        // -----------------------------------------------------
-        //                       POST
-        // -----------------------------------------------------
+        #region POST
         [TestMethod]
         public async Task Post_ReturnsCreated()
         {
+            // Arrange
             var dto = new AvisCreateDTO
             {
                 IdJugee = 1,
@@ -126,30 +132,35 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Avis>()))
                         .ReturnsAsync(entity);
 
+            // Act
             var result = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
         }
 
         [TestMethod]
         public async Task Post_ReturnsBadRequest_WhenModelInvalid()
         {
+            // Arrange
             _controller.ModelState.AddModelError("x", "invalid");
 
             var dto = new AvisCreateDTO();
 
+            // Act
             var result = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Avis>()), Times.Never);
         }
+        #endregion
 
-        // -----------------------------------------------------
-        //                       PUT
-        // -----------------------------------------------------
+        #region PUT
         [TestMethod]
         public async Task Put_ReturnsNoContent_WhenOk()
         {
+            // Arrange
             var existing = new Avis
             {
                 IdAvis = 1,
@@ -173,20 +184,25 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(1))
                         .ReturnsAsync(existing);
 
+            // Act
             var result = await _controller.Put(1, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
 
         [TestMethod]
         public async Task Put_ReturnsBadRequest_WhenModelInvalid()
         {
+            // Arrange
             _controller.ModelState.AddModelError("x", "invalid");
 
             var dto = new AvisUpdateDTO();
 
+            // Act
             var result = await _controller.Put(1, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Avis>(), It.IsAny<Avis>()), Times.Never);
@@ -195,6 +211,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task Put_ReturnsNotFound_WhenEntityMissing()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(1))
                         .ReturnsAsync((Avis)null);
 
@@ -208,44 +225,51 @@ namespace Api_c_sharp.ControllersMock.Tests
                 NoteAvis = 5
             };
 
+            // Act
             var result = await _controller.Put(1, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // -----------------------------------------------------
-        //                       DELETE
-        // -----------------------------------------------------
+        #region DELETE
         [TestMethod]
         public async Task Delete_ReturnsNoContent_WhenOk()
         {
+            // Arrange
             var avis = new Avis { IdAvis = 1 };
 
             _mockManager.Setup(m => m.GetByIdAsync(1))
                         .ReturnsAsync(avis);
 
+            // Act
             var result = await _controller.Delete(1);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
 
         [TestMethod]
         public async Task Delete_ReturnsNotFound_WhenMissing()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(1))
                         .ReturnsAsync((Avis)null);
 
+            // Act
             var result = await _controller.Delete(1);
 
+            // Asserte
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // -----------------------------------------------------
-        //               GET AVIS BY COMPTE ID
-        // -----------------------------------------------------
+        #region GetBy
         [TestMethod]
         public async Task GetAvisByCompteID_ReturnsList_WhenExists()
         {
+            // Arrange
             var data = new List<Avis>
             {
                 new Avis { IdAvis = 1, ContenuAvis = "A", NoteAvis = 4 },
@@ -255,8 +279,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetAvisByCompteId(5))
                         .ReturnsAsync(data);
 
+            // Act
             var result = await _controller.GetAvisByCompteID(5);
 
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.AreEqual(2, result.Value.Count());
         }
@@ -264,12 +290,16 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetAvisByCompteID_ReturnsNotFound_WhenEmpty()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetAvisByCompteId(5))
                         .ReturnsAsync(new List<Avis>());
 
+            // Act
             var result = await _controller.GetAvisByCompteID(5);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
     }
 }

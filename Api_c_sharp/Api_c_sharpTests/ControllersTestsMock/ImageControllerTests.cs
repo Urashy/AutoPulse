@@ -52,6 +52,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new ImageController(_mockManager.Object, _mapper);
         }
 
+        #region GET
         [TestMethod]
         public async Task GetById_OK()
         {
@@ -112,6 +113,104 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
+        public async Task GetImagesByVoitureID_OK()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetFirstImageByVoitureID(20))
+                       .ReturnsAsync(_imageCommun);
+
+            // Act
+            var result = await _controller.GetImagesByVoitureId(20);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(FileContentResult));
+            var fileResult = result.Result as FileContentResult;
+            Assert.IsNotNull(fileResult);
+            Assert.AreEqual("image/jpeg", fileResult.ContentType);
+        }
+
+        [TestMethod]
+        public async Task GetImagesByVoitureID_NotFound()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetFirstImageByVoitureID(999))
+                       .ReturnsAsync((Image)null);
+
+            // Act
+            var result = await _controller.GetImagesByVoitureId(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetAllImagesByVoiture_OK()
+        {
+            // Arrange
+            var imageIdsList = new List<int> { 1, 3 };
+
+            _mockManager.Setup(m => m.GetAllImagesByVoitureId(20))
+                       .ReturnsAsync(imageIdsList);
+
+            // Act
+            var result = await _controller.GetAllImagesByVoitureId(20);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+            var imageIds = okResult.Value as IEnumerable<int>;
+            Assert.IsNotNull(imageIds);
+            Assert.AreEqual(2, imageIds.Count());
+        }
+
+        [TestMethod]
+        public async Task GetAllImagesByVoiture_NoContent()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetAllImagesByVoitureId(999))
+                       .ReturnsAsync((IEnumerable<int>)null);
+
+            // Act
+            var result = await _controller.GetAllImagesByVoitureId(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NoContentResult));
+        }
+
+        [TestMethod]
+        public async Task GetImageByCompteID_OK()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetImageByCompteID(10))
+                       .ReturnsAsync(_imageCommun);
+
+            // Act
+            var result = await _controller.GetImageByCompteID(10);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+        }
+
+        [TestMethod]
+        public async Task GetImageByCompteID_NotFound()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetImageByCompteID(999))
+                       .ReturnsAsync((Image)null);
+
+            // Act
+            var result = await _controller.GetImageByCompteID(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region POST
+        [TestMethod]
         public async Task Post_OK()
         {
             // Arrange
@@ -150,7 +249,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Image>()), Times.Once);
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task Put_OK()
         {
@@ -236,7 +337,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task Delete_OK()
         {
@@ -268,103 +371,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
-
-        [TestMethod]
-        public async Task GetImagesByVoitureID_OK()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetFirstImageByVoitureID(20))
-                       .ReturnsAsync(_imageCommun);
-
-            // Act
-            var result = await _controller.GetImagesByVoitureId(20);
-
-            // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(FileContentResult));
-            var fileResult = result.Result as FileContentResult;
-            Assert.IsNotNull(fileResult);
-            Assert.AreEqual("image/jpeg", fileResult.ContentType);
-        }
-
-        [TestMethod]
-        public async Task GetImagesByVoitureID_NotFound()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetFirstImageByVoitureID(999))
-                       .ReturnsAsync((Image)null);
-
-            // Act
-            var result = await _controller.GetImagesByVoitureId(999);
-
-            // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetAllImagesByVoiture_OK()
-        {
-            // Arrange
-            // ✅ CORRECTION: GetAllImagesByVoitureId retourne IEnumerable<int> (liste d'IDs)
-            var imageIdsList = new List<int> { 1, 3 };
-
-            _mockManager.Setup(m => m.GetAllImagesByVoitureId(20))
-                       .ReturnsAsync(imageIdsList);
-
-            // Act
-            var result = await _controller.GetAllImagesByVoitureId(20);
-
-            // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-            var okResult = result.Result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            var imageIds = okResult.Value as IEnumerable<int>;
-            Assert.IsNotNull(imageIds);
-            Assert.AreEqual(2, imageIds.Count());
-        }
-
-        [TestMethod]
-        public async Task GetAllImagesByVoiture_NoContent()
-        {
-            // Arrange
-            // ✅ CORRECTION: Retourner null pour IEnumerable<int>
-            _mockManager.Setup(m => m.GetAllImagesByVoitureId(999))
-                       .ReturnsAsync((IEnumerable<int>)null);
-
-            // Act
-            var result = await _controller.GetAllImagesByVoitureId(999);
-
-            // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(NoContentResult));
-        }
-
-        [TestMethod]
-        public async Task GetImageByCompteID_OK()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetImageByCompteID(10))
-                       .ReturnsAsync(_imageCommun);
-
-            // Act
-            var result = await _controller.GetImageByCompteID(10);
-
-            // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-            var okResult = result.Result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-        }
-
-        [TestMethod]
-        public async Task GetImageByCompteID_NotFound()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetImageByCompteID(999))
-                       .ReturnsAsync((Image)null);
-
-            // Act
-            var result = await _controller.GetImageByCompteID(999);
-
-            // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
+        #endregion
+        
     }
 }

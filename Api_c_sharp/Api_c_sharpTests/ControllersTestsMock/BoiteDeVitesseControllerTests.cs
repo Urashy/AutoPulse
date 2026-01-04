@@ -28,27 +28,23 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestInitialize]
         public void Initialize()
         {
-            // Création du mock du manager avec un paramètre null pour le context
-            // (le mock n'utilisera pas le context réel)
             _mockManager = new Mock<BoiteDeVitesseManager>(null);
 
-            // Création de l'adresse de référence
             _objetcommun = new BoiteDeVitesse
             {
                 IdBoiteDeVitesse = 1,
                 LibelleBoite ="Auto"
             };
 
-            // Configuration AutoMapper
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<MapperProfile>();
             });
             _mapper = config.CreateMapper();
 
-            // Injection dans le controller
             _controller = new BoiteDeVitesseController(_mockManager.Object, _mapper);
         }
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -109,5 +105,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.LibelleBoite == _objetcommun.LibelleBoite));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
     }
 }

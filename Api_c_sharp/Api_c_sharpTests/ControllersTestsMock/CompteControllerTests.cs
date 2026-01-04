@@ -33,11 +33,11 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestInitialize]
         public void Initialize()
         {
-            // Création des mocks
+            
             _mockManager = new Mock<CompteManager>(null);
             _mockJournalService = new Mock<IJournalService>();
 
-            // Configuration en mémoire pour JWT
+            
             var inMemorySettings = new Dictionary<string, string>
             {
                 {"Jwt:SecretKey", "UneSuperCleSecreteTresLonguePourLeTestJWT123456789"},
@@ -51,14 +51,14 @@ namespace Api_c_sharp.ControllersMock.Tests
                 .AddInMemoryCollection(inMemorySettings)
                 .Build();
 
-            // Configuration AutoMapper
+            
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<MapperProfile>();
             });
             _mapper = config.CreateMapper();
 
-            // Création du compte de référence
+            
             _objetcommun = new Compte
             {
                 IdCompte = 1,
@@ -74,7 +74,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdEtatCompte = 1
             };
 
-            // Injection dans le controller
+            
             _controller = new CompteController(
                 _mockManager.Object,
                 _mapper,
@@ -90,6 +90,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             };
         }
 
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -186,7 +187,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task PostCompteTest()
         {
@@ -237,7 +240,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Compte>()), Times.Never);
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteCompteTest()
         {
@@ -269,7 +274,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutCompteTest()
         {
@@ -308,7 +315,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Compte>(), It.IsAny<Compte>()), Times.Once);
         }
-
+        
         [TestMethod]
         public async Task NotFoundPutCompteTest()
         {
@@ -344,19 +351,39 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Compte>(), It.IsAny<Compte>()), Times.Never);
         }
+        #endregion
 
-        // Continuez avec les autres tests...
-        // Je vais créer une version plus concise pour économiser de l'espace
-
+        #region GETByString
         [TestMethod]
         public async Task GetByStringTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetByNameAsync(_objetcommun.Email))
                        .ReturnsAsync(_objetcommun);
+
+            // Act
             var result = await _controller.GetByString(_objetcommun.Email);
+
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.AreEqual(_objetcommun.Nom, result.Value.Nom);
         }
+        [TestMethod]
+        public async Task NotFoundGetByStringTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByNameAsync("NonExistentMail")).ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.GetByString("NonExistentMail");
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region Login/Logout
         [TestMethod]
         public async Task Login_ValidCredentials_ReturnsOkWithToken()
         {
@@ -392,396 +419,123 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task Login_InvalidEmail_ReturnsUnauthorized()
         {
+            // Arrange
             var loginRequest = new LoginRequest { Email = "wrong@test.com", MotDePasse = "Testmdp1!" };
             _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>())).ReturnsAsync((Compte)null);
 
+            // Act
             var result = await _controller.Login(loginRequest);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         [TestMethod]
         public async Task Logout_AuthenticatedUser_ReturnsOk()
         {
+            // Arrange
             var claims = new List<Claim> { new Claim("idUser", "1") };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
 
             _mockJournalService.Setup(j => j.LogDeconnexionAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
 
+            // Act
             var result = await _controller.Logout();
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
-        public async Task GetMeTest()
-        {
-            var claims = new List<Claim> { new Claim("idUser", "1") };
-            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
-
-            _mockManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(_objetcommun);
-
-            var result = await _controller.GetMe();
-
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
-        public async Task GetMeTest_Unauthorized_NoUserIdClaim()
-        {
-            var claims = new List<Claim>();
-            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
-
-            var result = await _controller.GetMe();
-
-            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedResult));
-        }
-
-        [TestMethod]
-        public async Task GetMeTest_NotFound_UserDoesNotExist()
-        {
-            var claims = new List<Claim> { new Claim("idUser", "999") };
-            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
-
-            _mockManager.Setup(m => m.GetByIdAsync(999)).ReturnsAsync((Compte)null);
-
-            var result = await _controller.GetMe();
-
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task Login_InvalidPassword_ReturnsUnauthorized()
         {
+            // Arrange
             var loginRequest = new LoginRequest { Email = "john@gmail.com", MotDePasse = "WrongPassword" };
             _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>())).ReturnsAsync((Compte)null);
 
+            // Act
             var result = await _controller.Login(loginRequest);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
         }
 
         [TestMethod]
         public async Task Login_EmptyEmail_ReturnsBadRequest()
         {
+            // Arrange
             var loginRequest = new LoginRequest { Email = "", MotDePasse = "Testmdp1!" };
 
+            // Act
             var result = await _controller.Login(loginRequest);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]
         public async Task Login_EmptyPassword_ReturnsBadRequest()
         {
+            // Arrange
             var loginRequest = new LoginRequest { Email = "john@gmail.com", MotDePasse = "" };
 
+            // Act
             var result = await _controller.Login(loginRequest);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]
         public async Task Login_NullCredentials_ReturnsBadRequest()
         {
+            // Arrange
             var loginRequest = new LoginRequest { Email = null, MotDePasse = null };
 
+            // Act
             var result = await _controller.Login(loginRequest);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]
         public async Task Logout_DeletesCookie()
         {
+            // Arrange
             var claims = new List<Claim> { new Claim("idUser", "1") };
             _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthType"));
 
             _mockJournalService.Setup(j => j.LogDeconnexionAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
 
+            // Act
             var result = await _controller.Logout();
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
-        public async Task GetByTypeCompteTest()
-        {
-            var comptesType = new List<Compte> { _objetcommun };
-            _mockManager.Setup(m => m.GetComptesByTypes(1)).ReturnsAsync(comptesType);
-
-            var result = await _controller.GetByTypeCompte(1);
-
-            Assert.IsNotNull(result.Value);
-            Assert.IsTrue(result.Value.Any());
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetByTypeCompteTest()
-        {
-            _mockManager.Setup(m => m.GetComptesByTypes(999)).ReturnsAsync(new List<Compte>());
-
-            var result = await _controller.GetByTypeCompte(999);
-
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetCompteByAnnonceFavoriTest()
-        {
-            var comptesFavoris = new List<Compte> { _objetcommun };
-            _mockManager.Setup(m => m.GetCompteByIdAnnonceFavori(1)).ReturnsAsync(comptesFavoris);
-
-            var result = await _controller.GetCompteByAnnonceFavori(1);
-
-            Assert.IsNotNull(result.Value);
-            Assert.IsTrue(result.Value.Any());
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetCompteByAnnonceFavoriTest()
-        {
-            _mockManager.Setup(m => m.GetCompteByIdAnnonceFavori(999)).ReturnsAsync(new List<Compte>());
-
-            var result = await _controller.GetCompteByAnnonceFavori(999);
-
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task PutAnonymiseTest()
-        {
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte)).ReturnsAsync(_objetcommun);
-            _mockManager.Setup(m => m.UpdateAnonymise(_objetcommun.IdCompte)).Returns(Task.CompletedTask);
-
-            var result = await _controller.PutAnonymise(_objetcommun.IdCompte);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutAnonymiseTest()
-        {
-            _mockManager.Setup(m => m.GetByIdAsync(0)).ReturnsAsync((Compte)null);
-
-            var result = await _controller.PutAnonymise(0);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task PutTypeCompteProTest()
-        {
-            var dto = new CompteModifTypeCompteDTO { RaisonSociale = "test", NumeroSiret = "12345678912345" };
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte)).ReturnsAsync(_objetcommun);
-            _mockManager.Setup(m => m.UpdateTypeCompte(It.IsAny<Compte>(), dto, false)).Returns(Task.CompletedTask);
-
-            var result = await _controller.PutTypeCompte(_objetcommun.IdCompte, dto);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutTypeCompteTest()
-        {
-            var dto = new CompteModifTypeCompteDTO { RaisonSociale = "test", NumeroSiret = "12345678912345" };
-            _mockManager.Setup(m => m.GetByIdAsync(0)).ReturnsAsync((Compte)null);
-
-            var result = await _controller.PutTypeCompte(0, dto);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task ModifMotDePasseTest()
-        {
-            var dto = new ChangementMdpDTO { IdCompte = _objetcommun.IdCompte, MotDePasse = "ouioui", Email = _objetcommun.Email };
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte)).ReturnsAsync(_objetcommun);
-            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Compte>(), It.IsAny<Compte>())).Returns(Task.CompletedTask);
-
-            var result = await _controller.ModifMdp(dto);
-
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
-        public async Task NotFoundModifMotDePasseTest()
-        {
-            var dto = new ChangementMdpDTO { IdCompte = 0, MotDePasse = "ouioui", Email = "test@test.com" };
-            _mockManager.Setup(m => m.GetByIdAsync(0)).ReturnsAsync((Compte)null);
-
-            var result = await _controller.ModifMdp(dto);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task VerifUserTest()
-        {
-            var dto = new ChangementMdpDTO { IdCompte = _objetcommun.IdCompte, MotDePasse = "Testmdp1!", Email = _objetcommun.Email };
-            _mockManager.Setup(m => m.VerifMotDePasse(dto.Email, It.IsAny<string>())).ReturnsAsync(_objetcommun);
-
-            bool result = await _controller.VerifUser(dto);
-
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public async Task NotVerifUserTest()
-        {
-            var dto = new ChangementMdpDTO { IdCompte = _objetcommun.IdCompte, MotDePasse = "nonnon", Email = _objetcommun.Email };
-            _mockManager.Setup(m => m.VerifMotDePasse(dto.Email, It.IsAny<string>())).ReturnsAsync((Compte)null);
-
-            bool result = await _controller.VerifUser(dto);
-
-            Assert.IsFalse(result);
-        }
-
-        [TestMethod]
-        public async Task ToggleEtatCompteTest()
-        {
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte)).ReturnsAsync(_objetcommun);
-            _mockManager.Setup(m => m.ToggleEtatCompte(_objetcommun.IdCompte, false)).Returns(Task.CompletedTask);
-
-            var result = await _controller.ToggleEtatCompte(_objetcommun.IdCompte);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-        }
-
-        [TestMethod]
-        public async Task NotFoundToggleEtatCompteTest()
-        {
-            _mockManager.Setup(m => m.GetByIdAsync(0)).ReturnsAsync((Compte)null);
-
-            var result = await _controller.ToggleEtatCompte(0);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public void GoogleLogin_ReturnsUrlInResponse()
-        {
-            var result = _controller.GoogleLogin();
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.IsNotNull(okResult.Value);
-
-            var responseType = okResult.Value.GetType();
-            var urlProperty = responseType.GetProperty("url");
-            Assert.IsNotNull(urlProperty);
-
-            string url = urlProperty.GetValue(okResult.Value)?.ToString();
-            Assert.IsNotNull(url);
-        }
-
-        [TestMethod]
-        public void GoogleLogin_UrlContainsGoogleAuthEndpoint()
-        {
-            var result = _controller.GoogleLogin();
-            var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
-
-            Assert.IsTrue(url.Contains("accounts.google.com/o/oauth2/v2/auth"));
-        }
-
-        [TestMethod]
-        public void GoogleLogin_UrlContainsClientId()
-        {
-            var result = _controller.GoogleLogin();
-            var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
-
-            Assert.IsTrue(url.Contains("client_id="));
-        }
-
-        [TestMethod]
-        public void GoogleLogin_UrlContainsRedirectUri()
-        {
-            var result = _controller.GoogleLogin();
-            var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
-
-            Assert.IsTrue(url.Contains("redirect_uri="));
-        }
-
-        [TestMethod]
-        public void GoogleLogin_UrlContainsResponseType()
-        {
-            var result = _controller.GoogleLogin();
-            var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
-
-            Assert.IsTrue(url.Contains("response_type=code"));
-        }
-
-        [TestMethod]
-        public void GoogleLogin_UrlContainsRequiredScopes()
-        {
-            var result = _controller.GoogleLogin();
-            var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
-
-            Assert.IsTrue(url.Contains("scope="));
-            Assert.IsTrue(url.Contains("openid"));
-            Assert.IsTrue(url.Contains("profile"));
-            Assert.IsTrue(url.Contains("email"));
-        }
-
-        [TestMethod]
-        public async Task GoogleCallback_WithoutCode_ReturnsBadRequest()
-        {
-            var result = await _controller.GoogleCallback(null);
-
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task GoogleCallback_WithEmptyCode_ReturnsBadRequest()
-        {
-            var result = await _controller.GoogleCallback("");
-
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
-
-            var badRequest = result as BadRequestObjectResult;
-            Assert.AreEqual("Code manquant", badRequest.Value);
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetByStringTest()
-        {
-            _mockManager.Setup(m => m.GetByNameAsync("NonExistentMail")).ReturnsAsync((Compte)null);
-
-            var result = await _controller.GetByString("NonExistentMail");
-
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task Login_CaseInsensitiveEmail_ReturnsOk()
         {
+            // Arrange
             var loginRequest = new LoginRequest { Email = "JOHN@GMAIL.COM", MotDePasse = "Testmdp1!" };
             _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>())).ReturnsAsync(_objetcommun);
             _mockManager.Setup(m => m.AuthenticateCompte(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(_objetcommun);
             _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
 
+            // Act
             var result = await _controller.Login(loginRequest);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(ObjectResult));
         }
 
         [TestMethod]
         public async Task Logout_InvalidUserId_ReturnsInternalServerError()
         {
+            // Arrange
             var claims = new List<Claim> { new Claim("idUser", "invalid_user_id") };
             var identity = new ClaimsIdentity(claims, "TestAuthType");
             var claimsPrincipal = new ClaimsPrincipal(identity);
@@ -791,54 +545,151 @@ namespace Api_c_sharp.ControllersMock.Tests
                 HttpContext = new DefaultHttpContext { User = claimsPrincipal }
             };
 
+            // Act
             var result = await _controller.Logout();
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(ObjectResult));
             var objectResult = (ObjectResult)result;
             Assert.AreEqual(500, objectResult.StatusCode);
         }
+        #endregion
+
+        #region GETMe
+        [TestMethod]
+        public async Task GetMeTest()
+        {
+            // Arrange
+            var claims = new List<Claim> { new Claim("idUser", "1") };
+            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+            _mockManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(_objetcommun);
+
+            // Act
+            var result = await _controller.GetMe();
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+        }
 
         [TestMethod]
-        public async Task PutTypeComptePersoTest()
+        public async Task GetMeTest_Unauthorized_NoUserIdClaim()
         {
-            var comptePro = new Compte
-            {
-                IdCompte = 1,
-                Nom = "Doe",
-                Prenom = "John",
-                Email = "john@gmail.com",
-                IdTypeCompte = 2
-            };
+            // Arrange
+            var claims = new List<Claim>();
+            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
-            var dto = new CompteModifTypeCompteDTO { RaisonSociale = null, NumeroSiret = null };
-            _mockManager.Setup(m => m.GetByIdAsync(comptePro.IdCompte)).ReturnsAsync(comptePro);
-            _mockManager.Setup(m => m.UpdateTypeCompte(It.IsAny<Compte>(), dto, true)).Returns(Task.CompletedTask);
+            // Act
+            var result = await _controller.GetMe();
 
-            var result = await _controller.PutTypeCompte(comptePro.IdCompte, dto);
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(UnauthorizedResult));
+        }
 
+        [TestMethod]
+        public async Task GetMeTest_NotFound_UserDoesNotExist()
+        {
+            // Arrange
+            var claims = new List<Claim> { new Claim("idUser", "999") };
+            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+            _mockManager.Setup(m => m.GetByIdAsync(999)).ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.GetMe();
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region GETByType
+        [TestMethod]
+        public async Task GetByTypeCompteTest()
+        {
+            // Arrange
+            var comptesType = new List<Compte> { _objetcommun };
+            _mockManager.Setup(m => m.GetComptesByTypes(1)).ReturnsAsync(comptesType);
+
+            // Act
+            var result = await _controller.GetByTypeCompte(1);
+
+            // Assert
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByTypeCompteTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetComptesByTypes(999)).ReturnsAsync(new List<Compte>());
+
+            // Act
+            var result = await _controller.GetByTypeCompte(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region GETCompte
+        [TestMethod]
+        public async Task GetCompteByAnnonceFavoriTest()
+        {
+            // Arrange
+            var comptesFavoris = new List<Compte> { _objetcommun };
+            _mockManager.Setup(m => m.GetCompteByIdAnnonceFavori(1)).ReturnsAsync(comptesFavoris);
+
+            // Act
+            var result = await _controller.GetCompteByAnnonceFavori(1);
+
+            // Assert
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value.Any());
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetCompteByAnnonceFavoriTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetCompteByIdAnnonceFavori(999)).ReturnsAsync(new List<Compte>());
+
+            // Act
+            var result = await _controller.GetCompteByAnnonceFavori(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region PUTAno
+        [TestMethod]
+        public async Task PutAnonymiseTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte)).ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.UpdateAnonymise(_objetcommun.IdCompte)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.PutAnonymise(_objetcommun.IdCompte);
+
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
 
         [TestMethod]
-        public async Task ToggleEtatCompteEstRetirerTest()
+        public async Task NotFoundPutAnonymiseTest()
         {
-            var compteSuspendu = new Compte
-            {
-                IdCompte = 1,
-                Nom = "Doe",
-                Prenom = "John",
-                Email = "john@gmail.com",
-                IdEtatCompte = 2
-            };
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(0)).ReturnsAsync((Compte)null);
 
-            _mockManager.Setup(m => m.GetByIdAsync(compteSuspendu.IdCompte)).ReturnsAsync(compteSuspendu);
-            _mockManager.Setup(m => m.ToggleEtatCompte(compteSuspendu.IdCompte, true)).Returns(Task.CompletedTask);
+            // Act
+            var result = await _controller.PutAnonymise(0);
 
-            var result = await _controller.ToggleEtatCompte(compteSuspendu.IdCompte, true);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
-
 
         [TestMethod]
         public async Task PutAnonymiseAvecAdresseJournauxFavoriTest()
@@ -869,7 +720,300 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.UpdateAnonymise(compte2.IdCompte), Times.Once);
         }
+        #endregion
 
+        #region PUTTypeCompte
+        [TestMethod]
+        public async Task PutTypeCompteProTest()
+        {
+            // Arrange
+            var dto = new CompteModifTypeCompteDTO { RaisonSociale = "test", NumeroSiret = "12345678912345" };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte)).ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.UpdateTypeCompte(It.IsAny<Compte>(), dto, false)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.PutTypeCompte(_objetcommun.IdCompte, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutTypeCompteTest()
+        {
+            // Arrange
+            var dto = new CompteModifTypeCompteDTO { RaisonSociale = "test", NumeroSiret = "12345678912345" };
+            _mockManager.Setup(m => m.GetByIdAsync(0)).ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.PutTypeCompte(0, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task PutTypeComptePersoTest()
+        {
+            // Arrange
+            var comptePro = new Compte
+            {
+                IdCompte = 1,
+                Nom = "Doe",
+                Prenom = "John",
+                Email = "john@gmail.com",
+                IdTypeCompte = 2
+            };
+
+            var dto = new CompteModifTypeCompteDTO { RaisonSociale = null, NumeroSiret = null };
+            _mockManager.Setup(m => m.GetByIdAsync(comptePro.IdCompte)).ReturnsAsync(comptePro);
+            _mockManager.Setup(m => m.UpdateTypeCompte(It.IsAny<Compte>(), dto, true)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.PutTypeCompte(comptePro.IdCompte, dto);
+
+            // Arrange
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        }
+        #endregion
+
+        #region ModifMDP
+        [TestMethod]
+        public async Task ModifMotDePasseTest()
+        {
+            // Arrange
+            var dto = new ChangementMdpDTO { IdCompte = _objetcommun.IdCompte, MotDePasse = "ouioui", Email = _objetcommun.Email };
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte)).ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Compte>(), It.IsAny<Compte>())).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.ModifMdp(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task NotFoundModifMotDePasseTest()
+        {
+            // Arrange
+            var dto = new ChangementMdpDTO { IdCompte = 0, MotDePasse = "ouioui", Email = "test@test.com" };
+            _mockManager.Setup(m => m.GetByIdAsync(0)).ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.ModifMdp(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+        #endregion
+
+        #region VerifUser
+        [TestMethod]
+        public async Task VerifUserTest()
+        {
+            // Arrange
+            var dto = new ChangementMdpDTO { IdCompte = _objetcommun.IdCompte, MotDePasse = "Testmdp1!", Email = _objetcommun.Email };
+            _mockManager.Setup(m => m.VerifMotDePasse(dto.Email, It.IsAny<string>())).ReturnsAsync(_objetcommun);
+
+            // Act
+            bool result = await _controller.VerifUser(dto);
+
+            // Assert
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public async Task NotVerifUserTest()
+        {
+            // Arrange
+            var dto = new ChangementMdpDTO { IdCompte = _objetcommun.IdCompte, MotDePasse = "nonnon", Email = _objetcommun.Email };
+            _mockManager.Setup(m => m.VerifMotDePasse(dto.Email, It.IsAny<string>())).ReturnsAsync((Compte)null);
+
+            // Act
+            bool result = await _controller.VerifUser(dto);
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+        #endregion
+
+        #region ToggleEtat
+        [TestMethod]
+        public async Task ToggleEtatCompteTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte)).ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.ToggleEtatCompte(_objetcommun.IdCompte, false)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.ToggleEtatCompte(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        }
+
+        [TestMethod]
+        public async Task NotFoundToggleEtatCompteTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(0)).ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.ToggleEtatCompte(0);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task ToggleEtatCompteEstRetirerTest()
+        {
+            // Arrange
+            var compteSuspendu = new Compte
+            {
+                IdCompte = 1,
+                Nom = "Doe",
+                Prenom = "John",
+                Email = "john@gmail.com",
+                IdEtatCompte = 2
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(compteSuspendu.IdCompte)).ReturnsAsync(compteSuspendu);
+            _mockManager.Setup(m => m.ToggleEtatCompte(compteSuspendu.IdCompte, true)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.ToggleEtatCompte(compteSuspendu.IdCompte, true);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        }
+        #endregion
+
+        #region Google
+        [TestMethod]
+        public void GoogleLogin_ReturnsUrlInResponse()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+            var okResult = result as OkObjectResult;
+
+            // Assert
+            Assert.IsNotNull(okResult);
+            Assert.IsNotNull(okResult.Value);
+
+            // Act
+            var responseType = okResult.Value.GetType();
+            var urlProperty = responseType.GetProperty("url");
+
+            // Assert
+            Assert.IsNotNull(urlProperty);
+
+            // Act
+            string url = urlProperty.GetValue(okResult.Value)?.ToString();
+            // Assert
+            Assert.IsNotNull(url);
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsGoogleAuthEndpoint()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            // Assert
+            Assert.IsTrue(url.Contains("accounts.google.com/o/oauth2/v2/auth"));
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsClientId()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            // Assert
+            Assert.IsTrue(url.Contains("client_id="));
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsRedirectUri()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            // Assert
+            Assert.IsTrue(url.Contains("redirect_uri="));
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsResponseType()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            // Assert
+            Assert.IsTrue(url.Contains("response_type=code"));
+        }
+
+        [TestMethod]
+        public void GoogleLogin_UrlContainsRequiredScopes()
+        {
+            // Act
+            var result = _controller.GoogleLogin();
+            var okResult = result as OkObjectResult;
+            var urlProperty = okResult.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult.Value).ToString();
+
+            // Assert
+            Assert.IsTrue(url.Contains("scope="));
+            Assert.IsTrue(url.Contains("openid"));
+            Assert.IsTrue(url.Contains("profile"));
+            Assert.IsTrue(url.Contains("email"));
+        }
+
+        [TestMethod]
+        public async Task GoogleCallback_WithoutCode_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GoogleCallback(null);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task GoogleCallback_WithEmptyCode_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.GoogleCallback("");
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+
+            // Act
+            var badRequest = result as BadRequestObjectResult;
+            
+            // Assert
+            Assert.AreEqual("Code manquant", badRequest.Value);
+        }
+        #endregion
+
+        
         #region Tests manquants pour compléter la couverture
 
 
