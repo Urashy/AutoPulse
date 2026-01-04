@@ -218,7 +218,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.TypeCompte,
                 opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(dest => dest.Adresses,
-                opt => opt.MapFrom(src => src.Adresses.Select(a => a.CompteAdresseNav)))
+                   opt => opt.MapFrom(src => src.Adresses))
             .ForMember(dest => dest.TypeCompte,
                  opt => opt.MapFrom(src => src.TypeCompteCompteNav.Libelle))
             .ForMember(

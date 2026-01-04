@@ -14,7 +14,7 @@ namespace Api_c_sharp.Controllers;
 [Route("api/[controller]/[action]")]
 [ApiController]
 public class TokenEmailController(
-    TokenEmailManager _manager, 
+    TokenEmailManager _manager,
     IConfiguration _config,
     IMapper _mapper,
     CompteManager _compteManager) : ControllerBase
@@ -106,7 +106,7 @@ public class TokenEmailController(
         Random rand = new Random();
         var token = rand.Next(0, 9999999).ToString("D7");
         var expiration = DateTime.UtcNow.AddMinutes(15);
-        
+
         TokenEmail tokenEmail = _mapper.Map<TokenEmail>(dto);
         tokenEmail.Token = token;
         tokenEmail.Expiration = expiration;
