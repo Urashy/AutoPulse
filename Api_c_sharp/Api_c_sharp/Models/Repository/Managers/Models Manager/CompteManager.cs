@@ -198,7 +198,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             if (!compte.DateDerniereActivationA2f.HasValue)
                 return true;
 
-            var jourDepuisActivation = (DateTime.UtcNow - compte.DateDerniereActivationA2f.Value).TotalDays;
+            var jourDepuisActivation = (DateTime.UtcNow.Date - compte.DateDerniereActivationA2f.Value.Date).TotalDays;
             return jourDepuisActivation > 30;
         }
 
