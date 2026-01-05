@@ -77,12 +77,12 @@ public class CompteWebService : BaseWebService<CompteDetailDTO>, ICompteService
         }
     }
 
-    public async Task<Compte> GetByNameAsync(string name)
+    public async Task<CompteDetailDTO> GetByNameAsync(string name)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetByString/{name}"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<Compte>();
+        return await response.Content.ReadFromJsonAsync<CompteDetailDTO>();
     }
 
     public async Task<CompteDetailDTO> GetMe()

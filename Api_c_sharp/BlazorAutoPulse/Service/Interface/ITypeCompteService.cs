@@ -1,9 +1,10 @@
-﻿using BlazorAutoPulse.Model;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 
 namespace BlazorAutoPulse.Service.Interface
 {
-    public interface ITypeCompteService : IService<TypeCompte>
+    public interface ITypeCompteService : IService<TypeCompteDTO>
     {
-        Task<IEnumerable<TypeCompte>> GetTypeComptesPourChercher();
+        Task<IEnumerable<TypeCompteDTO>> GetTypeComptesPourChercher();
     }
 }

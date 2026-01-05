@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AutoPulse.Shared.DTO.Authentification;
 
 namespace Api_c_sharp.ControllersMock.Tests
 {
@@ -361,7 +362,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task Login_ValidCredentials_ReturnsOkWithToken()
         {
             // Arrange
-            var loginRequest = new LoginRequest
+            var loginRequest = new LoginRequest()
             {
                 Email = "john@gmail.com",
                 MotDePasse = "Testmdp1!"

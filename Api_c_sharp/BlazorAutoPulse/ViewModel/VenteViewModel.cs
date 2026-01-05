@@ -22,7 +22,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IVoitureService _voitureService;
         private readonly IAdresseService _adresseService;
         private readonly IPostImageService _postImageService;
-        private readonly IService<APourCouleur> _aPourCouleurService;
+        private readonly IService<APourCouleurDTO> _aPourCouleurService;
         private readonly IIAService _iaService;
         private readonly IAutoCompleteService _adresseAutoCompleteService;
 
@@ -33,7 +33,7 @@ namespace BlazorAutoPulse.ViewModel
         
         public AnnonceCreateDTO annonce;
         public VoitureDetailDTO VoitureDetailDto;
-        public Adresse adresse;
+        public AdresseCreateDTO adresse;
         public int? selectedAddressId { get; set; } = null;
         
         public List<string> nomPhotos { get; set; } = new();
@@ -99,7 +99,7 @@ namespace BlazorAutoPulse.ViewModel
             IVoitureService voitureService, 
             IPostImageService postImageService,
             IAdresseService adresseService,
-            IService<APourCouleur> aPourCouleurService,
+            IService<APourCouleurDTO> aPourCouleurService,
             IIAService iaService,
             IAutoCompleteService autoCompleteService)
         {
@@ -136,7 +136,7 @@ namespace BlazorAutoPulse.ViewModel
                 CylindrerMoteur = 0,
                 PositionVolant = true
             };
-            adresse = new Adresse();
+            adresse = new AdresseCreateDTO();
             selectedCouleurs = new List<int>();
         }
 
@@ -714,13 +714,12 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                Adresse resultAdr = new Adresse();
+                AdresseDTO resultAdr = new AdresseDTO();
                 if (selectedAddressId == null)
                 {
-                    adresse.IdAdresse = 0;
                     adresse.IdPays = 1;
                     adresse.IdCompte = 1;
-                    resultAdr = await _adresseService.CreateAsync(adresse);
+                    resultAdr = await _adresseService.CreateAdresseAsync(adresse);
                 }
                 else
                 {
@@ -736,7 +735,7 @@ namespace BlazorAutoPulse.ViewModel
                 
                 foreach (int couleur in selectedCouleurs)
                 {
-                    APourCouleur aPourCouleur = new APourCouleur()
+                    APourCouleurDTO aPourCouleur = new APourCouleurDTO()
                     {
                         IdCouleur = couleur,
                         IdVoiture = resultVoitureDetailDto.IdVoiture,
@@ -750,7 +749,7 @@ namespace BlazorAutoPulse.ViewModel
                 _nav.NavigateTo("/");
 
                 VoitureDetailDto = new VoitureDetailDTO();
-                adresse = new Adresse();
+                adresse = new AdresseCreateDTO();
                 annonce = new AnnonceCreateDTO();
                 nomPhotos = new List<string>();
                 selectedCouleurs = new List<int>();
@@ -861,7 +860,7 @@ namespace BlazorAutoPulse.ViewModel
         public void ResetAddress()
         {
             selectedAddressId = null;
-            adresse = new Adresse();
+            adresse = new AdresseCreateDTO();
             searchQuery = "";
             addressSuggestions.Clear();
             showAddressSuggestions = false;

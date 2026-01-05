@@ -165,7 +165,7 @@ public class ConversationStateService : IDisposable
 
         try
         {
-            Image? img = await _imageService.GetImageProfil(idCompte);
+            ImageDTO? img = await _imageService.GetImageProfil(idCompte);
             string imageSource;
 
             if (img != null && img.Fichier != null && img.Fichier.Length > 0)

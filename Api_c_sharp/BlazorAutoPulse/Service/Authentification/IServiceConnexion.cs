@@ -1,5 +1,6 @@
 using System.Net;
 using AutoPulse.Shared.DTO;
+using AutoPulse.Shared.DTO.Authentification;
 using BlazorAutoPulse.Model;
 
 namespace BlazorAutoPulse.Service.Authentification;
