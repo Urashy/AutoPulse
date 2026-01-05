@@ -41,7 +41,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual async Task<int> GetUnreadMessageCount(int conversationId, int userId)
         {
-            var list = dbSet.Where(m => m.IdConversation == conversationId && m.IdCompte !=  userId && m.EstLu == false).ToList();
+            var list = await dbSet.Where(m => m.IdConversation == conversationId && m.IdCompte !=  userId && m.EstLu == false).ToListAsync();
 
             return list.Count;
         }

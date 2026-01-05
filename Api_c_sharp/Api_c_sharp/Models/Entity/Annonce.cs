@@ -34,7 +34,8 @@ public class Annonce
     public int IdVoiture { get; set; }
 
     [Column("mav_id")]
-    public int? IdMiseEnAvant { get; set; }
+    [Required]
+    public int IdMiseEnAvant { get; set; }
 
     [Column("ann_dat")]
     public DateTime? DatePublication{ get; set; }

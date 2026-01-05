@@ -1,18 +1,12 @@
 ﻿using Api_c_sharp.Controllers;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Entity;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using Api_c_sharp.Controllers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Api_c_sharp.ControllersMock.Tests
 {

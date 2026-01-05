@@ -50,7 +50,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.LibelleEtatAnnonce,
                 opt => opt.MapFrom(src => src.EtatAnnonceNavigation.LibelleEtatAnnonce))
             .ForMember(dest => dest.EstMiseEnAvant,
-                opt => opt.MapFrom(src => src.IdMiseEnAvant.HasValue))
+                opt => opt.MapFrom(src => src.IdMiseEnAvant > 1))
             .ForMember(dest => dest.LibelleMiseEnAvant,
                 opt => opt.MapFrom(src => src.MiseEnAvantAnnonceNav != null ? src.MiseEnAvantAnnonceNav.LibelleMiseEnAvant : null))
             .ForMember(dest => dest.Prix

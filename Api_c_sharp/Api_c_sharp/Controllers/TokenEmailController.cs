@@ -16,8 +16,7 @@ namespace Api_c_sharp.Controllers;
 public class TokenEmailController(
     TokenEmailManager _manager,
     IConfiguration _config,
-    IMapper _mapper,
-    CompteManager _compteManager) : ControllerBase
+    IMapper _mapper ) : ControllerBase
 {
     /// <summary>
     /// Récupère un token email à partir de son identifiant.

@@ -17,7 +17,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public virtual async Task<IEnumerable<Journal>> GetFilteredJournal(RechercheJournalDTO recherche)
         {
             var query = dbSet.AsQueryable();
-            if (recherche.IdType != 0 && recherche.IdType != null)
+            if (recherche.IdType != 0)
             {
                 query = dbSet.Where(journal => journal.IdTypeJournal == recherche.IdType);
             }
