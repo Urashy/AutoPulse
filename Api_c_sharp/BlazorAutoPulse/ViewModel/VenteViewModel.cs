@@ -30,7 +30,8 @@ namespace BlazorAutoPulse.ViewModel
         public List<ImageUpload> imageUpload;
         public List<AdresseDTO> compteAdresses;
         public string envoieApi;
-        
+
+        private CompteDetailDTO compte;
         public AnnonceCreateDTO annonce;
         public VoitureDetailDTO VoitureDetailDto;
         public AdresseCreateDTO adresse;
@@ -92,6 +93,23 @@ namespace BlazorAutoPulse.ViewModel
         public bool showImmatModal = false;
 
         private System.Threading.Timer? _debounceTimer;
+        
+        public async Task InitializeAsync(Action refreshUI, NavigationManager nav, GetAllViewModel vmAll)
+        {
+            _refreshUI = refreshUI;
+            _nav = nav;
+            _vmAll = vmAll;
+
+            try
+            {
+                compte = await _compteService.GetMe();
+                compteAdresses = (await _adresseService.GetAdresseByCompte(compte.IdCompte)).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
+            }
+        }
 
         public VenteViewModel(
             ICompteService compteService,
@@ -138,23 +156,6 @@ namespace BlazorAutoPulse.ViewModel
             };
             adresse = new AdresseCreateDTO();
             selectedCouleurs = new List<int>();
-        }
-
-        public async Task InitializeAsync(Action refreshUI, NavigationManager nav, GetAllViewModel vmAll)
-        {
-            _refreshUI = refreshUI;
-            _nav = nav;
-            _vmAll = vmAll;
-
-            try
-            {
-                CompteDetailDTO compte = await _compteService.GetMe();
-                compteAdresses = (await _adresseService.GetAdresseByCompte(compte.IdCompte)).ToList();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
-            }
         }
 
         // ============================================================================
@@ -606,12 +607,12 @@ namespace BlazorAutoPulse.ViewModel
         {
             errors.Clear();
 
-            if (string.IsNullOrWhiteSpace(annonce.Libelle))
+            if (string.IsNullOrEmpty(annonce.Libelle))
                 errors.Add("titre", "Le titre est requis");
 
             if (!nomPhotos.Any())
                 errors.Add("photos", "Au moins une photo est requise");
-
+            
             if (VoitureDetailDto.IdMarque == null || VoitureDetailDto.IdMarque == 0)
                 errors.Add("marque", "Veuillez sélectionner une marque");
 
@@ -660,7 +661,7 @@ namespace BlazorAutoPulse.ViewModel
             if (VoitureDetailDto.IdCarburant != 4 && VoitureDetailDto.CylindrerMoteur <= 0)
                 errors.Add("cylindrermoteur", "Cylindrée du moteur invalide");
             
-            if (VoitureDetailDto.PositionVolant != null)
+            if (VoitureDetailDto.PositionVolant == null)
                 errors.Add("positionvolant", "Veuillez sélectionner la position du volant");
 
             if (string.IsNullOrWhiteSpace(adresse.Nom))
@@ -677,7 +678,7 @@ namespace BlazorAutoPulse.ViewModel
 
             if (string.IsNullOrWhiteSpace(adresse.LibelleVille))
                 errors.Add("ville", "La ville est requise");
-
+            
             return !errors.Any();
         }
 
@@ -711,25 +712,27 @@ namespace BlazorAutoPulse.ViewModel
                 _refreshUI?.Invoke();
                 return;
             }
-
+            
             try
             {
                 AdresseDTO resultAdr = new AdresseDTO();
                 if (selectedAddressId == null)
                 {
                     adresse.IdPays = 1;
-                    adresse.IdCompte = 1;
+                    adresse.IdCompte = compte.IdCompte;
                     resultAdr = await _adresseService.CreateAdresseAsync(adresse);
                 }
                 else
                 {
                     resultAdr = await _adresseService.GetByIdAsync(selectedAddressId.Value);
                 }
+                
                 VoitureDetailDTO resultVoitureDetailDto = await _voitureService.CreateAsync(VoitureDetailDto);
                 
                 foreach (ImageUpload image in imageUpload)
                 {
                     image.IdVoiture = resultVoitureDetailDto.IdVoiture;
+                    Console.WriteLine(image.IdVoiture);
                     await _postImageService.CreateAsync(image);
                 }
                 
@@ -745,6 +748,7 @@ namespace BlazorAutoPulse.ViewModel
                 
                 annonce.IdAdresse = resultAdr.IdAdresse;
                 annonce.IdVoiture = resultVoitureDetailDto.IdVoiture;
+                annonce.IdCompte = compte.IdCompte;
                 await _annonceService.CreateAnnonceAsync(annonce);
                 _nav.NavigateTo("/");
 

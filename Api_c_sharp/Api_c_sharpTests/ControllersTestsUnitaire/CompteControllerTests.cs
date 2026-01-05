@@ -266,6 +266,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
         #endregion
 

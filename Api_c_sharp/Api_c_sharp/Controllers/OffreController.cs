@@ -98,7 +98,9 @@ namespace Api_c_sharp.Controllers
 
             await _manager.UpdateAsync(toUpdate, updated);
 
-            if(updated.EstAccepte.HasValue)
+            var message = await _managermessage.GetByIdAsync(toUpdate.IdMessage);
+
+            if (updated.EstAccepte == true)
             {
                 string userIdString = User.FindFirst("idUser")?.Value;
 
@@ -107,17 +109,17 @@ namespace Api_c_sharp.Controllers
                     CommandeCreateDTO com = new CommandeCreateDTO
                     {
                         IdAcheteur = idAcheteurConnecte,
-                        IdVendeur = toUpdate.OffreAnnonceNav?.IdCompte ?? 0,
+                        IdVendeur = message.IdCompte,
                         IdAnnonce = dto.IdAnnonce,
                         Date = DateTime.UtcNow,
                         IdMoyenPaiement = 1
                     };
 
-                    //await _managercommande.AddAsync(com);
+                    var commandeEntity = _offremapper.Map<Commande>(com);
+
+                    await _managercommande.AddAsync(commandeEntity);
                 }
             }
-
-            var message = await _managermessage.GetByIdAsync(dto.IdMessage);
 
             if (_hubContext != null)
             {
