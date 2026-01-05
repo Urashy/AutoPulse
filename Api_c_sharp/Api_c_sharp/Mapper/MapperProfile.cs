@@ -396,8 +396,11 @@ public class MapperProfile : Profile
         CreateMap<Offre, OffreDTO>()
             .ForMember(dest => dest.IdAnnonce, opt => opt.MapFrom(src => src.IdAnnonce))
         .ReverseMap();
-        
-        CreateMap<OffreUpdateDTO, Offre>().ReverseMap();
+
+        CreateMap<OffreUpdateDTO, Offre>()
+            .ForMember(dest => dest.OffreAnnonceNav, opt => opt.Ignore())
+            .ForMember(dest => dest.OffreMessageNav, opt => opt.Ignore())
+            .ReverseMap();
 
         CreateMap<OffreCreateDTO, Offre>()
             .ForMember(dest => dest.IdOffre, opt => opt.Ignore())
