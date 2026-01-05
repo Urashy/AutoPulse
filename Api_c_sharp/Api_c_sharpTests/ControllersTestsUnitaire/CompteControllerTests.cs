@@ -268,8 +268,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-        #endregion
-
         #region GetAll
         [TestMethod]
         public async Task GetAllTest()

@@ -22,6 +22,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         private Mock<OffreManager> _mockManager;
         private Mock<CommandeManager> _mockCommandeManager;
         private Mock<MessageManager> _mockMessageManager;
+        private Mock<AnnonceManager> _mockAnnonceManager;
         private OffreController _controller;
         private IMapper _mapper;
         private Offre _objetcommun;
@@ -33,6 +34,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Création du mock du manager avec un paramètre null pour le context
             _mockManager = new Mock<OffreManager>(null);
             _mockCommandeManager = new Mock<CommandeManager>(null);
+            _mockAnnonceManager = new Mock<AnnonceManager>(null);
             _mockMessageManager = new Mock<MessageManager>(null);
 
             // Création de l'adresse de référence
@@ -54,7 +56,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             _notificationService = new Mock<INotificationService>();
             // Injection dans le controller
-            _controller = new OffreController(_mockManager.Object, _mapper,_mockMessageManager.Object,_mockCommandeManager.Object,_notificationService.Object);
+            _controller = new OffreController(_mockManager.Object, _mapper,_mockMessageManager.Object,_mockCommandeManager.Object,_mockAnnonceManager.Object,_notificationService.Object);
         }
         #region GET
         [TestMethod]

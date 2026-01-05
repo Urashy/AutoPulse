@@ -111,7 +111,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task GetByIdTest()
         {
             // Act
-            var result = await _controller.GetByID(_objetCommun.IdConversation, _objetCommun.IdCompte);
+            var result = await _controller.GetById(_objetCommun.IdConversation, _objetCommun.IdCompte);
 
             // Assert
             Assert.IsNotNull(result);
@@ -124,7 +124,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task NotFoundGetByIdTest()
         {
             // Act
-            var result = await _controller.GetByID(9999, _objetCommun.IdCompte);
+            var result = await _controller.GetById(9999, _objetCommun.IdCompte);
 
             // Assert
             Assert.IsNotNull(result.Result);
