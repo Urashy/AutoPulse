@@ -84,6 +84,8 @@ public class ConversationViewModel : IDisposable
         _signalR.OnMessagesRead += HandleMessagesRead;
         _conversationState.OnStateChanged += HandleGlobalStateChanged;
         _signalR.OnOffreStatusChanged += HandleOffreStatusChanged;
+        _signalR.OnMessageWithOffreReceived += HandleMessageWithOffreReceived;
+
 
     }
 
@@ -406,6 +408,7 @@ public class ConversationViewModel : IDisposable
         _signalR.OnMessagesRead -= HandleMessagesRead;
         _conversationState.OnStateChanged -= HandleGlobalStateChanged;
         _signalR.OnOffreStatusChanged -= HandleOffreStatusChanged;
+        _signalR.OnMessageWithOffreReceived -= HandleMessageWithOffreReceived;
         _typingTimer?.Dispose();
     }
 
@@ -557,6 +560,15 @@ public class ConversationViewModel : IDisposable
                     await _offreService.CreateAsync(offreDto);
                     Console.WriteLine($"✅ Offre de {offreAmountToSend:N0} € créée pour le message {createdMessage.IdMessage}");
 
+                    await _signalR.SendMessageWithOffre(
+                        SelectedConversation.IdConversation,
+                        CurrentUserId,
+                        messageText,
+                        createdMessage.IdMessage,
+                        offreAmountToSend,
+                        annonceIdToSend.Value
+                    );
+
                     // ✅ Recharger pour afficher l'offre via le composant
                     await LoadMessages(SelectedConversation.IdConversation);
                 }
@@ -564,6 +576,14 @@ public class ConversationViewModel : IDisposable
                 {
                     Console.WriteLine($"❌ Erreur création offre: {ex.Message}");
                 }
+            }
+            else
+            {
+                await _signalR.SendMessage(
+                    SelectedConversation.IdConversation,
+                    CurrentUserId,
+                    messageText
+                );
             }
 
             // Upload des fichiers en arrière-plan
@@ -640,4 +660,52 @@ public class ConversationViewModel : IDisposable
             Console.WriteLine($"❌ Erreur refus offre: {ex.Message}");
         }
     }
+    private async void HandleMessageWithOffreReceived(
+    int conversationId,
+    int senderId,
+    string message,
+    DateTime date,
+    int idMessage,
+    decimal offreValeur,
+    int idAnnonce)
+    {
+        if (SelectedConversation?.IdConversation == conversationId)
+        {
+            // Vérifier si le message existe déjà
+            var exists = Messages.Any(m =>
+                m.IdCompte == senderId &&
+                m.ContenuMessage == message &&
+                Math.Abs((m.DateEnvoiMessage - date).TotalSeconds) < 2);
+
+            if (!exists)
+            {
+                // Créer le message avec l'offre
+                var newMsg = new MessageDTO
+                {
+                    IdMessage = idMessage,
+                    IdConversation = conversationId,
+                    IdCompte = senderId,
+                    ContenuMessage = message,
+                    DateEnvoiMessage = date,
+                    EstLu = senderId == CurrentUserId,
+                    Offres = new List<OffreDTO>
+                {
+                    new OffreDTO
+                    {
+                        IdMessage = idMessage,
+                        Valeur = offreValeur,
+                        IdAnnonce = idAnnonce,
+                        DateOffre = date,
+                        EstAccepte = null
+                    }
+                }
+                };
+
+                Messages.Add(newMsg);
+                Console.WriteLine($"✅ Message avec offre de {offreValeur}€ ajouté");
+                NotifyStateChanged();
+            }
+        }
+    }
+
 }
