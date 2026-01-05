@@ -331,6 +331,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
+        #endregion
+
         #region GetPlaintByCompteID Tests
 
         [TestMethod]

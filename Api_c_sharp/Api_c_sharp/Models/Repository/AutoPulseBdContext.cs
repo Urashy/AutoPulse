@@ -21,6 +21,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Bloque> Bloques { get; set; }
         public DbSet<BoiteDeVitesse> BoitesDeVitesses { get; set; }
         public DbSet<Carburant> Carburants { get; set; }
+        public DbSet<CarteBancaire> CarteBancaires { get; set; }
         public DbSet<Categorie> Categories { get; set; }
         public DbSet<Commande> Commandes { get; set; }
         public DbSet<Compte> Comptes { get; set; }
@@ -170,6 +171,15 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------Carburant-----------------------------
             modelBuilder.Entity<Carburant>()
                 .HasKey(e => e.IdCarburant);
+
+            //-----------------------------CarteBancaire-----------------------------
+            modelBuilder.Entity<CarteBancaire>()
+                .HasKey(e => e.IdCarteBancaire);
+
+            modelBuilder.Entity<CarteBancaire>()
+                .HasOne(b => b.CompteCarteBancaireNav)
+                .WithMany(c => c.CarteBancaires)
+                .HasForeignKey(b => b.IdCompte);
 
             //-----------------------------Categorie-----------------------------
             modelBuilder.Entity<Categorie>()
