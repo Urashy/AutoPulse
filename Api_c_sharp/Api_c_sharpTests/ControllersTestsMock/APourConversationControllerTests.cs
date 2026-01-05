@@ -21,8 +21,10 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestInitialize]
         public void Setup()
         {
+            // Création des mocks
             _mockManager = new Mock<APourConversationManager>(null);
 
+            // Configuration AutoMapper
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<APourConversationDTO, APourConversation>().ReverseMap();
@@ -30,6 +32,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             _mapper = config.CreateMapper();
 
+            // Injection dans le controller
             _controller = new APourConversationController(_mockManager.Object, _mapper);
         }
 
