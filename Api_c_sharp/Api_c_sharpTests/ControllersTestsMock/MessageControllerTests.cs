@@ -275,9 +275,10 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region POST
+        #region POST Tests
+
         [TestMethod]
-        public async Task PostMessageTest_Entity()
+        public async Task Post_OK_WithoutOffre_CreatesMessage()
         {
             // Arrange
             MessageCreateDTO messageDTO = new MessageCreateDTO()
@@ -291,6 +292,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             messageEntity.IdMessage = 3;
             messageEntity.DateEnvoiMessage = DateTime.UtcNow;
             messageEntity.EstLu = false;
+            messageEntity.Offres = new List<Offre>(); // Collection vide
 
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
                        .ReturnsAsync(messageEntity)
@@ -300,28 +302,78 @@ namespace Api_c_sharp.ControllersMock.Tests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<string>(),
-                It.IsAny<int?>()))  // optionnel
+                It.IsAny<int?>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            var actionResult = await _controller.Post(messageDTO);
+            var actionResult = await _controller.Post(messageDTO, withOffre: false);
 
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
             var created = (CreatedAtActionResult)actionResult.Result;
             var createdMessage = (Message)created.Value;
+
             Assert.AreEqual(messageDTO.ContenuMessage, createdMessage.ContenuMessage);
+            Assert.AreEqual(messageDTO.IdConversation, createdMessage.IdConversation);
+            Assert.AreEqual(messageDTO.IdCompte, createdMessage.IdCompte);
+            Assert.IsFalse(createdMessage.EstLu);
+            Assert.IsNotNull(createdMessage.DateEnvoiMessage);
+
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Once);
-            // Vérifier les 4 paramètres (dont optionnel)
             _mockJournalService.Verify(j => j.LogEnvoiMessageAsync(
                 messageDTO.IdCompte,
                 messageDTO.IdConversation,
                 messageDTO.ContenuMessage,
-                It.IsAny<int?>()), Times.Once);
+                1), Times.Once);
         }
 
         [TestMethod]
-        public async Task PostMessageWithHubNotificationTest()
+        public async Task Post_OK_WithOffre_CreatesMessageWithoutSignalR()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Message avec offre"
+            };
+
+            var messageEntity = _mapper.Map<Message>(messageDTO);
+            messageEntity.IdMessage = 4;
+            messageEntity.DateEnvoiMessage = DateTime.UtcNow;
+            messageEntity.EstLu = false;
+            messageEntity.Offres = new List<Offre> { new Offre() }; // Avec offre
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                       .ReturnsAsync(messageEntity);
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO, withOffre: true);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            // SignalR ne doit PAS être appelé quand withOffre = true
+            _mockClientProxy.Verify(
+                c => c.SendCoreAsync(
+                    "ReceiveMessage",
+                    It.IsAny<object[]>(),
+                    It.IsAny<CancellationToken>()
+                ),
+                Times.Never
+            );
+        }
+
+        [TestMethod]
+        public async Task Post_OK_WithHubNotification_SendsSignalR()
         {
             // Arrange
             MessageCreateDTO messageDTO = new MessageCreateDTO()
@@ -332,9 +384,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             };
 
             var messageEntity = _mapper.Map<Message>(messageDTO);
-            messageEntity.IdMessage = 4;
+            messageEntity.IdMessage = 5;
             messageEntity.DateEnvoiMessage = DateTime.UtcNow;
             messageEntity.EstLu = false;
+            messageEntity.Offres = new List<Offre>();
 
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
                        .ReturnsAsync(messageEntity);
@@ -343,16 +396,16 @@ namespace Api_c_sharp.ControllersMock.Tests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<string>(),
-                It.IsAny<int?>()))  // ✅ Ajouter le 4ème paramètre optionnel
+                It.IsAny<int?>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            var actionResult = await _controller.Post(messageDTO);
+            var actionResult = await _controller.Post(messageDTO, withOffre: false);
 
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
 
-            // Vérifier que SignalR a été appelé avec "ReceiveMessage"
+            // Vérifier que SignalR a été appelé avec les bons paramètres
             _mockClientProxy.Verify(
                 c => c.SendCoreAsync(
                     "ReceiveMessage",
@@ -361,18 +414,16 @@ namespace Api_c_sharp.ControllersMock.Tests
                         (int)args[0] == messageEntity.IdConversation &&
                         (int)args[1] == messageEntity.IdCompte &&
                         (string)args[2] == messageEntity.ContenuMessage &&
-                        args[3] != null
+                        args[3] is DateTime
                     ),
                     It.IsAny<CancellationToken>()
                 ),
                 Times.Once
             );
         }
-        #endregion
 
-        #region POST
         [TestMethod]
-        public async Task BadRequestPostMessageTest()
+        public async Task Post_BadRequest_InvalidModelState()
         {
             // Arrange
             MessageCreateDTO messageDTO = new MessageCreateDTO()
@@ -384,12 +435,283 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller.ModelState.AddModelError("ContenuMessage", "Required");
 
             // Act
-            var actionResult = await _controller.Post(messageDTO);
+            var actionResult = await _controller.Post(messageDTO, withOffre: false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Never);
+            _mockJournalService.Verify(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_SetsDateEnvoiToUtcNow()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Test date"
+            };
+
+            Message capturedMessage = null;
+            var beforePost = DateTime.UtcNow;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                       .Callback<Message>(m => capturedMessage = m)
+                       .ReturnsAsync((Message m) => { m.IdMessage = 10; return m; });
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _controller.Post(messageDTO, withOffre: false);
+
+            var afterPost = DateTime.UtcNow;
+
+            // Assert
+            Assert.IsNotNull(capturedMessage);
+            Assert.IsNotNull(capturedMessage.DateEnvoiMessage);
+            Assert.IsTrue(capturedMessage.DateEnvoiMessage >= beforePost);
+            Assert.IsTrue(capturedMessage.DateEnvoiMessage <= afterPost);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_SetsEstLuToFalse()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Test EstLu"
+            };
+
+            Message capturedMessage = null;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                       .Callback<Message>(m => capturedMessage = m)
+                       .ReturnsAsync((Message m) => { m.IdMessage = 11; return m; });
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _controller.Post(messageDTO, withOffre: false);
+
+            // Assert
+            Assert.IsNotNull(capturedMessage);
+            Assert.IsFalse(capturedMessage.EstLu);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_JournalServiceCalledBeforeAddAsync()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Test ordre"
+            };
+
+            var callOrder = new List<string>();
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Callback(() => callOrder.Add("Journal"))
+                .Returns(Task.CompletedTask);
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                       .Callback(() => callOrder.Add("AddAsync"))
+                       .ReturnsAsync(new Message
+                       {
+                           IdMessage = 12,
+                           Offres = new List<Offre>(),
+                           DateEnvoiMessage = DateTime.UtcNow,
+                           EstLu = false
+                       });
+
+            // Act
+            await _controller.Post(messageDTO, withOffre: false);
+
+            // Assert
+            Assert.AreEqual(2, callOrder.Count);
+            Assert.AreEqual("Journal", callOrder[0]);
+            Assert.AreEqual("AddAsync", callOrder[1]);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_ReturnsCreatedAtActionWithCorrectRoute()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Test route"
+            };
+
+            var messageEntity = _mapper.Map<Message>(messageDTO);
+            messageEntity.IdMessage = 99;
+            messageEntity.DateEnvoiMessage = DateTime.UtcNow;
+            messageEntity.EstLu = false;
+            messageEntity.Offres = new List<Offre>();
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                       .ReturnsAsync(messageEntity);
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO, withOffre: false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            var created = (CreatedAtActionResult)actionResult.Result;
+            Assert.AreEqual("GetByID", created.ActionName);
+            Assert.IsNotNull(created.RouteValues);
+            Assert.AreEqual(99, created.RouteValues["id"]);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_WithNullHub_DoesNotCrash()
+        {
+            // Arrange - Créer un contrôleur avec hubContext = null
+            var controllerWithoutHub = new MessageController(
+                _mockManager.Object,
+                _mapper,
+                _mockJournalService.Object,
+                null // hubContext null
+            );
+
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Test sans hub"
+            };
+
+            var messageEntity = _mapper.Map<Message>(messageDTO);
+            messageEntity.IdMessage = 13;
+            messageEntity.DateEnvoiMessage = DateTime.UtcNow;
+            messageEntity.EstLu = false;
+            messageEntity.Offres = new List<Offre>();
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                       .ReturnsAsync(messageEntity);
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var actionResult = await controllerWithoutHub.Post(messageDTO, withOffre: false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            // Pas d'exception levée même avec hubContext null
+        }
+
+        [TestMethod]
+        public async Task Post_OK_MapperUsedCorrectly()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 5,
+                IdCompte = 10,
+                ContenuMessage = "Test mapper"
+            };
+
+            Message capturedMessage = null;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                       .Callback<Message>(m => capturedMessage = m)
+                       .ReturnsAsync((Message m) => { m.IdMessage = 15; return m; });
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _controller.Post(messageDTO, withOffre: false);
+
+            // Assert
+            Assert.IsNotNull(capturedMessage);
+            Assert.AreEqual(messageDTO.IdConversation, capturedMessage.IdConversation);
+            Assert.AreEqual(messageDTO.IdCompte, capturedMessage.IdCompte);
+            Assert.AreEqual(messageDTO.ContenuMessage, capturedMessage.ContenuMessage);
+        }
+
+        [TestMethod]
+        public async Task Post_BadRequest_EmptyContent()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = ""
+            };
+
+            _controller.ModelState.AddModelError("ContenuMessage", "Content cannot be empty");
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO, withOffre: false);
 
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Never);
         }
+
+        [TestMethod]
+        public async Task Post_BadRequest_InvalidIdConversation()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 0,
+                IdCompte = 1,
+                ContenuMessage = "Test"
+            };
+
+            _controller.ModelState.AddModelError("IdConversation", "Invalid conversation ID");
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO, withOffre: false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
         #endregion
 
         #region DELETE
