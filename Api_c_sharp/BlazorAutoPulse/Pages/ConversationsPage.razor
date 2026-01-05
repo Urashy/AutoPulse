@@ -177,7 +177,7 @@
                            class="message-input"
                            disabled="@((VM.IsUploadingFiles || VM.EstBloquer) ? true : (bool?)null)" />
 
-                    <button @onclick="@(VM.ShowOffreMode? VM.SendMessageWithOffre: VM.SendMessage)"
+                    <button @onclick="@(VM.ShowOffreMode? VM.SendMessageWithOffre: VM.SendMessageWithOffre)"
                             class="send-btn @(VM.ShowOffreMode ? "offre-mode" : "")"
                             disabled="@((string.IsNullOrWhiteSpace(VM.NewMessage) && !VM.SelectedFiles.Any() && (!VM.ShowOffreMode || VM.OffreAmount <= 0)) || VM.IsUploadingFiles)">
                         @if (VM.IsUploadingFiles)

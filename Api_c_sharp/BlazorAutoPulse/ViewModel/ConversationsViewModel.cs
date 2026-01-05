@@ -85,8 +85,6 @@ public class ConversationViewModel : IDisposable
         _conversationState.OnStateChanged += HandleGlobalStateChanged;
         _signalR.OnOffreStatusChanged += HandleOffreStatusChanged;
         _signalR.OnMessageWithOffreReceived += HandleMessageWithOffreReceived;
-
-
     }
 
     public async Task InitializeAsync()
@@ -147,85 +145,6 @@ public class ConversationViewModel : IDisposable
         finally
         {
             IsLoadingMessages = false;
-            NotifyStateChanged();
-        }
-    }
-
-    public async Task SendMessage()
-    {
-        if (SelectedConversation == null)
-            return;
-
-        if (string.IsNullOrWhiteSpace(NewMessage) && !SelectedFiles.Any())
-            return;
-
-        var messageContent = NewMessage.Trim();
-        var filesToUpload = new List<IBrowserFile>(SelectedFiles);
-        
-        _newMessage = "";
-        SelectedFiles.Clear();
-        
-        NotifyStateChanged();
-
-        try
-        {
-            IsUploadingFiles = true;
-
-            // Créer le message texte
-            var messageDto = new MessageDTO
-            {
-                IdConversation = SelectedConversation.IdConversation,
-                IdCompte = CurrentUserId,
-                ContenuMessage = string.IsNullOrWhiteSpace(messageContent) ? "[Fichier(s) joint(s)]" : messageContent,
-            };
-
-            var createdMessage = await _messageService.CreateAsync(messageDto);
-
-            if (createdMessage == null)
-            {
-                Console.WriteLine("❌ Erreur : message non créé");
-                _newMessage = messageContent;
-                SelectedFiles = filesToUpload;
-                NotifyStateChanged();
-                return;
-            }
-
-            // ✅ Upload des fichiers en arrière-plan (ne pas bloquer l'UI)
-            if (filesToUpload.Any())
-            {
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        Console.WriteLine($"📤 Upload de {filesToUpload.Count} fichier(s)...");
-                        var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
-                            createdMessage.IdMessage, 
-                            filesToUpload);
-
-                        // Mettre à jour le message avec les pièces jointes
-                        createdMessage.PiecesJointes = uploadedFiles;
-                        Console.WriteLine($"✅ {uploadedFiles.Count} fichier(s) uploadé(s)");
-                        
-                        // Rafraîchir seulement après l'upload
-                        Task.Delay(200);
-                        NotifyStateChanged();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"❌ Erreur upload: {ex.Message}");
-                    }
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ Erreur envoi message: {ex.Message}");
-            _newMessage = messageContent;
-            SelectedFiles = filesToUpload;
-        }
-        finally
-        {
-            IsUploadingFiles = false;
             NotifyStateChanged();
         }
     }
@@ -341,7 +260,7 @@ public class ConversationViewModel : IDisposable
     {
         if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(NewMessage))
         {
-            await SendMessage();
+            await SendMessageWithOffre();
         }
     }
 
@@ -528,14 +447,14 @@ public class ConversationViewModel : IDisposable
             IsUploadingFiles = true;
 
             // ✅ Créer le message texte
-            var messageDto = new MessageDTO
+            var messageDto = new MessageCreateDTO
             {
                 IdConversation = SelectedConversation.IdConversation,
                 IdCompte = CurrentUserId,
                 ContenuMessage = messageText,
             };
 
-            var createdMessage = await _messageService.CreateAsync(messageDto);
+            var createdMessage = await _messageService.CreateMessageAsync(messageDto, offreAmountToSend > 0 && annonceIdToSend.HasValue);
 
             if (createdMessage == null)
             {
