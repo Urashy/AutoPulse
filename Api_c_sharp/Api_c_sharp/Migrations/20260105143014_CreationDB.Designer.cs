@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api_c_sharp.Migrations
 {
     [DbContext(typeof(AutoPulseBdContext))]
-    [Migration("20260105135454_CreationDB")]
+    [Migration("20260105143014_CreationDB")]
     partial class CreationDB
     {
         /// <inheritdoc />
@@ -142,7 +142,7 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("eta_id");
 
-                    b.Property<int?>("IdMiseEnAvant")
+                    b.Property<int>("IdMiseEnAvant")
                         .HasColumnType("integer")
                         .HasColumnName("mav_id");
 
@@ -1417,7 +1417,9 @@ namespace Api_c_sharp.Migrations
 
                     b.HasOne("Api_c_sharp.Models.Entity.MiseEnAvant", "MiseEnAvantAnnonceNav")
                         .WithMany("Annonces")
-                        .HasForeignKey("IdMiseEnAvant");
+                        .HasForeignKey("IdMiseEnAvant")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Api_c_sharp.Models.Entity.Voiture", "VoitureAnnonceNav")
                         .WithMany("Annonces")
