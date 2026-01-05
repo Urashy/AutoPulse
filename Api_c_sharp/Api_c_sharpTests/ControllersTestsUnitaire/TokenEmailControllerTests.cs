@@ -194,6 +194,46 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
+        [TestMethod]
+        public async Task Post_BadRequest_EmailNull()
+        {
+            // Arrange
+            _controller.ModelState.AddModelError("Email", "Email is required");
+
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = null,
+                TypeToken = "REINIT_MDP"
+            };
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Post_BadRequest_TypeTokenNull()
+        {
+            // Arrange
+            _controller.ModelState.AddModelError("TypeToken", "TypeToken is required");
+
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = null
+            };
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
         // ---------------------------------------------------------
         // PUT
         // ---------------------------------------------------------

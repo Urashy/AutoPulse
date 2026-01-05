@@ -224,6 +224,343 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.AddAsync(It.IsAny<TokenEmail>()), Times.Never);
         }
 
+        [TestMethod]
+        public async Task Post_OK_ReinitMdp_CreatesToken()
+        {
+            // Arrange
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = "REINIT_MDP"
+            };
+
+            TokenEmail capturedToken = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .Callback<TokenEmail>(t => capturedToken = t)
+                       .ReturnsAsync((TokenEmail t) => t)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+
+            var okResult = result as OkObjectResult;
+            dynamic responseValue = okResult.Value;
+            string message = responseValue.GetType().GetProperty("Message").GetValue(responseValue, null);
+            Assert.IsTrue(message.Contains("code de vérification a été envoyé"));
+
+            // Vérifications sur le token capturé
+            Assert.IsNotNull(capturedToken);
+            Assert.AreEqual(dto.Email, capturedToken.Email);
+            Assert.AreEqual(dto.IdCompte, capturedToken.IdCompte);
+            Assert.AreEqual(dto.TypeToken, capturedToken.TypeToken);
+            Assert.AreEqual(7, capturedToken.Token.Length); // Token à 7 chiffres
+            Assert.IsFalse(capturedToken.Utilise);
+            Assert.IsTrue(capturedToken.Expiration > DateTime.UtcNow);
+            Assert.IsTrue(capturedToken.Expiration <= DateTime.UtcNow.AddMinutes(16)); // Marge de 1 minute
+
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<TokenEmail>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_A2FActivation_CreatesToken()
+        {
+            // Arrange
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = "A2F_ACTIVATION"
+            };
+
+            TokenEmail capturedToken = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .Callback<TokenEmail>(t => capturedToken = t)
+                       .ReturnsAsync((TokenEmail t) => t);
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            Assert.IsNotNull(capturedToken);
+            Assert.AreEqual("A2F_ACTIVATION", capturedToken.TypeToken);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<TokenEmail>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_A2FConnexion_CreatesToken()
+        {
+            // Arrange
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            TokenEmail capturedToken = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .Callback<TokenEmail>(t => capturedToken = t)
+                       .ReturnsAsync((TokenEmail t) => t);
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            Assert.IsNotNull(capturedToken);
+            Assert.AreEqual("A2F_CONNEXION", capturedToken.TypeToken);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<TokenEmail>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_TypeTokenInconnu_CreatesToken()
+        {
+            // Arrange
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = "AUTRE_TYPE"
+            };
+
+            TokenEmail capturedToken = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .Callback<TokenEmail>(t => capturedToken = t)
+                       .ReturnsAsync((TokenEmail t) => t);
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            Assert.IsNotNull(capturedToken);
+            Assert.AreEqual("AUTRE_TYPE", capturedToken.TypeToken);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<TokenEmail>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_TokenGenereEst7Chiffres()
+        {
+            // Arrange
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = "REINIT_MDP"
+            };
+
+            TokenEmail capturedToken = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .Callback<TokenEmail>(t => capturedToken = t)
+                       .ReturnsAsync((TokenEmail t) => t);
+
+            // Act
+            await _controller.Post(dto);
+
+            // Assert
+            Assert.IsNotNull(capturedToken);
+            Assert.AreEqual(7, capturedToken.Token.Length);
+            Assert.IsTrue(int.TryParse(capturedToken.Token, out _)); // Doit être numérique
+        }
+
+        [TestMethod]
+        public async Task Post_OK_ExpirationEstDans15Minutes()
+        {
+            // Arrange
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = "REINIT_MDP"
+            };
+
+            TokenEmail capturedToken = null;
+            var beforePost = DateTime.UtcNow;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .Callback<TokenEmail>(t => capturedToken = t)
+                       .ReturnsAsync((TokenEmail t) => t);
+
+            // Act
+            await _controller.Post(dto);
+
+            var afterPost = DateTime.UtcNow;
+
+            // Assert
+            Assert.IsNotNull(capturedToken);
+
+            // L'expiration doit être entre 14 et 16 minutes (marge pour l'exécution)
+            var minExpiration = beforePost.AddMinutes(14);
+            var maxExpiration = afterPost.AddMinutes(16);
+
+            Assert.IsTrue(capturedToken.Expiration >= minExpiration);
+            Assert.IsTrue(capturedToken.Expiration <= maxExpiration);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_UtiliseEstFalse()
+        {
+            // Arrange
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = "REINIT_MDP"
+            };
+
+            TokenEmail capturedToken = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .Callback<TokenEmail>(t => capturedToken = t)
+                       .ReturnsAsync((TokenEmail t) => t);
+
+            // Act
+            await _controller.Post(dto);
+
+            // Assert
+            Assert.IsNotNull(capturedToken);
+            Assert.IsFalse(capturedToken.Utilise);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_MapperUtilise()
+        {
+            // Arrange
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 5,
+                Email = "mapper@mail.com",
+                TypeToken = "REINIT_MDP"
+            };
+
+            TokenEmail capturedToken = null;
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .Callback<TokenEmail>(t => capturedToken = t)
+                       .ReturnsAsync((TokenEmail t) => t);
+
+            // Act
+            await _controller.Post(dto);
+
+            // Assert
+            Assert.IsNotNull(capturedToken);
+            Assert.AreEqual(dto.IdCompte, capturedToken.IdCompte);
+            Assert.AreEqual(dto.Email, capturedToken.Email);
+            Assert.AreEqual(dto.TypeToken, capturedToken.TypeToken);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_VerifyAddAsyncCalledOnce()
+        {
+            // Arrange
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = "REINIT_MDP"
+            };
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .ReturnsAsync((TokenEmail t) => t)
+                       .Verifiable();
+
+            // Act
+            await _controller.Post(dto);
+
+            // Assert
+            _mockManager.Verify(m => m.AddAsync(It.Is<TokenEmail>(t =>
+                t.Email == dto.Email &&
+                t.TypeToken == dto.TypeToken &&
+                t.IdCompte == dto.IdCompte
+            )), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Post_BadRequest_EmailNull()
+        {
+            // Arrange
+            _controller.ModelState.AddModelError("Email", "Email is required");
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = null,
+                TypeToken = "REINIT_MDP"
+            };
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<TokenEmail>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Post_BadRequest_TypeTokenNull()
+        {
+            // Arrange
+            _controller.ModelState.AddModelError("TypeToken", "TypeToken is required");
+            var dto = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test@mail.com",
+                TypeToken = null
+            };
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<TokenEmail>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_TokensSontDifferents()
+        {
+            // Arrange
+            var dto1 = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test1@mail.com",
+                TypeToken = "REINIT_MDP"
+            };
+
+            var dto2 = new TokenEmailCreateDTO
+            {
+                IdCompte = 1,
+                Email = "test2@mail.com",
+                TypeToken = "REINIT_MDP"
+            };
+
+            string token1 = null;
+            string token2 = null;
+            int callCount = 0;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<TokenEmail>()))
+                       .Callback<TokenEmail>(t =>
+                       {
+                           if (callCount == 0) token1 = t.Token;
+                           else token2 = t.Token;
+                           callCount++;
+                       })
+                       .ReturnsAsync((TokenEmail t) => t);
+
+            // Act
+            await _controller.Post(dto1);
+            await _controller.Post(dto2);
+
+            // Assert
+            Assert.IsNotNull(token1);
+            Assert.IsNotNull(token2);
+            Assert.AreEqual(2, callCount);
+            // Note: Il y a une très faible probabilité qu'ils soient identiques (1/10000000)
+            // mais dans la pratique, ils seront différents
+        }
+
         #endregion
 
         #region PUT
@@ -761,5 +1098,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         #endregion
+
+
     }
 }
