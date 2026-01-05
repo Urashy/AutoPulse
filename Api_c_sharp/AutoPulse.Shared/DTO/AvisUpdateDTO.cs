@@ -6,6 +6,6 @@ public class AvisUpdateDTO
     public int IdJugee { get; set; }
     public int IdJugeur { get; set; }
     public int IdCommande { get; set; }
-    public string ContenuAvis { get; set; }
+    public string? ContenuAvis { get; set; }
     public int NoteAvis { get; set; }
 }

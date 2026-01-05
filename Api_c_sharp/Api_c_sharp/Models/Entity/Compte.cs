@@ -143,5 +143,8 @@ namespace Api_c_sharp.Models.Entity
         
         [InverseProperty(nameof(Notification.CompteNotificationNav))]
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
+        [InverseProperty(nameof(CarteBancaire.CompteCarteBancaireNav))]
+        public virtual ICollection<CarteBancaire> CarteBancaires { get; set; } = new List<CarteBancaire>();
     }
 }

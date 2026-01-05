@@ -249,6 +249,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _objetcommun = compte;
         }
 
+        #region GetById Tests
+
         [TestMethod]
         public async Task GetByIdTest()
         {
