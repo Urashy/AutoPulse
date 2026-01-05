@@ -72,10 +72,10 @@ public class MessageController(
     /// </list>
     /// </returns>
     [ActionName("Post")]
-    [HttpPost]
+    [HttpPost("{withOffre}")]
     [ProducesResponseType(typeof(MessageDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<MessageDTO>> Post([FromBody] MessageCreateDTO dto)
+    public async Task<ActionResult<MessageDTO>> Post([FromBody] MessageCreateDTO dto, bool withOffre)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -86,8 +86,9 @@ public class MessageController(
 
         await _journalService.LogEnvoiMessageAsync(dto.IdCompte, dto.IdConversation, dto.ContenuMessage);
         entity = await _manager.AddAsync(entity);
+        Console.WriteLine(entity.Offres.Count);
 
-        if (_hubContext != null)
+        if (_hubContext != null && !withOffre)
         {
             await _hubContext.Clients.Group($"conversation_{entity.IdConversation}")
             .SendAsync("ReceiveMessage",

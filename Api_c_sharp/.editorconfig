@@ -1,0 +1,19 @@
+﻿[*.cs]
+
+# CS8604: Existence possible d'un argument de référence null.
+dotnet_diagnostic.CS8602.severity = none
+# CS8603: Possible retour de référence null.
+dotnet_diagnostic.CS8603.severity = none
+# CS8618: L'élément non nullable doit contenir une valeur non null lors de la sortie du constructeur.
+dotnet_diagnostic.CS8604.severity = none
+# CS8618: L'élément non nullable doit contenir une valeur non null lors de la sortie du constructeur.
+dotnet_diagnostic.CS8618.severity = none
+# CS8625: Impossible de convertir une expression de type null en type non nullable.
+dotnet_diagnostic.CS8625.severity = none
+# CS8600: Conversion possible d'une valeur null en type non nullable.
+dotnet_diagnostic.CS8600.severity = none
+# CS8620: Impossible de convertir une expression de type null en type non nullable.
+dotnet_diagnostic.CS8620.severity = none
+# CS8629: Existence possible d'une valeur null dans une expression de type non nullable.
+dotnet_diagnostic.CS8629.severity = none
+

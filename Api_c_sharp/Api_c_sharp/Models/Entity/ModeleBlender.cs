@@ -13,10 +13,10 @@ namespace Api_c_sharp.Models.Entity
 
         [Column("mob_lien")]
         [Required]
-        public string Lien { get; set; }
+        public string? Lien { get; set; }
 
         [InverseProperty(nameof(Voiture.ModeleBlenderNavigation))]
-        public virtual ICollection<Voiture> Voitures { get; set; }
+        public virtual ICollection<Voiture> Voitures { get; set; } = new List<Voiture>();
 
     }
 }

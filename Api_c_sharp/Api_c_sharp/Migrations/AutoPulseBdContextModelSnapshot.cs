@@ -139,7 +139,7 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("eta_id");
 
-                    b.Property<int?>("IdMiseEnAvant")
+                    b.Property<int>("IdMiseEnAvant")
                         .HasColumnType("integer")
                         .HasColumnName("mav_id");
 
@@ -274,6 +274,35 @@ namespace Api_c_sharp.Migrations
                     b.HasKey("IdCarburant");
 
                     b.ToTable("t_e_carburant_car", "public");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.CarteBancaire", b =>
+                {
+                    b.Property<int>("IdCarteBancaire")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("cba_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCarteBancaire"));
+
+                    b.Property<DateTime>("DateExpiration")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cba_date_expiration");
+
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_idcompte");
+
+                    b.Property<string>("NumeroCarte")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("cba_numero");
+
+                    b.HasKey("IdCarteBancaire");
+
+                    b.HasIndex("IdCompte");
+
+                    b.ToTable("t_e_cartebancaire_cba", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Categorie", b =>
@@ -1385,7 +1414,9 @@ namespace Api_c_sharp.Migrations
 
                     b.HasOne("Api_c_sharp.Models.Entity.MiseEnAvant", "MiseEnAvantAnnonceNav")
                         .WithMany("Annonces")
-                        .HasForeignKey("IdMiseEnAvant");
+                        .HasForeignKey("IdMiseEnAvant")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Api_c_sharp.Models.Entity.Voiture", "VoitureAnnonceNav")
                         .WithMany("Annonces")
@@ -1448,6 +1479,17 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("CompteBloquantNav");
 
                     b.Navigation("CompteBloqueNav");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.CarteBancaire", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteCarteBancaireNav")
+                        .WithMany("CarteBancaires")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompteCarteBancaireNav");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Commande", b =>
@@ -1866,6 +1908,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("AvisJugees");
 
                     b.Navigation("AvisJugeur");
+
+                    b.Navigation("CarteBancaires");
 
                     b.Navigation("CommandeAcheteur");
 

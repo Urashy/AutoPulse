@@ -32,23 +32,23 @@ public class Commande
     
     [ForeignKey(nameof(IdMoyenPaiement))]
     [InverseProperty(nameof(MoyenPaiement.Commandes))]
-    public virtual MoyenPaiement CommandeMoyenPaiementNav { get; set; }
+    public virtual MoyenPaiement? CommandeMoyenPaiementNav { get; set; }
 
     [InverseProperty(nameof(Facture.CommandeFactureNav))]
-    public virtual ICollection<Facture> Factures { get; set; }
+    public virtual ICollection<Facture> Factures { get; set; } = new List<Facture>();
 
     [InverseProperty(nameof(Avis.CommandeAvisNav))]
-    public virtual ICollection<Avis> AvisListe { get; set; }
+    public virtual ICollection<Avis> AvisListe { get; set; } = new List<Avis>();
 
     [ForeignKey(nameof(IdAnnonce))]
     [InverseProperty(nameof(Annonce.Commandes))]
-    public virtual Annonce CommandeAnnonceNav { get; set; }
+    public virtual Annonce? CommandeAnnonceNav { get; set; }
 
     [ForeignKey(nameof(IdAcheteur))]
     [InverseProperty(nameof(Compte.CommandeAcheteur))]
-    public virtual Compte AcheteurCommande {  get; set; }
+    public virtual Compte? AcheteurCommande {  get; set; }
 
     [ForeignKey(nameof(IdVendeur))]
     [InverseProperty(nameof(Compte.CommandeVendeur))]
-    public virtual Compte VendeurCommande { get; set; }
+    public virtual Compte? VendeurCommande { get; set; }
 }

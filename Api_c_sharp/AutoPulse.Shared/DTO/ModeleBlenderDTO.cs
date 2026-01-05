@@ -6,6 +6,6 @@ namespace AutoPulse.Shared.DTO
     public class ModeleBlenderDTO
     {
         public int IdModeleBlender { get; set; }
-        public string Lien { get; set; }
+        public string? Lien { get; set; }
     }
 }

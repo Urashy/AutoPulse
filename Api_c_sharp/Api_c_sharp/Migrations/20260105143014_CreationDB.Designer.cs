@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api_c_sharp.Migrations
 {
     [DbContext(typeof(AutoPulseBdContext))]
-    [Migration("20251209153946_CreationDbAutopulse")]
-    partial class CreationDbAutopulse
+    [Migration("20260105143014_CreationDB")]
+    partial class CreationDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -142,7 +142,7 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("eta_id");
 
-                    b.Property<int?>("IdMiseEnAvant")
+                    b.Property<int>("IdMiseEnAvant")
                         .HasColumnType("integer")
                         .HasColumnName("mav_id");
 
@@ -279,6 +279,35 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_carburant_car", "public");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.CarteBancaire", b =>
+                {
+                    b.Property<int>("IdCarteBancaire")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("cba_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCarteBancaire"));
+
+                    b.Property<DateTime>("DateExpiration")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cba_date_expiration");
+
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_idcompte");
+
+                    b.Property<string>("NumeroCarte")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("cba_numero");
+
+                    b.HasKey("IdCarteBancaire");
+
+                    b.HasIndex("IdCompte");
+
+                    b.ToTable("t_e_cartebancaire_cba", "public");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Categorie", b =>
                 {
                     b.Property<int>("IdCategorie")
@@ -349,6 +378,10 @@ namespace Api_c_sharp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCompte"));
 
+                    b.Property<bool>("A2fActif")
+                        .HasColumnType("boolean")
+                        .HasColumnName("com_a2f_actif");
+
                     b.Property<string>("AuthProvider")
                         .HasColumnType("text")
                         .HasColumnName("com_auth_provider");
@@ -360,6 +393,10 @@ namespace Api_c_sharp.Migrations
                     b.Property<DateTime>("DateCreation")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("com_date_creation");
+
+                    b.Property<DateTime?>("DateDerniereActivationA2f")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("com_date_derniere_activation_a2f");
 
                     b.Property<DateTime>("DateDerniereConnexion")
                         .HasColumnType("timestamp with time zone")
@@ -521,7 +558,7 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_etatcompte_etc", "public");
                 });
 
-            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatSignalement", b =>
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatSignalementPlainte", b =>
                 {
                     b.Property<int>("IdEtatSignalement")
                         .ValueGeneratedOnAdd()
@@ -537,7 +574,7 @@ namespace Api_c_sharp.Migrations
 
                     b.HasKey("IdEtatSignalement");
 
-                    b.ToTable("t_e_etatsignalement_ets", "public");
+                    b.ToTable("t_e_etatsignalementplainte_ets", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Facture", b =>
@@ -808,6 +845,109 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_moyenpaiement_mop", "public");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Notification", b =>
+                {
+                    b.Property<int>("IdNotification")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("not_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdNotification"));
+
+                    b.Property<double?>("AncienPrix")
+                        .HasColumnType("double precision")
+                        .HasColumnName("not_ancien_prix");
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_date_creation");
+
+                    b.Property<bool>("EstLue")
+                        .HasColumnType("boolean")
+                        .HasColumnName("not_est_lue");
+
+                    b.Property<int?>("IdAnnonce")
+                        .HasColumnType("integer")
+                        .HasColumnName("ann_id");
+
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("not_message");
+
+                    b.Property<double?>("NouveauPrix")
+                        .HasColumnType("double precision")
+                        .HasColumnName("not_nouveau_prix");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("not_titre");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("not_type");
+
+                    b.Property<string>("UrlNavigation")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("not_url_navigation");
+
+                    b.HasKey("IdNotification");
+
+                    b.HasIndex("IdAnnonce");
+
+                    b.HasIndex("IdCompte");
+
+                    b.ToTable("t_e_notification_not", "public");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Offre", b =>
+                {
+                    b.Property<int>("IdOffre")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("off_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdOffre"));
+
+                    b.Property<DateTime>("DateOffre")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("off_date");
+
+                    b.Property<bool?>("EstAccepte")
+                        .HasColumnType("boolean")
+                        .HasColumnName("off_estaccepte");
+
+                    b.Property<int>("IdAnnonce")
+                        .HasColumnType("integer")
+                        .HasColumnName("ann_id");
+
+                    b.Property<int>("IdMessage")
+                        .HasColumnType("integer")
+                        .HasColumnName("mes_id");
+
+                    b.Property<decimal>("Valeur")
+                        .HasColumnType("numeric")
+                        .HasColumnName("off_valeur");
+
+                    b.HasKey("IdOffre");
+
+                    b.HasIndex("IdAnnonce");
+
+                    b.HasIndex("IdMessage");
+
+                    b.ToTable("t_e_offre_off", "public");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Pays", b =>
                 {
                     b.Property<int>("IdPays")
@@ -896,51 +1036,27 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("text")
                         .HasColumnName("pla_description");
 
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<int>("IdEtat")
+                        .HasColumnType("integer")
+                        .HasColumnName("ets_id");
+
                     b.Property<int>("IdSignalement")
                         .HasColumnType("integer")
                         .HasColumnName("sig_id");
 
                     b.HasKey("IdPlainte");
 
+                    b.HasIndex("IdCompte");
+
+                    b.HasIndex("IdEtat");
+
                     b.HasIndex("IdSignalement");
 
                     b.ToTable("t_e_plainte_pla", "public");
-                });
-
-            modelBuilder.Entity("Api_c_sharp.Models.Entity.ReinitialisationMotDePasse", b =>
-                {
-                    b.Property<int>("IdReinitialisationMdp")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("rei_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdReinitialisationMdp"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("com_email");
-
-                    b.Property<DateTime>("Expiration")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("rei_expiration");
-
-                    b.Property<int>("IdCompte")
-                        .HasColumnType("integer")
-                        .HasColumnName("com_id");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("rei_token");
-
-                    b.Property<bool>("Utilise")
-                        .HasColumnType("boolean")
-                        .HasColumnName("rei_utilise");
-
-                    b.HasKey("IdReinitialisationMdp");
-
-                    b.ToTable("t_e_reinitialisationmotdepasse_rei", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Signalement", b =>
@@ -994,6 +1110,50 @@ namespace Api_c_sharp.Migrations
                     b.HasIndex("IdTypeSignalement");
 
                     b.ToTable("t_e_signalement_sig", "public");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.TokenEmail", b =>
+                {
+                    b.Property<int>("IdTokenEmail")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("tke_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdTokenEmail"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("com_email");
+
+                    b.Property<DateTime>("Expiration")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("tke_expiration");
+
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("tke_token");
+
+                    b.Property<string>("TypeToken")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("tke_type");
+
+                    b.Property<bool>("Utilise")
+                        .HasColumnType("boolean")
+                        .HasColumnName("tke_utilise");
+
+                    b.HasKey("IdTokenEmail");
+
+                    b.HasIndex("IdCompte");
+
+                    b.ToTable("t_e_tokenemail_tke", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.TypeCompte", b =>
@@ -1074,6 +1234,10 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("voi_couple");
 
+                    b.Property<double>("CylindrerMoteur")
+                        .HasColumnType("double precision")
+                        .HasColumnName("voi_cylindrermoteur");
+
                     b.Property<int>("IdBoiteDeVitesse")
                         .HasColumnType("integer")
                         .HasColumnName("boi_id");
@@ -1102,6 +1266,10 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("mot_id");
 
+                    b.Property<bool>("InterieurCuire")
+                        .HasColumnType("boolean")
+                        .HasColumnName("voi_interieurcuire");
+
                     b.Property<int>("Kilometrage")
                         .HasColumnType("integer")
                         .HasColumnName("voi_kilometrage");
@@ -1109,6 +1277,10 @@ namespace Api_c_sharp.Migrations
                     b.Property<DateTime>("MiseEnCirculation")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("voi_miseencirculation");
+
+                    b.Property<int>("NbAirbag")
+                        .HasColumnType("integer")
+                        .HasColumnName("voi_nbairbag");
 
                     b.Property<int>("NbCylindres")
                         .HasColumnType("integer")
@@ -1121,6 +1293,10 @@ namespace Api_c_sharp.Migrations
                     b.Property<int>("NbPorte")
                         .HasColumnType("integer")
                         .HasColumnName("voi_nbporte");
+
+                    b.Property<bool>("PositionVolant")
+                        .HasColumnType("boolean")
+                        .HasColumnName("voi_positionvolant");
 
                     b.Property<int>("Puissance")
                         .HasColumnType("integer")
@@ -1241,7 +1417,9 @@ namespace Api_c_sharp.Migrations
 
                     b.HasOne("Api_c_sharp.Models.Entity.MiseEnAvant", "MiseEnAvantAnnonceNav")
                         .WithMany("Annonces")
-                        .HasForeignKey("IdMiseEnAvant");
+                        .HasForeignKey("IdMiseEnAvant")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Api_c_sharp.Models.Entity.Voiture", "VoitureAnnonceNav")
                         .WithMany("Annonces")
@@ -1304,6 +1482,17 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("CompteBloquantNav");
 
                     b.Navigation("CompteBloqueNav");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.CarteBancaire", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteCarteBancaireNav")
+                        .WithMany("CarteBancaires")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompteCarteBancaireNav");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Commande", b =>
@@ -1405,11 +1594,13 @@ namespace Api_c_sharp.Migrations
                 {
                     b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteImageNav")
                         .WithMany("Images")
-                        .HasForeignKey("IdCompte");
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Api_c_sharp.Models.Entity.Voiture", "VoitureImageNav")
                         .WithMany("Images")
-                        .HasForeignKey("IdVoiture");
+                        .HasForeignKey("IdVoiture")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("CompteImageNav");
 
@@ -1465,6 +1656,42 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("MarqueModeleNavigation");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Notification", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Annonce", "AnnonceNotificationNav")
+                        .WithMany("Notifications")
+                        .HasForeignKey("IdAnnonce");
+
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteNotificationNav")
+                        .WithMany("Notifications")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AnnonceNotificationNav");
+
+                    b.Navigation("CompteNotificationNav");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Offre", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Annonce", "OffreAnnonceNav")
+                        .WithMany("Offres")
+                        .HasForeignKey("IdAnnonce")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.Message", "OffreMessageNav")
+                        .WithMany("Offres")
+                        .HasForeignKey("IdMessage")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OffreAnnonceNav");
+
+                    b.Navigation("OffreMessageNav");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.PieceJointe", b =>
                 {
                     b.HasOne("Api_c_sharp.Models.Entity.Message", "MessagePjNav")
@@ -1478,13 +1705,29 @@ namespace Api_c_sharp.Migrations
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Plainte", b =>
                 {
-                    b.HasOne("Api_c_sharp.Models.Entity.Signalement", "SignalementPainteNav")
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "ComptePlainteNav")
+                        .WithMany("Plaintes")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.EtatSignalementPlainte", "EtatSignalementPlaintePlainteNav")
+                        .WithMany("Plaintes")
+                        .HasForeignKey("IdEtat")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.Signalement", "SignalementPlainteNav")
                         .WithMany("Plaintes")
                         .HasForeignKey("IdSignalement")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("SignalementPainteNav");
+                    b.Navigation("ComptePlainteNav");
+
+                    b.Navigation("EtatSignalementPlaintePlainteNav");
+
+                    b.Navigation("SignalementPlainteNav");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Signalement", b =>
@@ -1503,7 +1746,7 @@ namespace Api_c_sharp.Migrations
                         .WithMany("SignalementsRecus")
                         .HasForeignKey("IdCompteSignale");
 
-                    b.HasOne("Api_c_sharp.Models.Entity.EtatSignalement", "EtatSignalementNav")
+                    b.HasOne("Api_c_sharp.Models.Entity.EtatSignalementPlainte", "EtatSignalementNav")
                         .WithMany("Signalements")
                         .HasForeignKey("IdEtatSignalement")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1524,6 +1767,17 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("EtatSignalementNav");
 
                     b.Navigation("TypeSignalementSignalementNav");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.TokenEmail", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteTokenNav")
+                        .WithMany("TokensEmail")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompteTokenNav");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Voiture", b =>
@@ -1615,6 +1869,10 @@ namespace Api_c_sharp.Migrations
 
                     b.Navigation("Favoris");
 
+                    b.Navigation("Notifications");
+
+                    b.Navigation("Offres");
+
                     b.Navigation("SignalementsRecus");
 
                     b.Navigation("Vues");
@@ -1654,6 +1912,8 @@ namespace Api_c_sharp.Migrations
 
                     b.Navigation("AvisJugeur");
 
+                    b.Navigation("CarteBancaires");
+
                     b.Navigation("CommandeAcheteur");
 
                     b.Navigation("CommandeVendeur");
@@ -1670,9 +1930,15 @@ namespace Api_c_sharp.Migrations
 
                     b.Navigation("Messages");
 
+                    b.Navigation("Notifications");
+
+                    b.Navigation("Plaintes");
+
                     b.Navigation("SignalementsFaits");
 
                     b.Navigation("SignalementsRecus");
+
+                    b.Navigation("TokensEmail");
 
                     b.Navigation("Vues");
                 });
@@ -1699,8 +1965,10 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("Comptes");
                 });
 
-            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatSignalement", b =>
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatSignalementPlainte", b =>
                 {
+                    b.Navigation("Plaintes");
+
                     b.Navigation("Signalements");
                 });
 
@@ -1713,6 +1981,8 @@ namespace Api_c_sharp.Migrations
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Message", b =>
                 {
+                    b.Navigation("Offres");
+
                     b.Navigation("PiecesJointes");
                 });
 

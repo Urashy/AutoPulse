@@ -16,7 +16,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.Include(c => c.TypeCompteCompteNav).ToListAsync();
         }
 
-        public override async Task<Compte> GetByIdAsync(int id)
+        public override async Task<Compte?> GetByIdAsync(int id)
         {
             return await dbSet.Include(c => c.Images).Include(c => c.TypeCompteCompteNav).FirstOrDefaultAsync(c => c.IdCompte == id);
         }
@@ -36,12 +36,12 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.Include(c => c.TypeCompteCompteNav).Where(c => c.IdTypeCompte == type).ToListAsync();
         }
 
-        public virtual async Task<Compte> VerifMotDePasse(string email, string hash)
+        public virtual async Task<Compte?> VerifMotDePasse(string email, string hash)
         {
             return await dbSet.SingleOrDefaultAsync(x => x.Email == email && x.MotDePasse == hash);
         }
 
-        public virtual async Task<Compte> AuthenticateCompte(string email, string hash)
+        public virtual async Task<Compte?> AuthenticateCompte(string email, string hash)
         {
             return await dbSet.SingleOrDefaultAsync(x => x.Email.ToUpper() == email.ToUpper() && x.MotDePasse == hash);
         }
@@ -49,7 +49,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public virtual async Task UpdateAnonymise(int idcompte)
         {
 
-            Compte compte = await dbSet
+            Compte? compte = await dbSet
                 .Include(c => c.CommandeAcheteur)
                 .Include(c => c.Annonces)
                 .Include(c => c.SignalementsFaits)
@@ -136,14 +136,14 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             await context.SaveChangesAsync();
         }
 
-        public virtual async Task<Compte> GetProfilPublic(int idcompte)
+        public virtual async Task<Compte?> GetProfilPublic(int idcompte)
         {
             return await dbSet.Include(c => c.Images).Include(c => c.TypeCompteCompteNav).Include(c => c.Annonces).Include(c => c.AvisJugees).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
         }
 
         public virtual async Task ToggleEtatCompte(int idcompte, bool estretirer = false)
         {
-            Compte compte = await dbSet.Include(c => c.EtatCompteNav).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
+            Compte? compte = await dbSet.Include(c => c.EtatCompteNav).FirstOrDefaultAsync(c => c.IdCompte == idcompte);
             if (compte.IdEtatCompte== 1)
             {
                 compte.IdEtatCompte = 2;
@@ -158,7 +158,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual async Task EnregistrerA2f(TokenEmail tokenEmail)
         {
-            context.TokenEmails.AddAsync(tokenEmail);
+            await context.TokenEmails.AddAsync(tokenEmail);
             await context.SaveChangesAsync();
         }
 

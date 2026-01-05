@@ -9,7 +9,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         { 
         }
 
-        public virtual async Task<Vue> GetVueByIdsAsync(int idCompte, int idAnnonce)
+        public virtual async Task<Vue?> GetVueByIdsAsync(int idCompte, int idAnnonce)
         {
             return await dbSet.FindAsync(idCompte, idAnnonce);
         }

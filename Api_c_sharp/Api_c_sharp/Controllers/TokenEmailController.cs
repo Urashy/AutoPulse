@@ -16,8 +16,7 @@ namespace Api_c_sharp.Controllers;
 public class TokenEmailController(
     TokenEmailManager _manager,
     IConfiguration _config,
-    IMapper _mapper,
-    CompteManager _compteManager) : ControllerBase
+    IMapper _mapper ) : ControllerBase
 {
     /// <summary>
     /// Récupère un token email à partir de son identifiant.
@@ -140,8 +139,8 @@ public class TokenEmailController(
             Text = corpsMessage
         };
 
-        string user = _config["Email:GmailUser"];
-        string password = _config["Email:GmailPass"];
+        string? user = _config["Email:GmailUser"];
+        string? password = _config["Email:GmailPass"];
 
         using var client = new SmtpClient();
         await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
