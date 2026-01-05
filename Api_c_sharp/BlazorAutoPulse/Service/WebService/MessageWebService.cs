@@ -12,9 +12,9 @@ public class MessageWebService: BaseWebService<MessageDTO>, IMessageService
 
     protected override string ApiEndpoint => "Message";
 
-    public async Task<MessageDTO> CreateMessageAsync(MessageCreateDTO messageCreateDTO)
+    public async Task<MessageDTO> CreateMessageAsync(MessageCreateDTO messageCreateDTO, bool withOffre)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("Post"))
+        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl($"Post/{withOffre}"))
         {
             Content = JsonContent.Create(messageCreateDTO)
         };

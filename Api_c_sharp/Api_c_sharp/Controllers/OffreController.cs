@@ -19,7 +19,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class OffreController(OffreManager _manager, IMapper _offremapper, MessageManager _managermessage, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
+    public class OffreController(OffreManager _manager, IMapper _offremapper, MessageManager _managermessage,CommandeManager _managercommande, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
     {
         /// <summary>
         /// Crée une nouvelle offre.
@@ -97,6 +97,25 @@ namespace Api_c_sharp.Controllers
             var updated = _offremapper.Map<Offre>(dto);
 
             await _manager.UpdateAsync(toUpdate, updated);
+
+            if(updated.EstAccepte.HasValue)
+            {
+                string userIdString = User.FindFirst("idUser")?.Value;
+
+                if (int.TryParse(userIdString, out int idAcheteurConnecte))
+                {
+                    CommandeCreateDTO com = new CommandeCreateDTO
+                    {
+                        IdAcheteur = idAcheteurConnecte,
+                        IdVendeur = toUpdate.OffreAnnonceNav?.IdCompte ?? 0,
+                        IdAnnonce = dto.IdAnnonce,
+                        Date = DateTime.UtcNow,
+                        IdMoyenPaiement = 1
+                    };
+
+                    //await _managercommande.AddAsync(com);
+                }
+            }
 
             var message = await _managermessage.GetByIdAsync(dto.IdMessage);
 
