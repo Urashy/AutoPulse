@@ -48,6 +48,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockHubContext.Setup(h => h.Clients).Returns(_mockClients.Object);
             _mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(_mockClientProxy.Object);
 
+            // Création de l'annonce de référence
             _objetcommun = new Annonce
             {
                 IdAnnonce = 1,
@@ -62,15 +63,19 @@ namespace Api_c_sharp.ControllersMock.Tests
                 DatePublication = DateTime.Now
             };
 
+            // Configuration AutoMapper
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<MapperProfile>();
             });
             _mapper = config.CreateMapper();
 
+            // Injection dans le controller
             _controller = new AnnonceController(_mockManager.Object, _mapper, _mockJournalService.Object,_mockNotificationService.Object, _mockHubContext.Object);
         }
         #region GET
+
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -102,7 +107,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -139,6 +146,210 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
+
+            #region GetByString
+        [TestMethod]
+        public async Task GetbystringTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByNameAsync("Annonce Test"))
+                       .ReturnsAsync(_objetcommun);
+
+            // Act
+            var result = await _controller.GetByString("Annonce Test");
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(AnnonceDetailDTO));
+            Assert.AreEqual(_objetcommun.Libelle, result.Value.Libelle);
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetbystringTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByNameAsync("Annonce Inexistante"))
+                       .ReturnsAsync((Annonce)null);
+
+            // Act
+            var result = await _controller.GetByString("Annonce Inexistante");
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+            #region GetByMiseEnavant
+        [TestMethod]
+        public async Task GetByMiseEnavant()
+        {
+            // Arrange
+            var annoncesList = new List<Annonce> { _objetcommun };
+
+            _mockManager.Setup(m => m.GetAnnoncesByMiseEnAvant(1, 1, 21))
+                       .ReturnsAsync(annoncesList);
+
+            // Act
+            var result = await _controller.GetByIdMiseEnAvant(1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByMiseEnAvant()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetAnnoncesByMiseEnAvant(0, 1, 21))
+                       .ReturnsAsync((IEnumerable<Annonce>)null);
+
+            // Act
+            var result = await _controller.GetByIdMiseEnAvant(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+            #region GetByCompteFavoris
+        [TestMethod]
+        public async Task GetByCompteFavoris()
+        {
+            // Arrange
+            var annoncesList = new List<Annonce> { _objetcommun };
+
+            _mockManager.Setup(m => m.GetAnnoncesByCompteFavoris(1))
+                       .ReturnsAsync(annoncesList);
+
+            // Act
+            var result = await _controller.GetByCompteFavoris(1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByCompteFavoris()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetAnnoncesByCompteFavoris(0))
+                       .ReturnsAsync((IEnumerable<Annonce>)null);
+
+            // Act
+            var result = await _controller.GetByCompteFavoris(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+            #region GetByCompteID
+        [TestMethod]
+        public async Task GetAnnonceByCompteIDTest()
+        {
+            // Arrange
+            var annoncesList = new List<Annonce> { _objetcommun };
+
+            _mockManager.Setup(m => m.GetAnnoncesByCompteID(_objetcommun.IdCompte))
+                       .ReturnsAsync(annoncesList);
+
+            // Act
+            var result = await _controller.GetAnnoncesByCompteID(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAnnonceByCompteIDTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetAnnoncesByCompteID(0))
+                       .ReturnsAsync((IEnumerable<Annonce>)null);
+
+            // Act
+            var result = await _controller.GetAnnoncesByCompteID(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        #endregion
+
+            #region GetAnnonceSimilaire
+        [TestMethod]
+        public async Task GetAnnonceSimilaireTests()
+        {
+            // Arrange
+            var annonceSimilaire = new Annonce
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test similaire",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description de l'annonce similaire",
+                IdMiseEnAvant = 1,
+                IdVoiture = 2,
+                DatePublication = DateTime.Now
+            };
+
+            var annoncesList = new List<Annonce> { annonceSimilaire };
+
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(_objetcommun);
+
+
+            _mockManager.Setup(m => m.GetAnnoncesSimilaires(_objetcommun))
+                       .ReturnsAsync(annoncesList);
+
+            // Act
+            var result = await _controller.GetSimilaires(_objetcommun.IdAnnonce);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == annonceSimilaire.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAnnonceSimilaireTests()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(0))
+                       .ReturnsAsync((Annonce)null);
+
+            // Act
+            var result = await _controller.GetSimilaires(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
         #endregion
 
         #region POST
@@ -874,109 +1085,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
         #endregion
 
-        #region GetBy
-        [TestMethod]
-        public async Task GetbystringTest()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetByNameAsync("Annonce Test"))
-                       .ReturnsAsync(_objetcommun);
-
-            // Act
-            var result = await _controller.GetByString("Annonce Test");
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(AnnonceDetailDTO));
-            Assert.AreEqual(_objetcommun.Libelle, result.Value.Libelle);
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetbystringTest()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetByNameAsync("Annonce Inexistante"))
-                       .ReturnsAsync((Annonce)null);
-
-            // Act
-            var result = await _controller.GetByString("Annonce Inexistante");
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetByMiseEnavant()
-        {
-            // Arrange
-            var annoncesList = new List<Annonce> { _objetcommun };
-
-            _mockManager.Setup(m => m.GetAnnoncesByMiseEnAvant(1,1,21))
-                       .ReturnsAsync(annoncesList);
-
-            // Act
-            var result = await _controller.GetByIdMiseEnAvant(1);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetByMiseEnAvant()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetAnnoncesByMiseEnAvant(0,1,21))
-                       .ReturnsAsync((IEnumerable<Annonce>)null);
-
-            // Act
-            var result = await _controller.GetByIdMiseEnAvant(0);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetByCompteFavoris()
-        {
-            // Arrange
-            var annoncesList = new List<Annonce> { _objetcommun };
-
-            _mockManager.Setup(m => m.GetAnnoncesByCompteFavoris(1))
-                       .ReturnsAsync(annoncesList);
-
-            // Act
-            var result = await _controller.GetByCompteFavoris(1);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetByCompteFavoris()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetAnnoncesByCompteFavoris(0))
-                       .ReturnsAsync((IEnumerable<Annonce>)null);
-
-            // Act
-            var result = await _controller.GetByCompteFavoris(0);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
+        #region Filtred
         [TestMethod]
         public async Task GetByFiltersTest()
         {
@@ -1318,42 +1427,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(annonces.Any());
             Assert.IsTrue(annonces[1].Prix == _objetcommun.Prix);
         }
+        #endregion
 
-        [TestMethod]
-        public async Task GetAnnonceByCompteIDTest()
-        {
-            // Arrange
-            var annoncesList = new List<Annonce> { _objetcommun };
-
-            _mockManager.Setup(m => m.GetAnnoncesByCompteID(_objetcommun.IdCompte))
-                       .ReturnsAsync(annoncesList);
-
-            // Act
-            var result = await _controller.GetAnnoncesByCompteID(_objetcommun.IdCompte);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetAnnonceByCompteIDTest()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetAnnoncesByCompteID(0))
-                       .ReturnsAsync((IEnumerable<Annonce>)null);
-
-            // Act
-            var result = await _controller.GetAnnoncesByCompteID(0);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
+        #region Masque
         [TestMethod]
         public async Task EstMasqueFalseTests()
         {
@@ -1401,61 +1477,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value);
         }
-
-        [TestMethod]
-        public async Task GetAnnonceSimilaireTests()
-        {
-            // Arrange
-            var annonceSimilaire = new Annonce
-            {
-                IdAnnonce = 2,
-                Libelle = "Annonce Test similaire",
-                IdCompte = 1,
-                IdEtatAnnonce = 1,
-                IdAdresse = 1,
-                Prix = 20000,
-                Description = "Description de l'annonce similaire",
-                IdMiseEnAvant = 1,
-                IdVoiture = 2,
-                DatePublication = DateTime.Now
-            };
-
-            var annoncesList = new List<Annonce> { annonceSimilaire };
-
-            
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
-                       .ReturnsAsync(_objetcommun);
-
-           
-            _mockManager.Setup(m => m.GetAnnoncesSimilaires(_objetcommun))
-                       .ReturnsAsync(annoncesList);
-
-            // Act
-            var result = await _controller.GetSimilaires(_objetcommun.IdAnnonce);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Libelle == annonceSimilaire.Libelle));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetAnnonceSimilaireTests()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetByIdAsync(0))
-                       .ReturnsAsync((Annonce)null);
-
-            // Act
-            var result = await _controller.GetSimilaires(0);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
         #endregion
+        
 
         private void SetupUserContext(string userId = "2")
         {

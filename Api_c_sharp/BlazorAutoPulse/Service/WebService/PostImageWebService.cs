@@ -2,6 +2,7 @@
 using BlazorAutoPulse.Service.Interface;
 using System.Net.Http;
 using System.Net.Http.Json;
+using AutoPulse.Shared.DTO;
 
 namespace BlazorAutoPulse.Service.WebService
 {
@@ -13,7 +14,7 @@ namespace BlazorAutoPulse.Service.WebService
 
         protected override string ApiEndpoint => "Image";
 
-        public async Task<Image> CreateAsync(ImageUpload entity)
+        public async Task<ImageDTO> CreateAsync(ImageUpload entity)
         {
             using var content = new MultipartFormDataContent();
 
@@ -29,7 +30,7 @@ namespace BlazorAutoPulse.Service.WebService
             var response = await _httpClient.PostAsync(BuildUrl("Post"), content);
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadFromJsonAsync<Image>();
+            return await response.Content.ReadFromJsonAsync<ImageDTO>();
         }
         
         public async Task UpdateAsync(int id, ImageUpload entity)

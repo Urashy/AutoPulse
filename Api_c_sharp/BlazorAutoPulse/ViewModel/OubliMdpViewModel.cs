@@ -1,3 +1,4 @@
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
@@ -57,7 +58,7 @@ public class OubliMdpViewModel
         isLoading = true;
         _refreshUI?.Invoke();
 
-        Compte compte = await _compteService.GetByNameAsync(ReinitialisationMdp.Email);
+        CompteDetailDTO compte = await _compteService.GetByNameAsync(ReinitialisationMdp.Email);
         ReinitialisationMdp.IdCompte = compte.IdCompte;
         await _reinitMdpService.CreateAsync(ReinitialisationMdp);
 

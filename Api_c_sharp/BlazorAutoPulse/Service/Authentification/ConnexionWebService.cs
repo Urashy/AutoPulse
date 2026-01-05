@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using AutoPulse.Shared.DTO;
+using AutoPulse.Shared.DTO.Authentification;
 using BlazorAutoPulse.Model;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
 

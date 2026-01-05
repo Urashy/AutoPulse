@@ -1,10 +1,11 @@
 ﻿using System.Net.Http.Json;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service.WebService
 {
-    public class FavoriWebService : BaseWebService<Favori>, IFavorisService
+    public class FavoriWebService : BaseWebService<FavoriDTO>, IFavorisService
     {
         public FavoriWebService(HttpClient httpClient) : base(httpClient)
         {
@@ -12,13 +13,13 @@ namespace BlazorAutoPulse.Service.WebService
 
         protected override string ApiEndpoint => "Favori";
 
-        public async Task<IEnumerable<Favori>> GetMesFavoris(int IdCompte)
+        public async Task<IEnumerable<FavoriDTO>> GetMesFavoris(int IdCompte)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetByCompteId/{IdCompte}"));
             var response = await SendWithCredentialsAsync(request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<Favori>>()
-                   ?? Enumerable.Empty<Favori>();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<FavoriDTO>>()
+                   ?? Enumerable.Empty<FavoriDTO>();
         }
 
         public async Task<bool> IsFavorite(int idCompte, int idAnnonce)
@@ -44,7 +45,7 @@ namespace BlazorAutoPulse.Service.WebService
             else
             {
                 // Ajouter aux favoris
-                var favori = new Favori { IdCompte = idCompte, IdAnnonce = idAnnonce };
+                var favori = new FavoriDTO { IdCompte = idCompte, IdAnnonce = idAnnonce };
                 await CreateAsync(favori);
                 return true;
             }

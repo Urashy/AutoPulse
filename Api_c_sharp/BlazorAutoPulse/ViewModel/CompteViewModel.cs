@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service;
+using Microsoft.JSInterop;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -66,6 +67,10 @@ namespace BlazorAutoPulse.ViewModel
 
         private Action? _refreshUI;
         public NavigationManager _nav { get; set; }
+        
+        public bool showAdresseModal { get; set; } = false;
+        public bool isEditingAdresse { get; set; } = false;
+        public AdresseDTO? selectedAdresseToEdit { get; set; }
 
         public CompteViewModel(
             ICompteService compteService,
@@ -185,7 +190,7 @@ namespace BlazorAutoPulse.ViewModel
             ImageUpload imageProfil = new ImageUpload();
             imageProfil.File = e.File;
             imageProfil.IdCompte = compte.IdCompte;
-            Image img = await _postImageService.CreateAsync(imageProfil);
+            ImageDTO img = await _postImageService.CreateAsync(imageProfil);
 
             await GetImageProfil(compte.IdCompte);
         }
@@ -208,7 +213,7 @@ namespace BlazorAutoPulse.ViewModel
         {
             try
             {
-                Image? img = await _imageService.GetImageProfil(id);
+                ImageDTO? img = await _imageService.GetImageProfil(id);
 
                 imageSource = "";
                 if (img != null && img.Fichier != null && img.Fichier.Length > 0)
@@ -703,6 +708,66 @@ namespace BlazorAutoPulse.ViewModel
             {
                 isLoadingA2f = false;
                 _refreshUI?.Invoke();
+            }
+        }
+        
+        public void OpenCreateAdresseModal()
+        {
+            isEditingAdresse = false;
+            selectedAdresseToEdit = null;
+            showAdresseModal = true;
+            _refreshUI?.Invoke();
+        }
+
+        public void OpenEditAdresseModal(AdresseDTO adresse)
+        {
+            isEditingAdresse = true;
+            selectedAdresseToEdit = adresse;
+            showAdresseModal = true;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task OnAdresseSaved()
+        {
+            try
+            {
+                // Recharger les adresses
+                adresses = await _addresseService.GetAdresseByCompte(compte.IdCompte);
+                showAdresseModal = false;
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur OnAdresseSaved: {ex.Message}");
+                _notificationService.ShowError(
+                    "Erreur",
+                    "Impossible de recharger les adresses"
+                );
+            }
+        }
+
+        public async Task DeleteAdresse(AdresseDTO adresse)
+        {
+            try
+            {
+                await _addresseService.DeleteAsync(adresse.IdAdresse);
+        
+                _notificationService.ShowSuccess(
+                    "Adresse supprimée",
+                    $"L'adresse '{adresse.Nom}' a été supprimée avec succès"
+                );
+
+                // Recharger les adresses
+                adresses = await _addresseService.GetAdresseByCompte(compte.IdCompte);
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur DeleteAdresse: {ex.Message}");
+                _notificationService.ShowError(
+                    "Erreur",
+                    "Impossible de supprimer l'adresse"
+                );
             }
         }
     }

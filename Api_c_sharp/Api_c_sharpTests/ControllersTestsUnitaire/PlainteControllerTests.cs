@@ -94,7 +94,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdPlainte = 1,
                 Description = "Ceci est une plainte de test. ",
                 DateCreation = DateTime.Now,
-                IdSignalement = 1
+                IdSignalement = 1,
+                IdCompte = 1
             };
             _context.TypesCompte.Add(typeCompte);
             _context.EtatComptes.Add(etatCompte);
@@ -253,6 +254,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var actionResult = await _controller.Post(dto);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task GetPlainteByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetByIDCompte(_objetcommun.IdCompte);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<PlainteDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Description == _objetcommun.Description));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetPlainteByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetByIDCompte(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

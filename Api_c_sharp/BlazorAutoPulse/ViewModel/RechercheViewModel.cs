@@ -8,11 +8,11 @@ namespace BlazorAutoPulse.ViewModel
     public class RechercheViewModel
     {
         private readonly IAnnonceService _annonceService;
-        private readonly IService<Marque> _marqueService;
+        private readonly IService<MarqueDTO> _marqueService;
         private readonly IModeleService _modeleService;
-        private readonly IService<Carburant> _carburantService;
-        private readonly IService<Categorie> _categorieService;
-        private readonly IService<BoiteDeVitesse> _boiteService;
+        private readonly IService<CarburantDTO> _carburantService;
+        private readonly IService<CategorieDTO> _categorieService;
+        private readonly IService<BoiteDeVitesseDTO> _boiteService;
         private readonly ITypeCompteService _typecompteService;
 
         private Action? _refreshUI;
@@ -59,13 +59,13 @@ namespace BlazorAutoPulse.ViewModel
         public string KmMax => KmMaxValue < 300000 ? KmMaxValue.ToString() : "";
 
         // Données
-        public Marque[] AllMarques { get; private set; } = Array.Empty<Marque>();
-        public Modele[] FilteredModeles { get; private set; } = Array.Empty<Modele>();
-        public Modele[] AllModeles { get; private set; } = Array.Empty<Modele>();
-        public Carburant[] AllCarburants { get; private set; } = Array.Empty<Carburant>();
-        public Categorie[] AllCategories { get; private set; } = Array.Empty<Categorie>();
-        public TypeCompte[] AllTypeComptes { get; private set; } = Array.Empty<TypeCompte>();
-        public BoiteDeVitesse [] AllBoitesDeVitesse { get; private set; } = Array.Empty<BoiteDeVitesse>();
+        public MarqueDTO[] AllMarques { get; private set; } = Array.Empty<MarqueDTO>();
+        public ModeleDTO[] FilteredModeles { get; private set; } = Array.Empty<ModeleDTO>();
+        public ModeleDTO[] AllModeles { get; private set; } = Array.Empty<ModeleDTO>();
+        public CarburantDTO[] AllCarburants { get; private set; } = Array.Empty<CarburantDTO>();
+        public CategorieDTO[] AllCategories { get; private set; } = Array.Empty<CategorieDTO>();
+        public TypeCompteDTO[] AllTypeComptes { get; private set; } = Array.Empty<TypeCompteDTO>();
+        public BoiteDeVitesseDTO[] AllBoitesDeVitesse { get; private set; } = Array.Empty<BoiteDeVitesseDTO>();
 
         // Propriétés calculées pour la pagination
         public string PaginationInfo => $"Page {CurrentPage} - {CurrentPageResultCount} résultat(s)";
@@ -75,11 +75,11 @@ namespace BlazorAutoPulse.ViewModel
 
         public RechercheViewModel(
             IAnnonceService annonceService,
-            IService<Marque> marqueService,
+            IService<MarqueDTO> marqueService,
             IModeleService modeleService,
-            IService<Carburant> carburantService,
-            IService<Categorie> categorieService,
-            IService<BoiteDeVitesse> boiteService,
+            IService<CarburantDTO> carburantService,
+            IService<CategorieDTO> categorieService,
+            IService<BoiteDeVitesseDTO> boiteService,
             ITypeCompteService typecompteService)
         {
             _annonceService = annonceService;

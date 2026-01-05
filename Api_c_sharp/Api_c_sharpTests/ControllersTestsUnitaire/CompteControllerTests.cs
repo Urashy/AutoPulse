@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AutoPulse.Shared.DTO.Authentification;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests
 {
@@ -196,7 +197,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             Adresse adresse = new Adresse()
             {
-                IdCompte = 1,
+                IdAdresse = 1,
                 Nom = "Domicile",
                 Rue = "123 Rue de Test",
                 LibelleVille = "Testville",
@@ -230,6 +231,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdCompte = compte.IdCompte
             };
 
+            // ✅ Ajouter TypeSignalement au contexte
             await _context.EtatComptes.AddAsync(etatCompte);
             await _context.EtatComptes.AddAsync(etatCompteInactif);
             await _context.TypesSignalement.AddAsync(typeSignalement);
@@ -246,8 +248,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetcommun = compte;
         }
-
-        #region GetById
 
         [TestMethod]
         public async Task GetByIdTest()
@@ -448,9 +448,26 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
 
-        #endregion
+        [TestMethod]
+        public async Task BadRequestPostAdresseTest()
+        {
+            CompteCreateDTO compteUpdateDTO = new CompteCreateDTO
+            {
+                Nom = "DoeUpdated",
+                Prenom = "john",
+                Email = "johnmodif@gmail.com",
+                DateNaissance = new DateTime(1991, 1, 1),
+                IdTypeCompte = 1,
+                MotDePasse = "hashedpassword",
+                Pseudo = "johndoe",
+                NumeroSiret = null,
+            };
 
-        #region PutAnonymiseTests
+            _controller.ModelState.AddModelError("NumeroSiret", "Required");
+            var actionResult = await _controller.Post(compteUpdateDTO);
+
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
 
         [TestMethod]
         public async Task PutAnonymiseTest()
@@ -490,7 +507,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Adresse adresse = new Adresse
             {
                 IdAdresse = 2,
-                Nom = "Compte Test",
+                Nom = "Adresse Test",
                 Rue = "456 Rue de Test",
                 LibelleVille = "Testville",
                 CodePostal = "67890",
@@ -699,7 +716,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task Login_ValidCredentials_ReturnsOkWithToken()
         {
-            var loginRequest = new LoginRequest
+            var loginRequest = new LoginRequest()
             {
                 Email = "john@gmail.com",
                 MotDePasse = "Testmdp1!"

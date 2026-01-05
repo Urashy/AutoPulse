@@ -9,7 +9,6 @@ using BlazorAutoPulse.ViewModel;
 using BlazorAutoPulse.ViewModel.Administration;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using ReinitialisationMdp = BlazorAutoPulse.Model.ReinitialisationMdp;
 using VoitureDetailDTO = AutoPulse.Shared.DTO.VoitureDetailDTO;
 
 namespace BlazorAutoPulse
@@ -23,13 +22,13 @@ namespace BlazorAutoPulse
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
             //----------------------- Service de base
-            builder.Services.AddScoped<IService<Marque>, MarqueWebService>();
+            builder.Services.AddScoped<IService<MarqueDTO>, MarqueWebService>();
             builder.Services.AddScoped<IService<CompteDetailDTO>, CompteWebService>();
-            builder.Services.AddScoped<IService<Carburant>, CarburantWebService>();
-            builder.Services.AddScoped<IService<Categorie>, CategorieWebService>();
-            builder.Services.AddScoped<IService<BoiteDeVitesse>, BoiteVitesseWebService>();
-            builder.Services.AddScoped<IService<Motricite>, MotriciteWebService>();
-            builder.Services.AddScoped<IService<APourCouleur>, APourCouleurWebService>();
+            builder.Services.AddScoped<IService<CarburantDTO>, CarburantWebService>();
+            builder.Services.AddScoped<IService<CategorieDTO>, CategorieWebService>();
+            builder.Services.AddScoped<IService<BoiteDeVitesseDTO>, BoiteVitesseWebService>();
+            builder.Services.AddScoped<IService<MotriciteDTO>, MotriciteWebService>();
+            builder.Services.AddScoped<IService<APourCouleurDTO>, APourCouleurWebService>();
             builder.Services.AddScoped<IService<AvisListDTO>, AvisWebService>();
             builder.Services.AddScoped<IService<CommandeDTO>, CommandeWebService>();
             builder.Services.AddScoped<IService<VueDTO>, VueWebService>();
@@ -101,6 +100,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<AdminJournauxViewModel>();
             builder.Services.AddScoped<ModifierAnnonceViewModel>();
             builder.Services.AddScoped<AdminPlainteViewModel>();
+            builder.Services.AddScoped<AdresseModalViewModel>();
 
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService>(sp => new SignalRWebService());

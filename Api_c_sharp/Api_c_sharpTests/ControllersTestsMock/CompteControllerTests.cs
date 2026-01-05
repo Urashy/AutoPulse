@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AutoPulse.Shared.DTO.Authentification;
 
 namespace Api_c_sharp.ControllersMock.Tests
 {
