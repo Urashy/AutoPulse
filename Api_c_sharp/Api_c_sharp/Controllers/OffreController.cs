@@ -19,7 +19,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class OffreController(OffreManager _manager, IMapper _offremapper, MessageManager _managermessage,CommandeManager _managercommande, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
+    public class OffreController(OffreManager _manager, IMapper _offremapper, MessageManager _managermessage,CommandeManager _managercommande,AnnonceManager _managerannonce, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
     {
         /// <summary>
         /// Crée une nouvelle offre.
@@ -102,14 +102,24 @@ namespace Api_c_sharp.Controllers
 
             if (updated.EstAccepte == true)
             {
-                string userIdString = User.FindFirst("idUser")?.Value;
+                         
+                var anonce = await _managerannonce.GetByIdAsync(toUpdate.IdAnnonce);
 
-                if (int.TryParse(userIdString, out int idAcheteurConnecte))
+                int idAcheteur;
+                
+                if(message.IdCompte == anonce.IdCompte)
                 {
-                    CommandeCreateDTO com = new CommandeCreateDTO
+                    idAcheteur = toUpdate.OffreAnnonceNav.IdCompte;
+                }
+                else
+                {
+                    idAcheteur = message.IdCompte;
+                }
+
+                CommandeCreateDTO com = new CommandeCreateDTO
                     {
-                        IdAcheteur = idAcheteurConnecte,
-                        IdVendeur = message.IdCompte,
+                        IdAcheteur = idAcheteur,
+                        IdVendeur = anonce.IdCompte,
                         IdAnnonce = dto.IdAnnonce,
                         Date = DateTime.UtcNow,
                         IdMoyenPaiement = 1
@@ -118,7 +128,7 @@ namespace Api_c_sharp.Controllers
                     var commandeEntity = _offremapper.Map<Commande>(com);
 
                     await _managercommande.AddAsync(commandeEntity);
-                }
+                
             }
 
             if (_hubContext != null)
