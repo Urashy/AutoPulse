@@ -1,17 +1,10 @@
-using Api_c_sharp.Mapper;
-using Api_c_sharp.Models.Authentification;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
-using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -290,8 +283,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         if (user == null)
             return NotFound();
         
-        CompteDetailDTO dto = _compteMapper.Map<CompteDetailDTO>(user);
-        return Ok(dto);
+        return _compteMapper.Map<CompteDetailDTO>(user);
     }
 
     /// <summary>
@@ -458,7 +450,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                     TypeToken = doitReactiverA2f ? "A2F_ACTIVATION" : "A2F_CONNEXION"
                 };
 
-                _manager.EnregistrerA2f(tokenA2f);
+                await _manager.EnregistrerA2f(tokenA2f);
                 
                 string sujet = doitReactiverA2f 
                     ? "Réactivation A2F requise" 

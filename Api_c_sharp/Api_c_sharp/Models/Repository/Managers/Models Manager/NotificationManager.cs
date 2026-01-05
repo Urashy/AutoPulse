@@ -46,7 +46,8 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public virtual async Task MarkAsReadAsync(int idNotification)
         {
             var notification = await dbSet.FindAsync(idNotification);
-            if (notification == null);
+            if (notification == null)
+                return;
 
             notification.EstLue = true;
             await context.SaveChangesAsync();
@@ -107,7 +108,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Distinct()
                 .ToListAsync();
             
-            Annonce annonce = await context.Annonces.FirstOrDefaultAsync(a => idannonce == a.IdAnnonce);
+            Annonce? annonce = await context.Annonces.FirstOrDefaultAsync(a => idannonce == a.IdAnnonce);
 
             string url = $"/annonce/{idannonce}";
             string titre = "Mise à jour de l'annonce";
@@ -124,10 +125,10 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Select(a => a.IdCompte)
                 .ToListAsync();
 
-            Annonce annonce = await context.Annonces
+            Annonce? annonce = await context.Annonces
                 .FirstOrDefaultAsync(a => a.IdAnnonce == idannonce);
 
-            Signalement signalement = await context.Signalements.FirstOrDefaultAsync(s => s.IdAnnonceSignale == annonce.IdAnnonce);
+            Signalement? signalement = await context.Signalements.FirstOrDefaultAsync(s => s.IdAnnonceSignale == annonce.IdAnnonce);
 
             string url = $"/annonces";
             string titre = "Annonce supprimée";
@@ -144,7 +145,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Select(a => a.IdCompte)
                 .ToListAsync();
 
-            Annonce annonce = await context.Annonces
+            Annonce? annonce = await context.Annonces
                 .FirstOrDefaultAsync(a => a.IdAnnonce == idannonce);
 
             string url = $"/annonce/{idannonce}";

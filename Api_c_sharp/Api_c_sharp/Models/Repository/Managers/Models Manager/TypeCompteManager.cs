@@ -10,7 +10,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
         }
 
-        public virtual async Task<TypeCompte> GetTypeCompteByCompteId(int compteID)
+        public virtual async Task<TypeCompte?> GetTypeCompteByCompteId(int compteID)
         {
             return await dbSet
                 .Include(tc => tc.Comptes)

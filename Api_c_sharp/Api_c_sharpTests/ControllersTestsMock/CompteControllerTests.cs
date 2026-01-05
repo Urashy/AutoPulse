@@ -1,6 +1,5 @@
 ﻿using Api_c_sharp.Controllers;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models.Authentification;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
@@ -9,13 +8,8 @@ using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using AutoPulse.Shared.DTO.Authentification;
 
 namespace Api_c_sharp.ControllersMock.Tests
@@ -24,18 +18,18 @@ namespace Api_c_sharp.ControllersMock.Tests
     [TestCategory("unit")]
     public class CompteControllerTestsMoq
     {
-        private Mock<CompteManager> _mockManager;
-        private Mock<IJournalService> _mockJournalService;
-        private IConfiguration _config;
-        private CompteController _controller;
-        private IMapper _mapper;
-        private Compte _objetcommun;
+        private Mock<CompteManager> _mockManager = null!;
+        private Mock<IJournalService> _mockJournalService = null!;
+        private IConfiguration _config = null!;
+        private CompteController _controller = null!;
+        private IMapper _mapper = null!;
+        private Compte _objetcommun = null!;
 
         [TestInitialize]
         public void Initialize()
         {
             // Création des mocks
-            _mockManager = new Mock<CompteManager>(null);
+            _mockManager = new Mock<CompteManager>(null!);
             _mockJournalService = new Mock<IJournalService>();
 
             // Configuration en mémoire pour JWT
@@ -667,13 +661,13 @@ namespace Api_c_sharp.ControllersMock.Tests
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
-            Assert.IsNotNull(okResult.Value);
+            Assert.IsNotNull(okResult?.Value);
 
-            var responseType = okResult.Value.GetType();
+            var responseType = okResult?.Value.GetType();
             var urlProperty = responseType.GetProperty("url");
             Assert.IsNotNull(urlProperty);
 
-            string url = urlProperty.GetValue(okResult.Value)?.ToString();
+            string url = urlProperty.GetValue(okResult?.Value)?.ToString();
             Assert.IsNotNull(url);
         }
 
@@ -682,8 +676,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             var result = _controller.GoogleLogin();
             var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
+            var urlProperty = okResult?.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult?.Value).ToString();
 
             Assert.IsTrue(url.Contains("accounts.google.com/o/oauth2/v2/auth"));
         }
@@ -693,8 +687,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             var result = _controller.GoogleLogin();
             var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
+            var urlProperty = okResult?.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult?.Value).ToString();
 
             Assert.IsTrue(url.Contains("client_id="));
         }
@@ -704,8 +698,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             var result = _controller.GoogleLogin();
             var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
+            var urlProperty = okResult?.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult?.Value).ToString();
 
             Assert.IsTrue(url.Contains("redirect_uri="));
         }
@@ -715,8 +709,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             var result = _controller.GoogleLogin();
             var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
+            var urlProperty = okResult?.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult?.Value).ToString();
 
             Assert.IsTrue(url.Contains("response_type=code"));
         }
@@ -726,8 +720,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             var result = _controller.GoogleLogin();
             var okResult = result as OkObjectResult;
-            var urlProperty = okResult.Value.GetType().GetProperty("url");
-            string url = urlProperty.GetValue(okResult.Value).ToString();
+            var urlProperty = okResult?.Value.GetType().GetProperty("url");
+            string url = urlProperty.GetValue(okResult?.Value).ToString();
 
             Assert.IsTrue(url.Contains("scope="));
             Assert.IsTrue(url.Contains("openid"));
@@ -912,7 +906,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
             var okResult = result as OkObjectResult;
-            Assert.AreEqual("Mot de passe modifié avec succès.", okResult.Value);
+            Assert.AreEqual("Mot de passe modifié avec succès.", okResult?.Value);
         }
 
         [TestMethod]
@@ -1119,7 +1113,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             var okResult = result as OkObjectResult;
 
             // Vérifie la structure de la réponse
-            var response = okResult.Value;
+            var response = okResult?.Value;
             var messageProperty = response.GetType().GetProperty("message");
             var userIdProperty = response.GetType().GetProperty("userId");
             var pseudoProperty = response.GetType().GetProperty("pseudo");
@@ -1620,7 +1614,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
             var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult.Value);
+            Assert.IsNotNull(okResult?.Value);
 
             _mockManager.Verify(m => m.GetStatutA2f(_objetcommun.IdCompte), Times.Once);
             _mockManager.Verify(m => m.DoitReactiverA2f(_objetcommun.IdCompte), Times.Once);
@@ -1630,8 +1624,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task GetStatutA2f_CompteInexistant_ReturnsNotFound()
         {
             // Arrange
-            _mockManager.Setup(m => m.GetByIdAsync(999))
-                       .ReturnsAsync((Compte)null);
+            _mockManager.Setup(m => m.GetByIdAsync(999))!
+                       .ReturnsAsync((Compte)null!);
 
             // Act
             var result = await _controller.GetStatutA2f(999);
@@ -1656,7 +1650,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
             var okResult = result.Result as OkObjectResult;
-            Assert.AreEqual(true, okResult.Value);
+            Assert.AreEqual(true, okResult?.Value);
         }
 
         [TestMethod]
@@ -1675,15 +1669,15 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
             var okResult = result.Result as OkObjectResult;
-            Assert.AreEqual(false, okResult.Value);
+            Assert.AreEqual(false, okResult?.Value);
         }
 
         [TestMethod]
         public async Task VerifActivA2f_CompteInexistant_ReturnsNotFound()
         {
             // Arrange
-            _mockManager.Setup(m => m.GetByIdAsync(999))
-                       .ReturnsAsync((Compte)null);
+            _mockManager.Setup(m => m.GetByIdAsync(999))!
+                       .ReturnsAsync((Compte)null!);
 
             // Act
             var result = await _controller.VerifActivA2f(999);
@@ -1737,7 +1731,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 CodeValidation = "1234567"
             };
 
-            _mockManager.Setup(m => m.GetByIdAsync(999))
+            _mockManager.Setup(m => m.GetByIdAsync(999))!
                        .ReturnsAsync((Compte)null);
 
             // Act
@@ -1801,8 +1795,8 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task DesactiverA2f_CompteInexistant_ReturnsNotFound()
         {
             // Arrange
-            _mockManager.Setup(m => m.GetByIdAsync(999))
-                       .ReturnsAsync((Compte)null);
+            _mockManager.Setup(m => m.GetByIdAsync(999))!
+                       .ReturnsAsync((Compte)null!);
 
             // Act
             var result = await _controller.DesactiverA2f(999);
@@ -1825,15 +1819,15 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
             var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult.Value);
+            Assert.IsNotNull(okResult?.Value);
         }
 
         [TestMethod]
         public async Task DemanderActivationA2f_CompteInexistant_ReturnsNotFound()
         {
             // Arrange
-            _mockManager.Setup(m => m.GetByIdAsync(999))
-                       .ReturnsAsync((Compte)null);
+            _mockManager.Setup(m => m.GetByIdAsync(999))!
+                       .ReturnsAsync((Compte)null!);
 
             // Act
             var result = await _controller.DemanderActivationA2f(999);
@@ -1901,11 +1895,11 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
             var okResult = result as OkObjectResult;
 
-            var response = okResult.Value;
-            var responseType = response.GetType();
-            var messageProperty = responseType.GetProperty("message");
+            var response = okResult?.Value;
+            var responseType = response?.GetType();
+            var messageProperty = responseType?.GetProperty("message");
 
-            Assert.AreEqual("Login OK", messageProperty.GetValue(response));
+            Assert.AreEqual("Login OK", messageProperty?.GetValue(response));
         }
 
         [TestMethod]
@@ -1949,7 +1943,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             };
 
             _mockManager.Setup(m => m.GetByNameAsync(dto.Email))
-                       .ReturnsAsync((Compte)null);
+                       .ReturnsAsync((Compte)null!);
 
             // Act
             var result = await _controller.ValidateA2fLogin(dto);

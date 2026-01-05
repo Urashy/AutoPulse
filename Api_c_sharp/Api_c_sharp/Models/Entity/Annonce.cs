@@ -61,7 +61,7 @@ public class Annonce
     public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
     [InverseProperty(nameof(Commande.CommandeAnnonceNav))]
-    public virtual ICollection<Commande> Commandes { get; set; }
+    public virtual ICollection<Commande> Commandes { get; set; } = new List<Commande>();
 
     [ForeignKey(nameof(IdMiseEnAvant))]
     [InverseProperty(nameof(MiseEnAvant.Annonces))]

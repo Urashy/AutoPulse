@@ -9,6 +9,6 @@ namespace BlazorAutoPulse.Service.WebService
         {
         }
 
-        protected override string ApiEndpoint => "carburant";
+        protected override string ApiEndpoint => "Carburant";
     }
 }

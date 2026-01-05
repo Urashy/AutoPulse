@@ -16,7 +16,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.AnyAsync(b => b.IdBloque == idComptebloque && b.IdBloquant == idcomptebloquant);
         }
 
-        public virtual async Task<Bloque> GetBloqueByIdsAsync(int idBloque, int idBloquant)
+        public virtual async Task<Bloque?> GetBloqueByIdsAsync(int idBloque, int idBloquant)
         {
             return await dbSet.FindAsync(idBloque, idBloquant);
         }

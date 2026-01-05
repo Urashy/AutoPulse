@@ -1,11 +1,8 @@
 using AutoPulse.Shared.DTO;
-using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using Api_c_sharp.Models.Entity;
 
 namespace Api_c_sharp.Controllers;
@@ -34,7 +31,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(AvisDetailDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<AvisDetailDTO>> GetByID(int id)
+    public async Task<ActionResult<AvisDetailDTO>> GetById(int id)
     {
         var result = await _manager.GetByIdAsync(id);
 
@@ -48,7 +45,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// Récupère la liste de toutes les avis.
     /// </summary>
     /// <returns>
-    /// Une liste de <see cref="avis"/> (200 OK).
+    /// Une liste d'avis/> (200 OK).
     /// </returns>
     [ActionName("GetAll")]
     [HttpGet]
@@ -62,7 +59,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     /// <summary>
     /// Crée une nouveau avis.
     /// </summary>
-    /// <param name="dto">Objet <see cref="avis"/> contenant les informations du avis à créer.</param>
+    /// <param name="dto">Objet avis/> contenant les informations du avis à créer.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="CreatedAtActionResult"/> avec le avis créée (201).</description></item>
@@ -82,7 +79,7 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
         await _manager.AddAsync(entity);
         await _journalService.LogDepotAvisAsync(dto.IdJugeur, dto.IdJugee, entity.IdAvis, dto.NoteAvis, dto.ContenuAvis);
 
-        return CreatedAtAction(nameof(GetByID), new { id = entity.IdAvis }, entity);
+        return CreatedAtAction(nameof(GetById), new { id = entity.IdAvis }, entity);
     }
 
     /// <summary>
@@ -156,11 +153,11 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
     [HttpGet("{idcompte}")]
     [ProducesResponseType(typeof(IEnumerable<AvisListDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<AvisListDTO>>> GetAvisByCompteID(int idcompte)
+    public async Task<ActionResult<IEnumerable<AvisListDTO>>> GetAvisByCompteId(int idcompte)
     {
         var result = await _manager.GetAvisByCompteId(idcompte);
 
-        if (result is null || !result.Any())
+        if (!result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<AvisListDTO>>(_mapper.Map<IEnumerable<AvisListDTO>>(result));

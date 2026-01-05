@@ -174,11 +174,11 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public override async Task<bool> DeleteAsync(Annonce entity)
         {
-            Commande commandes = await context.Commandes.FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
+            Commande? commandes = await context.Commandes.FirstOrDefaultAsync(c => c.IdAnnonce == entity.IdAnnonce);
 
-            List<Signalement> signalements = await context.Signalements.Include(s => s.TypeSignalementSignalementNav).Where(s => s.IdAnnonceSignale == entity.IdAnnonce).ToListAsync();
+            List<Signalement>? signalements = await context.Signalements.Include(s => s.TypeSignalementSignalementNav).Where(s => s.IdAnnonceSignale == entity.IdAnnonce).ToListAsync();
 
-            List<Conversation> conversations = await context.Conversations.Where(s => s.IdAnnonce == entity.IdAnnonce).ToListAsync();
+            List<Conversation>? conversations = await context.Conversations.Where(s => s.IdAnnonce == entity.IdAnnonce).ToListAsync();
 
             if (signalements != null || !signalements.Any())
             {
@@ -216,7 +216,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual async Task<bool> EstMasque(int annonceId)
         {
-            Annonce annonce = await GetByIdAsync(annonceId);
+            Annonce? annonce = await GetByIdAsync(annonceId);
             if (annonce.IdEtatAnnonce == 4)
             {
                 return true;
@@ -227,7 +227,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             }
         }
 
-        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce annonce)
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce? annonce)
         {
             int anneeReference = annonce.VoitureAnnonceNav.Annee;
 

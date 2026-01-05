@@ -74,7 +74,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetByIdTest()
         {
-            var result = await _controller.GetByID(_objetCommun.IdAvis);
+            var result = await _controller.GetById(_objetCommun.IdAvis);
 
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -85,7 +85,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByIdTest()
         {
-            var result = await _controller.GetByID(0);
+            var result = await _controller.GetById(0);
 
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
@@ -216,7 +216,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetAllByCompte()
         {
-            var result = await _controller.GetAvisByCompteID(_objetCommun.IdJugee);
+            var result = await _controller.GetAvisByCompteId(_objetCommun.IdJugee);
 
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -227,7 +227,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetAllByCompte()
         {
-            var result = await _controller.GetAvisByCompteID(999);
+            var result = await _controller.GetAvisByCompteId(999);
 
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
