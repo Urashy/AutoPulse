@@ -15,15 +15,14 @@ namespace Api_c_sharp.ControllersMock.Tests
     [TestClass]
     public class PlainteControllerTests
     {
-        private Mock<PlainteManager> _mockManager;
-        private IMapper _mapper;
-        private PlainteController _controller;
-        private Plainte _objetcommun;
+        private Mock<PlainteManager> _mockManager = null!;
+        private IMapper _mapper = null!;
+        private PlainteController _controller = null!;
+        private Plainte _objetcommun = null!;
 
         [TestInitialize]
-        public void Setup()
+        public void Initialize()
         {
-            // Création du mock du manager avec un paramètre null pour le context
             _mockManager = new Mock<PlainteManager>(null);
 
             // Création de la plainte de référence
@@ -329,6 +328,57 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        #endregion
+
+        #region GetPlaintByCompteID Tests
+
+        [TestMethod]
+        public async Task GetPlaintesByCompteIDTest()
+        {
+            // Arrange
+            var plaintelist = new List<Plainte>
+            {
+                _objetcommun,
+                new Plainte
+                {
+                    IdPlainte = 3,
+                    Description = "deuxième plainte",
+                    DateCreation = DateTime.Now,
+                    IdCompte = _objetcommun.IdCompte,
+                    IdSignalement = 3,
+                }
+            };
+
+            _mockManager.Setup(m => m.GetPlainteByCompteID(_objetcommun.IdCompte))
+                       .ReturnsAsync(plaintelist);
+
+            // Act
+            var result = await _controller.GetByIDCompte(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<PlainteDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Description == _objetcommun.Description));
+            Assert.AreEqual(2, result.Value.Count());
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetPlaintesByCompteIDTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetPlainteByCompteID(0))
+                       .ReturnsAsync((IEnumerable<Plainte>)null);
+
+            // Act
+            var result = await _controller.GetByIDCompte(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
         #endregion
     }

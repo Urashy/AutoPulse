@@ -14,7 +14,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param);
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId);
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId);
-        Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce annonce);
+        Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce? annonce);
         Task<bool> EstMasque(int annonceId);
     }
 
@@ -22,11 +22,11 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     {
         Task<IEnumerable<Compte>> GetComptesByTypes(int  type);
         Task<IEnumerable<Compte>> GetCompteByIdAnnonceFavori(int annonceId);
-        Task<Compte> VerifMotDePasse(string email, string hash);
-        Task<Compte> AuthenticateCompte(string email, string hash);
+        Task<Compte?> VerifMotDePasse(string email, string hash);
+        Task<Compte?> AuthenticateCompte(string email, string hash);
         Task UpdateAnonymise(int idcompte);
         Task UpdateTypeCompte(Compte compteamodif,CompteModifTypeCompteDTO compteModifTypeCompteDTO, bool estpro);
-        Task<Compte> GetProfilPublic(int idcompte);
+        Task<Compte?> GetProfilPublic(int idcompte);
         Task ToggleEtatCompte(int idcompte, bool estretirer);
         Task EnregistrerA2f(TokenEmail tokenEmail);
         Task ActiverA2f(int idCompte);
@@ -60,9 +60,9 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     {
         Task<IEnumerable<int>> GetAllImagesByVoitureId(int voitureId);
         
-        Task<Image> GetFirstImageByVoitureID(int idvoiture);
+        Task<Image?> GetFirstImageByVoitureID(int idvoiture);
 
-        Task<Image> GetImageByCompteID(int idcompte);
+        Task<Image?> GetImageByCompteID(int idcompte);
     }
     
     public interface ICouleurRepository
@@ -72,7 +72,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
     public interface IAPourCouleurRepository
     {
-        Task<APourCouleur> GetAPourCouleursByIDS(int voitureId, int couleurId);
+        Task<APourCouleur?> GetAPourCouleursByIDS(int voitureId, int couleurId);
     }
 
     // Ajouter dans IMethodRepository.cs :
@@ -92,7 +92,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     public interface ITypeCompteRepository
     {
         Task<IEnumerable<TypeCompte>> GetTypeComptesPourChercher();
-        Task<TypeCompte> GetTypeCompteByCompteId(int compteID);
+        Task<TypeCompte?> GetTypeCompteByCompteId(int compteID);
     }
 
     public interface IConversationRepository
@@ -104,7 +104,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
     public interface IApourConversationRepository
     {
-        Task<APourConversation> GetAPourConversationByIDS(int conversationId, int compteId);
+        Task<APourConversation?> GetAPourConversationByIDS(int conversationId, int compteId);
     }
 
     public interface IFavoriRepository
@@ -133,5 +133,10 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     public interface IOffreRepository
     {
         Task<IEnumerable<Offre>> GetOffresByMessageIdAsync(int idMessage);
+    }
+
+    public interface  ICarteBancaireRepository
+    {
+        Task<IEnumerable<CarteBancaire>> GetCarteBancaireByCompteId(int compteid);
     }
 }

@@ -25,7 +25,7 @@ namespace Api_c_sharp.Models.Entity
 
         [Column("adr_libelleville")]
         [Required]
-        public string LibelleVille { get; set; }
+        public string LibelleVille { get; set; } = null!;
 
         [Column("adr_codepostal")]
         [Required]

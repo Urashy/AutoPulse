@@ -6,6 +6,12 @@
 
 <PageTitle>Mon Compte - AutoPulse</PageTitle>
 
+<AdresseModal IsVisible="@VM.showAdresseModal"
+              IsEditMode="@VM.isEditingAdresse"
+              EditAdresse="@VM.selectedAdresseToEdit"
+              IsVisibleChanged="@((bool value) => VM.showAdresseModal = value)"
+              OnAdresseSaved="@VM.OnAdresseSaved" />
+
 <!-- Modal suppression de compte -->
 @if (VM.modalSuppression)
 {
@@ -525,7 +531,7 @@
                 @switch(VM.activeSection)
                 {
                     case "annonces":
-                        if (@VM.annonces != null)
+                        if (@VM.annonces != null && VM.annonces.Any())
                         {
                             @foreach (var annonce in VM.annonces)
                             {
@@ -539,7 +545,7 @@
                         break;
 
                     case "avis":
-                        if (@VM.avis != null)
+                        if (@VM.avis != null && VM.avis.Any())
                         {
                             @foreach (var av in VM.avis)
                             {
@@ -553,21 +559,30 @@
                         break;
 
                     case "adresses":
-                        if (@VM.adresses != null)
+                        @if (@VM.adresses != null && VM.adresses.Any())
                         {
                             @foreach (var adresse in VM.adresses)
                             {
-                                <AdresseComposant Adresse="adresse"/>
+                                <div class="adresse-card-wrapper">
+                                    <AdresseComposant Adresse="adresse"
+                                                      ShowActions="true"
+                                                      OnEdit="@((a) => VM.OpenEditAdresseModal(a))"
+                                                      OnDelete="@((a) => VM.DeleteAdresse(a))" />
+                                </div>
                             }
                         }
                         else
                         {
-                            <p>Vous n'avez aucune adresse</p>
+                            <div class="empty-state">
+                                <div class="empty-icon">📍</div>
+                                <h3>Aucune adresse enregistrée</h3>
+                                <p>Ajoutez votre première adresse pour faciliter vos futures annonces</p>
+                            </div>
                         }
                         break;
 
                     case "commandes":
-                        if (@VM.commandes != null)
+                        if (@VM.commandes != null && VM.commandes.Any())
                         {
                             @foreach (var commande in VM.commandes)
                             {
@@ -581,6 +596,16 @@
                         break;
                 }
             </div>
+
+            @if (VM.activeSection == "adresses")
+            {
+                <div class="adresses-header">
+                    <button class="btn-add-adresse" @onclick="VM.OpenCreateAdresseModal">
+                        <span class="add-icon">➕</span>
+                        <span>Ajouter une adresse</span>
+                    </button>
+                </div>
+            }
         </div>
     </div>
 </div>

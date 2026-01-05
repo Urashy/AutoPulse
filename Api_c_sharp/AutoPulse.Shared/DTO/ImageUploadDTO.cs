@@ -8,7 +8,7 @@ namespace AutoPulse.Shared.DTO
         public int? IdVoiture { get; set; }
         public int? IdCompte { get; set; }
 
-        public IFormFile File { get; set; }
+        public IFormFile? File { get; set; }
     }
 
 }

@@ -13,7 +13,7 @@ public class EtatSignalementPlainte
     
     [Column("eta_lib")]
     [Required]
-    public string LibelleEtatSignalement { get; set; }
+    public string? LibelleEtatSignalement { get; set; }
     
     [InverseProperty(nameof(Signalement.EtatSignalementNav))]
     public virtual ICollection<Signalement> Signalements { get; set; } = new List<Signalement>();

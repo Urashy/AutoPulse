@@ -1,0 +1,211 @@
+@using AutoPulse.Shared.DTO
+@using BlazorAutoPulse.ViewModel
+@inject AdresseModalViewModel VM
+
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="HandleOverlayClick">
+        <div class="modal-content modal-adresse" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>@(IsEditMode ? "✏️ Modifier l'adresse" : "➕ Nouvelle adresse")</h3>
+                <button class="modal-close" @onclick="CloseModal">✕</button>
+            </div>
+
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(VM.ErrorMessage))
+                {
+                    <div class="error-message-box">
+                        ⚠️ @VM.ErrorMessage
+                    </div>
+                }
+
+                <!-- Recherche d'adresse avec autocomplétion -->
+                <div class="form-group address-search-container">
+                    <label>Rechercher une adresse</label>
+                    <div style="position: relative;">
+                        <input type="text"
+                               placeholder="Ex: 1 Rue de la République, 75001 Paris..."
+                               value="@VM.SearchQuery"
+                               @oninput="@(async (ChangeEventArgs e) => await VM.OnSearchQueryChanged(e.Value?.ToString() ?? ""))"
+                               class="address-search-input"
+                               autocomplete="off" />
+
+                        @if (VM.IsSearching)
+                        {
+                            <div class="address-search-loader">
+                                <span class="spinner-small"></span>
+                            </div>
+                        }
+
+                        @if (VM.ShowSuggestions && VM.Suggestions.Any())
+                        {
+                            <div class="address-suggestions-dropdown">
+                                @foreach (var suggestion in VM.Suggestions)
+                                {
+                                    <div class="address-suggestion-item"
+                                         @onclick="() => VM.SelectSuggestion(suggestion)"
+                                         @onclick:stopPropagation="true">
+                                        <div class="suggestion-icon">📍</div>
+                                        <div class="suggestion-text">
+                                            <div class="suggestion-main">@suggestion.DisplayName</div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <small style="color: #888; margin-top: 5px; display: block;">
+                        Commencez à taper pour rechercher une adresse (minimum 3 caractères)
+                    </small>
+                </div>
+
+                <!-- Nom de l'adresse -->
+                <div class="form-group @(VM.HasError("nom") ? "has-error" : "")">
+                    <label>Nom de l'adresse <span class="required">*</span></label>
+                    <input type="text" 
+                           placeholder="Ex: Domicile, Bureau, Garage..." 
+                           @bind="VM.CurrentAdresse.Nom" 
+                           class="info-input" />
+                    @if (VM.HasError("nom"))
+                    {
+                        <span class="error-message">@VM.GetError("nom")</span>
+                    }
+                </div>
+
+                <!-- Numéro et Rue -->
+                <div class="form-row">
+                    <div class="form-group @(VM.HasError("numero") ? "has-error" : "")">
+                        <label>Numéro <span class="required">*</span></label>
+                        <input type="number" 
+                               placeholder="12" 
+                               @bind="VM.CurrentAdresse.Numero" 
+                               class="info-input" />
+                        @if (VM.HasError("numero"))
+                        {
+                            <span class="error-message">@VM.GetError("numero")</span>
+                        }
+                    </div>
+                    <div class="form-group @(VM.HasError("rue") ? "has-error" : "")">
+                        <label>Rue <span class="required">*</span></label>
+                        <input type="text" 
+                               placeholder="Rue de..." 
+                               @bind="VM.CurrentAdresse.Rue" 
+                               class="info-input" />
+                        @if (VM.HasError("rue"))
+                        {
+                            <span class="error-message">@VM.GetError("rue")</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Code postal et Ville -->
+                <div class="form-row">
+                    <div class="form-group @(VM.HasError("codepostal") ? "has-error" : "")">
+                        <label>Code postal <span class="required">*</span></label>
+                        <input type="text" 
+                               placeholder="75001" 
+                               @bind="VM.CurrentAdresse.CodePostal" 
+                               class="info-input" />
+                        @if (VM.HasError("codepostal"))
+                        {
+                            <span class="error-message">@VM.GetError("codepostal")</span>
+                        }
+                    </div>
+                    <div class="form-group @(VM.HasError("ville") ? "has-error" : "")">
+                        <label>Ville <span class="required">*</span></label>
+                        <input type="text" 
+                               placeholder="Paris" 
+                               @bind="VM.CurrentAdresse.LibelleVille" 
+                               class="info-input" />
+                        @if (VM.HasError("ville"))
+                        {
+                            <span class="error-message">@VM.GetError("ville")</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" @onclick="CloseModal" disabled="@VM.IsSaving">
+                    Annuler
+                </button>
+                <button class="btn-primary" @onclick="SaveAddress" disabled="@VM.IsSaving">
+                    @if (VM.IsSaving)
+                    {
+                        <span>Enregistrement...</span>
+                    }
+                    else
+                    {
+                        <span>@(IsEditMode ? "Modifier" : "Créer")</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Overlay pour fermer les suggestions *@
+@if (VM.ShowSuggestions)
+{
+    <div @onclick="VM.CloseSuggestions"
+         style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;background:transparent;"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public bool IsEditMode { get; set; }
+
+    [Parameter]
+    public AdresseDTO? EditAdresse { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnAdresseSaved { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsVisible && EditAdresse != null && IsEditMode)
+        {
+            await VM.LoadAdresse(EditAdresse);
+        }
+        else if (IsVisible && !IsEditMode)
+        {
+            VM.ResetForm();
+        }
+    }
+
+    private async Task SaveAddress()
+    {
+        bool success = await VM.SaveAdresse(IsEditMode);
+        if (success)
+        {
+            await OnAdresseSaved.InvokeAsync();
+            await CloseModal();
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        IsVisible = false;
+        VM.ResetForm();
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+    private void HandleOverlayClick()
+    {
+        if (!VM.IsSaving)
+        {
+            _ = CloseModal();
+        }
+    }
+}

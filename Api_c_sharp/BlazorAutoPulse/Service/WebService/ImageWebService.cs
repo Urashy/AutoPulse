@@ -1,10 +1,11 @@
 ﻿using System.Net.Http.Json;
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service.WebService
 {
-    public class ImageWebService : BaseWebService<Image>, IImageService
+    public class ImageWebService : BaseWebService<ImageDTO>, IImageService
     {
         public ImageWebService(HttpClient httpClient) : base(httpClient)
         {
@@ -48,7 +49,7 @@ namespace BlazorAutoPulse.Service.WebService
             }
         }
 
-        public async Task<Image?> GetImageProfil(int id)
+        public async Task<ImageDTO?> GetImageProfil(int id)
         {
             try
             {
@@ -58,7 +59,7 @@ namespace BlazorAutoPulse.Service.WebService
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var image = await response.Content.ReadFromJsonAsync<Image>();
+                    var image = await response.Content.ReadFromJsonAsync<ImageDTO>();
                     return image;
                 }
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)

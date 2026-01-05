@@ -1,9 +1,10 @@
-﻿using AutoPulse.Shared.DTO;
+﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Managers;
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using AutoMapper;
+using AutoPulse.Shared.DTO;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace Api_c_sharp.Controllers
 {
@@ -15,7 +16,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class PlainteController(PlainteManager _manager, IMapper _adresseMapper) : ControllerBase
+    public class PlainteController(PlainteManager _manager, IMapper _mapper) : ControllerBase
     {
         /// <summary>
         /// Crée une nouvelle plainte.
@@ -42,7 +43,7 @@ namespace Api_c_sharp.Controllers
                 return BadRequest("Vous avez déjà une plainte en attente de traitement.");
             }
 
-            var entity = _adresseMapper.Map<Plainte>(dto);
+            var entity = _mapper.Map<Plainte>(dto);
             await _manager.AddAsync(entity);
 
             return CreatedAtAction(nameof(GetByID), new { id = entity.IdPlainte }, entity);
@@ -75,7 +76,7 @@ namespace Api_c_sharp.Controllers
             if (toUpdate == null)
                 return NotFound();
 
-            var updatedEntity = _adresseMapper.Map<Plainte>(dto);
+            var updatedEntity = _mapper.Map<Plainte>(dto);
             await _manager.UpdateAsync(toUpdate, updatedEntity);
 
             return NoContent();
@@ -116,7 +117,7 @@ namespace Api_c_sharp.Controllers
         public async Task<ActionResult<IEnumerable<PlainteDTO>>> GetAll()
         {
             var list = await _manager.GetAllAsync();
-            return new ActionResult<IEnumerable<PlainteDTO>>(_adresseMapper.Map<IEnumerable<PlainteDTO>>(list));
+            return new ActionResult<IEnumerable<PlainteDTO>>(_mapper.Map<IEnumerable<PlainteDTO>>(list));
         }
         /// <summary>
         /// Récupère une plainte à partir de son identifiant.
@@ -139,7 +140,7 @@ namespace Api_c_sharp.Controllers
             if (result is null)
                 return NotFound();
 
-            return _adresseMapper.Map<PlainteDTO>(result);
+            return _mapper.Map<PlainteDTO>(result);
         }
 
 
@@ -155,16 +156,16 @@ namespace Api_c_sharp.Controllers
         /// </returns>
         [ActionName("GetByIdCompte")]
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(PlainteDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<PlainteDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PlainteDTO>> GetByIDCompte(int id)
+        public async Task<ActionResult<IEnumerable<PlainteDTO>>> GetByIDCompte(int id)
         {
             var result = await _manager.GetPlainteByCompteID(id);
 
-            if (result is null)
+            if (result is null || !result.Any())
                 return NotFound();
 
-            return _adresseMapper.Map<PlainteDTO>(result);
+            return new ActionResult<IEnumerable<PlainteDTO>>(_mapper.Map<IEnumerable<PlainteDTO>>(result));
         }
 
     }

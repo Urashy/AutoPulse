@@ -13,8 +13,8 @@ public class EtatAnnonce
     
     [Required]
     [Column("eta_lib")]
-    public string LibelleEtatAnnonce { get; set; }
+    public string? LibelleEtatAnnonce { get; set; }
     
     [InverseProperty(nameof(Annonce.EtatAnnonceNavigation))]
-    public virtual ICollection<Annonce> Annonces { get; set; }
+    public virtual ICollection<Annonce> Annonces { get; set; } = new List<Annonce>();
 }

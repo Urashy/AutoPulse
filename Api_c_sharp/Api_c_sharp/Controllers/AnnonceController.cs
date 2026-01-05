@@ -1,12 +1,8 @@
-using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Security.Claims;
 using Api_c_sharp.Hubs;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using Microsoft.AspNetCore.SignalR;
@@ -201,7 +197,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
         if (entity == null)
             return NotFound();
         
-        string userId = User.FindFirst("idUser")?.Value;
+        string? userId = User.FindFirst("idUser")?.Value;
         if (userId == "1")
         {
             await _notifService.NotifSuppressionAnnonce(entity.IdAnnonce);
@@ -225,6 +221,8 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     /// Récupère une annoncs à partir d'un id de mise en avant.
     /// </summary>
     /// <param name="idmiseenavant">Identifiant unique de l'annonce recherchée.</param>
+    /// <param name="pageNumber"></param>
+    /// <param name="pageSize"></param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description><see cref="AnnonceDTO"/> si les annonce existe (200 OK).</description></item>
@@ -242,7 +240,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     {
         var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant,pageNumber,pageSize);
 
-        if (result == null || !result.Any())
+        if (!result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
@@ -260,13 +258,13 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     [ProducesResponseType(typeof(IEnumerable<AnnonceDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetFiltered(
-        [FromQuery] ParametreRecherche param = null)
+        [FromQuery] ParametreRecherche param = null!)
     {
         IEnumerable<Annonce> result = await _manager.GetFilteredAnnonces(
             param
         );
 
-        if (result == null || !result.Any())
+        if (!result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
@@ -290,7 +288,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     {
         var result = await _manager.GetAnnoncesByCompteFavoris(compteid);
 
-        if (result == null || !result.Any())
+        if (!result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
@@ -307,11 +305,11 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     [HttpGet("{idcompte}")]
     [ProducesResponseType(typeof(IEnumerable<AnnonceDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetAnnoncesByCompteID(int idcompte)
+    public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetAnnoncesByCompteId(int idcompte)
     {
         var list = await _manager.GetAnnoncesByCompteID(idcompte);
 
-        if (list is null || !list.Any())
+        if (!list.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(list));
@@ -346,7 +344,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<AnnonceDTO>>> GetSimilaires(int idannonce)
     {
-        Annonce entity = await _manager.GetByIdAsync(idannonce);
+        Annonce? entity = await _manager.GetByIdAsync(idannonce);
 
         if (entity is null)
             return NotFound();

@@ -10,11 +10,11 @@ public class ResultatPrediction : ResultatAI
     public double PredictedPrice { get; set; }
 
     [JsonPropertyName("currency")]
-    public string Currency { get; set; }
+    public string? Currency { get; set; }
 
     [JsonPropertyName("confidence_score")]
     public double ConfidenceScore { get; set; }
 
     [JsonPropertyName("top_influencing_factors")]
-    public List<InfluencingFactor> TopInfluencingFactors { get; set; }
+    public List<InfluencingFactor>? TopInfluencingFactors { get; set; }
 }

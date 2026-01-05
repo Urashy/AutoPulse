@@ -1,26 +1,20 @@
-using Api_c_sharp.Mapper;
-using Api_c_sharp.Models.Authentification;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
-using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using LoginRequest = Api_c_sharp.Models.Authentification.LoginRequest;
+using LoginRequest = AutoPulse.Shared.DTO.Authentification.LoginRequest;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using MailKit.Net.Smtp;
 using MimeKit;
+using Npgsql;
 
 namespace Api_c_sharp.Controllers;
 
@@ -116,9 +110,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Compte>> Post([FromBody] CompteCreateDTO dto)
     {
-        if(!ModelState.IsValid)
-            return BadRequest(ModelState);
-
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
 
         var entity = _compteMapper.Map<Compte>(dto);
         entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);
@@ -126,10 +119,29 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         entity.DateCreation = DateTime.UtcNow;
         entity.DateDerniereConnexion = DateTime.UtcNow;
         entity.IdEtatCompte = 1;
-        await _manager.AddAsync(entity);
-        await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
 
-        return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
+        try
+        {
+            await _manager.AddAsync(entity);
+            await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
+
+            return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx)
+        {
+            if (pgEx.SqlState == PostgresErrorCodes.UniqueViolation &&
+                pgEx.ConstraintName == "IX_t_e_compte_com_com_email")
+            {
+                ModelState.AddModelError(
+                    nameof(dto.Email),
+                    "Cet email est déjà utilisé."
+                );
+
+                return ValidationProblem(ModelState);
+            }
+
+            throw;
+        }
     }
 
     /// <summary>
@@ -285,13 +297,12 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return Unauthorized();
 
         int userId = int.Parse(claim);
-        Compte user = _manager.GetByIdAsync(userId).Result;
+        Compte user = await _manager.GetByIdAsync(userId);
 
         if (user == null)
             return NotFound();
         
-        CompteDetailDTO dto = _compteMapper.Map<CompteDetailDTO>(user);
-        return Ok(dto);
+        return _compteMapper.Map<CompteDetailDTO>(user);
     }
 
     /// <summary>
@@ -458,7 +469,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                     TypeToken = doitReactiverA2f ? "A2F_ACTIVATION" : "A2F_CONNEXION"
                 };
 
-                _manager.EnregistrerA2f(tokenA2f);
+                await _manager.EnregistrerA2f(tokenA2f);
                 
                 string sujet = doitReactiverA2f 
                     ? "Réactivation A2F requise" 

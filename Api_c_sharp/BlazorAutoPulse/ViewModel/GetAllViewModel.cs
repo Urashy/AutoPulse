@@ -7,30 +7,30 @@ namespace BlazorAutoPulse.ViewModel;
 
 public class GetAllViewModel
 {
-    private readonly IService<Marque> _marqueService;
+    private readonly IService<MarqueDTO> _marqueService;
     private readonly IModeleService _modeleService;
-    private readonly IService<Carburant> _carburantService;
-    private readonly IService<Categorie> _categorieService;
-    private readonly IService<Motricite> _motriciteService;
-    private readonly IService<BoiteDeVitesse> _boiteVitesseService;
+    private readonly IService<CarburantDTO> _carburantService;
+    private readonly IService<CategorieDTO> _categorieService;
+    private readonly IService<MotriciteDTO> _motriciteService;
+    private readonly IService<BoiteDeVitesseDTO> _boiteVitesseService;
     private readonly ICouleurService _couleurService;
     
-    public Marque[] allMarques;
-    public Modele[] allModeles;
-    public Modele[] filteredModeles;
-    public Carburant[] allCarburants;
-    public Motricite[] allMotricite;
-    public Categorie[] allCategories;
-    public BoiteDeVitesse[] allBoiteDeVitesse;
+    public MarqueDTO[] allMarques;
+    public ModeleDTO[] allModeles;
+    public ModeleDTO[] filteredModeles;
+    public CarburantDTO[] allCarburants;
+    public MotriciteDTO[] allMotricite;
+    public CategorieDTO[] allCategories;
+    public BoiteDeVitesseDTO[] allBoiteDeVitesse;
     public CouleurDTO[] allCouleurs;
     
     public GetAllViewModel(
-        IService<Marque> marqueService,
+        IService<MarqueDTO> marqueService,
         IModeleService modeleService,
-        IService<Carburant> carburantService,
-        IService<Categorie> categorieService,
-        IService<Motricite> motriciteService,
-        IService<BoiteDeVitesse> boiteVitesseService,
+        IService<CarburantDTO> carburantService,
+        IService<CategorieDTO> categorieService,
+        IService<MotriciteDTO> motriciteService,
+        IService<BoiteDeVitesseDTO> boiteVitesseService,
         ICouleurService couleurService)
     {
         _marqueService = marqueService;

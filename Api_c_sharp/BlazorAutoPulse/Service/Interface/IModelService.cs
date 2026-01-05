@@ -1,8 +1,9 @@
-﻿using BlazorAutoPulse.Model;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 
 namespace BlazorAutoPulse.Service.Interface;
 
-public interface IModeleService : IService<Modele>
+public interface IModeleService : IService<ModeleDTO>
 {
-    Task<IEnumerable<Modele>> FiltreModeleParMarque(int idMarque);
+    Task<IEnumerable<ModeleDTO>> FiltreModeleParMarque(int idMarque);
 }

@@ -1,5 +1,4 @@
 ﻿using AutoPulse.Shared.DTO;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -40,14 +39,15 @@ namespace Api_c_sharp.Controllers
             await _manager.AddAsync(entity);
 
             // Retourne bien les deux clés
-            return CreatedAtAction(nameof(GetByID), new { idConversation = entity.IdConversation, idCompte = entity.IdCompte }, entity);
+            return CreatedAtAction(nameof(GetById), new { idConversation = entity.IdConversation, idCompte = entity.IdCompte }, entity);
         }
 
         /// <summary>
         /// Met à jour une liaison existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de la liaison à mettre à jour.</param>
+        /// <param name="idCompte"></param>
         /// <param name="dto">Objet <see cref="APourConversationDTO"/> contenant les nouvelles valeurs.</param>
+        /// <param name="idConversation"></param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>
@@ -75,10 +75,10 @@ namespace Api_c_sharp.Controllers
 
             return NoContent();
         }
+
         /// <summary>
         /// Supprime une liaison existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de la liaison  à supprimer.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la suppression réussit (204).</description></item>
@@ -113,10 +113,10 @@ namespace Api_c_sharp.Controllers
             var list = await _manager.GetAllAsync();
             return new ActionResult<IEnumerable<APourConversationDTO>>(_aPourCoversationMapper.Map<IEnumerable<APourConversationDTO>>(list));
         }
+
         /// <summary>
         /// Récupère une laiason à partir de son identifiant.
         /// </summary>
-        /// <param name="id">Identifiant unique de la liaison recherchée.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="APourConversationDTO"/> si la liaison existe (200 OK).</description></item>
@@ -127,7 +127,7 @@ namespace Api_c_sharp.Controllers
         [HttpGet("{idConversation}/{idCompte}")]
         [ProducesResponseType(typeof(APourConversationDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APourConversationDTO>> GetByID(int idConversation, int idCompte)
+        public async Task<ActionResult<APourConversationDTO>> GetById(int idConversation, int idCompte)
         {
             var result = await _manager.GetAPourConversationByIDS(idCompte, idConversation);
 

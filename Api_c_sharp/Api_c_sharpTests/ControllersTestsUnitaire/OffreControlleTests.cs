@@ -1,20 +1,11 @@
 ﻿using Api_c_sharp.Controllers;
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using Api_c_sharp.Controllers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 
@@ -26,6 +17,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private OffreController _controller;
         private AutoPulseBdContext _context;
         private OffreManager _manager;
+        private MessageManager _messageManager;
         private IMapper _mapper;
         private Offre _objetcommun;
         private INotificationService _notificationService;
@@ -46,8 +38,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _mapper = config.CreateMapper();
 
             _manager = new OffreManager(_context);
+            _messageManager = new MessageManager(_context);
             _notificationService = new NotificationManager(_context);
-            _controller = new OffreController(_manager, _mapper,_notificationService);
+            _controller = new OffreController(_manager, _mapper,_messageManager,_notificationService);
 
             _context.Offres.RemoveRange(_context.Offres);
             await _context.SaveChangesAsync();

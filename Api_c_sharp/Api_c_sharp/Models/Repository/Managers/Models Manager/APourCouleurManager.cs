@@ -10,7 +10,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
         }
 
-        public virtual async Task<APourCouleur> GetAPourCouleursByIDS(int voitureId, int couleurId)
+        public virtual async Task<APourCouleur?> GetAPourCouleursByIDS(int voitureId, int couleurId)
         {
             return await dbSet.FindAsync(voitureId, couleurId);
         }

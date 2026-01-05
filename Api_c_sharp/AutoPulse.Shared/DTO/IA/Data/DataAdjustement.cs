@@ -10,5 +10,5 @@ public class DataAjustement : DataAI
     public double BasePrice { get; set; }
 
     [JsonPropertyName("description")]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 }

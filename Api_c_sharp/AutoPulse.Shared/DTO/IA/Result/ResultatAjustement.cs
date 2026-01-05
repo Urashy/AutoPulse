@@ -22,8 +22,8 @@ public class ResultatAjustement : ResultatAI
     public double QualityCoefficient { get; set; }
 
     [JsonPropertyName("category")]
-    public string Category { get; set; }
+    public string? Category { get; set; }
 
     [JsonPropertyName("description_analyzed")]
-    public string DescriptionAnalyzed { get; set; }
+    public string? DescriptionAnalyzed { get; set; }
 }

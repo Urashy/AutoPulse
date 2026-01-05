@@ -2,7 +2,7 @@ namespace AutoPulse.Shared.DTO;
 
 public class SignalementCreateDTO
 {
-    public string DescriptionSignalement { get; set; }
+    public string? DescriptionSignalement { get; set; }
     public int IdCompteSignalant { get; set; }
 
     public int? IdAnnonceSignale { get; set; }

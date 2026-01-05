@@ -14,7 +14,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly ISignalRService _signalRService;
 
         public List<AnnonceDTO> AnnoncesFavoris { get; set; } = new List<AnnonceDTO>();
-        public IEnumerable<Favori> Favoris { get; set; }
+        public IEnumerable<FavoriDTO> Favoris { get; set; }
         public bool IsLoading { get; set; } = true;
 
         public FavorisViewModel(

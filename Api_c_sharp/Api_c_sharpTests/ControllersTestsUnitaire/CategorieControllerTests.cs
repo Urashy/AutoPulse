@@ -1,18 +1,12 @@
 ﻿using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Repository;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Controllers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Api_c_sharp.Controllers;
+
 using Api_c_sharp.Models.Entity;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests

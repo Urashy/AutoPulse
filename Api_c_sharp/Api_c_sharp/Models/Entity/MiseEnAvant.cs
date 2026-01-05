@@ -13,7 +13,7 @@ namespace Api_c_sharp.Models.Entity
 
         [Column("mav_libelle")]
         [Required]
-        public string LibelleMiseEnAvant { get; set; }
+        public string LibelleMiseEnAvant { get; set; } = null!;
 
         [Column("mav_prixsemaine")]
         [Required]

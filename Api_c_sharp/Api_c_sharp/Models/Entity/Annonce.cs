@@ -34,7 +34,8 @@ public class Annonce
     public int IdVoiture { get; set; }
 
     [Column("mav_id")]
-    public int? IdMiseEnAvant { get; set; }
+    [Required]
+    public int IdMiseEnAvant { get; set; }
 
     [Column("ann_dat")]
     public DateTime? DatePublication{ get; set; }
@@ -61,7 +62,7 @@ public class Annonce
     public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
     [InverseProperty(nameof(Commande.CommandeAnnonceNav))]
-    public virtual ICollection<Commande> Commandes { get; set; }
+    public virtual ICollection<Commande> Commandes { get; set; } = new List<Commande>();
 
     [ForeignKey(nameof(IdMiseEnAvant))]
     [InverseProperty(nameof(MiseEnAvant.Annonces))]

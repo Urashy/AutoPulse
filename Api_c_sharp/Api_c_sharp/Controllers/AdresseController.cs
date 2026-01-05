@@ -1,5 +1,4 @@
 ﻿using AutoPulse.Shared.DTO;
-using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Entity;
@@ -39,7 +38,7 @@ namespace Api_c_sharp.Controllers
             var entity = _adresseMapper.Map<Adresse>(dto);
             await _manager.AddAsync(entity);
 
-            return CreatedAtAction(nameof(GetByID), new { id = entity.IdAdresse }, entity);
+            return CreatedAtAction(nameof(GetById), new { id = entity.IdAdresse }, entity);
         }
 
         /// <summary>
@@ -126,7 +125,7 @@ namespace Api_c_sharp.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(AdresseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<AdresseDTO>> GetByID(int id)
+        public async Task<ActionResult<AdresseDTO>> GetById(int id)
         {
             var result = await _manager.GetByIdAsync(id);
 
@@ -151,11 +150,11 @@ namespace Api_c_sharp.Controllers
         [HttpGet("{idcompte}")]
         [ProducesResponseType(typeof(IEnumerable<AdresseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<AdresseDTO>>> GetAdressesByCompteID(int idcompte)
+        public async Task<ActionResult<IEnumerable<AdresseDTO>>> GetAdressesByCompteId(int idcompte)
         {
             var list = await _manager.GetAdresseByCompteID(idcompte);
 
-            if (list is null || !list.Any())
+            if (!list.Any())
                 return NotFound();
 
             return new ActionResult<IEnumerable<AdresseDTO>>(_adresseMapper.Map<IEnumerable<AdresseDTO>>(list));

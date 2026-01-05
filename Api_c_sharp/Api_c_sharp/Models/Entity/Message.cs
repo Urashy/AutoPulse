@@ -31,11 +31,11 @@ namespace Api_c_sharp.Models.Entity
 
         [ForeignKey(nameof(IdCompte))]
         [InverseProperty(nameof(Compte.Messages))]
-        public virtual Compte MessageCompteNav { get; set; }
+        public virtual Compte? MessageCompteNav { get; set; }
 
         [ForeignKey(nameof(IdConversation))]
         [InverseProperty(nameof(Conversation.Messages))]
-        public virtual Conversation ConversationMessageNav { get; set; }
+        public virtual Conversation? ConversationMessageNav { get; set; }
         
         [InverseProperty(nameof(PieceJointe.MessagePjNav))]
         public virtual ICollection<PieceJointe> PiecesJointes { get; set; } = new List<PieceJointe>();

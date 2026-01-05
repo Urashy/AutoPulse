@@ -1,20 +1,11 @@
 ﻿using Api_c_sharp.Controllers;
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models;
 using Api_c_sharp.Models.Repository;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using Api_c_sharp.Controllers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Api_c_sharp.Models.Entity;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests
@@ -94,7 +85,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdPlainte = 1,
                 Description = "Ceci est une plainte de test. ",
                 DateCreation = DateTime.Now,
-                IdSignalement = 1
+                IdSignalement = 1,
+                IdCompte = 1
             };
             _context.TypesCompte.Add(typeCompte);
             _context.EtatComptes.Add(etatCompte);
@@ -253,6 +245,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var actionResult = await _controller.Post(dto);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task GetPlainteByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetByIDCompte(_objetcommun.IdCompte);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<PlainteDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Description == _objetcommun.Description));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetPlainteByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetByIDCompte(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
     }
 }

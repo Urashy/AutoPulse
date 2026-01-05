@@ -108,7 +108,7 @@ public class ComptePublicViewModel
     {
         try
         {
-            Image? img = await _imageService.GetImageProfil(id);
+            ImageDTO? img = await _imageService.GetImageProfil(id);
 
             imageSource = "";
             if (img != null && img.Fichier != null && img.Fichier.Length > 0)
