@@ -278,7 +278,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return Unauthorized();
 
         int userId = int.Parse(claim);
-        Compte user = _manager.GetByIdAsync(userId).Result;
+        Compte user = await _manager.GetByIdAsync(userId);
 
         if (user == null)
             return NotFound();

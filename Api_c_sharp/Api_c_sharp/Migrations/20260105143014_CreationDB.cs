@@ -602,7 +602,7 @@ namespace Api_c_sharp.Migrations
                     eta_id = table.Column<int>(type: "integer", nullable: false),
                     adr_id = table.Column<int>(type: "integer", nullable: false),
                     voi_id = table.Column<int>(type: "integer", nullable: false),
-                    mav_id = table.Column<int>(type: "integer", nullable: true),
+                    mav_id = table.Column<int>(type: "integer", nullable: false),
                     ann_dat = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ann_pri = table.Column<int>(type: "integer", nullable: false),
                     ann_description = table.Column<string>(type: "text", nullable: true)
@@ -636,7 +636,8 @@ namespace Api_c_sharp.Migrations
                         column: x => x.mav_id,
                         principalSchema: "public",
                         principalTable: "t_e_miseavant_mav",
-                        principalColumn: "mav_id");
+                        principalColumn: "mav_id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_t_e_annonce_ann_t_e_voiture_voi_voi_id",
                         column: x => x.voi_id,
