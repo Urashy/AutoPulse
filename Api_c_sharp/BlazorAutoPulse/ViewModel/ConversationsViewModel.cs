@@ -83,6 +83,8 @@ public class ConversationViewModel : IDisposable
         _signalR.OnUserTyping += HandleUserTyping;
         _signalR.OnMessagesRead += HandleMessagesRead;
         _conversationState.OnStateChanged += HandleGlobalStateChanged;
+        _signalR.OnOffreStatusChanged += HandleOffreStatusChanged;
+
     }
 
     public async Task InitializeAsync()
@@ -96,6 +98,26 @@ public class ConversationViewModel : IDisposable
         await LoadMessages(conv.IdConversation);
         await ABloquer(true);
         NotifyStateChanged();
+    }
+
+    private async void HandleOffreStatusChanged(int idOffre, bool? estAccepte)
+    {
+        if (SelectedConversation == null) return;
+
+        // Trouver le message contenant cette offre
+        var message = Messages.FirstOrDefault(m =>
+            m.Offres != null && m.Offres.Any(o => o.IdOffre == idOffre));
+
+        if (message != null && message.Offres != null)
+        {
+            var offre = message.Offres.FirstOrDefault(o => o.IdOffre == idOffre);
+            if (offre != null)
+            {
+                offre.EstAccepte = estAccepte;
+                Console.WriteLine($"✅ Offre {idOffre} mise à jour en temps réel");
+                NotifyStateChanged();
+            }
+        }
     }
 
     private async Task LoadMessages(int conversationId)
@@ -383,6 +405,7 @@ public class ConversationViewModel : IDisposable
         _signalR.OnUserTyping -= HandleUserTyping;
         _signalR.OnMessagesRead -= HandleMessagesRead;
         _conversationState.OnStateChanged -= HandleGlobalStateChanged;
+        _signalR.OnOffreStatusChanged -= HandleOffreStatusChanged;
         _typingTimer?.Dispose();
     }
 

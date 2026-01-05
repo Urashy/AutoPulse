@@ -56,7 +56,7 @@ namespace Api_c_sharp.Hubs
 
             await base.OnDisconnectedAsync(exception);
         }
-
+        
         // Envoyer un message à une conversation
         public async Task SendMessage(int conversationId, int senderId, string message)
         {

@@ -13,6 +13,8 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
     public event Action<int, int, string>? OnUserTyping;
     public event Action<int, int>? OnMessagesRead;
     public event Action<PriceDropNotification>? OnPriceDropReceived;
+    public event Action<int, bool?>? OnOffreStatusChanged;
+
 
     // Dans StartAsync(), ajoute l'écoute :
 
@@ -79,6 +81,13 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
                 Console.WriteLine($"[SignalR] ReceiveMessage: conv={conversationId}, sender={senderId}, msg={message}");
                 OnMessageReceived?.Invoke(conversationId, senderId, message, date);
             });
+
+        // Écouter les changements de statut des offres
+        _hubConnection.On<int, bool?>("OffreStatusChanged", (idOffre, estAccepte) =>
+        {
+            Console.WriteLine($"[SignalR] Offre {idOffre} status changed: {estAccepte}");
+            OnOffreStatusChanged?.Invoke(idOffre, estAccepte);
+        });
 
         // Écouter les notifications de frappe
         _hubConnection.On<int, int, string>("UserIsTyping",

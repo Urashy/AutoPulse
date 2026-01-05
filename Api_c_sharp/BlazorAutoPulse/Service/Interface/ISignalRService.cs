@@ -19,6 +19,7 @@ public interface ISignalRService
     event Action<int, int, string>? OnUserTyping;
     event Action<int, int>? OnMessagesRead;
     public event Action<PriceDropNotification>? OnPriceDropReceived;
-    
+    public event Action<int, bool?>? OnOffreStatusChanged;
+
     bool IsConnected { get; }
 }
