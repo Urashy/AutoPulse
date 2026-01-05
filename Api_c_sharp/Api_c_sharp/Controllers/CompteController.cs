@@ -1,3 +1,4 @@
+using System.Data.Entity.Infrastructure;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using AutoMapper;
