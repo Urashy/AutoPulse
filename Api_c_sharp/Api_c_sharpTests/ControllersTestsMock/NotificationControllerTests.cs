@@ -91,10 +91,11 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         #region Tests CRUD de base
-
+            #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
+            // Arrange
             var notificationDto = new NotificationDTO
             {
                 IdNotification = _objetcommun.IdNotification,
@@ -107,8 +108,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockMapper.Setup(m => m.Map<NotificationDTO>(_objetcommun))
                 .Returns(notificationDto);
 
+            // Act
             var result = await _controller.GetByID(_objetcommun.IdNotification);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(NotificationDTO));
@@ -119,11 +122,14 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotFoundGetByIdTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(0))
                 .ReturnsAsync((Notification)null);
 
+            // Act
             var result = await _controller.GetByID(0);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
             _mockManager.Verify(m => m.GetByIdAsync(0), Times.Once);
@@ -132,6 +138,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetAllTest()
         {
+            // Arrange
             var notifications = new List<Notification> { _objetcommun };
             var notificationsDto = new List<NotificationDTO>
             {
@@ -147,8 +154,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockMapper.Setup(m => m.Map<IEnumerable<NotificationDTO>>(notifications))
                 .Returns(notificationsDto);
 
+            // Act
             var result = await _controller.GetAll();
 
+            // Arrange
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<NotificationDTO>));
@@ -156,10 +165,13 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(n => n.Titre == _objetcommun.Titre));
             _mockManager.Verify(m => m.GetAllAsync(), Times.Once);
         }
+        #endregion
 
+            #region POST
         [TestMethod]
         public async Task PostNotificationTest_Entity()
         {
+            // Arrange
             var notificationDto = new NotificationCreateDTO
             {
                 Titre = "Test notification",
@@ -186,8 +198,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Notification>()))
                 .ReturnsAsync(notification);
 
+            // Act
             var actionResult = await _controller.Post(notificationDto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
             var createdNotification = (Notification)created.Value;
@@ -199,6 +213,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task PostNotificationWithAnnonceTest()
         {
+            // Arrange
             var notificationDto = new NotificationCreateDTO
             {
                 Titre = "Baisse de prix",
@@ -231,18 +246,21 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Notification>()))
                 .ReturnsAsync(notification);
 
+            // Act
             var actionResult = await _controller.Post(notificationDto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
             var createdNotification = (Notification)created.Value;
             Assert.AreEqual(notificationDto.Titre, createdNotification.Titre);
             Assert.AreEqual(_annonceTest.IdAnnonce, createdNotification.IdAnnonce);
         }
-
+        
         [TestMethod]
         public async Task BadRequestPostNotificationTest()
         {
+            // Arrange
             var notificationDto = new NotificationCreateDTO
             {
                 Titre = null
@@ -250,23 +268,30 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             _controller.ModelState.AddModelError("Titre", "Required");
 
+            // Act
             var actionResult = await _controller.Post(notificationDto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Notification>()), Times.Never);
 
         }
+        #endregion
 
+            #region DELETE
         [TestMethod]
         public async Task DeleteNotificationTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdNotification))
                 .ReturnsAsync(_objetcommun);
             _mockManager.Setup(m => m.DeleteAsync(_objetcommun))
                 .Returns(Task.CompletedTask);
 
+            // Act
             var result = await _controller.Delete(_objetcommun.IdNotification);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.GetByIdAsync(_objetcommun.IdNotification), Times.Once);
             _mockManager.Verify(m => m.DeleteAsync(_objetcommun), Times.Once);
@@ -275,18 +300,24 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotFoundDeleteNotificationTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(0))
                 .ReturnsAsync((Notification)null);
 
+            // Act
             var result = await _controller.Delete(0);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
             _mockManager.Verify(m => m.GetByIdAsync(0), Times.Once);
         }
+        #endregion
 
+            #region PUT
         [TestMethod]
         public async Task PutNotificationTest()
         {
+            // Arrange
             var notificationDto = new NotificationUpdateDTO
             {
                 IdNotification = _objetcommun.IdNotification,
@@ -316,8 +347,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.UpdateAsync(_objetcommun, notificationUpdated))
                 .Returns(Task.CompletedTask);
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdNotification, notificationDto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.UpdateAsync(_objetcommun, notificationUpdated), Times.Once);
         }
@@ -325,6 +358,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotFoundPutNotificationTest()
         {
+            // Arrange
             var notificationDto = new NotificationUpdateDTO
             {
                 IdNotification = 1,
@@ -337,14 +371,17 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(0))
                 .ReturnsAsync((Notification)null);
 
+            // Act
             var result = await _controller.Put(0, notificationDto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task BadRequestPutNotificationTest()
         {
+            // Arrange
             var notificationDto = new NotificationUpdateDTO
             {
                 IdNotification = _objetcommun.IdNotification,
@@ -356,12 +393,15 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             _controller.ModelState.AddModelError("Titre", "Required");
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdNotification, notificationDto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Notification>(), It.IsAny<Notification>()), Times.Never);
         }
+        #endregion
 
         #endregion
 
@@ -370,6 +410,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetNotificationByCompteIDTest()
         {
+            // Arrange
             var notifications = new List<Notification> { _objetcommun };
             var notificationsDto = new List<NotificationDTO>
             {
@@ -385,8 +426,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockMapper.Setup(m => m.Map<IEnumerable<NotificationDTO>>(notifications))
                 .Returns(notificationsDto);
 
+            // Act
             var result = await _controller.GetNotificationByCompteID(_objetcommun.IdCompte);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<NotificationDTO>));
@@ -397,11 +440,14 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotFoundGetNotificationByCompteIDTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetNotificationsByCompteAsync(999))
                 .ReturnsAsync(new List<Notification>());
 
+            // Act
             var result = await _controller.GetNotificationByCompteID(999);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
@@ -409,6 +455,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetUnreadNotificationByCompteTest()
         {
+            // Arrange
             var notifications = new List<Notification> { _objetcommun };
             var notificationsDto = new List<NotificationDTO>
             {
@@ -425,8 +472,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockMapper.Setup(m => m.Map<IEnumerable<NotificationDTO>>(notifications))
                 .Returns(notificationsDto);
 
+            // Act
             var result = await _controller.GetUnreadNotificationByCompte(_objetcommun.IdCompte);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<NotificationDTO>));
@@ -437,11 +486,14 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotFoundGetUnreadNotificationByCompteTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetUnreadNotificationsByCompteAsync(_objetcommun.IdCompte))
                 .ReturnsAsync(new List<Notification>());
 
+            // Act
             var result = await _controller.GetUnreadNotificationByCompte(_objetcommun.IdCompte);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
@@ -449,11 +501,14 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetUnreadCountByCompteTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetUnreadCountAsync(_objetcommun.IdCompte))
                 .ReturnsAsync(1);
 
+            // Act
             var result = await _controller.GetUnreadCountByCompte(_objetcommun.IdCompte);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value > 0);
@@ -462,11 +517,14 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetUnreadCountByCompteWithNoUnreadTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetUnreadCountAsync(_compteTest.IdCompte))
                 .ReturnsAsync(0);
 
+            // Act
             var result = await _controller.GetUnreadCountByCompte(_compteTest.IdCompte);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(0, result.Value);
         }
@@ -478,13 +536,16 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task MarkAsReadTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdNotification))
                 .ReturnsAsync(_objetcommun);
             _mockManager.Setup(m => m.MarkAsReadAsync(_objetcommun.IdNotification))
                 .Returns(Task.CompletedTask);
 
+            // Act
             var result = await _controller.MarkAsRead(_objetcommun.IdNotification);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.MarkAsReadAsync(_objetcommun.IdNotification), Times.Once);
         }
@@ -492,24 +553,30 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotFoundMarkAsReadTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(0))
                 .ReturnsAsync((Notification)null);
 
+            // Act
             var result = await _controller.MarkAsRead(0);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task MarkAllAsReadTest()
         {
+            // Arrange
             _mockCompteManager.Setup(m => m.GetByIdAsync(_compteTest.IdCompte))
                 .ReturnsAsync(_compteTest);
             _mockManager.Setup(m => m.MarkAllAsReadAsync(_compteTest.IdCompte))
                 .Returns(Task.CompletedTask);
 
+            // Act
             var result = await _controller.MarkAllAsRead(_compteTest.IdCompte);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.MarkAllAsReadAsync(_compteTest.IdCompte), Times.Once);
         }
@@ -517,17 +584,21 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotFoundMarkAllAsReadTest()
         {
+            // Arrange
             _mockCompteManager.Setup(m => m.GetByIdAsync(999))
                 .ReturnsAsync((Compte)null);
 
+            // Act
             var result = await _controller.MarkAllAsRead(999);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task MarkAllAsReadOnlyAffectsTargetCompteTest()
         {
+            // Arrange
             var notifCompte1 = new List<Notification>
             {
                 new Notification { IdNotification = 1, IdCompte = _compteTest.IdCompte, EstLue = true }
@@ -549,9 +620,11 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             await _controller.MarkAllAsRead(_compteTest.IdCompte);
 
+            // Act
             var resultCompte1 = await _mockManager.Object.GetNotificationsByCompteAsync(_compteTest.IdCompte);
             var resultCompte2 = await _mockManager.Object.GetNotificationsByCompteAsync(_compteTest2.IdCompte);
 
+            // Assert
             Assert.IsTrue(resultCompte1.All(n => n.EstLue));
             Assert.IsTrue(resultCompte2.All(n => !n.EstLue));
         }
@@ -563,11 +636,14 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task DeleteOldNotificationTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.DeleteOldNotificationsAsync(30))
                 .Returns(Task.CompletedTask);
 
+            // Act
             var result = await _controller.DeleteOldNotification(30);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.DeleteOldNotificationsAsync(30), Times.Once);
         }
@@ -575,6 +651,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task DeleteOldNotificationKeepsUnreadTest()
         {
+            // Arrange
             var oldUnreadNotification = new Notification
             {
                 IdNotification = 5,
@@ -591,8 +668,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(oldUnreadNotification.IdNotification))
                 .ReturnsAsync(oldUnreadNotification);
 
+            // Act
             var result = await _controller.DeleteOldNotification(30);
-
+            
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var notification = await _mockManager.Object.GetByIdAsync(oldUnreadNotification.IdNotification);
@@ -603,6 +682,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task DeleteOldNotificationKeepsRecentTest()
         {
+            // Arrange
             var recentNotification = new Notification
             {
                 IdNotification = 6,
@@ -619,9 +699,12 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetByIdAsync(recentNotification.IdNotification))
                 .ReturnsAsync(recentNotification);
 
+            // Act
             await _controller.DeleteOldNotification(30);
 
             var notification = await _mockManager.Object.GetByIdAsync(recentNotification.IdNotification);
+            
+            // Assert
             Assert.IsNotNull(notification);
         }
 
@@ -632,6 +715,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotifCreationAutoAsyncTest()
         {
+            // Arrange
             var idComptes = new List<int> { _compteTest.IdCompte, _compteTest2.IdCompte };
             string url = "/annonce/1";
             string titre = "Test notification auto";
@@ -643,9 +727,11 @@ namespace Api_c_sharp.ControllersMock.Tests
                 idComptes, url, titre, message, idAnnonce, type,0,0))
                 .Returns(Task.CompletedTask);
 
+            // Act
             await _mockManager.Object.NotifCreationAutoAsync(
                 idComptes, url, titre, message, idAnnonce, type);
 
+            // Assert
             _mockManager.Verify(m => m.NotifCreationAutoAsync(
                 idComptes, url, titre, message, idAnnonce, type, 0, 0), Times.Once);
         }
@@ -653,6 +739,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotifCreationAutoAsyncWithPriceTest()
         {
+            // Arrange
             var idComptes = new List<int> { _compteTest.IdCompte };
             string url = "/annonce/1";
             string titre = "Baisse de prix";
@@ -666,9 +753,11 @@ namespace Api_c_sharp.ControllersMock.Tests
                 idComptes, url, titre, message, idAnnonce, type, ancienPrix, nouveauPrix))
                 .Returns(Task.CompletedTask);
 
+            // Act
             await _mockManager.Object.NotifCreationAutoAsync(
                 idComptes, url, titre, message, idAnnonce, type, ancienPrix, nouveauPrix);
 
+            // Assert
             _mockManager.Verify(m => m.NotifCreationAutoAsync(
                 idComptes, url, titre, message, idAnnonce, type, ancienPrix, nouveauPrix), Times.Once);
         }
@@ -676,45 +765,55 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task NotifAnnonceTest()
         {
+            // Arrange
             double ancienPrix = 15000;
             double nouveauPrix = 12000;
 
             _mockManager.Setup(m => m.NotifAnnonce(_annonceTest.IdAnnonce, ancienPrix, nouveauPrix))
                 .Returns(Task.CompletedTask);
 
+            // Act
             await _mockManager.Object.NotifAnnonce(_annonceTest.IdAnnonce, ancienPrix, nouveauPrix);
 
+            // Assert
             _mockManager.Verify(m => m.NotifAnnonce(_annonceTest.IdAnnonce, ancienPrix, nouveauPrix), Times.Once);
         }
 
         [TestMethod]
         public async Task NotifAnnonceWithNoFavorisTest()
         {
+            // Arrange
             double ancienPrix = 15000;
             double nouveauPrix = 12000;
 
             _mockManager.Setup(m => m.NotifAnnonce(_annonceTest.IdAnnonce, ancienPrix, nouveauPrix))
                 .Returns(Task.CompletedTask);
 
+            // Act
             await _mockManager.Object.NotifAnnonce(_annonceTest.IdAnnonce, ancienPrix, nouveauPrix);
 
+            // Assert
             _mockManager.Verify(m => m.NotifAnnonce(_annonceTest.IdAnnonce, ancienPrix, nouveauPrix), Times.Once);
         }
 
         [TestMethod]
         public async Task NotifSuppressionAnnonceTest()
         {
+            // Arrange
             _mockManager.Setup(m => m.NotifSuppressionAnnonce(_annonceTest.IdAnnonce))
                 .Returns(Task.CompletedTask);
 
+            // Act
             await _mockManager.Object.NotifSuppressionAnnonce(_annonceTest.IdAnnonce);
 
+            // Assert
             _mockManager.Verify(m => m.NotifSuppressionAnnonce(_annonceTest.IdAnnonce), Times.Once);
         }
 
         [TestMethod]
         public async Task NotifSuppressionAnnonceWithoutSignalementTest()
         {
+            // Arrange
             var nouvelleAnnonce = new Annonce
             {
                 IdAnnonce = 2,
@@ -728,22 +827,27 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.NotifSuppressionAnnonce(nouvelleAnnonce.IdAnnonce))
                 .Returns(Task.CompletedTask);
 
+            // Act
             await _mockManager.Object.NotifSuppressionAnnonce(nouvelleAnnonce.IdAnnonce);
 
+            // Asssert
             _mockManager.Verify(m => m.NotifSuppressionAnnonce(nouvelleAnnonce.IdAnnonce), Times.Once);
         }
 
         [TestMethod]
         public async Task NotifAnnonceMultipleFavorisTest()
         {
+            // Arrange
             double ancienPrix = 15000;
             double nouveauPrix = 11000;
 
             _mockManager.Setup(m => m.NotifAnnonce(_annonceTest.IdAnnonce, ancienPrix, nouveauPrix))
                 .Returns(Task.CompletedTask);
 
+            // Act
             await _mockManager.Object.NotifAnnonce(_annonceTest.IdAnnonce, ancienPrix, nouveauPrix);
 
+            // Assert
             _mockManager.Verify(m => m.NotifAnnonce(_annonceTest.IdAnnonce, ancienPrix, nouveauPrix), Times.Once);
         }
 

@@ -1,6 +1,8 @@
 ﻿using Api_c_sharp.Controllers;
+using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -19,15 +21,16 @@ namespace Api_c_sharp.ControllersMock.Tests
         private Mock<TokenEmailManager> _mockManager;
         private IConfiguration _config;
         private TokenEmailController _controller;
+        private Mock<CompteManager> _mockCompteManager;
+        private IMapper _mapper;
         private TokenEmail _objetCommun;
 
         [TestInitialize]
         public void Initialize()
         {
-            // Création du mock
             _mockManager = new Mock<TokenEmailManager>(null);
+            _mockCompteManager = new Mock<CompteManager>(null);
 
-            // Configuration en mémoire
             var inMemorySettings = new Dictionary<string, string>
             {
                 {"Email:GmailUser", "fake@mail.com"},
@@ -37,7 +40,6 @@ namespace Api_c_sharp.ControllersMock.Tests
                 .AddInMemoryCollection(inMemorySettings)
                 .Build();
 
-            // Objet de référence
             _objetCommun = new TokenEmail
             {
                 IdTokenEmail = 1,
@@ -48,14 +50,21 @@ namespace Api_c_sharp.ControllersMock.Tests
                 Utilise = false
             };
 
-            // Création du controller
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<MapperProfile>();
+            });
+            _mapper = config.CreateMapper();
+
             _controller = new TokenEmailController(
                 _mockManager.Object,
-                _config
+                _config,
+                _mapper,
+                _mockCompteManager.Object
             );
         }
 
-        #region GET BY ID Tests
+        #region GET BY ID 
 
         [TestMethod]
         public async Task GetById_ReturnsOk()
@@ -69,9 +78,13 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.AreEqual(_objetCommun.Email, result.Value.Email);
-            Assert.AreEqual(_objetCommun.Token, result.Value.Token);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+
+            var okResult = result.Result as OkObjectResult;
+            var returnedEntity = okResult.Value as TokenEmail;
+            Assert.IsNotNull(returnedEntity);
+            Assert.AreEqual(_objetCommun.Email, returnedEntity.Email);
+            Assert.AreEqual(_objetCommun.Token, returnedEntity.Token);
         }
 
         [TestMethod]
@@ -92,7 +105,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region GET ALL Tests
+        #region GET ALL
 
         [TestMethod]
         public async Task GetAll_ReturnsListOfReinit()
@@ -120,8 +133,10 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            var returnedList = result.Value as IEnumerable<TokenEmail>;
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+
+            var okResult = result.Result as OkObjectResult;
+            var returnedList = okResult.Value as IEnumerable<TokenEmail>;
             Assert.IsNotNull(returnedList);
             Assert.AreEqual(2, ((List<TokenEmail>)returnedList).Count);
         }
@@ -138,14 +153,16 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            var returnedList = result.Value as IEnumerable<TokenEmail>;
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+
+            var okResult = result.Result as OkObjectResult;
+            var returnedList = okResult.Value as IEnumerable<TokenEmail>;
             Assert.AreEqual(0, ((List<TokenEmail>)returnedList).Count);
         }
 
         #endregion
 
-        #region GET BY STRING Tests
+        #region GET BY STRING
 
         [TestMethod]
         public async Task GetByString_ReturnsOk()
@@ -186,31 +203,30 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region POST Tests
+        #region POST
 
         [TestMethod]
         public async Task Post_BadRequest_InvalidModelState()
         {
             // Arrange
             _controller.ModelState.AddModelError("Email", "Required");
-            var dto = new TokenEmailDTO
+            var dto = new TokenEmailCreateDTO
             {
                 Email = "",
-                Code = "CODE123"
+                TypeToken = ""
             };
 
             // Act
             var result = await _controller.Post(dto);
 
             // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<TokenEmail>()), Times.Never);
         }
 
-
         #endregion
 
-        #region PUT Tests
+        #region PUT
 
         [TestMethod]
         public async Task Put_UpdatesSuccessfully()
@@ -279,7 +295,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region DELETE Tests
+        #region DELETE 
 
         [TestMethod]
         public async Task Delete_RemovesSuccessfully()
@@ -320,7 +336,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region VERIFICATION CODE Tests
+        #region VERIFICATION CODE 
 
         [TestMethod]
         public async Task VerificationCode_ValidCredentials_ReturnsEntity()
@@ -328,12 +344,13 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Arrange
             string email = "test@mail.com";
             string token = "TOKEN123";
+            string typeToken = "REINIT_MDP";
 
-            _mockManager.Setup(m => m.VerificationCode(email, token))
+            _mockManager.Setup(m => m.VerificationCode(email, token, typeToken))
                        .ReturnsAsync(_objetCommun);
 
             // Act
-            var result = await _mockManager.Object.VerificationCode(email, token);
+            var result = await _mockManager.Object.VerificationCode(email, token, typeToken);
 
             // Assert
             Assert.IsNotNull(result);
@@ -347,12 +364,13 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Arrange
             string email = "test@mail.com";
             string wrongToken = "WRONGTOKEN";
+            string typeToken = "REINIT_MDP";
 
-            _mockManager.Setup(m => m.VerificationCode(email, wrongToken))
+            _mockManager.Setup(m => m.VerificationCode(email, wrongToken, typeToken))
                        .ReturnsAsync((TokenEmail)null);
 
             // Act
-            var result = await _mockManager.Object.VerificationCode(email, wrongToken);
+            var result = await _mockManager.Object.VerificationCode(email, wrongToken, typeToken);
 
             // Assert
             Assert.IsNull(result);
@@ -364,12 +382,13 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Arrange
             string wrongEmail = "wrong@mail.com";
             string token = "TOKEN123";
+            string typeToken = "REINIT_MDP";
 
-            _mockManager.Setup(m => m.VerificationCode(wrongEmail, token))
+            _mockManager.Setup(m => m.VerificationCode(wrongEmail, token, typeToken))
                        .ReturnsAsync((TokenEmail)null);
 
             // Act
-            var result = await _mockManager.Object.VerificationCode(wrongEmail, token);
+            var result = await _mockManager.Object.VerificationCode(wrongEmail, token, typeToken);
 
             // Assert
             Assert.IsNull(result);
@@ -381,12 +400,13 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Arrange
             string email = "expired@mail.com";
             string token = "EXPIRED123";
+            string typeToken = "REINIT_MDP";
 
-            _mockManager.Setup(m => m.VerificationCode(email, token))
+            _mockManager.Setup(m => m.VerificationCode(email, token, typeToken))
                        .ReturnsAsync((TokenEmail)null);
 
             // Act
-            var result = await _mockManager.Object.VerificationCode(email, token);
+            var result = await _mockManager.Object.VerificationCode(email, token, typeToken);
 
             // Assert
             Assert.IsNull(result);
@@ -394,19 +414,20 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region VERIF CODE (Controller) Tests
+        #region VERIF CODE 
 
         [TestMethod]
         public async Task VerifCode_ValidCode_ReturnsOk()
         {
             // Arrange
-            var dto = new TokenEmailDTO
+            var dto = new TokenEmailVerifDTO
             {
                 Email = _objetCommun.Email,
-                Code = _objetCommun.Token
+                Code = _objetCommun.Token,
+                TypeToken = "REINIT_MDP"
             };
 
-            _mockManager.Setup(m => m.VerificationCode(dto.Email, dto.Code))
+            _mockManager.Setup(m => m.VerificationCode(dto.Email, dto.Code, dto.TypeToken))
                        .ReturnsAsync(_objetCommun);
 
             // Act
@@ -425,13 +446,14 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task VerifCode_InvalidCode_ReturnsNotFound()
         {
             // Arrange
-            var dto = new TokenEmailDTO
+            var dto = new TokenEmailVerifDTO
             {
                 Email = _objetCommun.Email,
-                Code = "WRONGCODE"
+                Code = "WRONGCODE",
+                TypeToken = "REINIT_MDP"
             };
 
-            _mockManager.Setup(m => m.VerificationCode(dto.Email, dto.Code))
+            _mockManager.Setup(m => m.VerificationCode(dto.Email, dto.Code, dto.TypeToken))
                        .ReturnsAsync((TokenEmail)null);
 
             // Act
@@ -450,14 +472,25 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task VerifCode_ExpiredCode_ReturnsNotFound()
         {
             // Arrange
-            var dto = new TokenEmailDTO
+            var expiredToken = new TokenEmail
             {
+                IdTokenEmail = 1,
+                IdCompte = 1,
                 Email = "expired@mail.com",
-                Code = "EXPIRED123"
+                Token = "EXPIRED123",
+                Expiration = DateTime.UtcNow.AddMinutes(-10),
+                Utilise = false
             };
 
-            _mockManager.Setup(m => m.VerificationCode(dto.Email, dto.Code))
-                       .ReturnsAsync((TokenEmail)null);
+            var dto = new TokenEmailVerifDTO
+            {
+                Email = expiredToken.Email,
+                Code = expiredToken.Token,
+                TypeToken = "REINIT_MDP"
+            };
+
+            _mockManager.Setup(m => m.VerificationCode(dto.Email, dto.Code, dto.TypeToken))
+                       .ReturnsAsync(expiredToken);
 
             // Act
             var result = await _controller.VerifCode(dto);
@@ -472,37 +505,49 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task VerifCode_EmptyCode_ReturnsNoContent()
+        public async Task VerifCode_EmptyCode_ReturnsBadRequest()
         {
             // Arrange
-            var dto = new TokenEmailDTO
+            var dto = new TokenEmailVerifDTO
             {
                 Email = "test@mail.com",
-                Code = ""
+                Code = "",
+                TypeToken = "REINIT_MDP"
             };
 
             // Act
             var result = await _controller.VerifCode(dto);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+
+            var badRequestResult = result as BadRequestObjectResult;
+            dynamic responseValue = badRequestResult.Value;
+            string message = responseValue.GetType().GetProperty("Message").GetValue(responseValue, null);
+            Assert.IsTrue(message.Contains("code est requis"));
         }
 
         [TestMethod]
-        public async Task VerifCode_NullCode_ReturnsNoContent()
+        public async Task VerifCode_NullCode_ReturnsBadRequest()
         {
             // Arrange
-            var dto = new TokenEmailDTO
+            var dto = new TokenEmailVerifDTO
             {
                 Email = "test@mail.com",
-                Code = null
+                Code = null,
+                TypeToken = "REINIT_MDP"
             };
 
             // Act
             var result = await _controller.VerifCode(dto);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+
+            var badRequestResult = result as BadRequestObjectResult;
+            dynamic responseValue = badRequestResult.Value;
+            string message = responseValue.GetType().GetProperty("Message").GetValue(responseValue, null);
+            Assert.IsTrue(message.Contains("code est requis"));
         }
 
         [TestMethod]
@@ -511,10 +556,11 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Arrange
             _controller.ModelState.AddModelError("Email", "Required");
 
-            var dto = new TokenEmailDTO
+            var dto = new TokenEmailVerifDTO
             {
                 Email = "",
-                Code = "CODE123"
+                Code = "CODE123",
+                TypeToken = "REINIT_MDP"
             };
 
             // Act
@@ -522,21 +568,21 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
-            _mockManager.Verify(m => m.VerificationCode(It.IsAny<string>(),It.IsAny<string>()), Times.Never);
-
+            _mockManager.Verify(m => m.VerificationCode(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
         public async Task VerifCode_WrongEmail_ReturnsNotFound()
         {
             // Arrange
-            var dto = new TokenEmailDTO
+            var dto = new TokenEmailVerifDTO
             {
                 Email = "wrongemail@mail.com",
-                Code = _objetCommun.Token
+                Code = _objetCommun.Token,
+                TypeToken = "REINIT_MDP"
             };
 
-            _mockManager.Setup(m => m.VerificationCode(dto.Email, dto.Code))
+            _mockManager.Setup(m => m.VerificationCode(dto.Email, dto.Code, dto.TypeToken))
                        .ReturnsAsync((TokenEmail)null);
 
             // Act
@@ -546,34 +592,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
         }
 
-        [TestMethod]
-        public async Task VerifCode_ValidCodeWithWhitespace_TrimsAndValidates()
-        {
-            // Arrange
-            var dto = new TokenEmailDTO
-            {
-                Email = "  test@mail.com  ",
-                Code = "  TOKEN123  "
-            };
-
-            // Le mock devrait être appelé avec les valeurs trimmées ou non selon l'implémentation
-            _mockManager.Setup(m => m.VerificationCode(It.IsAny<string>(), It.IsAny<string>()))
-                       .ReturnsAsync(_objetCommun);
-
-            // Act
-            var result = await _controller.VerifCode(dto);
-
-            // Assert
-            // Selon l'implémentation, cela pourrait être OK ou NotFound
-            Assert.IsTrue(
-                result is OkObjectResult ||
-                result is NotFoundObjectResult
-            );
-        }
-
         #endregion
 
-        #region Additional Edge Cases
+        #region Additional Edge 
 
         [TestMethod]
         public async Task Put_UpdatesExpirationDate()
@@ -657,6 +678,86 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(capturedEntity);
             Assert.AreEqual(_objetCommun.IdTokenEmail, capturedEntity.IdTokenEmail);
             Assert.AreEqual(_objetCommun.Email, capturedEntity.Email);
+        }
+
+        #endregion
+
+        #region MARQUER
+
+        [TestMethod]
+        public async Task MarquerUtilise_OK()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetCommun.IdTokenEmail))
+                       .ReturnsAsync(_objetCommun);
+
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<TokenEmail>(), It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.MarquerUtilise(_objetCommun.IdTokenEmail);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<TokenEmail>(), It.IsAny<TokenEmail>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task MarquerUtilise_NotFound()
+        {
+            // Arrange
+            int invalidId = 999;
+            _mockManager.Setup(m => m.GetByIdAsync(invalidId))
+                       .ReturnsAsync((TokenEmail)null);
+
+            // Act
+            var result = await _controller.MarquerUtilise(invalidId);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        #endregion
+
+        #region INVALIDER TOKENS
+
+        [TestMethod]
+        public async Task InvaliderTokensParType_OK()
+        {
+            // Arrange
+            int idCompte = 1;
+            string typeToken = "REINIT_MDP";
+
+            _mockManager.Setup(m => m.InvaliderTokensParType(idCompte, typeToken))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.InvaliderTokensParType(idCompte, typeToken);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.InvaliderTokensParType(idCompte, typeToken), Times.Once);
+        }
+
+        #endregion
+
+        #region NETTOYER TOKENS
+
+        [TestMethod]
+        public async Task NettoyerTokensExpires_OK()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.NettoyerTokensExpires())
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.NettoyerTokensExpires();
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.NettoyerTokensExpires(), Times.Once);
         }
 
         #endregion

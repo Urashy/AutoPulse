@@ -75,6 +75,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 _mockHubContext.Object);
         }
 
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -161,7 +162,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.IdConversation == _objetcommun.IdConversation));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task PostConversationTest_Entity()
         {
@@ -209,7 +212,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Conversation>()), Times.Never);
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteConversationTest()
         {
@@ -241,7 +246,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutConversationTest()
         {
@@ -318,7 +325,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Conversation>(), It.IsAny<Conversation>()), Times.Never);
         }
+        #endregion
 
+        #region GETConversation
         [TestMethod]
         public async Task GetConversationByCompteIDTest()
         {
@@ -381,7 +390,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task PostCompletTest_Success()
         {
@@ -525,8 +536,6 @@ namespace Api_c_sharp.ControllersMock.Tests
                 "Le message ReceiveMessage devrait être envoyé avec les bons paramètres");
         }
 
-        // À ajouter dans ConversationControllerTests.cs (Mock Tests)
-
         [TestMethod]
         public async Task PostCompletTest_ExistingConversation_AddsMessageOnly()
         {
@@ -653,5 +662,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Vérifier que c'est bien la conversation existante qui est retournée
             Assert.AreEqual(existingConversation.IdConversation, returnedConversation.IdConversation);
         }
+        #endregion
     }
 }

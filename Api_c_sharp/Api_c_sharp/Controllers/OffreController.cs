@@ -1,10 +1,12 @@
-﻿using Api_c_sharp.Models.Entity;
+﻿using Api_c_sharp.Hubs;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Generic;
 
 namespace Api_c_sharp.Controllers
@@ -17,7 +19,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class OffreController(OffreManager _manager, IMapper _offremapper, INotificationService _notifService) : ControllerBase
+    public class OffreController(OffreManager _manager, IMapper _offremapper, MessageManager _managermessage, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
     {
         /// <summary>
         /// Crée une nouvelle offre.
@@ -76,6 +78,14 @@ namespace Api_c_sharp.Controllers
             var updated = _offremapper.Map<Offre>(dto);
 
             await _manager.UpdateAsync(toUpdate, updated);
+
+            var message = await _managermessage.GetByIdAsync(dto.IdMessage);
+
+            if (_hubContext != null)
+            {
+                await _hubContext.Clients.Group($"conversation_{message.IdConversation}")
+                .SendAsync("OffreStatusChanged", dto.IdOffre, dto.EstAccepte);
+            }
 
             return NoContent();
         }

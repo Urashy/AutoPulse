@@ -29,7 +29,6 @@ namespace Api_c_sharp.ControllersMock.Tests
         public void Initialize()
         {
             // Création du mock du manager avec un paramètre null pour le context
-            // (le mock n'utilisera pas le context réel)
             _mockManager = new Mock<EtatSignalementManager>(null);
 
             // Création de l'adresse de référence
@@ -49,6 +48,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Injection dans le controller
             _controller = new EtatSignalementController(_mockManager.Object, _mapper);
         }
+
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -109,5 +110,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.LibelleEtatSignalement == _objetcommun.LibelleEtatSignalement));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
     }
 }

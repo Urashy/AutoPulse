@@ -273,6 +273,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
+        #endregion
+
+        #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -287,6 +290,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any(o => o.Pseudo == _objetcommun.Pseudo));
         }
 
+        #endregion
+
+        #region GetProfilPublic
         [TestMethod]
         public async Task GetProfilPublicTest()
         {
@@ -311,8 +317,11 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
+        #endregion
+
+        #region PostCompteTests
         [TestMethod]
-        public async Task PostAdresseTest_Entity()
+        public async Task PostCompteTest_Entity()
         {
             CompteCreateDTO compteCreateDTO = new CompteCreateDTO
             {
@@ -335,25 +344,54 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task DeleteAdresseTest()
+        public async Task BadRequestPostCompteTest()
+        {
+            CompteCreateDTO compteUpdateDTO = new CompteCreateDTO
+            {
+                Nom = "DoeUpdated",
+                Prenom = "john",
+                Email = "johnmodif@gmail.com",
+                DateNaissance = new DateTime(1991, 1, 1),
+                IdTypeCompte = 1,
+                MotDePasse = "hashedpassword",
+                Pseudo = "johndoe",
+                NumeroSiret = null,
+            };
+
+            _controller.ModelState.AddModelError("NumeroSiret", "Required");
+            var actionResult = await _controller.Post(compteUpdateDTO);
+
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        #endregion
+
+        #region DeleteCompteTests
+
+        [TestMethod]
+        public async Task DeleteCompteTest()
         {
             var result = await _controller.Delete(_objetcommun.IdCompte);
 
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedAdresse = await _manager.GetByIdAsync(_objetcommun.IdCompte);
-            Assert.IsNull(deletedAdresse);
+            var deletedCompte = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.IsNull(deletedCompte);
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteAdresseTest()
+        public async Task NotFoundDeleteCompteTest()
         {
             var result = await _controller.Delete(0);
 
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
+        #endregion
+
+        #region PutCompteTests
+
         [TestMethod]
-        public async Task PutAdresseTest()
+        public async Task PutCompteTest()
         {
             CompteUpdateDTO compteUpdateDTO = new CompteUpdateDTO
             {
@@ -374,7 +412,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundPutAdresseTest()
+        public async Task NotFoundPutCompteTest()
         {
             CompteUpdateDTO compteUpdateDTO = new CompteUpdateDTO
             {
@@ -392,7 +430,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task BadRequestPutAdresseTest()
+        public async Task BadRequestPutCompteTest()
         {
             CompteUpdateDTO compteUpdateDTO = new CompteUpdateDTO
             {
@@ -450,7 +488,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task PutAnonymiseAvecAdresseJournauxFavoriTest()
+        public async Task PutAnonymiseAvecCompteJournauxFavoriTest()
         {
             Compte compte2 = new Compte
             {
@@ -493,13 +531,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             var compteanonymise = await _manager.GetByIdAsync(compte2.IdCompte);
             Assert.IsNull(compteanonymise);
-            var adresses = await _context.Adresses.Where(j => j.IdCompte == compte2.IdCompte).ToListAsync();
-            Assert.IsFalse(adresses.Any(), "Les journaux associés au compte devraient être supprimés.");
+            var Comptes = await _context.Comptes.Where(j => j.IdCompte == compte2.IdCompte).ToListAsync();
+            Assert.IsFalse(Comptes.Any(), "Les journaux associés au compte devraient être supprimés.");
             var journaux = await _context.Journaux.Where(j => j.IdCompte == compte2.IdCompte).ToListAsync();
             Assert.IsFalse(journaux.Any(), "Les journaux associés au compte devraient être supprimés.");
             var favoris = await _context.Favoris.Where(f => f.IdCompte == compte2.IdCompte).ToListAsync();
             Assert.IsFalse(favoris.Any(), "Les favoris associés au compte devraient être supprimés.");
         }
+
+        #endregion
+
+        #region PutTypeCompteTests
 
         [TestMethod]
         public async Task PutTypeCompteProTest()
@@ -544,6 +586,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
+        #endregion
+
+        #region GetByStringTests
+
         [TestMethod]
         public async Task GetByStringTest()
         {
@@ -561,6 +607,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+
+        #endregion
+
+        #region GetBy ...  Tests
 
         [TestMethod]
         public async Task GetByTypeCompteTest()
@@ -599,6 +649,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+
+        #endregion
+
+        #region VerifUser ModifMdp Tests
 
         [TestMethod]
         public async Task ModifMotDePasseTest()
@@ -654,6 +708,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             bool result = await _controller.VerifUser(changementMdpDTO);
             Assert.IsFalse(result);
         }
+
+        #endregion
 
         #region Tests Login
 
@@ -826,6 +882,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
+        #region GetMeTests
+
         [TestMethod]
         public async Task GetMeTest()
         {
@@ -897,6 +955,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
+        #endregion
+
+        #region ToggleEtatCompteTests
+
         [TestMethod]
         public async Task ToggleEtatCompteTest()
         {
@@ -930,6 +992,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Compte compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
             Assert.AreEqual(1, compteModifie.IdEtatCompte);
         }
+
+        #endregion
 
         #region Tests Google Login
 
@@ -1069,6 +1133,446 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var badRequest = result as BadRequestObjectResult;
             Assert.AreEqual("Code manquant", badRequest.Value);
         }
+        #endregion
+
+        #region Tests A2F - Intégration
+
+        [TestMethod]
+        public async Task GetStatutA2f_A2fActif_ReturnsStatutCorrect()
+        {
+            // Arrange
+            _objetcommun.A2fActif = true;
+            _objetcommun.DateDerniereActivationA2f = DateTime.UtcNow.AddDays(-15);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetStatutA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var a2fActifProperty = responseType.GetProperty("A2fActif");
+            var dateDerniereActivationProperty = responseType.GetProperty("DateDerniereActivation");
+            var doitReactiverProperty = responseType.GetProperty("DoitReactiver");
+
+            Assert.AreEqual(true, a2fActifProperty.GetValue(response));
+            Assert.IsNotNull(dateDerniereActivationProperty.GetValue(response));
+            Assert.AreEqual(false, doitReactiverProperty.GetValue(response));
+        }
+
+        [TestMethod]
+        public async Task GetStatutA2f_A2fInactif_ReturnsStatutCorrect()
+        {
+            // Arrange
+            _objetcommun.A2fActif = false;
+            _objetcommun.DateDerniereActivationA2f = null;
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetStatutA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var a2fActifProperty = responseType.GetProperty("A2fActif");
+
+            Assert.AreEqual(false, a2fActifProperty.GetValue(response));
+        }
+
+        [TestMethod]
+        public async Task GetStatutA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Act
+            var result = await _controller.GetStatutA2f(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task VerifActivA2f_DoitReactiver_ReturnsTrue()
+        {
+            // Arrange
+            _objetcommun.A2fActif = true;
+            _objetcommun.DateDerniereActivationA2f = DateTime.UtcNow.AddDays(-35); // Plus de 30 jours
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.VerifActivA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = result.Result as OkObjectResult;
+            Assert.AreEqual(true, okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task VerifActivA2f_NePasDevoirReactiver_ReturnsFalse()
+        {
+            // Arrange
+            _objetcommun.A2fActif = true;
+            _objetcommun.DateDerniereActivationA2f = DateTime.UtcNow.AddDays(-15); // Moins de 30 jours
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.VerifActivA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = result.Result as OkObjectResult;
+            Assert.AreEqual(false, okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task VerifActivA2f_A2fInactif_ReturnsFalse()
+        {
+            // Arrange
+            _objetcommun.A2fActif = false;
+            _objetcommun.DateDerniereActivationA2f = null;
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.VerifActivA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = result.Result as OkObjectResult;
+            Assert.AreEqual(false, okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task VerifActivA2f_A2fActifSansDate_ReturnsTrue()
+        {
+            // Arrange
+            _objetcommun.A2fActif = true;
+            _objetcommun.DateDerniereActivationA2f = null; // Jamais activé
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.VerifActivA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = result.Result as OkObjectResult;
+            Assert.AreEqual(true, okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task VerifActivA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Act
+            var result = await _controller.VerifActivA2f(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task ActiverA2f_ValidData_ActiveA2fEtEnregistreDansJournal()
+        {
+            // Arrange
+            _context.TypesJournal.Add(new TypeJournal
+            {
+                IdTypeJournaux = 15,
+                LibelleTypeJournaux = "Activation A2F"
+            });
+            await _context.SaveChangesAsync();
+
+            var dto = new A2fActivationDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                CodeValidation = "1234567"
+            };
+
+            // Act
+            var result = await _controller.ActiverA2f(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.IsTrue(compteModifie.A2fActif);
+            Assert.IsNotNull(compteModifie.DateDerniereActivationA2f);
+            Assert.IsTrue((DateTime.UtcNow - compteModifie.DateDerniereActivationA2f.Value).TotalMinutes < 1);
+
+            var journal = await _context.Journaux
+                .Where(j => j.IdCompte == _objetcommun.IdCompte && j.IdTypeJournal == 15)
+                .FirstOrDefaultAsync();
+            Assert.IsNotNull(journal);
+        }
+
+        [TestMethod]
+        public async Task ActiverA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Arrange
+            var dto = new A2fActivationDTO
+            {
+                IdCompte = 999,
+                CodeValidation = "1234567"
+            };
+
+            // Act
+            var result = await _controller.ActiverA2f(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task ActiverA2f_InvalidModelState_ReturnsBadRequest()
+        {
+            // Arrange
+            var dto = new A2fActivationDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                CodeValidation = null
+            };
+
+            _controller.ModelState.AddModelError("CodeValidation", "Required");
+
+            // Act
+            var result = await _controller.ActiverA2f(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task DesactiverA2f_ValidId_DesactiveA2fEtEnregistreDansJournal()
+        {
+            // Arrange
+            _context.TypesJournal.Add(new TypeJournal
+            {
+                IdTypeJournaux = 16,
+                LibelleTypeJournaux = "Désactivation A2F"
+            });
+            _objetcommun.A2fActif = true;
+            _objetcommun.DateDerniereActivationA2f = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.DesactiverA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.IsFalse(compteModifie.A2fActif);
+
+            var journal = await _context.Journaux
+                .Where(j => j.IdCompte == _objetcommun.IdCompte && j.IdTypeJournal == 16)
+                .FirstOrDefaultAsync();
+            Assert.IsNotNull(journal);
+        }
+
+        [TestMethod]
+        public async Task DesactiverA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Act
+            var result = await _controller.DesactiverA2f(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task DemanderActivationA2f_ValidId_ReturnsOkWithMessage()
+        {
+            // Act
+            var result = await _controller.DemanderActivationA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("Message");
+
+            Assert.IsNotNull(messageProperty);
+            var message = messageProperty.GetValue(response).ToString();
+            Assert.IsTrue(message.Contains("code d'activation"));
+        }
+
+        [TestMethod]
+        public async Task DemanderActivationA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Act
+            var result = await _controller.DemanderActivationA2f(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task ValidateA2fLogin_ValidCodeConnexion_ReturnsOkWithToken()
+        {
+            // Arrange
+            var dto = new TokenEmailVerifDTO
+            {
+                Email = _objetcommun.Email,
+                Code = "1234567",
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            // Act
+            var result = await _controller.ValidateA2fLogin(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+            var userIdProperty = responseType.GetProperty("userId");
+            var pseudoProperty = responseType.GetProperty("pseudo");
+
+            Assert.AreEqual("Login OK", messageProperty.GetValue(response));
+            Assert.AreEqual(_objetcommun.IdCompte, userIdProperty.GetValue(response));
+            Assert.AreEqual(_objetcommun.Pseudo, pseudoProperty.GetValue(response));
+
+            var cookies = _controller.Response.Headers["Set-Cookie"];
+            Assert.IsTrue(cookies.Count > 0);
+            Assert.IsTrue(cookies.ToString().Contains("access_token"));
+        }
+
+        [TestMethod]
+        public async Task ValidateA2fLogin_ValidCodeActivation_ActiveA2fAndReturnsOk()
+        {
+            // Arrange
+            var dto = new TokenEmailVerifDTO
+            {
+                Email = _objetcommun.Email,
+                Code = "1234567",
+                TypeToken = "A2F_ACTIVATION"
+            };
+
+            // Act
+            var result = await _controller.ValidateA2fLogin(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.IsTrue(compteModifie.A2fActif);
+            Assert.IsNotNull(compteModifie.DateDerniereActivationA2f);
+        }
+
+        [TestMethod]
+        public async Task ValidateA2fLogin_CompteInexistant_ReturnsBadRequest()
+        {
+            // Arrange
+            var dto = new TokenEmailVerifDTO
+            {
+                Email = "nonexistent@gmail.com",
+                Code = "1234567",
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            // Act
+            var result = await _controller.ValidateA2fLogin(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_AvecA2fInactif_ReturnsOkWithToken()
+        {
+            // Arrange
+            _objetcommun.A2fActif = false;
+            await _context.SaveChangesAsync();
+
+            var loginRequest = new LoginRequest
+            {
+                Email = _objetcommun.Email,
+                MotDePasse = "Testmdp1!"
+            };
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var cookies = _controller.Response.Headers["Set-Cookie"];
+            Assert.IsTrue(cookies.Count > 0);
+            Assert.IsTrue(cookies.ToString().Contains("access_token"));
+        }
+
+        [TestMethod]
+        public async Task GetStatutA2f_A2fActifDepuis25Jours_DoitReactiverFalse()
+        {
+            // Arrange
+            _objetcommun.A2fActif = true;
+            _objetcommun.DateDerniereActivationA2f = DateTime.UtcNow.AddDays(-25);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetStatutA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var doitReactiverProperty = responseType.GetProperty("DoitReactiver");
+
+            Assert.AreEqual(false, doitReactiverProperty.GetValue(response));
+        }
+
+        [TestMethod]
+        public async Task GetStatutA2f_A2fActifExactement30Jours_DoitReactiverFalse()
+        {
+            // Arrange
+            _objetcommun.A2fActif = true;
+            _objetcommun.DateDerniereActivationA2f = DateTime.UtcNow.AddDays(-30);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetStatutA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var doitReactiverProperty = responseType.GetProperty("DoitReactiver");
+
+            // Exactement 30 jours = pas besoin de réactiver
+            Assert.AreEqual(false, doitReactiverProperty.GetValue(response));
+        }
+
+        [TestMethod]
+        public async Task GetStatutA2f_A2fActifDepuis31Jours_DoitReactiverTrue()
+        {
+            // Arrange
+            _objetcommun.A2fActif = true;
+            _objetcommun.DateDerniereActivationA2f = DateTime.UtcNow.AddDays(-31);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetStatutA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var doitReactiverProperty = responseType.GetProperty("DoitReactiver");
+
+            Assert.AreEqual(true, doitReactiverProperty.GetValue(response));
+        }
+
         #endregion
     }
 }

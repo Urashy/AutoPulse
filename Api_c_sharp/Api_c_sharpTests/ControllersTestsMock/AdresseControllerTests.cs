@@ -26,8 +26,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestInitialize]
         public void Initialize()
         {
-            // Création du mock du manager avec un paramètre null pour le context
-            // (le mock n'utilisera pas le context réel)
+            // Création du mock
             _mockManager = new Mock<AdresseManager>(null);
 
             // Création de l'adresse de référence
@@ -54,6 +53,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new AdresseController(_mockManager.Object, _mapper);
         }
         #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -85,7 +85,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -120,6 +122,59 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
+
+            #region GetAdressesByCompteID
+        [TestMethod]
+        public async Task GetAdressesByCompteIDTest()
+        {
+            // Arrange
+            var adressesList = new List<Adresse>
+            {
+                _objetcommun,
+                new Adresse
+                {
+                    IdAdresse = 2,
+                    Nom = "Secondaire",
+                    LibelleVille = "Lyon",
+                    CodePostal = "69000",
+                    Rue = "Rue de la République",
+                    Numero = 5,
+                    IdPays = 1,
+                    IdCompte = 1
+                }
+            };
+
+            _mockManager.Setup(m => m.GetAdresseByCompteID(_objetcommun.IdCompte))
+                       .ReturnsAsync(adressesList);
+
+            // Act
+            var result = await _controller.GetAdressesByCompteID(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
+            Assert.AreEqual(2, result.Value.Count());
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAdressesByCompteIDTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetAdresseByCompteID(0))
+                       .ReturnsAsync((IEnumerable<Adresse>)null);
+
+            // Act
+            var result = await _controller.GetAdressesByCompteID(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
         #endregion
 
         #region POST
@@ -316,56 +371,5 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
         #endregion
 
-        #region GetAdressesByCompteID
-        [TestMethod]
-        public async Task GetAdressesByCompteIDTest()
-        {
-            // Arrange
-            var adressesList = new List<Adresse>
-            {
-                _objetcommun,
-                new Adresse
-                {
-                    IdAdresse = 2,
-                    Nom = "Secondaire",
-                    LibelleVille = "Lyon",
-                    CodePostal = "69000",
-                    Rue = "Rue de la République",
-                    Numero = 5,
-                    IdPays = 1,
-                    IdCompte = 1
-                }
-            };
-
-            _mockManager.Setup(m => m.GetAdresseByCompteID(_objetcommun.IdCompte))
-                       .ReturnsAsync(adressesList);
-
-            // Act
-            var result = await _controller.GetAdressesByCompteID(_objetcommun.IdCompte);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AdresseDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Rue == _objetcommun.Rue));
-            Assert.AreEqual(2, result.Value.Count());
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetAdressesByCompteIDTest()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetAdresseByCompteID(0))
-                       .ReturnsAsync((IEnumerable<Adresse>)null);
-
-            // Act
-            var result = await _controller.GetAdressesByCompteID(0);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-        #endregion
     }
 }

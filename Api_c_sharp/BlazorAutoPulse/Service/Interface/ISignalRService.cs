@@ -14,11 +14,16 @@ public interface ISignalRService
     Task MarkAsRead(int conversationId, int userId);
     Task JoinFavorisAnnonce(int idAnnonce);
     Task LeaveFavorisAnnonce(int idAnnonce);
+    Task SendMessageWithOffre(int conversationId, int senderId, string message, int idMessage, decimal offreValeur, int idAnnonce);
+
 
     event Action<int, int, string, DateTime>? OnMessageReceived;
     event Action<int, int, string>? OnUserTyping;
     event Action<int, int>? OnMessagesRead;
     public event Action<PriceDropNotification>? OnPriceDropReceived;
-    
+    public event Action<int, bool?>? OnOffreStatusChanged;
+    event Action<int, int, string, DateTime, int, decimal, int>? OnMessageWithOffreReceived;
+
+
     bool IsConnected { get; }
 }

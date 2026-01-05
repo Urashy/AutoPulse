@@ -21,6 +21,7 @@ namespace Api_c_sharp.ControllersMock.Tests
     [TestCategory("unit")]
     public class PieceJointeControllerTests
     {
+        
         private Mock<PieceJointeManager> _mockManager;
         private PieceJointeController _controller;
         private IMapper _mapper;
@@ -29,16 +30,20 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestInitialize]
         public void Initialize()
         {
+            // Création du mock du manager avec un paramètre null pour le context
             _mockManager = new Mock<PieceJointeManager>(null);
 
+            // Configuration AutoMapper
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<MapperProfile>();
             });
             _mapper = config.CreateMapper();
 
+            // Injection dans le controller
             _controller = new PieceJointeController(_mockManager.Object, _mapper);
 
+            // Création de la piece jointe de référence
             _objetcommun = new PieceJointe
             {
                 IdPieceJointe = 1,
@@ -52,9 +57,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             };
         }
 
-        // -----------------------------------------------------
-        //                     GET BY ID
-        // -----------------------------------------------------
+        #region GET
         [TestMethod]
         public async Task GetById_ReturnsOk_WhenExists()
         {
@@ -86,9 +89,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
-        // -----------------------------------------------------
-        //                     GET ALL
-        // -----------------------------------------------------
+
         [TestMethod]
         public async Task GetAll_ReturnsList()
         {
@@ -104,9 +105,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.AreEqual(1, result.Value.Count());
         }
 
-        // -----------------------------------------------------
-        //                     GET BY MESSAGE
-        // -----------------------------------------------------
+
         [TestMethod]
         public async Task GetByMessage_ReturnsOk()
         {
@@ -145,10 +144,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(list);
             Assert.IsNull(list.First().ContenuBase64);
         }
+        #endregion
 
-        // -----------------------------------------------------
-        //                     UPLOAD
-        // -----------------------------------------------------
+        #region UPLOAD
         [TestMethod]
         public async Task Upload_ReturnsOk_WithValidFile()
         {
@@ -343,10 +341,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
         }
+        #endregion
 
-        // -----------------------------------------------------
-        //                     DOWNLOAD
-        // -----------------------------------------------------
+        #region DOWNLOAD
         [TestMethod]
         public async Task Download_ReturnsFile_WhenExists()
         {
@@ -374,10 +371,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // -----------------------------------------------------
-        //                     POST
-        // -----------------------------------------------------
+        #region POST
         [TestMethod]
         public async Task Post_ReturnsCreated()
         {
@@ -417,10 +413,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<PieceJointe>()), Times.Never);
         }
+        #endregion
 
-        // -----------------------------------------------------
-        //                     PUT
-        // -----------------------------------------------------
+        #region PUT
         [TestMethod]
         public async Task Put_ReturnsNoContent_WhenOk()
         {
@@ -475,10 +470,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<PieceJointe>(), It.IsAny<PieceJointe>()), Times.Never);
         }
+        #endregion
 
-        // -----------------------------------------------------
-        //                     DELETE
-        // -----------------------------------------------------
+        #region DELETE
         [TestMethod]
         public async Task Delete_ReturnsNoContent_WhenExists()
         {
@@ -520,5 +514,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
     }
 }

@@ -51,10 +51,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new JournalController(_mockManager.Object, _mapper);
         }
 
-        // ==========================================
-        // TESTS CRUD CLASSIQUES
-        // ==========================================
-
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -118,7 +115,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.ContenuJournal == _objetcommun.ContenuJournal));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task PostJournalTest_Entity()
         {
@@ -169,7 +168,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteJournalTest()
         {
@@ -201,7 +202,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutJournalTest()
         {
@@ -294,10 +297,13 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+        #endregion
 
+        #region Filtred
         [TestMethod]
         public async Task GetFilteredJournal_ByTypeOnly_Test()
         {
+            // Arrange
             var journalsList = new List<Journal>
             {
                 _objetcommun,
@@ -320,8 +326,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(r => r.IdType == 1)))
                        .ReturnsAsync(journalsList);
 
+            // Act
             var result = await _controller.GetFilteredJournal(recherche);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<JournalDTO>));
@@ -333,6 +341,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetFilteredJournal_WithDateInterval_Test()
         {
+            // Arrange
             var dateDebut = DateTime.UtcNow.AddDays(-5);
             var dateFin = DateTime.UtcNow;
 
@@ -360,8 +369,10 @@ namespace Api_c_sharp.ControllersMock.Tests
                 r => r.IdType == 1 && r.DebutIntervalle == dateDebut && r.FinIntervalle == dateFin)))
                        .ReturnsAsync(journalsList);
 
+            // Act
             var result = await _controller.GetFilteredJournal(recherche);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
@@ -371,6 +382,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetFilteredJournal_OrderAscending_Test()
         {
+            // Arrange
             var date1 = DateTime.UtcNow.AddHours(-3);
             var date2 = DateTime.UtcNow.AddHours(-2);
             var date3 = DateTime.UtcNow.AddHours(-1);
@@ -391,8 +403,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(r => r.Order == 1)))
                        .ReturnsAsync(journalsList);
 
+            // Act
             var result = await _controller.GetFilteredJournal(recherche);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             var journaux = result.Value.ToList();
@@ -407,6 +421,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetFilteredJournal_OrderDescending_Test()
         {
+            // Arrange
             var date1 = DateTime.UtcNow.AddHours(-1);
             var date2 = DateTime.UtcNow.AddHours(-2);
             var date3 = DateTime.UtcNow.AddHours(-3);
@@ -427,8 +442,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(r => r.Order == 0)))
                        .ReturnsAsync(journalsList);
 
+            // Act
             var result = await _controller.GetFilteredJournal(recherche);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             var journaux = result.Value.ToList();
@@ -443,6 +460,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetFilteredJournal_NoResults_Test()
         {
+            // Arrange
             var recherche = new RechercheJournalDTO
             {
                 IdType = 999,
@@ -452,8 +470,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetFilteredJournal(It.Is<RechercheJournalDTO>(r => r.IdType == 999)))
                        .ReturnsAsync((IEnumerable<Journal>)null);
 
+            // Act
             var result = await _controller.GetFilteredJournal(recherche);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
@@ -461,6 +481,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetFilteredJournal_EmptyResults_Test()
         {
+            // Arrange
             var recherche = new RechercheJournalDTO
             {
                 IdType = 1,
@@ -472,8 +493,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetFilteredJournal(It.IsAny<RechercheJournalDTO>()))
                        .ReturnsAsync(new List<Journal>());
 
+            // Act
             var result = await _controller.GetFilteredJournal(recherche);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
@@ -481,6 +504,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetFilteredJournal_WithDateDebutOnly_Test()
         {
+            // Arrange
             var dateDebut = DateTime.UtcNow.AddDays(-5);
 
             var journalsList = new List<Journal>
@@ -506,8 +530,10 @@ namespace Api_c_sharp.ControllersMock.Tests
                 r => r.DebutIntervalle == dateDebut && !r.FinIntervalle.HasValue)))
                        .ReturnsAsync(journalsList);
 
+            // Act
             var result = await _controller.GetFilteredJournal(recherche);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
@@ -516,6 +542,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetFilteredJournal_WithDateFinOnly_Test()
         {
+            // Arrange
             var dateFin = DateTime.UtcNow;
 
             var journalsList = new List<Journal>
@@ -541,17 +568,18 @@ namespace Api_c_sharp.ControllersMock.Tests
                 r => !r.DebutIntervalle.HasValue && r.FinIntervalle == dateFin)))
                        .ReturnsAsync(journalsList);
 
+            // Act
             var result = await _controller.GetFilteredJournal(recherche);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
         }
+        #endregion
 
-        // ==========================================
-        // TESTS DES MÉTHODES DE LOGGING (IJournalService)
-        // ==========================================
-
+        #region Log
+            #region Connexion
         [TestMethod]
         public async Task LogConnexionAsyncTest()
         {
@@ -583,7 +611,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             _mockManager.Verify(m => m.LogDeconnexionAsync(idCompte), Times.Once);
         }
+        #endregion
 
+            #region Compte
         [TestMethod]
         public async Task LogCreationCompteAsyncTest()
         {
@@ -616,7 +646,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             _mockManager.Verify(m => m.LogModificationProfilAsync(idCompte), Times.Once);
         }
+        #endregion
 
+            #region Annoce
         [TestMethod]
         public async Task LogPublicationAnnonceAsyncTest()
         {
@@ -670,6 +702,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             _mockManager.Verify(m => m.LogSuppressionAnnonceAsync(idCompte, idAnnonce, titre), Times.Once);
         }
+        
 
         [TestMethod]
         public async Task LogAchatAsyncTest()
@@ -690,7 +723,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             _mockManager.Verify(m => m.LogAchatAsync(idAcheteur, idVendeur, idCommande, idAnnonce, idMoyenPaiement), Times.Once);
         }
+        #endregion
 
+            #region Signalement
         [TestMethod]
         public async Task LogSignalementCompteAsyncTest()
         {
@@ -730,7 +765,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             _mockManager.Verify(m => m.LogSignalementAnnonceAsync(idSignalant, idAnnoncesignale, idSignalement, idTypeSignalement, description), Times.Once);
         }
+        #endregion
 
+            #region Interaction
         [TestMethod]
         public async Task LogDepotAvisAsyncTest()
         {
@@ -838,5 +875,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             _mockManager.Verify(m => m.LogActionAsync(idCompte, idTypeJournal, contenu), Times.Once);
         }
+        #endregion
+        #endregion
     }
 }

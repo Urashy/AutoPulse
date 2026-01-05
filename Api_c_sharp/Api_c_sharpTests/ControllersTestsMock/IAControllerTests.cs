@@ -27,7 +27,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockLogger = new Mock<ILogger<IAController>>();
             _controller = new IAController(_mockIAService.Object, _mockLogger.Object);
         }
-
+        #region Health
         [TestMethod]
         public async Task HealthTest_ServiceHealthy_ReturnsOk()
         {
@@ -92,7 +92,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             var objectResult = (ObjectResult)result;
             Assert.AreEqual(503, objectResult.StatusCode);
         }
+        #endregion
 
+        #region Prediction
         [TestMethod]
         public async Task PredictCNNTest_ValidData_ReturnsOk()
         {
@@ -425,5 +427,6 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             _mockIAService.Verify(s => s.PredictAsync(It.IsAny<DataAI>()), Times.Never);
         }
+        #endregion
     }
 }

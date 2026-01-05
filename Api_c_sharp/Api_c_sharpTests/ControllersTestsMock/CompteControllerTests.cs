@@ -362,7 +362,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task Login_ValidCredentials_ReturnsOkWithToken()
         {
             // Arrange
-            var loginRequest = new LoginRequest()
+            var loginRequest = new LoginRequest
             {
                 Email = "john@gmail.com",
                 MotDePasse = "Testmdp1!"
@@ -871,7 +871,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.UpdateAnonymise(compte2.IdCompte), Times.Once);
         }
 
-        #region Tests manquants pour compléter la couverture
+        #region Autres tests
 
 
         [TestMethod]
@@ -1299,18 +1299,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        // ============================================================================
-        // SOLUTION SANS REFACTORING - Tests avec HttpClient mocké
-        // ============================================================================
-
-        // Vous pouvez tester SANS créer d'interface, mais c'est plus complexe.
-        // Voici les approches possibles :
-
-        // ============================================================================
-        // APPROCHE 1 : Tester indirectement via GetOrCreateCompte (RECOMMANDÉ)
-        // ============================================================================
-
-        #region Tests Google OAuth sans refactoring - CORRIGÉS
+        #region Tests Google OAuth
 
         [TestMethod]
         public async Task GetOrCreateCompte_ExistingUser_ReturnsExistingCompte()
@@ -1606,6 +1595,367 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Vérifier la date de naissance par défaut (2000-01-01)
             Assert.AreEqual(new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), capturedCompte.DateNaissance);
+        }
+
+        #endregion
+
+        #region Tests A2F
+
+        [TestMethod]
+        public async Task GetStatutA2f_CompteExistant_ReturnsStatut()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.GetStatutA2f(_objetcommun.IdCompte))
+                       .ReturnsAsync((true, DateTime.UtcNow.AddDays(-10)));
+
+            _mockManager.Setup(m => m.DoitReactiverA2f(_objetcommun.IdCompte))
+                       .ReturnsAsync(false);
+
+            // Act
+            var result = await _controller.GetStatutA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+            Assert.IsNotNull(okResult.Value);
+
+            _mockManager.Verify(m => m.GetStatutA2f(_objetcommun.IdCompte), Times.Once);
+            _mockManager.Verify(m => m.DoitReactiverA2f(_objetcommun.IdCompte), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetStatutA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(999))
+                       .ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.GetStatutA2f(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task VerifActivA2f_DoitReactiver_ReturnsTrue()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.DoitReactiverA2f(_objetcommun.IdCompte))
+                       .ReturnsAsync(true);
+
+            // Act
+            var result = await _controller.VerifActivA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = result.Result as OkObjectResult;
+            Assert.AreEqual(true, okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task VerifActivA2f_NePasDevoirReactiver_ReturnsFalse()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.DoitReactiverA2f(_objetcommun.IdCompte))
+                       .ReturnsAsync(false);
+
+            // Act
+            var result = await _controller.VerifActivA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = result.Result as OkObjectResult;
+            Assert.AreEqual(false, okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task VerifActivA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(999))
+                       .ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.VerifActivA2f(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task ActiverA2f_ValidData_ReturnsNoContent()
+        {
+            // Arrange
+            var dto = new A2fActivationDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                CodeValidation = "1234567"
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.ActiverA2f(_objetcommun.IdCompte))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            _mockJournalService.Setup(j => j.LogActionAsync(
+                _objetcommun.IdCompte,
+                15,
+                It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.ActiverA2f(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.ActiverA2f(_objetcommun.IdCompte), Times.Once);
+            _mockJournalService.Verify(j => j.LogActionAsync(
+                _objetcommun.IdCompte,
+                15,
+                "L'utilisateur à activer l'A2F"), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ActiverA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Arrange
+            var dto = new A2fActivationDTO
+            {
+                IdCompte = 999,
+                CodeValidation = "1234567"
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(999))
+                       .ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.ActiverA2f(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            _mockManager.Verify(m => m.ActiverA2f(It.IsAny<int>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task ActiverA2f_InvalidModelState_ReturnsBadRequest()
+        {
+            // Arrange
+            var dto = new A2fActivationDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                CodeValidation = null
+            };
+
+            _controller.ModelState.AddModelError("CodeValidation", "Required");
+
+            // Act
+            var result = await _controller.ActiverA2f(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.ActiverA2f(It.IsAny<int>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task DesactiverA2f_ValidId_ReturnsNoContent()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.DesactiverA2f(_objetcommun.IdCompte))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            _mockJournalService.Setup(j => j.LogActionAsync(
+                _objetcommun.IdCompte,
+                16,
+                It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.DesactiverA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.DesactiverA2f(_objetcommun.IdCompte), Times.Once);
+            _mockJournalService.Verify(j => j.LogActionAsync(
+                _objetcommun.IdCompte,
+                16,
+                "L'utilisateur à activer l'A2F"), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task DesactiverA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(999))
+                       .ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.DesactiverA2f(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            _mockManager.Verify(m => m.DesactiverA2f(It.IsAny<int>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task DemanderActivationA2f_ValidId_ReturnsOkWithMessage()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte))
+                       .ReturnsAsync(_objetcommun);
+
+            // Act
+            var result = await _controller.DemanderActivationA2f(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+            Assert.IsNotNull(okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task DemanderActivationA2f_CompteInexistant_ReturnsNotFound()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(999))
+                       .ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.DemanderActivationA2f(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+
+        [TestMethod]
+        public async Task Login_WithA2fInactive_ReturnsOkWithToken()
+        {
+            // Arrange
+            var loginRequest = new LoginRequest
+            {
+                Email = "john@gmail.com",
+                MotDePasse = "Testmdp1!"
+            };
+
+            _mockManager.Setup(m => m.AuthenticateCompte(
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+                .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>()))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.GetStatutA2f(_objetcommun.IdCompte))
+                       .ReturnsAsync((false, null)); // A2F inactif
+
+            _mockManager.Setup(m => m.DoitReactiverA2f(_objetcommun.IdCompte))
+                       .ReturnsAsync(false);
+
+            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>()))
+                              .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task ValidateA2fLogin_ValidCode_ReturnsOkWithToken()
+        {
+            // Arrange
+            var dto = new TokenEmailVerifDTO
+            {
+                Email = "john@gmail.com",
+                Code = "1234567",
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(dto.Email))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>()))
+                              .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.ValidateA2fLogin(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+
+            Assert.AreEqual("Login OK", messageProperty.GetValue(response));
+        }
+
+        [TestMethod]
+        public async Task ValidateA2fLogin_WithA2fActivation_ActivatesA2f()
+        {
+            // Arrange
+            var dto = new TokenEmailVerifDTO
+            {
+                Email = "john@gmail.com",
+                Code = "1234567",
+                TypeToken = "A2F_ACTIVATION"
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(dto.Email))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.ActiverA2f(_objetcommun.IdCompte))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>()))
+                              .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.ValidateA2fLogin(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            _mockManager.Verify(m => m.ActiverA2f(_objetcommun.IdCompte), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ValidateA2fLogin_CompteInexistant_ReturnsBadRequest()
+        {
+            // Arrange
+            var dto = new TokenEmailVerifDTO
+            {
+                Email = "nonexistent@gmail.com",
+                Code = "1234567",
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(dto.Email))
+                       .ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.ValidateA2fLogin(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
         #endregion

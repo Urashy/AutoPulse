@@ -71,7 +71,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 _mockHubContext.Object
             );
         }
-
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -138,252 +138,9 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task PostMessageTest_Entity()
-        {
-            // Arrange
-            MessageCreateDTO messageDTO = new MessageCreateDTO()
-            {
-                IdConversation = 1,
-                IdCompte = 1,
-                ContenuMessage = "Nouveau message"
-            };
-
-            var messageEntity = _mapper.Map<Message>(messageDTO);
-            messageEntity.IdMessage = 3;
-            messageEntity.DateEnvoiMessage = DateTime.UtcNow;
-            messageEntity.EstLu = false;
-
-            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
-                       .ReturnsAsync(messageEntity)
-                       .Verifiable();
-
-            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
-                It.IsAny<int>(),
-                It.IsAny<int>(),
-                It.IsAny<string>(),
-                It.IsAny<int?>()))  // ✅ Ajouter le 4ème paramètre optionnel
-                .Returns(Task.CompletedTask);
-
-            // Act
-            var actionResult = await _controller.Post(messageDTO);
-
-            // Assert
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-            var created = (CreatedAtActionResult)actionResult.Result;
-            var createdMessage = (Message)created.Value;
-            Assert.AreEqual(messageDTO.ContenuMessage, createdMessage.ContenuMessage);
-            _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Once);
-            // ✅ Vérifier avec les 4 paramètres (incluant le paramètre optionnel)
-            _mockJournalService.Verify(j => j.LogEnvoiMessageAsync(
-                messageDTO.IdCompte,
-                messageDTO.IdConversation,
-                messageDTO.ContenuMessage,
-                It.IsAny<int?>()), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task PostMessageWithHubNotificationTest()
-        {
-            // Arrange
-            MessageCreateDTO messageDTO = new MessageCreateDTO()
-            {
-                IdConversation = 1,
-                IdCompte = 1,
-                ContenuMessage = "Message avec notification"
-            };
-
-            var messageEntity = _mapper.Map<Message>(messageDTO);
-            messageEntity.IdMessage = 4;
-            messageEntity.DateEnvoiMessage = DateTime.UtcNow;
-            messageEntity.EstLu = false;
-
-            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
-                       .ReturnsAsync(messageEntity);
-
-            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
-                It.IsAny<int>(),
-                It.IsAny<int>(),
-                It.IsAny<string>(),
-                It.IsAny<int?>()))  // ✅ Ajouter le 4ème paramètre optionnel
-                .Returns(Task.CompletedTask);
-
-            // Act
-            var actionResult = await _controller.Post(messageDTO);
-
-            // Assert
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-
-            // Vérifier que SignalR a été appelé avec "ReceiveMessage"
-            _mockClientProxy.Verify(
-                c => c.SendCoreAsync(
-                    "ReceiveMessage",
-                    It.Is<object[]>(args =>
-                        args.Length == 4 &&
-                        (int)args[0] == messageEntity.IdConversation &&
-                        (int)args[1] == messageEntity.IdCompte &&
-                        (string)args[2] == messageEntity.ContenuMessage &&
-                        args[3] != null
-                    ),
-                    It.IsAny<CancellationToken>()
-                ),
-                Times.Once
-            );
-        }
-
-        [TestMethod]
-        public async Task BadRequestPostMessageTest()
-        {
-            // Arrange
-            MessageCreateDTO messageDTO = new MessageCreateDTO()
-            {
-                IdCompte = 1,
-                ContenuMessage = null
-            };
-
-            _controller.ModelState.AddModelError("ContenuMessage", "Required");
-
-            // Act
-            var actionResult = await _controller.Post(messageDTO);
-
-            // Assert
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-            _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Never);
-        }
-
-        [TestMethod]
-        public async Task DeleteMessageTest()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdMessage))
-                       .ReturnsAsync(_objetcommun);
-            _mockManager.Setup(m => m.DeleteAsync(_objetcommun))
-                       .Returns(Task.FromResult(true))
-                       .Verifiable();
-
-            // Act
-            var result = await _controller.Delete(_objetcommun.IdMessage);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            _mockManager.Verify(m => m.DeleteAsync(_objetcommun), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task NotFoundDeleteMessageTest()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetByIdAsync(0))
-                       .ReturnsAsync((Message)null);
-
-            // Act
-            var result = await _controller.Delete(0);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task PutMessageTest()
-        {
-            // Arrange
-            var existingMessage = new Message
-            {
-                IdMessage = _objetcommun.IdMessage,
-                ContenuMessage = "Ancien contenu",
-                DateEnvoiMessage = DateTime.Now,
-                IdConversation = 1,
-                IdCompte = 1,
-                EstLu = false
-            };
-
-            MessageUpdateDTO messageDTO = new MessageUpdateDTO()
-            {
-                IdMessage = _objetcommun.IdMessage,
-                IdCompte = 1,
-                ContenuMessage = "Nouveau contenu",
-                DateEnvoiMessage = DateTime.Now
-            };
-
-            var updatedMessage = _mapper.Map<Message>(messageDTO);
-
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdMessage))
-                       .ReturnsAsync(existingMessage);
-            _mockManager.Setup(m => m.UpdateAsync(existingMessage, updatedMessage))
-                       .Returns(Task.CompletedTask)
-                       .Verifiable();
-
-            // Act
-            var result = await _controller.Put(_objetcommun.IdMessage, messageDTO);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Message>(), It.IsAny<Message>()), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutMessageTest()
-        {
-            // Arrange
-            MessageUpdateDTO messageDTO = new MessageUpdateDTO()
-            {
-                IdMessage = 0,
-                IdCompte = 1,
-                ContenuMessage = "Contenu",
-                DateEnvoiMessage = DateTime.Now
-            };
-
-            _mockManager.Setup(m => m.GetByIdAsync(0))
-                       .ReturnsAsync((Message)null);
-
-            // Act
-            var result = await _controller.Put(0, messageDTO);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task BadRequestPutMessageTest()
-        {
-            // Arrange
-            MessageUpdateDTO messageDTO = new MessageUpdateDTO()
-            {
-                IdMessage = _objetcommun.IdMessage,
-                IdCompte = 1,
-                ContenuMessage = null,
-                DateEnvoiMessage = DateTime.Now
-            };
-
-            // ✅ CORRECTION: Il faut d'abord setup le GetByIdAsync pour que le message existe
-            var existingMessage = new Message
-            {
-                IdMessage = _objetcommun.IdMessage,
-                ContenuMessage = "Ancien contenu",
-                DateEnvoiMessage = DateTime.Now,
-                IdConversation = 1,
-                IdCompte = 1,
-                EstLu = false
-            };
-
-            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdMessage))
-                       .ReturnsAsync(existingMessage);
-
-            _controller.ModelState.AddModelError("Contenu", "Required");
-
-            // Act
-            var result = await _controller.Put(_objetcommun.IdMessage, messageDTO);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
-            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
-            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Message>(), It.IsAny<Message>()), Times.Never);
-        }
-
-        [TestMethod]
         public async Task GetUnreadCountTest()
         {
             // Arrange
-            // ✅ CORRECTION: Le controller fait un Ok(count), pas un simple retour de valeur
             _mockManager.Setup(m => m.GetUnreadMessageCount(1, 1))
                        .ReturnsAsync(5);
 
@@ -515,5 +272,258 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+
+        #endregion
+
+        #region POST
+        [TestMethod]
+        public async Task PostMessageTest_Entity()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Nouveau message"
+            };
+
+            var messageEntity = _mapper.Map<Message>(messageDTO);
+            messageEntity.IdMessage = 3;
+            messageEntity.DateEnvoiMessage = DateTime.UtcNow;
+            messageEntity.EstLu = false;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                       .ReturnsAsync(messageEntity)
+                       .Verifiable();
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))  // optionnel
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdMessage = (Message)created.Value;
+            Assert.AreEqual(messageDTO.ContenuMessage, createdMessage.ContenuMessage);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Once);
+            // Vérifier les 4 paramètres (dont optionnel)
+            _mockJournalService.Verify(j => j.LogEnvoiMessageAsync(
+                messageDTO.IdCompte,
+                messageDTO.IdConversation,
+                messageDTO.ContenuMessage,
+                It.IsAny<int?>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task PostMessageWithHubNotificationTest()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Message avec notification"
+            };
+
+            var messageEntity = _mapper.Map<Message>(messageDTO);
+            messageEntity.IdMessage = 4;
+            messageEntity.DateEnvoiMessage = DateTime.UtcNow;
+            messageEntity.EstLu = false;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                       .ReturnsAsync(messageEntity);
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))  // ✅ Ajouter le 4ème paramètre optionnel
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            // Vérifier que SignalR a été appelé avec "ReceiveMessage"
+            _mockClientProxy.Verify(
+                c => c.SendCoreAsync(
+                    "ReceiveMessage",
+                    It.Is<object[]>(args =>
+                        args.Length == 4 &&
+                        (int)args[0] == messageEntity.IdConversation &&
+                        (int)args[1] == messageEntity.IdCompte &&
+                        (string)args[2] == messageEntity.ContenuMessage &&
+                        args[3] != null
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+                Times.Once
+            );
+        }
+        #endregion
+
+        #region POST
+        [TestMethod]
+        public async Task BadRequestPostMessageTest()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdCompte = 1,
+                ContenuMessage = null
+            };
+
+            _controller.ModelState.AddModelError("ContenuMessage", "Required");
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Never);
+        }
+        #endregion
+
+        #region DELETE
+        [TestMethod]
+        public async Task DeleteMessageTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdMessage))
+                       .ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.DeleteAsync(_objetcommun))
+                       .Returns(Task.FromResult(true))
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdMessage);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.DeleteAsync(_objetcommun), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task NotFoundDeleteMessageTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(0))
+                       .ReturnsAsync((Message)null);
+
+            // Act
+            var result = await _controller.Delete(0);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region PUT
+        [TestMethod]
+        public async Task PutMessageTest()
+        {
+            // Arrange
+            var existingMessage = new Message
+            {
+                IdMessage = _objetcommun.IdMessage,
+                ContenuMessage = "Ancien contenu",
+                DateEnvoiMessage = DateTime.Now,
+                IdConversation = 1,
+                IdCompte = 1,
+                EstLu = false
+            };
+
+            MessageUpdateDTO messageDTO = new MessageUpdateDTO()
+            {
+                IdMessage = _objetcommun.IdMessage,
+                IdCompte = 1,
+                ContenuMessage = "Nouveau contenu",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            var updatedMessage = _mapper.Map<Message>(messageDTO);
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdMessage))
+                       .ReturnsAsync(existingMessage);
+            _mockManager.Setup(m => m.UpdateAsync(existingMessage, updatedMessage))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdMessage, messageDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Message>(), It.IsAny<Message>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutMessageTest()
+        {
+            // Arrange
+            MessageUpdateDTO messageDTO = new MessageUpdateDTO()
+            {
+                IdMessage = 0,
+                IdCompte = 1,
+                ContenuMessage = "Contenu",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(0))
+                       .ReturnsAsync((Message)null);
+
+            // Act
+            var result = await _controller.Put(0, messageDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task BadRequestPutMessageTest()
+        {
+            // Arrange
+            MessageUpdateDTO messageDTO = new MessageUpdateDTO()
+            {
+                IdMessage = _objetcommun.IdMessage,
+                IdCompte = 1,
+                ContenuMessage = null,
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            
+            var existingMessage = new Message
+            {
+                IdMessage = _objetcommun.IdMessage,
+                ContenuMessage = "Ancien contenu",
+                DateEnvoiMessage = DateTime.Now,
+                IdConversation = 1,
+                IdCompte = 1,
+                EstLu = false
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdMessage))
+                       .ReturnsAsync(existingMessage);
+
+            _controller.ModelState.AddModelError("Contenu", "Required");
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdMessage, messageDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+            _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Message>(), It.IsAny<Message>()), Times.Never);
+        }
+        #endregion
+        
     }
 }

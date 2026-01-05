@@ -33,27 +33,33 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new APourCouleurController(_mockManager.Object, _mapper);
         }
 
-
+        #region GET
         [TestMethod]
         public async Task GetById_ReturnsOk_WhenExists()
         {
+            // Arrange
             var entity = new APourCouleur {IdCouleur = 1, IdVoiture = 2 };
             _mockManager.Setup(m => m.GetAPourCouleursByIDS(2, 1))
                         .ReturnsAsync(entity);
 
+            // Act
             var result = await _controller.GetByIDs(2, 1);
 
+            // Assert
             Assert.IsInstanceOfType(result.Value, typeof(APourCouleurDTO));
         }
 
         [TestMethod]
         public async Task GetById_ReturnsNotFound_WhenNotExists()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetAPourCouleursByIDS(1, 2))
                         .ReturnsAsync((APourCouleur)null);
 
+            // Act
             var result = await _controller.GetByIDs(2, 1);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
@@ -61,26 +67,32 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task GetAll_ReturnsList()
         {
+            // Arrange
             var data = new List<APourCouleur>
-    {
-        new APourCouleur { IdCouleur = 1, IdVoiture = 10 },
-        new APourCouleur { IdCouleur = 2, IdVoiture = 20 }
-    };
+            {
+                new APourCouleur { IdCouleur = 1, IdVoiture = 10 },
+                new APourCouleur { IdCouleur = 2, IdVoiture = 20 }
+            };
 
             _mockManager.Setup(m => m.GetAllAsync())
                         .ReturnsAsync(data);
 
+            // Act
             var result = await _controller.GetAll();
 
+            // Assert
             Assert.IsNotNull(result.Value);
             var list = result.Value;
 
             Assert.AreEqual(2, ((List<APourCouleurDTO>)list).Count);
         }
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task Post_ReturnsCreated()
         {
+            // Arrange
             var dto = new APourCouleurDTO { IdCouleur = 1, IdVoiture = 2 };
 
             var entity = new APourCouleur { IdCouleur = 1, IdVoiture = 2 };
@@ -88,27 +100,35 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.AddAsync(It.IsAny<APourCouleur>()))
                         .ReturnsAsync(entity);
 
+            // Act
             var result = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
         }
 
         [TestMethod]
         public async Task Post_ReturnsBadRequest_WhenModelInvalid()
         {
+            // Arrange
             _controller.ModelState.AddModelError("x", "invalid");
 
             var dto = new APourCouleurDTO();
 
+            // Act
             var result = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<APourCouleur>()), Times.Never);
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task Put_ReturnsNoContent_WhenOk()
         {
+            // Arrange
             var dto = new APourCouleurDTO { IdCouleur = 1, IdVoiture = 2 };
 
             var entity = new APourCouleur { IdCouleur = 1, IdVoiture = 2 };
@@ -116,20 +136,25 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetAPourCouleursByIDS(2, 1))
                         .ReturnsAsync(entity);
 
+            // Act
             var result = await _controller.Put(2, 1, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
 
         [TestMethod]
         public async Task Put_ReturnsBadRequest_WhenModelInvalid()
         {
+            // Arrange
             _controller.ModelState.AddModelError("x", "invalid");
 
             var dto = new APourCouleurDTO();
 
+            // Act
             var result = await _controller.Put(2, 1, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<APourCouleur>(), It.IsAny<APourCouleur>()), Times.Never);
@@ -138,16 +163,21 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task Put_ReturnsNotFound_WhenEntityMissing()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetAPourCouleursByIDS(1, 2))
                         .ReturnsAsync((APourCouleur)null);
 
             var dto = new APourCouleurDTO { IdCouleur = 1, IdVoiture = 2 };
 
+            // Act
             var result = await _controller.Put(2, 1, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task Delete_ReturnsNoContent_WhenOk()
         {
@@ -171,12 +201,16 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestMethod]
         public async Task Delete_ReturnsNotFound_WhenMissing()
         {
+            // Arrange
             _mockManager.Setup(m => m.GetAPourCouleursByIDS(1, 2))
                         .ReturnsAsync((APourCouleur)null);
 
+            // Act
             var result = await _controller.Delete(2, 1);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
     }
 }

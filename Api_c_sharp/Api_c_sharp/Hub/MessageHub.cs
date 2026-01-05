@@ -56,7 +56,7 @@ namespace Api_c_sharp.Hubs
 
             await base.OnDisconnectedAsync(exception);
         }
-
+        
         // Envoyer un message à une conversation
         public async Task SendMessage(int conversationId, int senderId, string message)
         {
@@ -175,6 +175,26 @@ namespace Api_c_sharp.Hubs
             }
     
             Console.WriteLine($"💬 New conversation {conversationId} notification sent to user {receiverId}");
+        }
+
+        public async Task SendMessageWithOffre(
+            int conversationId,
+            int senderId,
+            string message,
+            DateTime dateTime,
+            int idMessage,
+            decimal offreValeur,
+            int idAnnonce)
+        {
+            await Clients.Group($"conversation_{conversationId}")
+                .SendAsync("ReceiveMessageWithOffre",
+                    conversationId,
+                    senderId,
+                    message,
+                    dateTime,
+                    idMessage,
+                    offreValeur,
+                    idAnnonce);
         }
     }
 }
