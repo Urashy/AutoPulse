@@ -27,13 +27,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
     [TestClass()]
     public class CompteControllerTests
     {
-        private CompteController _controller;
-        private AutoPulseBdContext _context;
-        private CompteManager _manager;
-        private IConfiguration _config;
-        private IMapper _mapper;
-        private Compte _objetcommun;
-        private IJournalService _journalService;
+        private CompteController _controller = null!;
+        private AutoPulseBdContext _context = null!;
+        private CompteManager _manager = null!;
+        private IConfiguration _config = null!;
+        private IMapper _mapper = null!;
+        private Compte _objetcommun = null!;
+        private IJournalService _journalService = null!;
 
         [TestInitialize]
         public async Task Initialize()
@@ -272,8 +272,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
-
-        #endregion
 
         #region GetAll
         [TestMethod]

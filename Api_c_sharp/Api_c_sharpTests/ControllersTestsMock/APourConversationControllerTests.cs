@@ -45,7 +45,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.GetAPourConversationByIDS(1, 2))
                         .ReturnsAsync(entity);
             // Act
-            var result = await _controller.GetByID(2, 1);
+            var result = await _controller.GetById(2, 1);
 
             // Assert
             Assert.IsInstanceOfType(result.Value, typeof(APourConversationDTO));
@@ -59,7 +59,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                         .ReturnsAsync((APourConversation)null);
             
             // Act
-            var result = await _controller.GetByID(2, 1);
+            var result = await _controller.GetById(2, 1);
 
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));

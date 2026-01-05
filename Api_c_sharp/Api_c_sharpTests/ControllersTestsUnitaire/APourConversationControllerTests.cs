@@ -112,7 +112,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Given : un enregistrement existant en base (_objetCommun)
 
             // When : on appelle le contrôleur pour récupérer l'objet par son ID
-            var result = await _controller.GetByID(_objetCommun.IdConversation, _objetCommun.IdCompte);
+            var result = await _controller.GetById(_objetCommun.IdConversation, _objetCommun.IdCompte);
 
             // Then : l'objet est retrouvé et correspond aux valeurs attendues
             Assert.IsNotNull(result);
@@ -127,7 +127,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Given : un ID inexistant
 
             // When : on demande un objet avec cet ID
-            var result = await _controller.GetByID(9999, _objetCommun.IdCompte);
+            var result = await _controller.GetById(9999, _objetCommun.IdCompte);
 
             // Then : la réponse est NotFound
             Assert.IsNotNull(result.Result);

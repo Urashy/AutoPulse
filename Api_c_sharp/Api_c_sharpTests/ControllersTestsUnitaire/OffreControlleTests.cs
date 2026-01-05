@@ -47,7 +47,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _manager = new OffreManager(_context);
             _notificationService = new NotificationManager(_context);
-            _controller = new OffreController(_manager, _mapper,_notificationService);
+            _controller = new OffreController(_manager, _mapper, _notificationService);
 
             _context.Offres.RemoveRange(_context.Offres);
             await _context.SaveChangesAsync();

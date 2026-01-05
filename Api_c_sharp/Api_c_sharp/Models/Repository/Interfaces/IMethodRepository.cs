@@ -14,7 +14,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<IEnumerable<Annonce>> GetFilteredAnnonces(ParametreRecherche param);
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteFavoris(int compteId);
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId);
-        Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce annonce);
+        Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce? annonce);
         Task<bool> EstMasque(int annonceId);
     }
 

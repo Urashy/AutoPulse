@@ -1006,7 +1006,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task GetAnnonceByCompteIDTest()
         {
             // Act
-            var result = await _controller.GetAnnoncesByCompteID(_objetcommun.IdCompte);
+            var result = await _controller.GetAnnoncesByCompteId(_objetcommun.IdCompte);
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -1019,7 +1019,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task NotFoundGetAnnonceByCompteIDTest()
         {
             // Act
-            var result = await _controller.GetAnnoncesByCompteID(0);
+            var result = await _controller.GetAnnoncesByCompteId(0);
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));

@@ -1,5 +1,4 @@
 ﻿using AutoPulse.Shared.DTO;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -47,8 +46,9 @@ namespace Api_c_sharp.Controllers
         /// <summary>
         /// Met à jour une liaison existante.
         /// </summary>
-        /// <param name="id">Identifiant unique de la liaison à mettre à jour.</param>
+        /// <param name="idBloque"></param>
         /// <param name="dto">Objet <see cref="BloqueDTO"/> contenant les nouvelles valeurs.</param>
+        /// <param name="idBloquant"></param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="NoContentResult"/> si la mise à jour réussit (204).</description></item>

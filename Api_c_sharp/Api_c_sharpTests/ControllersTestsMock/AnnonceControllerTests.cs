@@ -32,7 +32,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         private Mock<IClientProxy> _mockClientProxy;
         private AnnonceController _controller;
         private IMapper _mapper;
-        private Annonce _objetcommun;
+        private Annonce? _objetcommun;
 
         [TestInitialize]
         public void Initialize()
@@ -114,7 +114,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task GetAllTest()
         {
             // Arrange
-            var annoncesList = new List<Annonce>
+            var annoncesList = new List<Annonce?>
             {
                 _objetcommun,
                 new Annonce
@@ -187,7 +187,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task GetByMiseEnavant()
         {
             // Arrange
-            var annoncesList = new List<Annonce> { _objetcommun };
+            var annoncesList = new List<Annonce?> { _objetcommun };
 
             _mockManager.Setup(m => m.GetAnnoncesByMiseEnAvant(1, 1, 21))
                        .ReturnsAsync(annoncesList);
@@ -224,7 +224,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task GetByCompteFavoris()
         {
             // Arrange
-            var annoncesList = new List<Annonce> { _objetcommun };
+            var annoncesList = new List<Annonce?> { _objetcommun };
 
             _mockManager.Setup(m => m.GetAnnoncesByCompteFavoris(1))
                        .ReturnsAsync(annoncesList);
@@ -261,13 +261,13 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task GetAnnonceByCompteIDTest()
         {
             // Arrange
-            var annoncesList = new List<Annonce> { _objetcommun };
+            var annoncesList = new List<Annonce?> { _objetcommun };
 
             _mockManager.Setup(m => m.GetAnnoncesByCompteID(_objetcommun.IdCompte))
                        .ReturnsAsync(annoncesList);
 
             // Act
-            var result = await _controller.GetAnnoncesByCompteID(_objetcommun.IdCompte);
+            var result = await _controller.GetAnnoncesByCompteId(_objetcommun.IdCompte);
 
             // Assert
             Assert.IsNotNull(result);
@@ -285,7 +285,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                        .ReturnsAsync((IEnumerable<Annonce>)null);
 
             // Act
-            var result = await _controller.GetAnnoncesByCompteID(0);
+            var result = await _controller.GetAnnoncesByCompteId(0);
 
             // Assert
             Assert.IsNotNull(result);
@@ -1107,7 +1107,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdBoitedevitesse = 1,
             };
 
-            var annoncesList = new List<Annonce> { _objetcommun };
+            var annoncesList = new List<Annonce?> { _objetcommun };
 
             _mockManager.Setup(m => m.GetFilteredAnnonces(parametreRecherche))
                        .ReturnsAsync(annoncesList);
@@ -1172,7 +1172,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 KmMax = 15000
             };
 
-            var annoncesList = new List<Annonce> { _objetcommun };
+            var annoncesList = new List<Annonce?> { _objetcommun };
 
             _mockManager.Setup(m => m.GetFilteredAnnonces(parametreRecherche))
                        .ReturnsAsync(annoncesList);
@@ -1236,7 +1236,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 DatePublication = DateTime.Now.AddDays(-1)
             };
 
-            var annoncesList = new List<Annonce> { annonce2, _objetcommun };
+            var annoncesList = new List<Annonce?> { annonce2, _objetcommun };
 
             ParametreRecherche parametreRecherche = new ParametreRecherche()
             {
@@ -1289,7 +1289,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 DatePublication = DateTime.Now.AddDays(-1)
             };
 
-            var annoncesList = new List<Annonce> { _objetcommun, annonce2 };
+            var annoncesList = new List<Annonce?> { _objetcommun, annonce2 };
 
             ParametreRecherche parametreRecherche = new ParametreRecherche()
             {
@@ -1341,7 +1341,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdVoiture = 1,
             };
 
-            var annoncesList = new List<Annonce> { _objetcommun, annonce2 };
+            var annoncesList = new List<Annonce?> { _objetcommun, annonce2 };
 
             ParametreRecherche parametreRecherche = new ParametreRecherche()
             {
@@ -1393,7 +1393,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdVoiture = 1,
             };
 
-            var annoncesList = new List<Annonce> { annonce2, _objetcommun };
+            var annoncesList = new List<Annonce?> { annonce2, _objetcommun };
 
             ParametreRecherche parametreRecherche = new ParametreRecherche()
             {
