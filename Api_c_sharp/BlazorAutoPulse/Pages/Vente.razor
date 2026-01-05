@@ -319,6 +319,25 @@
                 </div>
 
                 <div class="form-row">
+                    <div class="form-group @(VM.HasError("puissance") ? "has-error" : "")">
+                        <label>Nombre de chevaux</label>
+                        <input type="number" placeholder="100" required @bind="VM.VoitureDetailDto.Puissance">
+                        @if (VM.HasError("puissance"))
+                        {
+                            <span class="error-message">@VM.GetError("puissance")</span>
+                        }
+                    </div>
+                    <div class="form-group @(VM.HasError("couple") ? "has-error" : "")">
+                        <label>Couple</label>
+                        <input type="number" placeholder="100" required @bind="VM.VoitureDetailDto.Couple">
+                        @if (VM.HasError("couple"))
+                        {
+                            <span class="error-message">@VM.GetError("couple")</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group @(VM.HasError("carburant") ? "has-error" : "")">
                         <label>Carburant</label>
                         <select @onchange="VM.OnCarburantChange">
@@ -612,7 +631,7 @@
 
                         <div class="form-group @(VM.HasError("nomadresse") ? "has-error" : "")">
                             <label>Nom de l'adresse</label>
-                            <input type="text" placeholder="Ex: Domicile, Bureau, Garage..." @bind="VM.adresse.Nom" required>
+                            <input type="text" placeholder="Ex: Domicile, Bureau, Garage..." @bind="VM.adresse.Nom" disabled="@(VM.selectedAddressId != null ? "disabled" : null)" required>
                             @if (VM.HasError("nomadresse"))
                             {
                                 <span class="error-message">@VM.GetError("nomadresse")</span>
@@ -622,7 +641,7 @@
                         <div class="form-row">
                             <div class="form-group @(VM.HasError("numeroadresse") ? "has-error" : "")">
                                 <label>Numéro de rue</label>
-                                <input type="number" placeholder="12" @bind="VM.adresse.Numero" required>
+                                <input type="number" placeholder="12" @bind="VM.adresse.Numero" disabled="@(VM.selectedAddressId != null ? "disabled" : null)" required>
                                 @if (VM.HasError("numeroadresse"))
                                 {
                                     <span class="error-message">@VM.GetError("numeroadresse")</span>
@@ -630,7 +649,7 @@
                             </div>
                             <div class="form-group @(VM.HasError("rueadresse") ? "has-error" : "")">
                                 <label>Rue</label>
-                                <input type="text" placeholder="Rue de..." @bind="VM.adresse.Rue" required>
+                                <input type="text" placeholder="Rue de..." @bind="VM.adresse.Rue" disabled="@(VM.selectedAddressId != null ? "disabled" : null)" required>
                                 @if (VM.HasError("rueadresse"))
                                 {
                                     <span class="error-message">@VM.GetError("rueadresse")</span>
@@ -641,7 +660,7 @@
                         <div class="form-row">
                             <div class="form-group @(VM.HasError("codepostal") ? "has-error" : "")">
                                 <label>Code postal</label>
-                                <input type="text" placeholder="75001" @bind="VM.adresse.CodePostal" required>
+                                <input type="text" placeholder="75001" @bind="VM.adresse.CodePostal" disabled="@(VM.selectedAddressId != null ? "disabled" : null)" required>
                                 @if (VM.HasError("codepostal"))
                                 {
                                     <span class="error-message">@VM.GetError("codepostal")</span>
@@ -649,7 +668,7 @@
                             </div>
                             <div class="form-group @(VM.HasError("ville") ? "has-error" : "")">
                                 <label>Ville</label>
-                                <input type="text" placeholder="Paris" @bind="VM.adresse.LibelleVille" required>
+                                <input type="text" placeholder="Paris" @bind="VM.adresse.LibelleVille" disabled="@(VM.selectedAddressId != null ? "disabled" : null)" required>
                                 @if (VM.HasError("ville"))
                                 {
                                     <span class="error-message">@VM.GetError("ville")</span>

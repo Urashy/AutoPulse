@@ -21,6 +21,7 @@ using LoginRequest = AutoPulse.Shared.DTO.Authentification.LoginRequest;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using MailKit.Net.Smtp;
 using MimeKit;
+using Npgsql;
 
 namespace Api_c_sharp.Controllers;
 
@@ -116,9 +117,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Compte>> Post([FromBody] CompteCreateDTO dto)
     {
-        if(!ModelState.IsValid)
-            return BadRequest(ModelState);
-
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
 
         var entity = _compteMapper.Map<Compte>(dto);
         entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);
@@ -126,10 +126,29 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         entity.DateCreation = DateTime.UtcNow;
         entity.DateDerniereConnexion = DateTime.UtcNow;
         entity.IdEtatCompte = 1;
-        await _manager.AddAsync(entity);
-        await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
 
-        return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
+        try
+        {
+            await _manager.AddAsync(entity);
+            await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
+
+            return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx)
+        {
+            if (pgEx.SqlState == PostgresErrorCodes.UniqueViolation &&
+                pgEx.ConstraintName == "IX_t_e_compte_com_com_email")
+            {
+                ModelState.AddModelError(
+                    nameof(dto.Email),
+                    "Cet email est déjà utilisé."
+                );
+
+                return ValidationProblem(ModelState);
+            }
+
+            throw;
+        }
     }
 
     /// <summary>
