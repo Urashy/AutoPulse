@@ -61,6 +61,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             );
         }
 
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -121,7 +122,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task PostSignalementCompteTest()
         {
@@ -272,7 +275,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.AreEqual("Un signalement doit cibler soit une annonce soit un compte",
                             badRequestResult.Value);
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutSignalementTest()
         {
@@ -346,7 +351,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteSignalementTest()
         {
@@ -378,7 +385,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region FILTERED
         [TestMethod]
         public async Task GetFilteredCompteTest()
         {
@@ -512,7 +521,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
         }
+        #endregion
 
+        #region UPDATE ETAT
         [TestMethod]
         public async Task UpdateEtatTest()
         {
@@ -630,6 +641,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Signalement>(), It.IsAny<Signalement>()), Times.Never);
         }
+        #endregion
+
 
         private void ClaimCookie(int userId)
         {

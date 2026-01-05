@@ -27,7 +27,6 @@ namespace Api_c_sharp.ControllersMock.Tests
         public void Initialize()
         {
             // Création du mock du manager avec un paramètre null pour le context
-            // (le mock n'utilisera pas le context réel)
             _mockManager = new Mock<PaysManager>(null);
 
             // Création de l'adresse de référence
@@ -48,6 +47,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new PaysController(_mockManager.Object, _mapper);
         }
         [TestMethod]
+        #region GET
         public async Task GetByIdTest()
         {
             // Arrange
@@ -107,5 +107,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
     }
 }
