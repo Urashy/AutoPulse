@@ -46,6 +46,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new VueController(_mockManager.Object, _mapper);
         }
 
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -78,7 +80,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result.Result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -108,7 +112,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(list.Any(x => x.IdAnnonce == _objetcommun.IdAnnonce));
             Assert.AreEqual(2, list.Count);
         }
+        #endregion
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task PostTest()
         {
@@ -151,7 +158,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Vue>()), Times.Never);
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutTest()
         {
@@ -222,7 +231,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Vue>(), It.IsAny<Vue>()), Times.Never);
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteTest()
         {
@@ -254,5 +265,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
     }
 }

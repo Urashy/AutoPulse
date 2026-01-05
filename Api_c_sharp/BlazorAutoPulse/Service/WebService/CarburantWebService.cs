@@ -1,8 +1,9 @@
-﻿using BlazorAutoPulse.Model;
+﻿using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Model;
 
 namespace BlazorAutoPulse.Service.WebService
 {
-    public class CarburantWebService : BaseWebService<Carburant>
+    public class CarburantWebService : BaseWebService<CarburantDTO>
     {
         public CarburantWebService(HttpClient httpClient) : base(httpClient)
         {

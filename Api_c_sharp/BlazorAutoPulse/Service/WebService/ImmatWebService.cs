@@ -19,7 +19,7 @@ namespace BlazorAutoPulse.Service.WebService
         {
             try
             {
-                var url = $"{API_BASE_URL}/plaque?immatriculation={plateNumber}&token=TokenDemo2025A&pays=FR";
+                var url = $"{API_BASE_URL}/plaque?immatriculation={plateNumber}&token=TokenDemo2026B&pays=FR";
 
                 var response = await _httpClient.GetAsync(url);
 

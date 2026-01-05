@@ -26,16 +26,20 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestInitialize]
         public void Initialize()
         {
+            // Création du mock du manager avec un paramètre null pour le context
             _mockManager = new Mock<VoitureManager>(null);
 
+            // Configuration AutoMapper
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<MapperProfile>();
             });
             _mapper = config.CreateMapper();
 
+            // Injection dans le controller
             _controller = new VoitureController(_mockManager.Object, _mapper);
 
+            // Création de la voiture de référence
             _objetcommun = new Voiture
             {
                 IdVoiture = 1,
@@ -46,6 +50,9 @@ namespace Api_c_sharp.ControllersMock.Tests
                 MiseEnCirculation = DateTime.UtcNow,
             };
         }
+
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -77,7 +84,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -109,6 +118,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.IdVoiture == _objetcommun.IdVoiture));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task Post_ReturnsCreatedAtAction()
         {
@@ -160,6 +173,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Voiture>()), Times.Never);
         }
+        #endregion
+
+        #region PUT
         [TestMethod]
         public async Task Put_ReturnsNoContent()
         {
@@ -185,7 +201,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
-
+        
         [TestMethod]
         public async Task Put_ReturnsBadRequest_WhenModelInvalid()
         {
@@ -222,7 +238,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task Delete_ReturnsNoContent()
         {
@@ -247,5 +265,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
     }
 }

@@ -27,7 +27,6 @@ namespace Api_c_sharp.ControllersMock.Tests
         public void Initialize()
         {
             // Création du mock du manager avec un paramètre null pour le context
-            // (le mock n'utilisera pas le context réel)
             _mockManager = new Mock<TypeCompteManager>(null);
 
             // Création de l'adresse de référence
@@ -47,6 +46,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Injection dans le controller
             _controller = new TypeCompteController(_mockManager.Object, _mapper);
         }
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -78,7 +79,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -107,9 +110,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
             Assert.AreEqual(2, result.Value.Count());
         }
-        // -----------------------------
-        // GetTypeComptesPourChercher
-        // -----------------------------
+        #endregion
+
+            #region GetTypeCompte
         [TestMethod]
         public async Task GetTypeComptesPourChercherTest()
         {
@@ -129,9 +132,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.AreEqual(2, result.Value.Count());
         }
 
-        // -----------------------------
-        // GetTypeCompteByCompteId
-        // -----------------------------
+        
         [TestMethod]
         public async Task GetTypeCompteByCompteIdTest()
         {
@@ -156,5 +157,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
+        #endregion
     }
 }

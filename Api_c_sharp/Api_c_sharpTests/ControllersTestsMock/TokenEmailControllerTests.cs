@@ -64,7 +64,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             );
         }
 
-        #region GET BY ID Tests
+        #region GET BY ID 
 
         [TestMethod]
         public async Task GetById_ReturnsOk()
@@ -105,7 +105,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region GET ALL Tests
+        #region GET ALL
 
         [TestMethod]
         public async Task GetAll_ReturnsListOfReinit()
@@ -162,7 +162,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region GET BY STRING Tests
+        #region GET BY STRING
 
         [TestMethod]
         public async Task GetByString_ReturnsOk()
@@ -203,7 +203,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region POST Tests
+        #region POST
 
         [TestMethod]
         public async Task Post_BadRequest_InvalidModelState()
@@ -563,7 +563,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region PUT Tests
+        #region PUT
 
         [TestMethod]
         public async Task Put_UpdatesSuccessfully()
@@ -632,7 +632,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region DELETE Tests
+        #region DELETE 
 
         [TestMethod]
         public async Task Delete_RemovesSuccessfully()
@@ -673,7 +673,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region VERIFICATION CODE Tests
+        #region VERIFICATION CODE 
 
         [TestMethod]
         public async Task VerificationCode_ValidCredentials_ReturnsEntity()
@@ -751,7 +751,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region VERIF CODE (Controller) Tests
+        #region VERIF CODE 
 
         [TestMethod]
         public async Task VerifCode_ValidCode_ReturnsOk()
@@ -931,7 +931,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region Additional Edge Cases
+        #region Additional Edge 
 
         [TestMethod]
         public async Task Put_UpdatesExpirationDate()
@@ -1019,7 +1019,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region MARQUER UTILISÉ Tests
+        #region MARQUER
 
         [TestMethod]
         public async Task MarquerUtilise_OK()
@@ -1056,7 +1056,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region INVALIDER TOKENS PAR TYPE Tests
+        #region INVALIDER TOKENS
 
         [TestMethod]
         public async Task InvaliderTokensParType_OK()
@@ -1079,7 +1079,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region NETTOYER TOKENS EXPIRÉS Tests
+        #region NETTOYER TOKENS
 
         [TestMethod]
         public async Task NettoyerTokensExpires_OK()
