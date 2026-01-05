@@ -20,7 +20,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
     {
         private AutoPulseBdContext _context;
         private TokenEmailManager _manager;
-        private CompteManager _compteManager;
         private TokenEmailController _controller;
         private IMapper _mapper;
 
@@ -34,7 +33,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _context = new AutoPulseBdContext(options);
             _manager = new TokenEmailManager(_context);
-            _compteManager = new CompteManager(_context);
 
             var fakeConfig = new ConfigurationBuilder().AddInMemoryCollection(
                 new Dictionary<string, string?>
@@ -50,7 +48,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             });
             _mapper = config.CreateMapper();
 
-            _controller = new TokenEmailController(_manager, fakeConfig, _mapper, _compteManager);
+            _controller = new TokenEmailController(_manager, fakeConfig, _mapper);
 
             TokenEmail seed = new TokenEmail
             {

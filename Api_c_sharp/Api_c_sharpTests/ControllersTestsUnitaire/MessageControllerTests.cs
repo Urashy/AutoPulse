@@ -179,7 +179,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 ContenuMessage = _objetcommun.ContenuMessage,
             };
 
-            var actionResult = await _controller.Post(message);
+            var actionResult = await _controller.Post(message,false);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
@@ -271,7 +271,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _controller.ModelState.AddModelError("ContenuMessage", "Required");
 
-            var actionResult = await _controller.Post(message);
+            var actionResult = await _controller.Post(message, false);
 
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }

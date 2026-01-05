@@ -21,7 +21,6 @@ namespace Api_c_sharp.ControllersMock.Tests
         private Mock<TokenEmailManager> _mockManager;
         private IConfiguration _config;
         private TokenEmailController _controller;
-        private Mock<CompteManager> _mockCompteManager;
         private IMapper _mapper;
         private TokenEmail _objetCommun;
 
@@ -29,7 +28,6 @@ namespace Api_c_sharp.ControllersMock.Tests
         public void Initialize()
         {
             _mockManager = new Mock<TokenEmailManager>(null);
-            _mockCompteManager = new Mock<CompteManager>(null);
 
             var inMemorySettings = new Dictionary<string, string>
             {
@@ -59,8 +57,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new TokenEmailController(
                 _mockManager.Object,
                 _config,
-                _mapper,
-                _mockCompteManager.Object
+                _mapper
             );
         }
 
