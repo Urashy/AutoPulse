@@ -91,7 +91,7 @@ public class SignalementController(
             return BadRequest("Un signalement doit cibler soit une annonce soit un compte");
 
         // Récupération de l'ID du compte signalant depuis le token JWT
-        string compteId = User.FindFirst("idUser")?.Value;
+        string? compteId = User.FindFirst("idUser")?.Value;
         if (string.IsNullOrEmpty(compteId))
             return Unauthorized();
 

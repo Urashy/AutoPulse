@@ -1,11 +1,8 @@
 using AutoPulse.Shared.DTO;
-using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using Api_c_sharp.Hubs;
 using Api_c_sharp.Models.Entity;
 using Microsoft.AspNetCore.SignalR;

@@ -4,12 +4,12 @@ public class MessageDTO
 {
     public int IdConversation { get; set; }
     public int IdMessage { get; set; }
-    public string ContenuMessage { get; set; }
+    public string? ContenuMessage { get; set; }
     public DateTime DateEnvoiMessage { get; set; }
     public int IdCompte { get; set; }
-    public string PseudoCompte { get; set; }
+    public string? PseudoCompte { get; set; }
     public bool EstLu { get; set; }
-    public IEnumerable<PieceJointeDTO> PiecesJointes { get; set; }
+    public IEnumerable<PieceJointeDTO>? PiecesJointes { get; set; }
     public IEnumerable<OffreDTO> Offres { get; set; } = new List<OffreDTO>();
 
 }

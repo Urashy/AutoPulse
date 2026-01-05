@@ -33,7 +33,7 @@ namespace Api_c_sharp.Controllers
         [ProducesResponseType(404)]
         public async Task<ActionResult<TypeCompteDTO>> GetById(int id)
         {
-            TypeCompte result = await _manager.GetByIdAsync(id);
+            TypeCompte? result = await _manager.GetByIdAsync(id);
 
             if (result is null)
                 return NotFound();
@@ -86,7 +86,7 @@ namespace Api_c_sharp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TypeCompteDTO>> GetTypeCompteByCompteId(int idCompte)
         {
-            TypeCompte compte = await _manager.GetTypeCompteByCompteId(idCompte);
+            TypeCompte? compte = await _manager.GetTypeCompteByCompteId(idCompte);
 
             if (compte is null)
                 return NotFound();

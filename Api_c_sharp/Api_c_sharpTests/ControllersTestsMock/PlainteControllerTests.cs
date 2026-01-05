@@ -15,15 +15,14 @@ namespace Api_c_sharp.ControllersMock.Tests
     [TestClass]
     public class PlainteControllerTests
     {
-        private Mock<PlainteManager> _mockManager;
-        private IMapper _mapper;
-        private PlainteController _controller;
-        private Plainte _objetcommun;
+        private Mock<PlainteManager> _mockManager = null!;
+        private IMapper _mapper = null!;
+        private PlainteController _controller = null!;
+        private Plainte _objetcommun = null!;
 
         [TestInitialize]
-        public void Setup()
+        public void Initialize()
         {
-            // Création du mock du manager avec un paramètre null pour le context
             _mockManager = new Mock<PlainteManager>(null);
 
             // Création de la plainte de référence

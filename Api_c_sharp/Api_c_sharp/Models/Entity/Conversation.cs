@@ -21,7 +21,7 @@ namespace Api_c_sharp.Models.Entity
 
         [ForeignKey(nameof(IdAnnonce))]
         [InverseProperty(nameof(Annonce.Conversations))]
-        public virtual Annonce AnnonceConversationNav { get; set; }
+        public virtual Annonce? AnnonceConversationNav { get; set; }
 
         [InverseProperty(nameof(APourConversation.APourConversationConversationNav))]
         public virtual ICollection<APourConversation> ApourConversations { get; set; } = new List<APourConversation>();

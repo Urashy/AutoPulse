@@ -27,12 +27,12 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return ret;
         }
 
-        public virtual async Task<Image> GetFirstImageByVoitureID(int idvoiture)
+        public virtual async Task<Image?> GetFirstImageByVoitureID(int idvoiture)
         {
             return await dbSet.FirstOrDefaultAsync(img => img.IdVoiture == idvoiture);
         }
 
-        public virtual async Task<Image> GetImageByCompteID(int idcompte)
+        public virtual async Task<Image?> GetImageByCompteID(int idcompte)
         {
             return await dbSet.FirstOrDefaultAsync(img => img.IdCompte == idcompte);
         }

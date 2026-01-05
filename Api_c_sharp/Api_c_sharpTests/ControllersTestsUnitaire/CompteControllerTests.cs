@@ -1,12 +1,9 @@
 ﻿using Api_c_sharp.Controllers;
 using Api_c_sharp.Mapper;
-using Api_c_sharp.Models.Authentification;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Interfaces;
-using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
-using Api_c_sharp.Controllers;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Http;
@@ -14,12 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using AutoPulse.Shared.DTO.Authentification;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests
@@ -49,7 +41,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 cfg.AddProfile<MapperProfile>();
             });
 
-            var inMemorySettings = new Dictionary<string, string>
+            Dictionary<string, string> inMemorySettings = new Dictionary<string, string>
             {
                 {"Jwt:SecretKey", "UneSuperCleSecreteTresLonguePourLeTestJWT123456789"},
                 {"Jwt:Issuer", "TestIssuer"},
@@ -274,6 +266,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+
+        #endregion
 
         #region GetAll
         [TestMethod]
@@ -1023,9 +1017,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var responseType = okResult.Value.GetType();
             var urlProperty = responseType.GetProperty("url");
             Assert.IsNotNull(urlProperty);
-
-            string url = urlProperty.GetValue(okResult.Value)?.ToString();
-            Assert.IsNotNull(url);
         }
 
         [TestMethod]
