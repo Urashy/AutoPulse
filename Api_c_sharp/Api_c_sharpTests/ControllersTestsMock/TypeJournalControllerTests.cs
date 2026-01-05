@@ -27,7 +27,6 @@ namespace Api_c_sharp.ControllersMock.Tests
         public void Initialize()
         {
             // Création du mock du manager avec un paramètre null pour le context
-            // (le mock n'utilisera pas le context réel)
             _mockManager = new Mock<TypeJournalManager>(null);
 
             // Création de l'adresse de référence
@@ -47,6 +46,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Injection dans le controller
             _controller = new TypeJournalController(_mockManager.Object, _mapper);
         }
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -78,7 +79,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -107,5 +110,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.LibelleTypeJournaux == _objetcommun.LibelleTypeJournaux));
             Assert.AreEqual(2, result.Value.Count());
         }
+        #endregion
+        #endregion
     }
 }

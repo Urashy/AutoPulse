@@ -29,7 +29,6 @@ namespace Api_c_sharp.ControllersMock.Tests
         public void Initialize()
         {
             // Création du mock du manager avec un paramètre null pour le context
-            // (le mock n'utilisera pas le context réel)
             _mockManager = new Mock<OffreManager>(null);
 
             // Création de l'adresse de référence
@@ -53,7 +52,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Injection dans le controller
             _controller = new OffreController(_mockManager.Object, _mapper,_notificationService.Object);
         }
-
+        #region GET
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -117,7 +116,43 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.Valeur == _objetcommun.Valeur));
             Assert.AreEqual(2, result.Value.Count());
         }
+        [TestMethod]
+        public async Task GetByMessage()
+        {
+            // Arrange
+            var annoncesList = new List<Offre> { _objetcommun };
 
+            _mockManager.Setup(m => m.GetOffresByMessageIdAsync(1))
+                       .ReturnsAsync(annoncesList);
+
+            // Act
+            var result = await _controller.GetByMessage(1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<OffreDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Valeur == _objetcommun.Valeur));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByMessage()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetOffresByMessageIdAsync(0))
+                       .ReturnsAsync((IEnumerable<Offre>)null);
+
+            // Act
+            var result = await _controller.GetByMessage(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task PostAdresseTest()
         {
@@ -169,7 +204,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Offre>()), Times.Never);
 
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteAdresseTest()
         {
@@ -201,7 +238,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutAdresseTest()
         {
@@ -286,40 +325,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Offre>(), It.IsAny<Offre>()), Times.Never);
         }
-
-        [TestMethod]
-        public async Task GetByMessage()
-        {
-            // Arrange
-            var annoncesList = new List<Offre> { _objetcommun };
-
-            _mockManager.Setup(m => m.GetOffresByMessageIdAsync(1))
-                       .ReturnsAsync(annoncesList);
-
-            // Act
-            var result = await _controller.GetByMessage(1);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<OffreDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Valeur == _objetcommun.Valeur));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetByMessage()
-        {
-            // Arrange
-            _mockManager.Setup(m => m.GetOffresByMessageIdAsync(0))
-                       .ReturnsAsync((IEnumerable<Offre>)null);
-
-            // Act
-            var result = await _controller.GetByMessage(0);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
+        #endregion
     }
 }
