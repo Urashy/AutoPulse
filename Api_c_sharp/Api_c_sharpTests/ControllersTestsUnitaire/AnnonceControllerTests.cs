@@ -267,7 +267,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.SaveChangesAsync();
             _objetcommun = annonce;
         }
-
+        #region GET
+            #region GetByID
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -291,7 +292,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -305,10 +308,177 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
         }
+        #endregion
 
+            #region GetByString
+        [TestMethod]
+        public async Task GetbystringTest()
+        {
+            // Act
+            var result = await _controller.GetByString("Annonce Test");
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(AnnonceDetailDTO));
+            Assert.AreEqual(_objetcommun.Libelle, result.Value.Libelle);
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetbystringTest()
+        {
+            // Act
+            var result = await _controller.GetByString("Annonce Inexistante");
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+
+        }
+        #endregion
+
+            #region GetByMiseEnAvant
+        [TestMethod]
+        public async Task GetByMiseEnavant()
+        {
+            // Act
+            var result = await _controller.GetByIdMiseEnAvant((int)_objetcommun.IdMiseEnAvant);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByMiseEnAvant()
+        {
+            // Act
+            var result = await _controller.GetByIdMiseEnAvant(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+            #region GetByCompteFavoris
+        [TestMethod]
+        public async Task GetByCompteFavoris()
+        {
+            // Act
+            var result = await _controller.GetByCompteFavoris(_objetcommun.IdCompte);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetByCompteFavoris()
+        {
+            // Act
+            var result = await _controller.GetByCompteFavoris(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+            #region GetByCompteID
+        [TestMethod]
+        public async Task GetAnnonceByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetAnnoncesByCompteID(_objetcommun.IdCompte);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAnnonceByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetAnnoncesByCompteID(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+            #region GetAnnonceSimilaire
+        [TestMethod]
+        public async Task GetAnnonceSimilaireTests()
+        {
+            // Arrange
+            Voiture voiture = new Voiture()
+            {
+                IdVoiture = 2,
+                IdMarque = 1,
+                IdMotricite = 1,
+                IdCarburant = 1,
+                IdBoiteDeVitesse = 1,
+                IdCategorie = 1,
+                Kilometrage = 10000,
+                Annee = 2021,
+                Puissance = 150,
+                MiseEnCirculation = DateTime.Now,
+                IdModele = 1,
+                NbPlace = 5,
+                NbPorte = 5
+            };
+
+            Annonce annonce = new Annonce()
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test similaire",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description de l'annonce similaire",
+                IdMiseEnAvant = 1,
+                IdVoiture = 2,
+                DatePublication = DateTime.Now
+            };
+            await _context.Voitures.AddAsync(voiture);
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetSimilaires(_objetcommun.IdAnnonce);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(o => o.Libelle == annonce.Libelle));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetAnnonceSimilaireTests()
+        {
+            // Act
+            var result = await _controller.GetSimilaires(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task PostAnnonceTest_Entity()
         {
+            // Arrange
             AnnonceCreateDTO annonce = new AnnonceCreateDTO()
             {
                 Libelle = "Nouvelle Annonce",
@@ -320,8 +490,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdVoiture = _objetcommun.IdVoiture
             };
 
+            // Act
             var actionResult = await _controller.Post(annonce);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
@@ -329,10 +501,37 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.AreEqual(annonce.Description, annonceCree.Description);
         }
 
+        [TestMethod]
+        public async Task BadRequestPostAnnonceTest()
+        {
+            // Arrange
+            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
+            {
+                Libelle = "Nouvelle Annonce",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 25000,
+                Description = null,
+                IdVoiture = _objetcommun.IdVoiture
+            };
 
+            _controller.ModelState.AddModelError("Description", "Required");
+
+            // Act
+            var actionResult = await _controller.Post(annonce);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        #endregion
+
+        #region DELETE
         [TestMethod]
         public async Task DeleteAnnonceTest()
         {
+            // Arrange - Retirer les autres dépendances
             _context.Messages.RemoveRange(_message1, _message2);
             _context.APourConversations.Remove(_aPourConversation);
             _context.Conversations.Remove(_conversation);
@@ -517,6 +716,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestDeleteAnnonceTest()
         {
+            // Arrange
             SetupUserContext("2");
 
             Commande commande = new Commande()
@@ -529,21 +729,27 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.Commandes.AddAsync(commande);
             await _context.SaveChangesAsync();
 
+            // Act
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
+
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]
         public async Task NotFoundDeleteAnnonceTest()
         {
+            // Act
             var result = await _controller.Delete(0);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task DeleteAnnonceTest_AdminCallsNotification()
         {
+            // Arrange
             SetupUserContext("1"); // Admin (userId = "1")
 
             _context.Messages.RemoveRange(_message1, _message2);
@@ -551,14 +757,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Conversations.Remove(_conversation);
             await _context.SaveChangesAsync();
 
+            // Act
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutAnnonceTest()
         {
+            // arrange
             AnnonceUpdateDTO annonce = new AnnonceUpdateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
@@ -571,8 +782,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdVoiture = _objetcommun.IdVoiture
             };
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdAnnonce, annonce);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             Annonce fetchannonce = await _manager.GetByIdAsync(_objetcommun.IdAnnonce);
@@ -582,6 +795,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutAnnonceTest()
         {
+            // Arrange
             AnnonceUpdateDTO annonce = new AnnonceUpdateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
@@ -594,13 +808,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdVoiture = _objetcommun.IdVoiture
             };
 
+            // Act
             var result = await _controller.Put(0, annonce);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
         public async Task BadRequestPutAnnonceTest()
         {
+            // Arrange
             AnnonceUpdateDTO annonce = new AnnonceUpdateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
@@ -621,101 +838,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+        #endregion
 
-
-        [TestMethod]
-        public async Task BadRequestPostAnnonceTest()
-        {
-            AnnonceCreateDTO annonce = new AnnonceCreateDTO()
-            {
-                Libelle = "Nouvelle Annonce",
-                IdCompte = 1,
-                IdEtatAnnonce = 1,
-                IdAdresse = 1,
-                Prix = 25000,
-                Description = null,
-                IdVoiture = _objetcommun.IdVoiture
-            };
-
-            _controller.ModelState.AddModelError("Description", "Required");
-
-            var actionResult = await _controller.Post(annonce);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task GetbystringTest()
-        {
-            // Act
-            var result = await _controller.GetByString("Annonce Test");
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(AnnonceDetailDTO));
-            Assert.AreEqual(_objetcommun.Libelle, result.Value.Libelle);
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetbystringTest()
-        {
-            // Act
-            var result = await _controller.GetByString("Annonce Inexistante");
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-
-        }
-
-        [TestMethod]
-        public async Task GetByMiseEnavant()
-        {
-            // Act
-            var result = await _controller.GetByIdMiseEnAvant((int)_objetcommun.IdMiseEnAvant);
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetByMiseEnAvant()
-        {
-            // Act
-            var result = await _controller.GetByIdMiseEnAvant(0);
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetByCompteFavoris()
-        {
-            // Act
-            var result = await _controller.GetByCompteFavoris(_objetcommun.IdCompte);
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetByCompteFavoris()
-        {
-            // Act
-            var result = await _controller.GetByCompteFavoris(0);
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
+        #region Filtre
         [TestMethod]
         public async Task GetByFiltersTest()
         {
+            // Arrange
             ParametreRecherche parametreRecherche = new ParametreRecherche()
             {
                 Departement = "12345",
@@ -732,8 +861,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Order = 5,
                 IdBoitedevitesse = 1,
             };
+
             // Act
             var result = await _controller.GetFiltered(parametreRecherche);
+
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -745,6 +876,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByFiltersTest()
         {
+            // Arrange
             ParametreRecherche parametreRecherche = new ParametreRecherche()
             {
                 Departement = "99999",
@@ -759,8 +891,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 KmMin = 999999,
                 KmMax = 999999
             };
+
             // Act
-            var result = await _controller.GetFiltered(parametreRecherche); ;
+            var result = await _controller.GetFiltered(parametreRecherche);
+
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -769,6 +903,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetByFiltersNoPaginationTest()
         {
+            // Arrange
             ParametreRecherche parametreRecherche = new ParametreRecherche()
             {
                 Departement = "12345",
@@ -783,8 +918,11 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 KmMin = 5000,
                 KmMax = 15000
             };
+
             // Act
             var result = await _controller.GetFiltered(parametreRecherche);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
@@ -795,6 +933,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByFiltersNoPaginationTest()
         {
+            // Arrange
             ParametreRecherche parametreRecherche = new ParametreRecherche()
             {
                 Departement = "99999",
@@ -809,8 +948,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 KmMin = 999999,
                 KmMax = 999999
             };
+
             // Act
             var result = await _controller.GetFiltered(parametreRecherche);
+
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -819,6 +960,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetFilteredTriDateCroissantTest()
         {
+            // Arrange
             Annonce annonce = new Annonce()
             {
                 IdAnnonce = 2,
@@ -851,8 +993,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 PageSize = 21,
                 Order = 3
             };
+
             // Act
             var result = await _controller.GetFiltered(parametreRecherche);
+
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -866,6 +1010,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetFilteredTriDateDecroissantTest()
         {
+            // Arrange
             Annonce annonce = new Annonce()
             {
                 IdAnnonce = 2,
@@ -898,8 +1043,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 PageSize = 21,
                 Order = 4
             };
+
             // Act
             var result = await _controller.GetFiltered(parametreRecherche);
+
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -913,6 +1060,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetFilteredTriCroissantTest()
         {
+            // Arrange
             Annonce annonce = new Annonce()
             {
                 IdAnnonce = 2,
@@ -944,8 +1092,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 PageSize = 21,
                 Order = 1
             };
+
             // Act
             var result = await _controller.GetFiltered(parametreRecherche);
+
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -959,6 +1109,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetFilteredTriDecroissantTest()
         {
+            // Arrange
             Annonce annonce = new Annonce()
             {
                 IdAnnonce = 2,
@@ -990,8 +1141,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 PageSize = 21,
                 Order = 2
             };
+
             // Act
             var result = await _controller.GetFiltered(parametreRecherche);
+
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -1001,34 +1154,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(annonces.Any());
             Assert.IsTrue(annonces[1].Prix == _objetcommun.Prix);
         }
+        #endregion
 
-        [TestMethod]
-        public async Task GetAnnonceByCompteIDTest()
-        {
-            // Act
-            var result = await _controller.GetAnnoncesByCompteID(_objetcommun.IdCompte);
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetAnnonceByCompteIDTest()
-        {
-            // Act
-            var result = await _controller.GetAnnoncesByCompteID(0);
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
+        #region Masque
 
         [TestMethod]
         public async Task EstMasqueFalseTests()
         {
+            // Act
             var result = await _controller.EstMasque(_objetcommun.IdAnnonce);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsFalse(result.Value);
@@ -1037,70 +1173,20 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task EstMasqueTrueTests()
         {
+            // Arrange
             _objetcommun.IdEtatAnnonce = 4; // Etat "Masqué"
             await _context.SaveChangesAsync();
 
+            // Act
             var result = await _controller.EstMasque(_objetcommun.IdAnnonce);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value);
         }
-
-        [TestMethod]
-        public async Task GetAnnonceSimilaireTests()
-        {
-            Voiture voiture = new Voiture()
-            {
-                IdVoiture = 2,
-                IdMarque = 1,
-                IdMotricite = 1,
-                IdCarburant = 1,
-                IdBoiteDeVitesse = 1,
-                IdCategorie = 1,
-                Kilometrage = 10000,
-                Annee = 2021,
-                Puissance = 150,
-                MiseEnCirculation = DateTime.Now,
-                IdModele = 1,
-                NbPlace = 5,
-                NbPorte = 5
-            };
-
-            Annonce annonce = new Annonce()
-            {
-                IdAnnonce = 2,
-                Libelle = "Annonce Test similaire",
-                IdCompte = 1,
-                IdEtatAnnonce = 1,
-                IdAdresse = 1,
-                Prix = 20000,
-                Description = "Description de l'annonce similaire",
-                IdMiseEnAvant = 1,
-                IdVoiture = 2,
-                DatePublication = DateTime.Now
-            };
-            await _context.Voitures.AddAsync(voiture);
-            await _context.Annonces.AddAsync(annonce);
-            await _context.SaveChangesAsync();
-
-            var result = await _controller.GetSimilaires(_objetcommun.IdAnnonce);
-
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<AnnonceDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(o => o.Libelle == annonce.Libelle));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetAnnonceSimilaireTests()
-        {
-            var result = await _controller.GetSimilaires(0);
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-
+        #endregion
+        
         private void SetupUserContext(string userId = "2")
         {
             var claims = new List<Claim>

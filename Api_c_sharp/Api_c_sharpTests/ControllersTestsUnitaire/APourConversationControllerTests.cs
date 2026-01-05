@@ -105,16 +105,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetCommun = entry;
         }
-
+        #region GET
+            #region GetByID
         [TestMethod]
         public async Task GetByIdTest()
         {
-            // Given : un enregistrement existant en base (_objetCommun)
-
-            // When : on appelle le contrôleur pour récupérer l'objet par son ID
+            // Act
             var result = await _controller.GetByID(_objetCommun.IdConversation, _objetCommun.IdCompte);
 
-            // Then : l'objet est retrouvé et correspond aux valeurs attendues
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.AreEqual(_objetCommun.IdConversation, result.Value.IdConversation);
@@ -124,25 +123,23 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByIdTest()
         {
-            // Given : un ID inexistant
-
-            // When : on demande un objet avec cet ID
+            // Act
             var result = await _controller.GetByID(9999, _objetCommun.IdCompte);
 
-            // Then : la réponse est NotFound
+            // Assert
             Assert.IsNotNull(result.Result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
-            // Given : au moins un enregistrement en base (_objetCommun)
-
-            // When : on récupère toute la liste
+            // Act
             var result = await _controller.GetAll();
 
-            // Then : la liste contient des éléments dont celui inséré en setup
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
 
@@ -150,24 +147,26 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(list.Any());
             Assert.IsTrue(list.Any(x => x.IdConversation == _objetCommun.IdConversation));
         }
+        #endregion
 
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task PostTest()
         {
-            // Given : un DTO valide à insérer
-            
-
-
+                 
+            // Arrange
             var dto = new APourConversationDTO
             {
                 IdCompte = 2,
                 IdConversation = 11
             };
 
-            // When : on appelle le POST
+            // Act
             var actionResult = await _controller.Post(dto);
 
-            // Then : l'objet est créé et renvoyé dans un CreatedAtActionResult
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
 
             var created = (CreatedAtActionResult)actionResult.Result;
@@ -180,31 +179,33 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPostTest()
         {
-            // Given : un DTO invalide + ModelState en erreur
+            // Arrange
             var dto = new APourConversationDTO();
             _controller.ModelState.AddModelError("IdConversation", "Required");
 
-            // When : on appelle POST avec un modèle invalide
+            // Act
             var actionResult = await _controller.Post(dto);
 
-            // Then : la réponse est BadRequest
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutTest()
         {
-            // Given : un DTO valide pour mettre à jour un élément existant
+            // Arrange
             var dto = new APourConversationDTO
             {
                 IdCompte = _objetCommun.IdCompte,
                 IdConversation = _objetCommun.IdConversation
             };
 
-            // When : on appelle PUT
+            // Act
             var result = await _controller.Put(_objetCommun.IdConversation,_objetCommun.IdCompte, dto);
 
-            // Then : la réponse est NoContent et l'objet est mis à jour
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var updated = await _manager.GetAPourConversationByIDS( _objetCommun.IdCompte, _objetCommun.IdConversation);
@@ -214,24 +215,24 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutTest()
         {
-            // Given : un DTO avec un ID inexistant
+            // Arrange
             var dto = new APourConversationDTO
             {
                 IdCompte = 1,
                 IdConversation = 9999
             };
 
-            // When : on tente de mettre à jour cet ID
+            // Act
             var result = await _controller.Put(9999,1, dto);
 
-            // Then : le contrôleur retourne NotFound
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task BadRequestPutTest()
         {
-            // Given : un DTO valide mais ModelState invalide
+            // Arrange
             var dto = new APourConversationDTO
             {
                 IdCompte = 1,
@@ -239,22 +240,22 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             };
             _controller.ModelState.AddModelError("IdConversation", "Invalid");
 
-            // When : on appelle PUT
+           // Act
             var result = await _controller.Put(_objetCommun.IdConversation,1, dto);
 
-            // Then : le contrôleur retourne BadRequest
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteTest()
         {
-            // Given : un enregistrement existant à supprimer (_objetCommun)
-
-            // When : on appelle DELETE
+            // Act
             var result = await _controller.Delete(_objetCommun.IdConversation, _objetCommun.IdCompte);
 
-            // Then : la réponse est NoContent et l'objet est supprimé
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var deleted = await _manager.GetAPourConversationByIDS(_objetCommun.IdConversation, _objetCommun.IdCompte);
@@ -264,13 +265,12 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundDeleteTest()
         {
-            // Given : un ID inexistant
-
-            // When : on appelle DELETE
+            // Act
             var result = await _controller.Delete(9999, _objetCommun.IdCompte);
 
-            // Then : la réponse est NotFound
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion 
     }
 }
