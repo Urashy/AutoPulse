@@ -227,7 +227,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             }
         }
 
-        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce annonce)
+        public virtual async Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce? annonce)
         {
             int anneeReference = annonce.VoitureAnnonceNav.Annee;
 

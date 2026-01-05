@@ -2,14 +2,9 @@
 using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Entity;
-using Api_c_sharp.Models.Repository.Managers;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
 namespace Api_c_sharp.ControllersMock.Tests
@@ -62,7 +57,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                        .ReturnsAsync(_objetcommun);
 
             // Act
-            var result = await _controller.GetByID(_objetcommun.IdAdresse);
+            var result = await _controller.GetById(_objetcommun.IdAdresse);
 
             // Assert
             Assert.IsNotNull(result);
@@ -79,7 +74,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                        .ReturnsAsync((Adresse)null);
 
             // Act
-            var result = await _controller.GetByID(0);
+            var result = await _controller.GetById(0);
 
             // Assert
             Assert.IsNotNull(result);
@@ -149,7 +144,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                        .ReturnsAsync(adressesList);
 
             // Act
-            var result = await _controller.GetAdressesByCompteID(_objetcommun.IdCompte);
+            var result = await _controller.GetAdressesByCompteId(_objetcommun.IdCompte);
 
             // Assert
             Assert.IsNotNull(result);
@@ -168,7 +163,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                        .ReturnsAsync((IEnumerable<Adresse>)null);
 
             // Act
-            var result = await _controller.GetAdressesByCompteID(0);
+            var result = await _controller.GetAdressesByCompteId(0);
 
             // Assert
             Assert.IsNotNull(result);

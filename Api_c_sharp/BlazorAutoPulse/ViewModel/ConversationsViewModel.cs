@@ -557,20 +557,26 @@ public class ConversationViewModel : IDisposable
                         Valeur = offreAmountToSend
                     };
 
-                    await _offreService.CreateAsync(offreDto);
-                    Console.WriteLine($"✅ Offre de {offreAmountToSend:N0} € créée pour le message {createdMessage.IdMessage}");
+                    // ✅ Récupérer directement l'offre créée
+                    var offreCreee = await _offreService.CreateAsync(offreDto);
 
-                    await _signalR.SendMessageWithOffre(
-                        SelectedConversation.IdConversation,
-                        CurrentUserId,
-                        messageText,
-                        createdMessage.IdMessage,
-                        offreAmountToSend,
-                        annonceIdToSend.Value
-                    );
+                    if (offreCreee != null)
+                    {
+                        Console.WriteLine($"✅ Offre {offreCreee.IdOffre} de {offreAmountToSend:N0} € créée");
 
-                    // ✅ Recharger pour afficher l'offre via le composant
-                    await LoadMessages(SelectedConversation.IdConversation);
+                        await _signalR.SendMessageWithOffre(
+                            SelectedConversation.IdConversation,
+                            CurrentUserId,
+                            messageText,
+                            createdMessage.IdMessage,
+                            offreCreee.IdOffre,  // ✅ Utiliser l'IdOffre retourné
+                            offreAmountToSend,
+                            annonceIdToSend.Value
+                        );
+
+                        // ✅ Recharger pour afficher l'offre via le composant
+                        await LoadMessages(SelectedConversation.IdConversation);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -666,6 +672,7 @@ public class ConversationViewModel : IDisposable
     string message,
     DateTime date,
     int idMessage,
+    int idOffre,  // ✅ Recevoir l'IdOffre
     decimal offreValeur,
     int idAnnonce)
     {
@@ -692,6 +699,7 @@ public class ConversationViewModel : IDisposable
                 {
                     new OffreDTO
                     {
+                        IdOffre = idOffre,  // ✅ Utiliser l'IdOffre reçu
                         IdMessage = idMessage,
                         Valeur = offreValeur,
                         IdAnnonce = idAnnonce,
@@ -702,10 +710,9 @@ public class ConversationViewModel : IDisposable
                 };
 
                 Messages.Add(newMsg);
-                Console.WriteLine($"✅ Message avec offre de {offreValeur}€ ajouté");
+                Console.WriteLine($"✅ Message avec offre de {offreValeur}€ (IdOffre={idOffre}) ajouté");
                 NotifyStateChanged();
             }
         }
     }
-
 }

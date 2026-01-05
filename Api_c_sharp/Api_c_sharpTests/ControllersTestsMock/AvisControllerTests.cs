@@ -59,7 +59,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                         .ReturnsAsync(avis);
 
             // Act
-            var result = await _controller.GetByID(1);
+            var result = await _controller.GetById(1);
 
             // Assert
             Assert.IsNotNull(result.Value);
@@ -75,7 +75,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                         .ReturnsAsync((Avis)null);
 
             // Act
-            var result = await _controller.GetByID(1);
+            var result = await _controller.GetById(1);
 
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -280,7 +280,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                         .ReturnsAsync(data);
 
             // Act
-            var result = await _controller.GetAvisByCompteID(5);
+            var result = await _controller.GetAvisByCompteId(5);
 
             // Assert
             Assert.IsNotNull(result.Value);
@@ -295,7 +295,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                         .ReturnsAsync(new List<Avis>());
 
             // Act
-            var result = await _controller.GetAvisByCompteID(5);
+            var result = await _controller.GetAvisByCompteId(5);
 
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));

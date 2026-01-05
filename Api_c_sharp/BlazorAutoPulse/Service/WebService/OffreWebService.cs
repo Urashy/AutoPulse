@@ -138,7 +138,7 @@ namespace BlazorAutoPulse.Service.WebService
                 return false;
             }
         }
-        public async Task CreateAsync(OffreCreateDTO offreDto)
+        public async Task<OffreDTO> CreateAsync(OffreCreateDTO offreDto)
         {
             try
             {
@@ -151,10 +151,14 @@ namespace BlazorAutoPulse.Service.WebService
                 };
                 var response = await SendWithCredentialsAsync(request);
                 response.EnsureSuccessStatusCode();
+
+                // ✅ Retourner l'offre créée
+                return await response.Content.ReadFromJsonAsync<OffreDTO>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur CreateAsync: {ex.Message}");
+                return null;
             }
         }
     }
