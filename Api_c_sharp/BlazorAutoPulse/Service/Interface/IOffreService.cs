@@ -6,5 +6,5 @@ public interface IOffreService : IService<OffreDTO>
     Task<IEnumerable<OffreDTO>> GetOffresByMessageAsync(int idMessage);
     Task<bool> AccepterOffreAsync(int idOffre);
     Task<bool> RefuserOffreAsync(int idOffre);
-    Task CreateAsync(OffreCreateDTO offreDto);
+    Task<OffreDTO> CreateAsync(OffreCreateDTO offreDto);
 }

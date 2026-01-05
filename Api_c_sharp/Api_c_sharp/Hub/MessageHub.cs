@@ -183,6 +183,7 @@ namespace Api_c_sharp.Hubs
             string message,
             DateTime dateTime,
             int idMessage,
+            int idOffre,
             decimal offreValeur,
             int idAnnonce)
         {
@@ -193,6 +194,7 @@ namespace Api_c_sharp.Hubs
                     message,
                     dateTime,
                     idMessage,
+                    idOffre,
                     offreValeur,
                     idAnnonce);
         }

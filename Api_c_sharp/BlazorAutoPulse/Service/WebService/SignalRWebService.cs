@@ -14,7 +14,7 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
     public event Action<int, int>? OnMessagesRead;
     public event Action<PriceDropNotification>? OnPriceDropReceived;
     public event Action<int, bool?>? OnOffreStatusChanged;
-    public event Action<int, int, string, DateTime, int, decimal, int>? OnMessageWithOffreReceived;
+    public event Action<int, int, string, DateTime, int,int, decimal, int>? OnMessageWithOffreReceived;
 
 
     // Dans StartAsync(), ajoute l'écoute :
@@ -90,13 +90,12 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
             OnOffreStatusChanged?.Invoke(idOffre, estAccepte);
         });
 
-        // Écouter les messages avec offre reçus
-        _hubConnection.On<int, int, string, DateTime, int, decimal, int>("ReceiveMessageWithOffre",
-        (conversationId, senderId, message, date, idMessage, offreValeur, idAnnonce) =>
-        {
-            Console.WriteLine($"[SignalR] ReceiveMessageWithOffre: conv={conversationId}, offre={offreValeur}€");
-            OnMessageWithOffreReceived?.Invoke(conversationId, senderId, message, date, idMessage, offreValeur, idAnnonce);
-        });
+        _hubConnection.On<int, int, string, DateTime, int, int, decimal, int>("ReceiveMessageWithOffre",
+            (conversationId, senderId, message, date, idMessage, idOffre, offreValeur, idAnnonce) =>
+            {
+                Console.WriteLine($"[SignalR] ReceiveMessageWithOffre: conv={conversationId}, offre={offreValeur}€, idOffre={idOffre}");
+                OnMessageWithOffreReceived?.Invoke(conversationId, senderId, message, date, idMessage, idOffre, offreValeur, idAnnonce);
+            });
 
         // Écouter les notifications de frappe
         _hubConnection.On<int, int, string>("UserIsTyping",
@@ -209,14 +208,14 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
         }
     }
 
-    public async Task SendMessageWithOffre(int conversationId, int senderId, string message, int idMessage, decimal offreValeur, int idAnnonce)
+    public async Task SendMessageWithOffre(int conversationId, int senderId, string message, int idMessage, int idOffre, decimal offreValeur, int idAnnonce)
     {
-        Console.WriteLine($"[SignalR] Sending message with offre: {offreValeur}€");
+        Console.WriteLine($"[SignalR] Sending message with offre: {offreValeur}€, idOffre={idOffre}");
 
         if (_hubConnection != null && IsConnected)
         {
             await _hubConnection.InvokeAsync("SendMessageWithOffre",
-                conversationId, senderId, message, DateTime.UtcNow, idMessage, offreValeur, idAnnonce);
+                conversationId, senderId, message, DateTime.UtcNow, idMessage, idOffre, offreValeur, idAnnonce);
         }
     }
     public async Task NotifyTyping(int conversationId, int userId, string userName)

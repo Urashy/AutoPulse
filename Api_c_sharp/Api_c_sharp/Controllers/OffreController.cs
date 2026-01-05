@@ -46,6 +46,25 @@ namespace Api_c_sharp.Controllers
 
             await _notifService.NotifOffreAnnonce(entity.IdAnnonce);
 
+
+            var messageAssocie = await _managermessage.GetByIdAsync(entity.IdMessage);
+
+            if (messageAssocie != null && _hubContext != null)
+            {
+                // On notifie le groupe de la conversation qu'un message de type "Offre" est arrivé
+                // Attention : Vérifie bien que "entity.Prix" correspond au nom de ta propriété dans ton modèle Offre
+                await _hubContext.Clients.Group($"conversation_{messageAssocie.IdConversation}")
+                    .SendAsync("ReceiveMessageWithOffre",
+                        messageAssocie.IdConversation,
+                        messageAssocie.IdCompte, // L'ID de l'expéditeur
+                        messageAssocie.ContenuMessage,  // Le texte du message
+                        messageAssocie.DateEnvoiMessage,
+                        messageAssocie.IdMessage,
+                        entity.IdOffre,    // <--- AJOUT IMPORTANT ICI
+                        entity.Valeur,             // La valeur de l'offre (vérifie le nom de la prop : Prix, Montant ou Valeur)
+                        entity.IdAnnonce);
+            }
+
             // Retourne bien les deux clés
             return CreatedAtAction(nameof(GetByID), new { idoffre = entity.IdOffre }, entity);
         }
