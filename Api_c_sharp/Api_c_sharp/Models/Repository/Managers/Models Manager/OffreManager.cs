@@ -1,6 +1,7 @@
 ﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
@@ -15,6 +16,13 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Where(o => o.IdMessage == idMessage)
                 .OrderByDescending(o => o.DateOffre)
                 .ToListAsync();
+        }
+        public async Task<bool> PendingOfferExistsInConversation(int idConversation)
+        {
+            return await dbSet
+                .Include(o => o.OffreMessageNav)
+                .AnyAsync(o => o.OffreMessageNav.IdConversation == idConversation
+                               && o.EstAccepte != false);
         }
     }
 }

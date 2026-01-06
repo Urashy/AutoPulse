@@ -17,6 +17,7 @@ namespace Api_c_sharp.Controllers;
 public class MessageController(
     MessageManager _manager, 
     IMapper _messagemapper,
+    OffreManager _offreManager,
     IJournalService _journalService, 
     IHubContext<MessageHub> _hubContext = null) : ControllerBase
 {
@@ -79,6 +80,16 @@ public class MessageController(
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
+
+        if (withOffre)
+        {
+            
+            bool res = await _offreManager.PendingOfferExistsInConversation(dto.IdConversation);
+            if (res)
+            {
+                return Conflict("Une offre en attente existe déjà dans cette conversation.");
+            }
+        }
 
         var entity = _messagemapper.Map<Message>(dto);
         entity.DateEnvoiMessage = DateTime.UtcNow;

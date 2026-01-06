@@ -1,4 +1,5 @@
 using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
 using BlazorAutoPulse.Services;
@@ -19,6 +20,7 @@ public class ConversationViewModel : IDisposable
     private readonly IJSRuntime _jsRuntime;
     private readonly IOffreService _offreService;
     private readonly IAnnonceService _annonceService;
+    private readonly NotificationService _notificationService; 
 
     public List<MessageDTO> Messages { get; private set; } = new();
     public ConversationListDTO? SelectedConversation { get; private set; }
@@ -68,7 +70,8 @@ public class ConversationViewModel : IDisposable
         IBloqueService bloqueService,
         IJSRuntime jsRuntime,
         IOffreService offreService,
-        IAnnonceService annonceService)
+        IAnnonceService annonceService,
+        NotificationService notificationService)
     {
         _conversationState = conversationState;
         _signalR = signalR;
@@ -78,6 +81,7 @@ public class ConversationViewModel : IDisposable
         _jsRuntime = jsRuntime;
         _offreService = offreService;
         _annonceService = annonceService;
+        _notificationService = notificationService;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
         _signalR.OnUserTyping += HandleUserTyping;
@@ -454,7 +458,23 @@ public class ConversationViewModel : IDisposable
                 ContenuMessage = messageText,
             };
 
-            var createdMessage = await _messageService.CreateMessageAsync(messageDto, offreAmountToSend > 0 && annonceIdToSend.HasValue);
+            var result = await _messageService.CreateMessageAsync(messageDto, offreAmountToSend > 0 && annonceIdToSend.HasValue);
+
+            if (!result.Success)
+            {
+                Console.WriteLine($"❌ Erreur API : {result.ErrorMessage}");
+
+                _newMessage = messageText;
+
+
+                _notificationService.ShowError("Erreur lors de l'envoie du message",result.ErrorMessage);
+
+                NotifyStateChanged();
+                return; 
+            }
+
+            // CAS DE SUCCÈS
+            var createdMessage = result.Data;
 
             if (createdMessage == null)
             {
