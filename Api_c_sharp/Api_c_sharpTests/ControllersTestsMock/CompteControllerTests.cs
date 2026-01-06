@@ -419,7 +419,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             var result = await _controller.GetMe();
 
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            Assert.IsInstanceOfType(result.Value, typeof(CompteDetailDTO));
         }
 
         [TestMethod]

@@ -97,15 +97,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _objetCommun = entity;
         }
 
-        // -------------------------------------
-        // GET BY ID
-        // -------------------------------------
+        #region GET
+            #region GetByID
 
         [TestMethod]
         public async Task GetByID_Returns_OK()
         {
+            // Act
             var result = await _controller.GetByID(_objetCommun.IdBloquant, _objetCommun.IdBloque);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(BloqueDTO));
@@ -115,20 +116,22 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetByID_Returns_NotFound()
         {
+            // Act
             var result = await _controller.GetByID(111, 222);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // -------------------------------------
-        // GET ALL
-        // -------------------------------------
-
+            #region GetAll
         [TestMethod]
         public async Task GetAll_Returns_Data()
         {
+            // Act
             var result = await _controller.GetAll();
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
 
@@ -137,22 +140,25 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.IdBloque == _objetCommun.IdBloque));
         }
+        #endregion
 
-        // -------------------------------------
-        // POST
-        // -------------------------------------
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task Post_Creates_Entity()
         {
+            // Arrange 
             var dto = new BloqueDTO()
             {
                 IdBloquant = 3,
                 IdBloque = 4,
             };
 
+            // Act
             var actionResult = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
 
             var created = (CreatedAtActionResult)actionResult.Result;
@@ -166,24 +172,27 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task Post_BadRequest_When_ModelState_Invalid()
         {
+            // Arrange
             var dto = new BloqueDTO();
 
             _controller.ModelState.AddModelError("IdBloquant", "Required");
 
+            // Act
             var actionResult = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
+        #endregion
 
-        // -------------------------------------
-        // DELETE
-        // -------------------------------------
-
+        #region DELETE
         [TestMethod]
         public async Task Delete_Returns_NoContent()
         {
+            // Act
             var result = await _controller.Delete(_objetCommun.IdBloquant, _objetCommun.IdBloque);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var deleted = await _manager.GetBloqueByIdsAsync(_objetCommun.IdBloque, _objetCommun.IdBloquant);
@@ -193,26 +202,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task Delete_Returns_NotFound()
         {
+            // Act
             var result = await _controller.Delete(999, 888);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // -------------------------------------
-        // PUT
-        // -------------------------------------
-
+        #region PUT
         [TestMethod]
         public async Task Put_Updates_Entity()
         {
+            // Arrange
             var dto = new BloqueDTO()
             {
                 IdBloquant = _objetCommun.IdBloquant,
                 IdBloque = _objetCommun.IdBloque
             };
 
+            // Act
             var result = await _controller.Put(_objetCommun.IdBloquant, _objetCommun.IdBloque, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var updated = await _manager.GetBloqueByIdsAsync(_objetCommun.IdBloque, _objetCommun.IdBloquant);
@@ -222,34 +234,41 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task Put_Returns_BadRequest_When_Id_Mismatch()
         {
+            // Arrange
             var dto = new BloqueDTO()
             {
                 IdBloquant = 1,
                 IdBloque = 2
             };
 
+            // Act
             var result = await _controller.Put(5, 6, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
 
         [TestMethod]
         public async Task Put_Returns_NotFound()
         {
+            // Arrange
             var dto = new BloqueDTO()
             {
                 IdBloquant = 111,
                 IdBloque = 222
             };
 
+            // Act
             var result = await _controller.Put(111, 222, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task Put_Returns_BadRequest_When_ModelState_Invalid()
         {
+            // Arrange
             var dto = new BloqueDTO()
             {
                 IdBloquant = _objetCommun.IdBloquant,
@@ -258,15 +277,22 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _controller.ModelState.AddModelError("IdBloquant", "Invalid");
 
+            // Act
             var result = await _controller.Put(_objetCommun.IdBloquant, _objetCommun.IdBloque, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+        #endregion
 
+        #region HasBloque
         [TestMethod]
         public async Task HasBloqueFalseEstPremierTest() 
         {
+            // Act
             var result = await _controller.HasBloque(_objetCommun.IdBloquant, _objetCommun.IdBloque, false);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsTrue(result.Value);
         }
@@ -274,9 +300,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task HasBloqueTrueEstPremierTest()
         {
+            // Act
             var result = await _controller.HasBloque(_objetCommun.IdBloquant, _objetCommun.IdBloque, true);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsTrue(result.Value);
         }
+        #endregion
     }
 }

@@ -19,6 +19,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private OffreManager _manager;
         private MessageManager _messageManager;
         private CommandeManager _commandeManager;
+        private AnnonceManager _annonceManager;
         private IMapper _mapper;
         private Offre _objetcommun;
         private INotificationService _notificationService;
@@ -41,9 +42,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _manager = new OffreManager(_context);
             _messageManager = new MessageManager(_context);
             _commandeManager = new CommandeManager(_context);
+            _annonceManager = new AnnonceManager(_context);
             _notificationService = new NotificationManager(_context);
 
-            _controller = new OffreController(_manager, _mapper,_messageManager,_commandeManager,_notificationService);
+            _controller = new OffreController(_manager, _mapper,_messageManager,_commandeManager,_annonceManager,_notificationService);
 
             _context.Offres.RemoveRange(_context.Offres);
             await _context.SaveChangesAsync();

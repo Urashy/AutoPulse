@@ -1,11 +1,12 @@
+using Api_c_sharp.Hubs;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
-using Api_c_sharp.Hubs;
-using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Generic;
 
 namespace Api_c_sharp.Controllers;
 
@@ -155,7 +156,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
         
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
-        if (_hubContext != null)
+        if (_hubContext is not null)
         {
             if (newPrice < oldPrice)
             {
@@ -168,7 +169,6 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
                     newPrice,
                     toUpdate.Libelle
                 );
-        
             }
         }
         
@@ -240,7 +240,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     {
         var result = await _manager.GetAnnoncesByMiseEnAvant(idmiseenavant,pageNumber,pageSize);
 
-        if (!result.Any())
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
@@ -264,7 +264,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
             param
         );
 
-        if (!result.Any())
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
@@ -288,7 +288,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     {
         var result = await _manager.GetAnnoncesByCompteFavoris(compteid);
 
-        if (!result.Any())
+        if (result is null || !result.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(result));
@@ -309,7 +309,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     {
         var list = await _manager.GetAnnoncesByCompteID(idcompte);
 
-        if (!list.Any())
+        if (list is null || !list.Any())
             return NotFound();
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(list));

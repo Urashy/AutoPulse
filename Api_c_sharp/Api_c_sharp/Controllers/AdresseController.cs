@@ -154,7 +154,7 @@ namespace Api_c_sharp.Controllers
         {
             var list = await _manager.GetAdresseByCompteID(idcompte);
 
-            if (!list.Any())
+            if (list is null || !list.Any())
                 return NotFound();
 
             return new ActionResult<IEnumerable<AdresseDTO>>(_adresseMapper.Map<IEnumerable<AdresseDTO>>(list));

@@ -325,7 +325,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 messageDTO.IdCompte,
                 messageDTO.IdConversation,
                 messageDTO.ContenuMessage,
-                1), Times.Once);
+                null), Times.Once);
         }
 
         [TestMethod]

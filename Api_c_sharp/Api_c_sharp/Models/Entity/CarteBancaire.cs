@@ -25,6 +25,6 @@ namespace Api_c_sharp.Models.Entity
 
         [ForeignKey(nameof(IdCompte))]
         [InverseProperty(nameof(Compte.CarteBancaires))]
-        public virtual Compte CompteCarteBancaireNav { get; set; } = null!;
+        public virtual Compte? CompteCarteBancaireNav { get; set; }
     }
 }
