@@ -40,6 +40,16 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+
+            var mess = await _managermessage.GetByIdAsync(dto.IdMessage);
+
+            bool res = await _manager.PendingOfferExistsInConversation(mess.IdConversation);
+
+            if (res)
+            {
+                return Conflict("Une offre en attente existe déjà dans cette conversation.");
+            }
+
             var entity = _offremapper.Map<Offre>(dto);
 
             await _manager.AddAsync(entity);
@@ -51,8 +61,6 @@ namespace Api_c_sharp.Controllers
 
             if (messageAssocie != null && _hubContext != null)
             {
-                // On notifie le groupe de la conversation qu'un message de type "Offre" est arrivé
-                // Attention : Vérifie bien que "entity.Prix" correspond au nom de ta propriété dans ton modèle Offre
                 await _hubContext.Clients.Group($"conversation_{messageAssocie.IdConversation}")
                     .SendAsync("ReceiveMessageWithOffre",
                         messageAssocie.IdConversation,
@@ -60,7 +68,7 @@ namespace Api_c_sharp.Controllers
                         messageAssocie.ContenuMessage,  // Le texte du message
                         messageAssocie.DateEnvoiMessage,
                         messageAssocie.IdMessage,
-                        entity.IdOffre,    // <--- AJOUT IMPORTANT ICI
+                        entity.IdOffre,
                         entity.Valeur,             // La valeur de l'offre (vérifie le nom de la prop : Prix, Montant ou Valeur)
                         entity.IdAnnonce);
             }
