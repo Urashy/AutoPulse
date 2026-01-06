@@ -58,10 +58,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new CompteManager(_context);
 
-            // ✅ IMPORTANT : Utiliser _config (configuration en mémoire) au lieu de config
+            
             _controller = new CompteController(_manager, _mapper, _config, _journalService);
 
-            // ✅ Configuration du contexte HTTP pour les cookies
+            
             var httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext()
             {
@@ -223,7 +223,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdCompte = compte.IdCompte
             };
 
-            // ✅ Ajouter TypeSignalement au contexte
             await _context.EtatComptes.AddAsync(etatCompte);
             await _context.EtatComptes.AddAsync(etatCompteInactif);
             await _context.TypesSignalement.AddAsync(typeSignalement);
@@ -241,7 +240,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _objetcommun = compte;
         }
 
-        #region GetById Tests
+        #region GET
+            #region GetById
 
         [TestMethod]
         public async Task GetByIdTest()
@@ -268,7 +268,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-        #region GetAll
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -285,7 +285,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #endregion
 
-        #region GetProfilPublic
+            #region GetProfilPublic
         [TestMethod]
         public async Task GetProfilPublicTest()
         {
@@ -312,281 +312,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #endregion
 
-        #region PostCompteTests
-        [TestMethod]
-        public async Task PostCompteTest_Entity()
-        {
-            CompteCreateDTO compteCreateDTO = new CompteCreateDTO
-            {
-                Nom = "Smith",
-                Prenom = "Jane",
-                Email = "jane.smith@gmail.com",
-                MotDePasse = "anotherhashedpassword",
-                Pseudo = "janesmith",
-                DateNaissance = new DateTime(1992, 2, 2),
-                IdTypeCompte = 1,
-            };
-
-            var actionResult = await _controller.Post(compteCreateDTO);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-            var created = (CreatedAtActionResult)actionResult.Result;
-
-            var createdcompte = (Compte)created.Value;
-            Assert.AreEqual(compteCreateDTO.Email, createdcompte.Email);
-        }
-
-        [TestMethod]
-        public async Task BadRequestPostCompteTest()
-        {
-            CompteCreateDTO compteUpdateDTO = new CompteCreateDTO
-            {
-                Nom = "DoeUpdated",
-                Prenom = "john",
-                Email = "johnmodif@gmail.com",
-                DateNaissance = new DateTime(1991, 1, 1),
-                IdTypeCompte = 1,
-                MotDePasse = "hashedpassword",
-                Pseudo = "johndoe",
-                NumeroSiret = null,
-            };
-
-            _controller.ModelState.AddModelError("NumeroSiret", "Required");
-            var actionResult = await _controller.Post(compteUpdateDTO);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
-
-        #endregion
-
-        #region DeleteCompteTests
-
-        [TestMethod]
-        public async Task DeleteCompteTest()
-        {
-            var result = await _controller.Delete(_objetcommun.IdCompte);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedCompte = await _manager.GetByIdAsync(_objetcommun.IdCompte);
-            Assert.IsNull(deletedCompte);
-        }
-
-        [TestMethod]
-        public async Task NotFoundDeleteCompteTest()
-        {
-            var result = await _controller.Delete(0);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        #endregion
-
-        #region PutCompteTests
-
-        [TestMethod]
-        public async Task PutCompteTest()
-        {
-            CompteUpdateDTO compteUpdateDTO = new CompteUpdateDTO
-            {
-                IdCompte = _objetcommun.IdCompte,
-                Nom = "DoeUpdated",
-                Prenom = "JohnUpdated",
-                Email = "johnmodif@gmail.com",
-                DateNaissance = new DateTime(1991, 1, 1),
-                IdTypeCompte = 1,
-            };
-
-            var result = await _controller.Put(_objetcommun.IdCompte, compteUpdateDTO);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-
-            var compteput = await _manager.GetByIdAsync(_objetcommun.IdCompte);
-            Assert.AreEqual(compteUpdateDTO.Nom, compteput.Nom);
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutCompteTest()
-        {
-            CompteUpdateDTO compteUpdateDTO = new CompteUpdateDTO
-            {
-                IdCompte = _objetcommun.IdCompte,
-                Nom = "DoeUpdated",
-                Prenom = "JohnUpdated",
-                Email = "johnmodif@gmail.com",
-                DateNaissance = new DateTime(1991, 1, 1),
-                IdTypeCompte = 1,
-            };
-
-            var result = await _controller.Put(0, compteUpdateDTO);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task BadRequestPutCompteTest()
-        {
-            CompteUpdateDTO compteUpdateDTO = new CompteUpdateDTO
-            {
-                IdCompte = _objetcommun.IdCompte,
-                Nom = "DoeUpdated",
-                Prenom = null,
-                Email = "johnmodif@gmail.com",
-                DateNaissance = new DateTime(1991, 1, 1),
-                IdTypeCompte = 1,
-            };
-
-            _controller.ModelState.AddModelError("Prenom", "Required");
-            var result = await _controller.Put(_objetcommun.IdCompte, compteUpdateDTO);
-
-            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
-        }
-
-        [TestMethod]
-        public async Task BadRequestPostAdresseTest()
-        {
-            CompteCreateDTO compteUpdateDTO = new CompteCreateDTO
-            {
-                Nom = "DoeUpdated",
-                Prenom = "john",
-                Email = "johnmodif@gmail.com",
-                DateNaissance = new DateTime(1991, 1, 1),
-                IdTypeCompte = 1,
-                MotDePasse = "hashedpassword",
-                Pseudo = "johndoe",
-                NumeroSiret = null,
-            };
-
-            _controller.ModelState.AddModelError("NumeroSiret", "Required");
-            var actionResult = await _controller.Post(compteUpdateDTO);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task PutAnonymiseTest()
-        {
-            var result = await _controller.PutAnonymise(_objetcommun.IdCompte);
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var compteanonymise = await _manager.GetByIdAsync(_objetcommun.IdCompte);
-            Assert.IsNotNull(compteanonymise, "Le compte ne devrait pas être null");
-            Assert.AreEqual("ANONYME", compteanonymise.Nom);
-            Assert.AreEqual("Utilisateur", compteanonymise.Prenom);
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutAnonymiseTest()
-        {
-            var result = await _controller.PutAnonymise(0);
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task PutAnonymiseAvecCompteJournauxFavoriTest()
-        {
-            Compte compte2 = new Compte
-            {
-                IdCompte = 2,
-                Nom = "Dupont",
-                Prenom = "Jean",
-                Email = "test@gmail.com",
-                MotDePasse = "anotherhashedpassword",
-                Pseudo = "jeandupont",
-                DateCreation = DateTime.UtcNow,
-                DateNaissance = new DateTime(1985, 5, 5),
-                IdTypeCompte = 1,
-                DateDerniereConnexion = DateTime.UtcNow,
-            };
-            _context.Comptes.Add(compte2);
-            Adresse adresse = new Adresse
-            {
-                IdAdresse = 2,
-                Nom = "Adresse Test",
-                Rue = "456 Rue de Test",
-                LibelleVille = "Testville",
-                CodePostal = "67890",
-                IdPays = 1,
-                IdCompte = compte2.IdCompte
-            };
-            _context.Adresses.Add(adresse);
-            _context.Journaux.Add(new Journal
-            {
-                IdJournal = 1,
-                IdCompte = compte2.IdCompte,
-                ContenuJournal = "Journal Test",
-            });
-            _context.Favoris.Add(new Favori
-            {
-                IdAnnonce = 1,
-                IdCompte = compte2.IdCompte
-            });
-            await _context.SaveChangesAsync();
-            var result = await _controller.PutAnonymise(compte2.IdCompte);
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var compteanonymise = await _manager.GetByIdAsync(compte2.IdCompte);
-            Assert.IsNull(compteanonymise);
-            var Comptes = await _context.Comptes.Where(j => j.IdCompte == compte2.IdCompte).ToListAsync();
-            Assert.IsFalse(Comptes.Any(), "Les journaux associés au compte devraient être supprimés.");
-            var journaux = await _context.Journaux.Where(j => j.IdCompte == compte2.IdCompte).ToListAsync();
-            Assert.IsFalse(journaux.Any(), "Les journaux associés au compte devraient être supprimés.");
-            var favoris = await _context.Favoris.Where(f => f.IdCompte == compte2.IdCompte).ToListAsync();
-            Assert.IsFalse(favoris.Any(), "Les favoris associés au compte devraient être supprimés.");
-        }
-
-        #endregion
-
-        #region PutTypeCompteTests
-
-        [TestMethod]
-        public async Task PutTypeCompteProTest()
-                    {
-            CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
-            {
-                RaisonSociale = "test",
-                NumeroSiret = "12345678912345"
-            };
-            var result = await _controller.PutTypeCompte(_objetcommun.IdCompte, compteModifTypeCompteDTO);
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
-            Assert.AreEqual(compteModifTypeCompteDTO.RaisonSociale, compteModifie.RaisonSociale);
-            Assert.AreEqual(2,compteModifie.IdTypeCompte);
-        }
-
-        [TestMethod]
-        public async Task PutTypeComptePersoTest()
-        {
-            _objetcommun.IdTypeCompte = 2;
-            CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
-            {
-                RaisonSociale = null,
-                NumeroSiret = null
-            };
-            var result = await _controller.PutTypeCompte(_objetcommun.IdCompte, compteModifTypeCompteDTO);
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
-            Assert.AreEqual(compteModifTypeCompteDTO.RaisonSociale, compteModifie.RaisonSociale);
-            Assert.AreEqual(1, compteModifie.IdTypeCompte);
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutTypeCompteTest()
-        {
-            CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
-            {
-                RaisonSociale = "test",
-                NumeroSiret = "12345678912345"
-            };
-            var result = await _controller.PutTypeCompte(0,compteModifTypeCompteDTO);
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        #endregion
-
-        #region GetByStringTests
+            #region GetByString
 
         [TestMethod]
         public async Task GetByStringTest()
         {
+            // Act
             var result = await _controller.GetByString(_objetcommun.Email);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(CompteDetailDTO));
@@ -596,19 +330,25 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByStringTest()
         {
+            // Act
             var result = await _controller.GetByString("NonExistentMail");
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
         #endregion
 
-        #region GetBy ...  Tests
+            #region GetByTypeCompte
 
         [TestMethod]
         public async Task GetByTypeCompteTest()
         {
+            // Act
             var result = await _controller.GetByTypeCompte(_objetcommun.IdTypeCompte);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<CompteGetDTO>));
@@ -619,15 +359,23 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByTypeCompteTest()
         {
+            // Act
             var result = await _controller.GetByTypeCompte(999);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetCompteByAnnonceFavori
         [TestMethod]
         public async Task GetCompteByAnnonceFavoriTest()
         {
+            // Act
             var result = await _controller.GetCompteByAnnonceFavori(1);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<CompteGetDTO>));
@@ -638,244 +386,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetCompteByAnnonceFavoriTest()
         {
+            // Act
             var result = await _controller.GetCompteByAnnonceFavori(999);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
         #endregion
 
-        #region VerifUser ModifMdp Tests
-
-        [TestMethod]
-        public async Task ModifMotDePasseTest()
-        {
-            ChangementMdpDTO changementMdpDTO = new ChangementMdpDTO
-            {
-                IdCompte = _objetcommun.IdCompte,
-                MotDePasse = "ouioui",
-                Email = _objetcommun.Email
-            };
-            string Hashpassword = "728b252625ebcddcea74d61760866080a10196087c340a57a88ba511bd387921";
-            var result = await _controller.ModifMdp(changementMdpDTO);
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
-            Assert.AreEqual(Hashpassword, compteModifie.MotDePasse);
-        }
-
-        [TestMethod]
-        public async Task NotFoundModifMotDePasseTest()
-        {
-            ChangementMdpDTO changementMdpDTO = new ChangementMdpDTO
-            {
-                IdCompte = 0,
-                MotDePasse = "ouioui",
-                Email = _objetcommun.Email
-            };
-            var result = await _controller.ModifMdp(changementMdpDTO);
-            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
-        }
-
-        [TestMethod]
-        public async Task VerifUserTest()
-        {
-            ChangementMdpDTO changementMdpDTO = new ChangementMdpDTO
-            {
-                IdCompte = _objetcommun.IdCompte,
-                MotDePasse = "Testmdp1!",
-                Email = _objetcommun.Email
-            };
-            bool result = await _controller.VerifUser(changementMdpDTO);
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public async Task NotVerifUserTest()
-        {
-            ChangementMdpDTO changementMdpDTO = new ChangementMdpDTO
-            {
-                IdCompte = _objetcommun.IdCompte,
-                MotDePasse = "nonnon",
-                Email = _objetcommun.Email
-            };
-            bool result = await _controller.VerifUser(changementMdpDTO);
-            Assert.IsFalse(result);
-        }
-
-        #endregion
-
-        #region Tests Login
-
-        [TestMethod]
-        public async Task Login_ValidCredentials_ReturnsOkWithToken()
-        {
-            var loginRequest = new LoginRequest()
-            {
-                Email = "john@gmail.com",
-                MotDePasse = "Testmdp1!"
-            };
-
-            var result = await _controller.Login(loginRequest);
-
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-
-            var cookies = _controller.Response.Headers["Set-Cookie"];
-            Assert.IsTrue(cookies.Count > 0);
-            Assert.IsTrue(cookies.ToString().Contains("access_token"));
-        }
-
-        [TestMethod]
-        public async Task Login_InvalidEmail_ReturnsUnauthorized()
-        {
-            var loginRequest = new LoginRequest
-            {
-                Email = "wrong@test.com",
-                MotDePasse = "Testmdp1!"
-            };
-
-            var result = await _controller.Login(loginRequest);
-
-            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
-        }
-
-        [TestMethod]
-        public async Task Login_InvalidPassword_ReturnsUnauthorized()
-        {
-            var loginRequest = new LoginRequest
-            {
-                Email = "john@gmail.com",
-                MotDePasse = "WrongPassword"
-            };
-
-            var result = await _controller.Login(loginRequest);
-
-            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
-        }
-
-        [TestMethod]
-        public async Task Login_EmptyEmail_ReturnsBadRequest()
-        {
-            var loginRequest = new LoginRequest
-            {
-                Email = "",
-                MotDePasse = "Testmdp1!"
-            };
-
-            var result = await _controller.Login(loginRequest);
-
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task Login_EmptyPassword_ReturnsBadRequest()
-        {
-            var loginRequest = new LoginRequest
-            {
-                Email = "john@gmail.com",
-                MotDePasse = ""
-            };
-
-            var result = await _controller.Login(loginRequest);
-
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task Login_NullCredentials_ReturnsBadRequest()
-        {
-            var loginRequest = new LoginRequest
-            {
-                Email = null,
-                MotDePasse = null
-            };
-
-            var result = await _controller.Login(loginRequest);
-
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
-        }
-
-        [TestMethod]
-        public async Task Login_CaseInsensitiveEmail_ReturnsOk()
-        {
-            var loginRequest = new LoginRequest
-            {
-                Email = "JOHN@GMAIL.COM",
-                MotDePasse = "Testmdp1!"
-            };
-
-            var result = await _controller.Login(loginRequest);
-
-            Assert.IsInstanceOfType(result, typeof(ObjectResult));
-        }
-
-        #endregion
-
-        #region Tests Logout
-
-        [TestMethod]
-        public async Task Logout_AuthenticatedUser_ReturnsOk()
-        {
-            var claims = new List<Claim>
-            {
-                new Claim("idUser", _objetcommun.IdCompte.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, _objetcommun.Email)
-            };
-            var identity = new ClaimsIdentity(claims, "TestAuthType");
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-
-            _controller.ControllerContext.HttpContext.User = claimsPrincipal;
-
-            var result = await _controller.Logout();
-
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
-        public async Task Logout_DeletesCookie()
-        {
-            var claims = new List<Claim>
-            {
-                new Claim("idUser", _objetcommun.IdCompte.ToString())
-            };
-            var identity = new ClaimsIdentity(claims, "TestAuthType");
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-
-            _controller.ControllerContext.HttpContext.User = claimsPrincipal;
-
-            var result = await _controller.Logout();
-
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
-        public async Task Logout_InvalidUserId_ReturnsInternalServerError()
-        {
-            // Arrange - Configurer un claim avec un userId non numérique pour forcer une exception
-            var claims = new List<Claim>
-            {
-                new Claim("idUser", "invalid_user_id") // Cela va causer une FormatException lors du Parse
-            };
-            var identity = new ClaimsIdentity(claims, "TestAuthType");
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
-            };
-
-            // Act
-            var result = await _controller.Logout();
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(ObjectResult));
-            var objectResult = (ObjectResult)result;
-            Assert.AreEqual(500, objectResult.StatusCode);
-        }
-        #endregion
-
-        #region GetMeTests
+            #region GetMeTests
 
         [TestMethod]
         public async Task GetMeTest()
@@ -948,12 +469,594 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #endregion
 
-        #region ToggleEtatCompteTests
+        #endregion
+
+        #region POST
+        [TestMethod]
+        public async Task PostCompteTest_Entity()
+        {
+            // Arrange
+            CompteCreateDTO compteCreateDTO = new CompteCreateDTO
+            {
+                Nom = "Smith",
+                Prenom = "Jane",
+                Email = "jane.smith@gmail.com",
+                MotDePasse = "anotherhashedpassword",
+                Pseudo = "janesmith",
+                DateNaissance = new DateTime(1992, 2, 2),
+                IdTypeCompte = 1,
+            };
+
+            // Act
+            var actionResult = await _controller.Post(compteCreateDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+
+            var createdcompte = (Compte)created.Value;
+            Assert.AreEqual(compteCreateDTO.Email, createdcompte.Email);
+        }
+
+        [TestMethod]
+        public async Task BadRequestPostCompteTest()
+        {
+            // Arrange
+            CompteCreateDTO compteUpdateDTO = new CompteCreateDTO
+            {
+                Nom = "DoeUpdated",
+                Prenom = "john",
+                Email = "johnmodif@gmail.com",
+                DateNaissance = new DateTime(1991, 1, 1),
+                IdTypeCompte = 1,
+                MotDePasse = "hashedpassword",
+                Pseudo = "johndoe",
+                NumeroSiret = null,
+            };
+
+            _controller.ModelState.AddModelError("NumeroSiret", "Required");
+            
+            // Act
+            var actionResult = await _controller.Post(compteUpdateDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        #endregion
+
+        #region DELETE
+
+        [TestMethod]
+        public async Task DeleteCompteTest()
+        {
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var deletedCompte = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.IsNull(deletedCompte);
+        }
+
+        [TestMethod]
+        public async Task NotFoundDeleteCompteTest()
+        {
+            // Act
+            var result = await _controller.Delete(0);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        #endregion
+
+        #region Put
+
+            #region PutCompte
+        [TestMethod]
+        public async Task PutCompteTest()
+        {
+            // Arrange
+            CompteUpdateDTO compteUpdateDTO = new CompteUpdateDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Nom = "DoeUpdated",
+                Prenom = "JohnUpdated",
+                Email = "johnmodif@gmail.com",
+                DateNaissance = new DateTime(1991, 1, 1),
+                IdTypeCompte = 1,
+            };
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdCompte, compteUpdateDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            var compteput = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.AreEqual(compteUpdateDTO.Nom, compteput.Nom);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutCompteTest()
+        {
+            // Arrange
+            CompteUpdateDTO compteUpdateDTO = new CompteUpdateDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Nom = "DoeUpdated",
+                Prenom = "JohnUpdated",
+                Email = "johnmodif@gmail.com",
+                DateNaissance = new DateTime(1991, 1, 1),
+                IdTypeCompte = 1,
+            };
+
+            // Act
+            var result = await _controller.Put(0, compteUpdateDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task BadRequestPutCompteTest()
+        {
+            // Arrange
+            CompteUpdateDTO compteUpdateDTO = new CompteUpdateDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Nom = "DoeUpdated",
+                Prenom = null,
+                Email = "johnmodif@gmail.com",
+                DateNaissance = new DateTime(1991, 1, 1),
+                IdTypeCompte = 1,
+            };
+
+            _controller.ModelState.AddModelError("Prenom", "Required");
+            
+            // Act
+            var result = await _controller.Put(_objetcommun.IdCompte, compteUpdateDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+        #endregion
+
+            #region PutAnonymise
+        [TestMethod]
+        public async Task PutAnonymiseTest()
+        {
+            // Act
+            var result = await _controller.PutAnonymise(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var compteanonymise = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.IsNotNull(compteanonymise, "Le compte ne devrait pas être null");
+            Assert.AreEqual("ANONYME", compteanonymise.Nom);
+            Assert.AreEqual("Utilisateur", compteanonymise.Prenom);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutAnonymiseTest()
+        {
+            // Act
+            var result = await _controller.PutAnonymise(0);
+            
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task PutAnonymiseAvecCompteJournauxFavoriTest()
+        {
+            // Arrange
+            Compte compte2 = new Compte
+            {
+                IdCompte = 2,
+                Nom = "Dupont",
+                Prenom = "Jean",
+                Email = "test@gmail.com",
+                MotDePasse = "anotherhashedpassword",
+                Pseudo = "jeandupont",
+                DateCreation = DateTime.UtcNow,
+                DateNaissance = new DateTime(1985, 5, 5),
+                IdTypeCompte = 1,
+                DateDerniereConnexion = DateTime.UtcNow,
+            };
+            _context.Comptes.Add(compte2);
+            Adresse adresse = new Adresse
+            {
+                IdAdresse = 2,
+                Nom = "Adresse Test",
+                Rue = "456 Rue de Test",
+                LibelleVille = "Testville",
+                CodePostal = "67890",
+                IdPays = 1,
+                IdCompte = compte2.IdCompte
+            };
+            _context.Adresses.Add(adresse);
+            _context.Journaux.Add(new Journal
+            {
+                IdJournal = 1,
+                IdCompte = compte2.IdCompte,
+                ContenuJournal = "Journal Test",
+            });
+            _context.Favoris.Add(new Favori
+            {
+                IdAnnonce = 1,
+                IdCompte = compte2.IdCompte
+            });
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.PutAnonymise(compte2.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var compteanonymise = await _manager.GetByIdAsync(compte2.IdCompte);
+            Assert.IsNull(compteanonymise);
+            var Comptes = await _context.Comptes.Where(j => j.IdCompte == compte2.IdCompte).ToListAsync();
+            Assert.IsFalse(Comptes.Any(), "Les journaux associés au compte devraient être supprimés.");
+            var journaux = await _context.Journaux.Where(j => j.IdCompte == compte2.IdCompte).ToListAsync();
+            Assert.IsFalse(journaux.Any(), "Les journaux associés au compte devraient être supprimés.");
+            var favoris = await _context.Favoris.Where(f => f.IdCompte == compte2.IdCompte).ToListAsync();
+            Assert.IsFalse(favoris.Any(), "Les favoris associés au compte devraient être supprimés.");
+        }
+        #endregion
+
+            #region PutTypeCompte
+
+        [TestMethod]
+        public async Task PutTypeCompteProTest()
+        {
+            // Arrange
+            CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
+            {
+                RaisonSociale = "test",
+                NumeroSiret = "12345678912345"
+            };
+
+            // Act
+            var result = await _controller.PutTypeCompte(_objetcommun.IdCompte, compteModifTypeCompteDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.AreEqual(compteModifTypeCompteDTO.RaisonSociale, compteModifie.RaisonSociale);
+            Assert.AreEqual(2, compteModifie.IdTypeCompte);
+        }
+
+        [TestMethod]
+        public async Task PutTypeComptePersoTest()
+        {
+            // Arrange
+            _objetcommun.IdTypeCompte = 2;
+            CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
+            {
+                RaisonSociale = null,
+                NumeroSiret = null
+            };
+
+            // Act
+            var result = await _controller.PutTypeCompte(_objetcommun.IdCompte, compteModifTypeCompteDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.AreEqual(compteModifTypeCompteDTO.RaisonSociale, compteModifie.RaisonSociale);
+            Assert.AreEqual(1, compteModifie.IdTypeCompte);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutTypeCompteTest()
+        {
+            // Arrange
+            CompteModifTypeCompteDTO compteModifTypeCompteDTO = new CompteModifTypeCompteDTO
+            {
+                RaisonSociale = "test",
+                NumeroSiret = "12345678912345"
+            };
+
+            // Act
+            var result = await _controller.PutTypeCompte(0, compteModifTypeCompteDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        #endregion
+
+        #endregion
+
+        #region MDP
+
+        [TestMethod]
+        public async Task ModifMotDePasseTest()
+        {
+            // Arrange
+            ChangementMdpDTO changementMdpDTO = new ChangementMdpDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                MotDePasse = "ouioui",
+                Email = _objetcommun.Email
+            };
+            string Hashpassword = "728b252625ebcddcea74d61760866080a10196087c340a57a88ba511bd387921";
+
+            // Act
+            var result = await _controller.ModifMdp(changementMdpDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.AreEqual(Hashpassword, compteModifie.MotDePasse);
+        }
+
+        [TestMethod]
+        public async Task NotFoundModifMotDePasseTest()
+        {
+            // Arrange
+            ChangementMdpDTO changementMdpDTO = new ChangementMdpDTO
+            {
+                IdCompte = 0,
+                MotDePasse = "ouioui",
+                Email = _objetcommun.Email
+            };
+
+            // Act
+            var result = await _controller.ModifMdp(changementMdpDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+        #endregion
+
+        #region VerifUser
+        [TestMethod]
+        public async Task VerifUserTest()
+        {
+            // Arrange
+            ChangementMdpDTO changementMdpDTO = new ChangementMdpDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                MotDePasse = "Testmdp1!",
+                Email = _objetcommun.Email
+            };
+
+            // Act
+            bool result = await _controller.VerifUser(changementMdpDTO);
+
+            // Assert
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public async Task NotVerifUserTest()
+        {
+            // Arrange
+            ChangementMdpDTO changementMdpDTO = new ChangementMdpDTO
+            {
+                IdCompte = _objetcommun.IdCompte,
+                MotDePasse = "nonnon",
+                Email = _objetcommun.Email
+            };
+            // Act
+            bool result = await _controller.VerifUser(changementMdpDTO);
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+
+        #endregion
+
+        #region Login
+
+        [TestMethod]
+        public async Task Login_ValidCredentials_ReturnsOkWithToken()
+        {
+            // Arrange
+            var loginRequest = new LoginRequest()
+            {
+                Email = "john@gmail.com",
+                MotDePasse = "Testmdp1!"
+            };
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var cookies = _controller.Response.Headers["Set-Cookie"];
+            Assert.IsTrue(cookies.Count > 0);
+            Assert.IsTrue(cookies.ToString().Contains("access_token"));
+        }
+
+        [TestMethod]
+        public async Task Login_InvalidEmail_ReturnsUnauthorized()
+        {
+            // Arrange
+            var loginRequest = new LoginRequest
+            {
+                Email = "wrong@test.com",
+                MotDePasse = "Testmdp1!"
+            };
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_InvalidPassword_ReturnsUnauthorized()
+        {
+            // Arrange
+            var loginRequest = new LoginRequest
+            {
+                Email = "john@gmail.com",
+                MotDePasse = "WrongPassword"
+            };
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_EmptyEmail_ReturnsBadRequest()
+        {
+            // arrange
+            var loginRequest = new LoginRequest
+            {
+                Email = "",
+                MotDePasse = "Testmdp1!"
+            };
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_EmptyPassword_ReturnsBadRequest()
+        {
+            // Arrange
+            var loginRequest = new LoginRequest
+            {
+                Email = "john@gmail.com",
+                MotDePasse = ""
+            };
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_NullCredentials_ReturnsBadRequest()
+        {
+            // Arrange
+            var loginRequest = new LoginRequest
+            {
+                Email = null,
+                MotDePasse = null
+            };
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_CaseInsensitiveEmail_ReturnsOk()
+        {
+            // Arrange
+            var loginRequest = new LoginRequest
+            {
+                Email = "JOHN@GMAIL.COM",
+                MotDePasse = "Testmdp1!"
+            };
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(ObjectResult));
+        }
+
+        #endregion
+
+        #region Logout
+
+        [TestMethod]
+        public async Task Logout_AuthenticatedUser_ReturnsOk()
+        {
+            // Arrange
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", _objetcommun.IdCompte.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, _objetcommun.Email)
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _controller.ControllerContext.HttpContext.User = claimsPrincipal;
+
+            // Act
+            var result = await _controller.Logout();
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Logout_DeletesCookie()
+        {
+            // Arrange
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", _objetcommun.IdCompte.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _controller.ControllerContext.HttpContext.User = claimsPrincipal;
+
+            // Act
+            var result = await _controller.Logout();
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Logout_InvalidUserId_ReturnsInternalServerError()
+        {
+            // Arrange
+            var claims = new List<Claim>
+            {
+                new Claim("idUser", "invalid_user_id") // -> FormatException lors du Parse
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Act
+            var result = await _controller.Logout();
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(ObjectResult));
+            var objectResult = (ObjectResult)result;
+            Assert.AreEqual(500, objectResult.StatusCode);
+        }
+        #endregion
+
+        #region ToggleEtatCompte
 
         [TestMethod]
         public async Task ToggleEtatCompteTest()
         {
+            // Act
             var result = await _controller.ToggleEtatCompte(_objetcommun.IdCompte);
+
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             Compte compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
@@ -964,8 +1067,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundToggleEtatCompteTest()
         {
+            // act
             var result = await _controller.ToggleEtatCompte(0);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
@@ -974,10 +1079,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task ToggleEtatCompteEstRetirerTest()
         {
+            // Arrange
             _objetcommun.IdEtatCompte = 2;
             _context.SaveChanges();
 
+            // Act
             var result = await _controller.ToggleEtatCompte(_objetcommun.IdCompte,true);
+
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             Compte compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
@@ -986,7 +1095,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #endregion
 
-        #region Tests Google Login
+        #region Google Login
 
         [TestMethod]
         public void GoogleLogin_ReturnsOkResult()
@@ -1010,7 +1119,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(okResult);
             Assert.IsNotNull(okResult.Value);
 
-            // Extraire l'URL de la réponse anonyme
+            // Extrai l'URL de la réponse ano
             var responseType = okResult.Value.GetType();
             var urlProperty = responseType.GetProperty("url");
             Assert.IsNotNull(urlProperty);
@@ -1123,7 +1232,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-        #region Tests A2F - Intégration
+        #region A2F
 
         [TestMethod]
         public async Task GetStatutA2f_A2fActif_ReturnsStatutCorrect()

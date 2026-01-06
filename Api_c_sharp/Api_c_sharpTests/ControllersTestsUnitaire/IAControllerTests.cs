@@ -64,6 +64,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _httpClient?.Dispose();
         }
 
+        #region Health
         [TestMethod]
         public async Task HealthTest_RealService()
         {
@@ -85,7 +86,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Assert.AreEqual(503, objectResult.StatusCode);
             }
         }
+        #endregion
 
+        #region CNN
         [TestMethod]
         public async Task PredictCNNTest_RealService()
         {
@@ -126,6 +129,28 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             }
         }
 
+        [TestMethod]
+        public async Task PredictTest_CNNInvalidData_MissingImage()
+        {
+            // Arrange
+            var dataCNN = new DataCNN
+            {
+                ImageBase64 = ""
+            };
+
+            // Act
+            var result = await _controller.Predict(dataCNN);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            var badRequest = (BadRequestObjectResult)result.Result;
+            Assert.AreEqual("L'image en base64 est requise pour la reconnaissance visuelle", badRequest.Value);
+        }
+
+        #endregion
+
+        #region Prediction
         [TestMethod]
         public async Task PredictPredictionTest_RealService()
         {
@@ -171,6 +196,28 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
+        public async Task PredictTest_PredictionInvalidData_MissingProdYear()
+        {
+            // Arrange
+            var dataPrediction = new DataPrediction
+            {
+                ProdYear = null,
+                Manufacturer = "Renault"
+            };
+
+            // Act
+            var result = await _controller.Predict(dataPrediction);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            var badRequest = (BadRequestObjectResult)result.Result;
+            Assert.AreEqual("L'année de production est requise pour la prédiction", badRequest.Value);
+        }
+        #endregion
+
+        #region Ajustement
+        [TestMethod]
         public async Task PredictAjustementTest_RealService()
         {
             // Arrange
@@ -208,44 +255,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             }
         }
 
-        [TestMethod]
-        public async Task PredictTest_CNNInvalidData_MissingImage()
-        {
-            // Arrange
-            var dataCNN = new DataCNN
-            {
-                ImageBase64 = ""
-            };
-
-            // Act
-            var result = await _controller.Predict(dataCNN);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
-            var badRequest = (BadRequestObjectResult)result.Result;
-            Assert.AreEqual("L'image en base64 est requise pour la reconnaissance visuelle", badRequest.Value);
-        }
-
-        [TestMethod]
-        public async Task PredictTest_PredictionInvalidData_MissingProdYear()
-        {
-            // Arrange
-            var dataPrediction = new DataPrediction
-            {
-                ProdYear = null,
-                Manufacturer = "Renault"
-            };
-
-            // Act
-            var result = await _controller.Predict(dataPrediction);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
-            var badRequest = (BadRequestObjectResult)result.Result;
-            Assert.AreEqual("L'année de production est requise pour la prédiction", badRequest.Value);
-        }
 
         [TestMethod]
         public async Task PredictTest_AjustementInvalidData_InvalidBasePrice()
@@ -286,7 +295,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var badRequest = (BadRequestObjectResult)result.Result;
             Assert.AreEqual("La description est requise pour l'ajustement de prix", badRequest.Value);
         }
+        #endregion
 
+        #region ModelState
         [TestMethod]
         public async Task PredictTest_ModelStateInvalid()
         {
@@ -305,5 +316,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
         }
+        #endregion
     }
 }

@@ -202,7 +202,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.LibelleAnnonce,
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav.Libelle))
             .ForMember(dest => dest.MoyenPaiement,
-                opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav.TypePaiement));
+                opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav.TypePaiement)).ReverseMap();
 
         CreateMap<Commande, CommandeDetailDTO>()
             .ForMember(dest => dest.MoyenPaiement,

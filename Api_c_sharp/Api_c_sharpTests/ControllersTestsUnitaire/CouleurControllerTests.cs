@@ -85,6 +85,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _objetcommun = objet;
         }
 
+        #region GET
+
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -108,7 +111,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -122,7 +127,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.CodeHexaCouleur == _objetcommun.CodeHexaCouleur));
         }
+        #endregion
 
+            #region GetCouleursByVoitureID
         [TestMethod]
         public async Task GetCouleursByVoitureIDTest()
         {
@@ -136,5 +143,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(c => c.CodeHexaCouleur == _objetcommun.CodeHexaCouleur));
         }
+        #endregion
+        
+        #endregion
     }
 }

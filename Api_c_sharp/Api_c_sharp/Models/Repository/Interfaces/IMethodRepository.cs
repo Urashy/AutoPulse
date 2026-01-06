@@ -106,7 +106,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     {
         Task<APourConversation?> GetAPourConversationByIDS(int conversationId, int compteId);
 
-        Task<bool> Exists(int idCompte, int idConversation);
+        Task<bool> Exists(int idCompte1, int idCompte2,int idannonce);
     }
 
     public interface IFavoriRepository

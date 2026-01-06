@@ -139,6 +139,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _objetcommun = objet;
         }
 
+        #region GET
+
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -162,7 +165,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -176,17 +181,24 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.IdFacture == _objetcommun.IdFacture));
         }
+        #endregion
 
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task PostVoitureTest_Entity()
         {
+            // Arrange
             var voiture = new FactureDTO
             {
                 IdCommande = 1,
             };
 
+            // Act
             var actionResult = await _controller.Post(voiture);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
@@ -194,12 +206,35 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.AreEqual(voiture.IdCommande, createdVoiture.IdCommande);
         }
 
+        [TestMethod]
+        public async Task BadRequestPostVoitureTest()
+        {
+            // Arrange
+            var voiture = new FactureDTO
+            {
+                IdFacture = _objetcommun.IdFacture,
+                IdCommande = -20,
+            };
 
+            _controller.ModelState.AddModelError("IdCommande", "Le IdCommande doit être supérieur à 0");
+
+            // Act
+            var actionResult = await _controller.Post(voiture);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        #endregion
+
+        #region DELETE
         [TestMethod]
         public async Task DeleteVoitureTest()
         {
+            // Act
             var result = await _controller.Delete(_objetcommun.IdFacture);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             var deletedVoiture = await _manager.GetByIdAsync(_objetcommun.IdFacture);
             Assert.IsNull(deletedVoiture);
@@ -208,14 +243,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundDeleteVoitureTest()
         {
+            // Act
             var result = await _controller.Delete(0);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutVoitureTest()
         {
+            // Arrange
             var voiture = new FactureDTO()
             {
                 IdFacture = _objetcommun.IdFacture,
@@ -223,8 +263,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             };
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdFacture, voiture);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var fetchedVoiture = await _manager.GetByIdAsync(_objetcommun.IdFacture);
@@ -234,25 +276,28 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutVoitureTest()
         {
+            // Arrange
             var voiture = new FactureDTO()
             {
                 IdCommande = 9999,
             };
 
+            // Act
             var result = await _controller.Put(0, voiture);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
         public async Task BadRequestPutVoitureTest()
         {
-            // Arrange : voiture avec kilométrage invalide
+            // Arrange
             var voiture = new FactureDTO()
             {
                 IdCommande = -20,
             };
 
-            // Forcer l'erreur de validation dans le test
+            // Force l'erreur de validation
             _controller.ModelState.AddModelError("IdCommande", "Le IdCommande doit être supérieur à 0");
 
             // Act
@@ -261,23 +306,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+        #endregion
 
-
-        [TestMethod]
-        public async Task BadRequestPostVoitureTest()
-        {
-            var voiture = new FactureDTO
-            {
-                IdFacture = _objetcommun.IdFacture,
-                IdCommande = -20,
-            };
-
-            _controller.ModelState.AddModelError("IdCommande", "Le IdCommande doit être supérieur à 0");
-
-            var actionResult = await _controller.Post(voiture);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
+        
 
     }
 }

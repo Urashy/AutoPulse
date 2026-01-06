@@ -175,13 +175,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetcommun = favori;
         }
-
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdsTest()
         {
-
+            // Act
             var result = await _controller.GetByIDS(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(FavoriDTO));
@@ -192,19 +194,23 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByIdsTest()
         {
-
+            // Act
             var result = await _controller.GetByIDS(9999, _objetcommun.IdCompte);
 
+            // Assert
             Assert.IsNotNull(result.Result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
-
+            // Act
             var result = await _controller.GetAll();
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
 
@@ -213,13 +219,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(list.Any());
             Assert.IsTrue(list.Any(x => x.IdAnnonce == _objetcommun.IdAnnonce));
         }
+        #endregion
 
+            #region GetByCompteID
         [TestMethod]
         public async Task GetFavoriByCompteIDTest()
         {
-
+            // Act
             var result = await _controller.GetByCompteId(_objetcommun.IdCompte);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
 
@@ -228,19 +237,25 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(list.Any());
             Assert.IsTrue(list.Any(x => x.IdAnnonce == _objetcommun.IdAnnonce));
         }
+        #endregion
 
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task PostTest()
         {
-
+            // Arrange
             FavoriDTO dto = new FavoriDTO
             {
                 IdCompte = 1,
                 IdAnnonce = 2
             };
 
+            // Act
             var actionResult = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
 
             var created = (CreatedAtActionResult)actionResult.Result;
@@ -253,25 +268,33 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPostTest()
         {
+            // Arrange
             var dto = new FavoriDTO();
             _controller.ModelState.AddModelError("IdConversation", "Required");
 
+            // Act
             var actionResult = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutTest()
         {
+            // Arrange
             FavoriDTO dto = new FavoriDTO
             {
                 IdCompte = _objetcommun.IdCompte,
                 IdAnnonce = _objetcommun.IdAnnonce
             };
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdCompte, _objetcommun.IdAnnonce, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var updated = await _manager.GetFavoriByIdsAsync(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
@@ -281,36 +304,46 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutTest()
         {
+            // Arrange
             FavoriDTO dto = new FavoriDTO
             {
                 IdCompte = _objetcommun.IdCompte,
                 IdAnnonce = _objetcommun.IdAnnonce
             };
 
+            // Act
             var result = await _controller.Put(9999, 1, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task BadRequestPutTest()
         {
+            // Arrange
             FavoriDTO dto = new FavoriDTO
             {
                 IdCompte = _objetcommun.IdCompte,
             };
             _controller.ModelState.AddModelError("IdAnnonce", "Required");
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdCompte, _objetcommun.IdAnnonce, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteTest()
         {
+            // Act
             var result = await _controller.Delete(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var deleted = await _manager.GetFavoriByIdsAsync(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
@@ -320,15 +353,22 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundDeleteTest()
         {
+            // Act
             var result = await _controller.Delete(9999, _objetcommun.IdCompte);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region IsFavorite
         [TestMethod]
         public async Task IsFavoriteTest()
         {
+            // Act
             var result = await _controller.IsFavorite(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsTrue(result.Value);
         }
@@ -336,9 +376,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task IsNotFavoriteTest()
         {
+            // Act
             var result = await _controller.IsFavorite(9999, _objetcommun.IdAnnonce);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsFalse(result.Value);
         }
+        #endregion
     }
 }

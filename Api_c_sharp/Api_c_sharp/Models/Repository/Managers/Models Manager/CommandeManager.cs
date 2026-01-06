@@ -17,7 +17,11 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual async Task<IEnumerable<Commande>> GetCommandesByCompteId(int compteId)
         {
-            return await dbSet.Where(commande => commande.IdAcheteur == compteId).ToListAsync();
+            return await dbSet.Include(commande => commande.CommandeAnnonceNav)
+                .ThenInclude(annonce => annonce.CompteAnnonceNav)
+                .Include(commande => commande.CommandeMoyenPaiementNav)
+                .Include(na => na.AcheteurCommande)
+                .Where(commande => commande.IdAcheteur == compteId).ToListAsync();
         }
 
     }
