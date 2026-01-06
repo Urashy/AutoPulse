@@ -10,6 +10,7 @@ namespace AutoPulse.Shared.DTO
     {
         public int IdCarteBancaire { get; set; }
         public string? NumeroCarte { get; set; }
+        public string? CodeSecurite { get; set; }
         public string? DateExpiration { get; set; }
         public int IdCompte { get; set; }
     }

@@ -175,8 +175,19 @@ public class MapperProfile : Profile
 
         CreateMap<Carburant, CarburantDTO>().ReverseMap();
 
+        //---------------------------------CarteBancaire---------------------------------
+
+        CreateMap<CarteBancaire, CarteBancaireDTO>().ReverseMap();
+
+        CreateMap<CarteBancaireCreateDTO, CarteBancaire>()
+            .ForMember(dest => dest.DateExpiration,
+                opt => opt.MapFrom(src => DateTime.SpecifyKind(src.DateExpiration, DateTimeKind.Local).ToUniversalTime()))
+            .ReverseMap();
+
+        CreateMap<CarteBancaireUpdateDTO, CarteBancaire>().ReverseMap();
+
         //---------------------------------Categorie---------------------------------
-        
+
         CreateMap<Categorie, CategorieDTO>().ReverseMap();
 
         //---------------------------------Commande---------------------------------

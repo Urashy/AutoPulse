@@ -285,6 +285,11 @@ namespace Api_c_sharp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCarteBancaire"));
 
+                    b.Property<string>("CodeSecurite")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("cba_code_securite");
+
                     b.Property<DateTime>("DateExpiration")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("cba_date_expiration");
@@ -337,6 +342,14 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("cmd_date");
 
+                    b.Property<bool>("EstPayee")
+                        .HasColumnType("boolean")
+                        .HasColumnName("cmd_estpayee");
+
+                    b.Property<bool>("EstValidee")
+                        .HasColumnType("boolean")
+                        .HasColumnName("cmd_estvalidee");
+
                     b.Property<int>("IdAcheteur")
                         .HasColumnType("integer")
                         .HasColumnName("com_id_acheteur");
@@ -347,7 +360,7 @@ namespace Api_c_sharp.Migrations
 
                     b.Property<int>("IdMoyenPaiement")
                         .HasColumnType("integer")
-                        .HasColumnName("cmd_moyen_paiement");
+                        .HasColumnName("moy_moyenpaiement");
 
                     b.Property<int>("IdVendeur")
                         .HasColumnType("integer")
@@ -881,6 +894,10 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("not_nouveau_prix");
 
+                    b.Property<string>("PseudoAcheteurOffre")
+                        .HasColumnType("text")
+                        .HasColumnName("not_pseudo_acheteur_offre");
+
                     b.Property<string>("Titre")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -897,6 +914,10 @@ namespace Api_c_sharp.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("not_url_navigation");
+
+                    b.Property<double?>("ValeurOffre")
+                        .HasColumnType("double precision")
+                        .HasColumnName("not_valeur_offre");
 
                     b.HasKey("IdNotification");
 

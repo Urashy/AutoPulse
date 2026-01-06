@@ -26,8 +26,16 @@ public class Commande
     [Required]
     [Column("cmd_date")]
     public DateTime Date { get; set; } = DateTime.UtcNow;
-    
-    [Column("cmd_moyen_paiement")]
+
+    [Required]
+    [Column("cmd_estpayee")]
+    public bool EstPayee { get; set; } = false;
+
+    [Required]
+    [Column("cmd_estvalidee")]
+    public bool EstValidee { get; set; } = false;
+
+    [Column("moy_moyenpaiement")]
     public int IdMoyenPaiement{ get; set; }
     
     [ForeignKey(nameof(IdMoyenPaiement))]
