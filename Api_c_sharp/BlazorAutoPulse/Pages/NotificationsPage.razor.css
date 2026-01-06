@@ -202,6 +202,10 @@
     text-decoration: line-through;
 }
 
+.offre-price {
+    color: #888;
+}
+
 .arrow {
     color: #00d4ff;
     font-weight: bold;
