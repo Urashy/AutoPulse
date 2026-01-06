@@ -16,6 +16,10 @@ namespace Api_c_sharp.Models.Entity
         public string NumeroCarte { get; set; } = null!;
 
         [Required]
+        [Column("cba_code_securite")]
+        public string CodeSecurite { get; set; } = null!;
+
+        [Required]
         [Column("cba_date_expiration")]
         public DateTime DateExpiration { get; set; }
 

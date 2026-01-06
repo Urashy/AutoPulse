@@ -39,6 +39,7 @@ builder.Services.AddScoped<AvisManager>();
 builder.Services.AddScoped<BloqueManager>();
 builder.Services.AddScoped<BoiteDeVitesseManager>();
 builder.Services.AddScoped<CarburantManager>();
+builder.Services.AddScoped<CartebancaireManager>();
 builder.Services.AddScoped<CategorieManager>();
 builder.Services.AddScoped<CommandeManager>();
 builder.Services.AddScoped<CompteManager>();
@@ -73,6 +74,7 @@ builder.Services.AddScoped<VueManager>();
 
 builder.Services.AddScoped<IAdresseRepository>(sp => sp.GetRequiredService<AdresseManager>());
 builder.Services.AddScoped<IAnnonceRepository>(sp => sp.GetRequiredService<AnnonceManager>());
+builder.Services.AddScoped<ICarteBancaireRepository>(sp => sp.GetRequiredService<CartebancaireManager>());
 builder.Services.AddScoped<IAvisRepository>(sp => sp.GetRequiredService<AvisManager>());
 builder.Services.AddScoped<ICompteRepository>(sp => sp.GetRequiredService<CompteManager>());
 builder.Services.AddScoped<ICommandeRepository>(sp => sp.GetRequiredService<CommandeManager>());
