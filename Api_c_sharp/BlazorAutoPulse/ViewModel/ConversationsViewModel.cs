@@ -163,7 +163,6 @@ public class ConversationViewModel : IDisposable
     {
         if (SelectedConversation?.IdConversation == conversationId)
         {
-            // ✅ CORRECTION : Si c'est notre propre message, vérifier par ID exact
             if (senderId == CurrentUserId)
             {
                 // Notre propre message : vérifier s'il existe déjà par contenu ET date
@@ -185,7 +184,7 @@ public class ConversationViewModel : IDisposable
                 IdCompte = senderId,
                 ContenuMessage = message,
                 DateEnvoiMessage = date,
-                EstLu = senderId == CurrentUserId
+                EstLu = false
             };
 
             // Pour les messages des autres, vérifier aussi
@@ -207,14 +206,40 @@ public class ConversationViewModel : IDisposable
         }
     }
 
-    private void HandleMessagesRead(int conversationId, int userId)
+    // Dans ConversationViewModel.cs
+
+    private void HandleMessagesRead(int conversationId, int userIdReader)
     {
-        if (userId == CurrentUserId && SelectedConversation?.IdConversation == conversationId)
+        if (SelectedConversation?.IdConversation != conversationId)
+            return;
+
+        bool stateChanged = false;
+
+        if (userIdReader != CurrentUserId)
         {
-            foreach (var msg in Messages.Where(m => m.IdCompte != CurrentUserId))
+            var myUnreadMessages = Messages
+                .Where(m => m.IdCompte == CurrentUserId && !m.EstLu);
+
+            foreach (var msg in myUnreadMessages)
             {
                 msg.EstLu = true;
+                stateChanged = true;
             }
+        }
+        else
+        {
+            var otherUnreadMessages = Messages
+                .Where(m => m.IdCompte != CurrentUserId && !m.EstLu);
+
+            foreach (var msg in otherUnreadMessages)
+            {
+                msg.EstLu = true;
+                stateChanged = true;
+            }
+        }
+
+        if (stateChanged)
+        {
             NotifyStateChanged();
         }
     }
@@ -244,7 +269,6 @@ public class ConversationViewModel : IDisposable
         if (SelectedConversation == null)
             return;
 
-        // ✅ Ne PAS notifier SignalR à chaque frappe
         _typingTimer?.Dispose();
         _typingTimer = new System.Threading.Timer(_ =>
         {
@@ -256,7 +280,6 @@ public class ConversationViewModel : IDisposable
 
         _typingNotified = true;
 
-        // ✅ Async sans await (fire-and-forget)
         _ = _signalR.NotifyTyping(SelectedConversation.IdConversation, CurrentUserId, "User");
     }
 
