@@ -136,5 +136,23 @@ namespace Api_c_sharp.Controllers
 
             return _aPourCoversationMapper.Map<APourConversationDTO>(result);
         }
+
+
+        /// <summary>
+        /// Renvoie true si une laiason à partir de son identifiant.
+        /// </summary>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see cref="bool"/> vrai ou faux si la liaison existe.</description></item>
+        /// </list>
+        /// </returns>
+        [ActionName("Exists")]
+        [HttpGet("{idConversation}/{idCompte}")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        public async Task<ActionResult<bool>> Exists(int idConversation, int idCompte)
+        {
+            return await _manager.Exists(idCompte, idConversation);
+
+        }
     }
 }
