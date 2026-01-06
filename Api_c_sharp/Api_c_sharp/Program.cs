@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using Api_c_sharp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -153,6 +154,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSignalR();
+builder.Services.AddHostedService<EfWarmupService>();
 
 var app = builder.Build();
 
