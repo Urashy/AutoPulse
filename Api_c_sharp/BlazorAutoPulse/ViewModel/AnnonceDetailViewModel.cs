@@ -25,7 +25,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IOffreService _offreService;
         private readonly IMessageService _messageService;
         private readonly FavoriStateService _favorisStateService;
-        private readonly ConversationStateService _conversationStateService; // ✅ AJOUT
+        private readonly ConversationStateService _conversationStateService;
+        private readonly APourConversationService _aPourConversationService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public IEnumerable<AnnonceDTO> AnnonceSimilaires { get; private set; } 
@@ -94,6 +95,9 @@ namespace BlazorAutoPulse.ViewModel
         public bool showOffreMode { get; set; } = false;
         public decimal offreAmount { get; set; } = 0;
         public string offreError { get; set; } = "";
+        
+        // Conversation existante
+        public bool ConvExistante { get; set; }
 
         private Action? _refreshUI;
         private IJSRuntime? _jsRuntime;
@@ -113,7 +117,8 @@ namespace BlazorAutoPulse.ViewModel
             IOffreService offreService,
             IMessageService messageService,
             FavoriStateService favorisStateService,
-            ConversationStateService conversationStateService)
+            ConversationStateService conversationStateService,
+            APourConversationService aPourConversationService)
         {
             _annonceService = annonceService;
             _postImageService = postImageService;
@@ -129,6 +134,7 @@ namespace BlazorAutoPulse.ViewModel
             _messageService = messageService;
             _favorisStateService = favorisStateService;
             _conversationStateService = conversationStateService;
+            _aPourConversationService = aPourConversationService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime, NavigationManager nav)
@@ -178,6 +184,8 @@ namespace BlazorAutoPulse.ViewModel
                         IdCompte = CurrentUserId ?? 0
                     });
                 }
+
+                ExistConv();
             }
             catch (Exception ex)
             {
@@ -750,6 +758,16 @@ namespace BlazorAutoPulse.ViewModel
         public IEnumerable<AnnonceDTO> GetVisibleSimilarAds()
         {
             return AnnonceSimilaires ?? Enumerable.Empty<AnnonceDTO>();
+        }
+
+        public async Task ExistConv()
+        {
+            ConvExistante = await _aPourConversationService.ConvExist((int)CurrentUserId, Annonce.IdVendeur, Annonce.IdAnnonce);
+        }
+
+        public async Task RedirectionConversation()
+        {
+            _nav.NavigateTo("/conversation");
         }
 
         /// <summary>
