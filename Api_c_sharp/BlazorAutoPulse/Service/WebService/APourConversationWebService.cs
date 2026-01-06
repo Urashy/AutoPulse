@@ -4,7 +4,7 @@ using BlazorAutoPulse.Service.Interface;
 
 namespace BlazorAutoPulse.Service.WebService;
 
-public class APourConversationWebService: BaseWebService<APourConversationDTO>, APourConversationService
+public class APourConversationWebService: BaseWebService<APourConversationDTO>, IAPourConversationService
 {
     public APourConversationWebService(HttpClient httpClient) : base(httpClient)
     {

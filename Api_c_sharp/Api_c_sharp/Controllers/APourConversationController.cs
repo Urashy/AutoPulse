@@ -150,7 +150,7 @@ namespace Api_c_sharp.Controllers
         /// </list>
         /// </returns>
         [ActionName("Exists")]
-        [HttpGet("{idConversation}/{idCompte}/{idAnnonce}")]
+        [HttpGet("{idCompte1}/{idCompte2}/{idAnnonce}")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         public async Task<ActionResult<bool>> Exists(int idCompte1, int idCompte2,int idAnnonce)
         {

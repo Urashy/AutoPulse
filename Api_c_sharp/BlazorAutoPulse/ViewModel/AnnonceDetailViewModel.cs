@@ -26,7 +26,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IMessageService _messageService;
         private readonly FavoriStateService _favorisStateService;
         private readonly ConversationStateService _conversationStateService;
-        private readonly APourConversationService _aPourConversationService;
+        private readonly IAPourConversationService _iaPourConversationService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
         public IEnumerable<AnnonceDTO> AnnonceSimilaires { get; private set; } 
@@ -118,7 +118,7 @@ namespace BlazorAutoPulse.ViewModel
             IMessageService messageService,
             FavoriStateService favorisStateService,
             ConversationStateService conversationStateService,
-            APourConversationService aPourConversationService)
+            IAPourConversationService iaPourConversationService)
         {
             _annonceService = annonceService;
             _postImageService = postImageService;
@@ -134,7 +134,7 @@ namespace BlazorAutoPulse.ViewModel
             _messageService = messageService;
             _favorisStateService = favorisStateService;
             _conversationStateService = conversationStateService;
-            _aPourConversationService = aPourConversationService;
+            _iaPourConversationService = iaPourConversationService;
         }
 
         public async Task InitializeAsync(int idAnnonce, Action refreshUI, IJSRuntime jsRuntime, NavigationManager nav)
@@ -762,12 +762,12 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task ExistConv()
         {
-            ConvExistante = await _aPourConversationService.ConvExist((int)CurrentUserId, Annonce.IdVendeur, Annonce.IdAnnonce);
+            ConvExistante = await _iaPourConversationService.ConvExist((int)CurrentUserId, Annonce.IdVendeur, Annonce.IdAnnonce);
         }
 
         public async Task RedirectionConversation()
         {
-            _nav.NavigateTo("/conversation");
+            _nav.NavigateTo("/conversations");
         }
 
         /// <summary>
