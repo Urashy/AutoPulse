@@ -20,6 +20,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly NotificationService _notificationService;
         private readonly IA2fService _a2fService;
         private readonly ITokenEmailService _tokenEmailService;
+        private readonly ICarteBancaireService _carteBancaireService;
 
         public CompteDetailDTO compte;
         public CompteDetailDTO compteEdit;
@@ -27,6 +28,7 @@ namespace BlazorAutoPulse.ViewModel
         public IEnumerable<AdresseDTO> adresses;
         public IEnumerable<AvisListDTO> avis;
         public IEnumerable<CommandeDTO> commandes;
+        public IEnumerable<CarteBancaireDTO> carteBancaires;
 
         private string mimeType = "data:image/jpeg;base64,";
         public string imageSource;
@@ -82,7 +84,8 @@ namespace BlazorAutoPulse.ViewModel
             ICommandeService commandeService,
             NotificationService notificationService,
             IA2fService a2fService,
-            ITokenEmailService tokenEmailService)
+            ITokenEmailService tokenEmailService,
+            ICarteBancaireService carteBancaireService)
         {
             _compteService = compteService;
             _postImageService = postImageService;
@@ -94,6 +97,7 @@ namespace BlazorAutoPulse.ViewModel
             _notificationService = notificationService;
             _a2fService = a2fService;
             _tokenEmailService = tokenEmailService;
+            _carteBancaireService = carteBancaireService;
         }
 
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
@@ -163,7 +167,15 @@ namespace BlazorAutoPulse.ViewModel
             {
                 commandes = null;
             }
-            
+            try
+            {
+                carteBancaires = await _carteBancaireService.GetCarteBancaireByCompte(compte.IdCompte);
+            }
+            catch
+            {
+                carteBancaires = null;
+            }
+
             await ChargerStatutA2f();
         }
         

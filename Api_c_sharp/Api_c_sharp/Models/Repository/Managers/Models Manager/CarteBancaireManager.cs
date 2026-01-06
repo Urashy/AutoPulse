@@ -10,8 +10,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
     public class CartebancaireManager : WriteableReadableManager<CarteBancaire>, ICarteBancaireRepository
     {
-        private static readonly byte[] Key = Encoding.UTF8.GetBytes("CLE_SUPER_SECRETE_32_OCTETS!!");
-        private static readonly byte[] IV = Encoding.UTF8.GetBytes("INIT_VECTOR_16B!");
+        private static readonly byte[] Key = Encoding.UTF8.GetBytes("CLE_SUPER_SECRETE_32_OCTETS!!!!!");
+        private static readonly byte[] IV = Encoding.UTF8.GetBytes("INIT_VECTOR_16!!");
+
 
         public CartebancaireManager(AutoPulseBdContext context) : base(context)
         {
@@ -23,6 +24,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             foreach (var carte in cartes)
             {
                 carte.NumeroCarte = MaskLast4Digits(carte.NumeroCarte);
+                carte.CodeSecurite = "***";
             }
             return cartes;
         }
@@ -33,6 +35,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             if (carte != null)
             {
                 carte.NumeroCarte = MaskLast4Digits(carte.NumeroCarte);
+                carte.CodeSecurite = "***";
             }
             return carte;
         }
@@ -40,12 +43,21 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public override Task<CarteBancaire> AddAsync(CarteBancaire entity)
         {
             entity.NumeroCarte = EncryptCardNumber(entity.NumeroCarte);
+            entity.CodeSecurite = EncryptCardNumber(entity.CodeSecurite);
+            entity.DateExpiration = new DateTime(entity.DateExpiration.Year, entity.DateExpiration.Month, 1).ToUniversalTime();
             return base.AddAsync(entity);
         }
 
         public async Task<IEnumerable<CarteBancaire>> GetCarteBancaireByCompteId(int compteid)
         {
-            return await dbSet.Where(c => c.IdCompte == compteid).ToListAsync();
+            var cartes = await dbSet.Where(c => c.IdCompte == compteid).ToListAsync();
+            foreach (var carte in cartes)
+            {
+                carte.NumeroCarte = MaskLast4Digits(carte.NumeroCarte);
+                carte.CodeSecurite = "***";
+            }
+            return cartes;
+
         }
 
         private string EncryptCardNumber(string numeroCarte)
@@ -78,7 +90,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             var numeroCarte = DecryptCardNumber(encryptedCard);
 
-            if (numeroCarte.Length < 3)
+            if (numeroCarte.Length < 4)
                 throw new ArgumentException("Numéro invalide");
 
             return new string('*', numeroCarte.Length - 4) + numeroCarte[^4..];

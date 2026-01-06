@@ -524,6 +524,10 @@
                     @onclick="@(() => VM.SetActiveSection("avis"))">
                 Avis
             </button>
+            <button class="nav-item @(VM.activeSection == "cartes bancaire" ? "active" : "")"
+                    @onclick="@(() => VM.SetActiveSection("cartes bancaire"))">
+                Cartes Bancaire
+            </button>
         </nav>
 
         <div class="content-section">
@@ -586,12 +590,26 @@
                         {
                             @foreach (var commande in VM.commandes)
                             {
-                                <CommandeComposant Commande="commande"/>
+                                <CommandeComposant Commande="@commande"/>
                             }
                         }
                         else
                         {
                             <p>Vous n'avez aucune commande</p>
+                        }
+                        break;
+
+                    case "cartes bancaire":
+                        if (@VM.carteBancaires != null && VM.carteBancaires.Any())
+                        {
+                            @foreach (var carteBancaire in VM.carteBancaires)
+                            {
+                                <p>@carteBancaire.NumeroCarte</p>
+                            }
+                        }
+                        else
+                        {
+                            <p>Vous n'avez aucune carte bancaire enregistré</p>
                         }
                         break;
                 }

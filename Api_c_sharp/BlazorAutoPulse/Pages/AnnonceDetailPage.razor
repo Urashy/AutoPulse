@@ -469,7 +469,10 @@ else
                         <p class="seller-name">@VM.Annonce.PseudoVendeur</p>
                         <p class="seller-type">@VM.Annonce.TypeCompteVendeur</p>
                     </div>
-                    <button class="btn-contact" @onclick="VM.OpenContactPopup">Contacter le vendeur</button>
+                    @if (VM.CurrentUserId != VM.Annonce.IdVendeur)
+                    {
+                        <button class="btn-contact" @onclick="VM.OpenContactPopup">Contacter le vendeur</button>
+                    }
                 </div>
             </div>
         </div>
@@ -642,9 +645,12 @@ else
         <div class="actions-section">
             @if (VM.CurrentUserId.HasValue)
             {
-                <button class="btn-favorite @(VM.IsFavorite ? "active" : "")" @onclick="VM.ToggleFavorite">
-                    @(VM.IsFavorite ? "❤ Retirer des favoris" : "🤍 Ajouter aux favoris")
-                </button>
+                @if (VM.CurrentUserId != VM.Annonce.IdVendeur)
+                {
+                    <button class="btn-favorite @(VM.IsFavorite ? "active" : "")" @onclick="VM.ToggleFavorite">
+                        @(VM.IsFavorite ? "❤ Retirer des favoris" : "🤍 Ajouter aux favoris")
+                    </button>
+                }
             }
             else
             {

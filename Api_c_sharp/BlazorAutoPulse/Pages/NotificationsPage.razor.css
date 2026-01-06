@@ -127,18 +127,6 @@
     background: linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, #0f0f0f 100%);
 }
 
-.notification-item.unread::before {
-    content: '';
-    position: absolute;
-    top: 20px;
-    left: -2px;
-    width: 8px;
-    height: 8px;
-    background: #00d4ff;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #00d4ff;
-}
-
 /* NOTIFICATION ICON */
 .notification-icon {
     font-size: 32px;
@@ -200,6 +188,10 @@
 .old-price {
     color: #888;
     text-decoration: line-through;
+}
+
+.offre-price {
+    color: #888;
 }
 
 .arrow {

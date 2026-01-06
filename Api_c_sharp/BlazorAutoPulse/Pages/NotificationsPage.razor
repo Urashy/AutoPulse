@@ -70,6 +70,15 @@
                                 <span class="reduction">@notification.Reduction?.ToString("N0")€</span>
                             </div>
                         }
+                        
+                        @if (notification.Type == "offre")
+                        {
+                            <div class="price-drop-details">
+                                <span class="offre-price">@notification.PseudoAcheteurOffre</span>
+                                <span class="arrow">→</span>
+                                <span class="new-price">@notification.ValeurOffre?.ToString("N0")€</span>
+                            </div>
+                        }
                     </div>
                     
                     <div class="notification-actions">

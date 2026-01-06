@@ -1,4 +1,5 @@
 using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
 using BlazorAutoPulse.Services;
@@ -19,6 +20,7 @@ public class ConversationViewModel : IDisposable
     private readonly IJSRuntime _jsRuntime;
     private readonly IOffreService _offreService;
     private readonly IAnnonceService _annonceService;
+    private readonly NotificationService _notificationService; 
 
     public List<MessageDTO> Messages { get; private set; } = new();
     public ConversationListDTO? SelectedConversation { get; private set; }
@@ -68,7 +70,8 @@ public class ConversationViewModel : IDisposable
         IBloqueService bloqueService,
         IJSRuntime jsRuntime,
         IOffreService offreService,
-        IAnnonceService annonceService)
+        IAnnonceService annonceService,
+        NotificationService notificationService)
     {
         _conversationState = conversationState;
         _signalR = signalR;
@@ -78,6 +81,7 @@ public class ConversationViewModel : IDisposable
         _jsRuntime = jsRuntime;
         _offreService = offreService;
         _annonceService = annonceService;
+        _notificationService = notificationService;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
         _signalR.OnUserTyping += HandleUserTyping;
@@ -159,7 +163,6 @@ public class ConversationViewModel : IDisposable
     {
         if (SelectedConversation?.IdConversation == conversationId)
         {
-            // ✅ CORRECTION : Si c'est notre propre message, vérifier par ID exact
             if (senderId == CurrentUserId)
             {
                 // Notre propre message : vérifier s'il existe déjà par contenu ET date
@@ -181,7 +184,7 @@ public class ConversationViewModel : IDisposable
                 IdCompte = senderId,
                 ContenuMessage = message,
                 DateEnvoiMessage = date,
-                EstLu = senderId == CurrentUserId
+                EstLu = false
             };
 
             // Pour les messages des autres, vérifier aussi
@@ -203,14 +206,40 @@ public class ConversationViewModel : IDisposable
         }
     }
 
-    private void HandleMessagesRead(int conversationId, int userId)
+    // Dans ConversationViewModel.cs
+
+    private void HandleMessagesRead(int conversationId, int userIdReader)
     {
-        if (userId == CurrentUserId && SelectedConversation?.IdConversation == conversationId)
+        if (SelectedConversation?.IdConversation != conversationId)
+            return;
+
+        bool stateChanged = false;
+
+        if (userIdReader != CurrentUserId)
         {
-            foreach (var msg in Messages.Where(m => m.IdCompte != CurrentUserId))
+            var myUnreadMessages = Messages
+                .Where(m => m.IdCompte == CurrentUserId && !m.EstLu);
+
+            foreach (var msg in myUnreadMessages)
             {
                 msg.EstLu = true;
+                stateChanged = true;
             }
+        }
+        else
+        {
+            var otherUnreadMessages = Messages
+                .Where(m => m.IdCompte != CurrentUserId && !m.EstLu);
+
+            foreach (var msg in otherUnreadMessages)
+            {
+                msg.EstLu = true;
+                stateChanged = true;
+            }
+        }
+
+        if (stateChanged)
+        {
             NotifyStateChanged();
         }
     }
@@ -240,7 +269,6 @@ public class ConversationViewModel : IDisposable
         if (SelectedConversation == null)
             return;
 
-        // ✅ Ne PAS notifier SignalR à chaque frappe
         _typingTimer?.Dispose();
         _typingTimer = new System.Threading.Timer(_ =>
         {
@@ -252,7 +280,6 @@ public class ConversationViewModel : IDisposable
 
         _typingNotified = true;
 
-        // ✅ Async sans await (fire-and-forget)
         _ = _signalR.NotifyTyping(SelectedConversation.IdConversation, CurrentUserId, "User");
     }
 
@@ -454,7 +481,23 @@ public class ConversationViewModel : IDisposable
                 ContenuMessage = messageText,
             };
 
-            var createdMessage = await _messageService.CreateMessageAsync(messageDto, offreAmountToSend > 0 && annonceIdToSend.HasValue);
+            var result = await _messageService.CreateMessageAsync(messageDto, offreAmountToSend > 0 && annonceIdToSend.HasValue);
+
+            if (!result.Success)
+            {
+                Console.WriteLine($"❌ Erreur API : {result.ErrorMessage}");
+
+                _newMessage = messageText;
+
+
+                _notificationService.ShowError("Erreur lors de l'envoie du message",result.ErrorMessage);
+
+                NotifyStateChanged();
+                return; 
+            }
+
+            // CAS DE SUCCÈS
+            var createdMessage = result.Data;
 
             if (createdMessage == null)
             {

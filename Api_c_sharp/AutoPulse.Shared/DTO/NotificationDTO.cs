@@ -17,4 +17,8 @@ public class NotificationDTO
     public double? AncienPrix { get; set; }
     public double? NouveauPrix { get; set; }
     public double? Reduction { get; set; }
+    
+    // Données spécifiques aux offre
+    public string? PseudoAcheteurOffre { get; set; }
+    public double? ValeurOffre { get; set; }
 }

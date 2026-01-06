@@ -50,6 +50,12 @@ namespace Api_c_sharp.Models.Entity
 
         [Column("not_nouveau_prix")]
         public double? NouveauPrix { get; set; }
+        
+        [Column("not_pseudo_acheteur_offre")]
+        public string? PseudoAcheteurOffre { get; set; }
+
+        [Column("not_valeur_offre")]
+        public double? ValeurOffre { get; set; }
 
         // Navigation properties
         [ForeignKey(nameof(IdCompte))]

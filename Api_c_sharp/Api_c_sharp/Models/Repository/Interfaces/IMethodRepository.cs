@@ -105,6 +105,8 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     public interface IApourConversationRepository
     {
         Task<APourConversation?> GetAPourConversationByIDS(int conversationId, int compteId);
+
+        Task<bool> Exists(int idCompte, int idConversation);
     }
 
     public interface IFavoriRepository
@@ -133,6 +135,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     public interface IOffreRepository
     {
         Task<IEnumerable<Offre>> GetOffresByMessageIdAsync(int idMessage);
+        Task<bool> PendingOfferExistsInConversation(int idConversation);
     }
 
     public interface  ICarteBancaireRepository

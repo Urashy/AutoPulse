@@ -40,19 +40,40 @@ namespace Api_c_sharp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+
+            var mess = await _managermessage.GetByIdAsync(dto.IdMessage);
+
+            bool res = await _manager.PendingOfferExistsInConversation(mess.IdConversation);
+
+            if (res)
+            {
+                return Conflict("Une offre en attente existe déjà dans cette conversation.");
+            }
+
             var entity = _offremapper.Map<Offre>(dto);
 
             await _manager.AddAsync(entity);
+            
+            var annonce = await _managerannonce.GetByIdAsync(entity.IdAnnonce);
+            var message = await _managermessage.GetByIdAsync(entity.IdMessage);
+            
+            int idAcheteur;
+                
+            if(message.IdCompte == annonce.IdCompte)
+            {
+                idAcheteur = entity.OffreAnnonceNav.IdCompte;
+            }
+            else
+            {
+                idAcheteur = message.IdCompte;
+            }
 
-            await _notifService.NotifOffreAnnonce(entity.IdAnnonce);
-
-
+            await _notifService.NotifOffreAnnonce(entity.IdAnnonce, idAcheteur, entity.Valeur);
+            
             var messageAssocie = await _managermessage.GetByIdAsync(entity.IdMessage);
 
             if (messageAssocie != null && _hubContext != null)
             {
-                // On notifie le groupe de la conversation qu'un message de type "Offre" est arrivé
-                // Attention : Vérifie bien que "entity.Prix" correspond au nom de ta propriété dans ton modèle Offre
                 await _hubContext.Clients.Group($"conversation_{messageAssocie.IdConversation}")
                     .SendAsync("ReceiveMessageWithOffre",
                         messageAssocie.IdConversation,
@@ -60,7 +81,7 @@ namespace Api_c_sharp.Controllers
                         messageAssocie.ContenuMessage,  // Le texte du message
                         messageAssocie.DateEnvoiMessage,
                         messageAssocie.IdMessage,
-                        entity.IdOffre,    // <--- AJOUT IMPORTANT ICI
+                        entity.IdOffre,
                         entity.Valeur,             // La valeur de l'offre (vérifie le nom de la prop : Prix, Montant ou Valeur)
                         entity.IdAnnonce);
             }
@@ -103,11 +124,11 @@ namespace Api_c_sharp.Controllers
             if (updated.EstAccepte == true)
             {
                          
-                var anonce = await _managerannonce.GetByIdAsync(toUpdate.IdAnnonce);
+                var annonce = await _managerannonce.GetByIdAsync(toUpdate.IdAnnonce);
 
                 int idAcheteur;
                 
-                if(message.IdCompte == anonce.IdCompte)
+                if(message.IdCompte == annonce.IdCompte)
                 {
                     idAcheteur = toUpdate.OffreAnnonceNav.IdCompte;
                 }
@@ -119,7 +140,7 @@ namespace Api_c_sharp.Controllers
                 CommandeCreateDTO com = new CommandeCreateDTO
                     {
                         IdAcheteur = idAcheteur,
-                        IdVendeur = anonce.IdCompte,
+                        IdVendeur = annonce.IdCompte,
                         IdAnnonce = dto.IdAnnonce,
                         Date = DateTime.UtcNow,
                         IdMoyenPaiement = 1
