@@ -53,10 +53,23 @@ namespace Api_c_sharp.Controllers
             var entity = _offremapper.Map<Offre>(dto);
 
             await _manager.AddAsync(entity);
+            
+            var annonce = await _managerannonce.GetByIdAsync(entity.IdAnnonce);
+            var message = await _managermessage.GetByIdAsync(entity.IdMessage);
+            
+            int idAcheteur;
+                
+            if(message.IdCompte == annonce.IdCompte)
+            {
+                idAcheteur = entity.OffreAnnonceNav.IdCompte;
+            }
+            else
+            {
+                idAcheteur = message.IdCompte;
+            }
 
-            await _notifService.NotifOffreAnnonce(entity.IdAnnonce);
-
-
+            await _notifService.NotifOffreAnnonce(entity.IdAnnonce, idAcheteur, entity.Valeur);
+            
             var messageAssocie = await _managermessage.GetByIdAsync(entity.IdMessage);
 
             if (messageAssocie != null && _hubContext != null)
@@ -111,11 +124,11 @@ namespace Api_c_sharp.Controllers
             if (updated.EstAccepte == true)
             {
                          
-                var anonce = await _managerannonce.GetByIdAsync(toUpdate.IdAnnonce);
+                var annonce = await _managerannonce.GetByIdAsync(toUpdate.IdAnnonce);
 
                 int idAcheteur;
                 
-                if(message.IdCompte == anonce.IdCompte)
+                if(message.IdCompte == annonce.IdCompte)
                 {
                     idAcheteur = toUpdate.OffreAnnonceNav.IdCompte;
                 }
@@ -127,7 +140,7 @@ namespace Api_c_sharp.Controllers
                 CommandeCreateDTO com = new CommandeCreateDTO
                     {
                         IdAcheteur = idAcheteur,
-                        IdVendeur = anonce.IdCompte,
+                        IdVendeur = annonce.IdCompte,
                         IdAnnonce = dto.IdAnnonce,
                         Date = DateTime.UtcNow,
                         IdMoyenPaiement = 1

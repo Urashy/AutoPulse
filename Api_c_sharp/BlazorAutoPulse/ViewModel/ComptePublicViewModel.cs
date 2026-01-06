@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Net;
 using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service;
@@ -37,6 +39,10 @@ public class ComptePublicViewModel
     
     // Bloquer
     public bool EstBloque { get; set; }
+    
+    // Non connecter ou compte n'existe pas
+    private string titleError { get; set; }
+    private string messageError { get; set; }
     
     // Variable d'action
     private Action? _refreshUI;
@@ -79,8 +85,20 @@ public class ComptePublicViewModel
             }
             isLoading = false;
         }
-        catch
+        catch (HttpRequestException ex)
         {
+            switch (ex.StatusCode)
+            {
+                case HttpStatusCode.Unauthorized:
+                    titleError = "Non connecté";
+                    messageError = "Vous devez être connecté pour accéder à un profil";
+                    break;
+                case HttpStatusCode.NotFound:
+                    titleError = "Utilisateur introuvable";
+                    messageError = "Vous avez été redirigé vers l'accueil";
+                    break;
+            }
+            
             RedirectionAccueil();
         }
 
@@ -196,9 +214,12 @@ public class ComptePublicViewModel
 
     public async Task RedirectionAccueil()
     {
-        _notificationService.ShowError(
-            "Utilisateur introuvable",
-            "Vous avez été redirigé vers l'accueil");
+        if (titleError != null && messageError != null)
+        {
+            _notificationService.ShowError(
+                titleError,
+                messageError);
+        }
         _nav.NavigateTo("/");
     }
 }

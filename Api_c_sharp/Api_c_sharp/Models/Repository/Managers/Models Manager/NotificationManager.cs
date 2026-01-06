@@ -78,7 +78,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             await context.SaveChangesAsync();
         }
 
-        public virtual async Task NotifCreationAutoAsync(List<int> idcomptes, string url,string titre,string message,int idannonce, string type, double prix = 0, double prixnew = 0)
+        public virtual async Task NotifCreationAutoAsync(List<int> idcomptes, string url,string titre,string message,int idannonce, string type, double prix = 0, double prixnew = 0, string pseudoAcheteurOffre = "", decimal valeurOffre = 0)
         {
             foreach (var idcompte in idcomptes)
             {
@@ -93,7 +93,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                     DateCreation = DateTime.UtcNow,
                     IdAnnonce = idannonce,
                     AncienPrix = prix == 0 ? null : prix,
-                    NouveauPrix = prixnew == 0 ? null : prixnew
+                    NouveauPrix = prixnew == 0 ? null : prixnew,
+                    PseudoAcheteurOffre = pseudoAcheteurOffre,
+                    ValeurOffre = (double)valeurOffre
                 };
 
                 await AddAsync(notif);
@@ -138,7 +140,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
         }
         
-        public virtual async Task NotifOffreAnnonce(int idannonce)
+        public virtual async Task NotifOffreAnnonce(int idannonce, int idAcheteur, decimal valeur)
         {
             List <int> idcomptes = await context.Annonces
                 .Where(a => a.IdAnnonce == idannonce)
@@ -147,12 +149,14 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             Annonce? annonce = await context.Annonces
                 .FirstOrDefaultAsync(a => a.IdAnnonce == idannonce);
+            
+            Compte compte = await context.Comptes.FindAsync(idAcheteur);
 
             string url = $"/annonce/{idannonce}";
             string titre = "Offre sur une annonce";
             string message = $"On vous a fait une offre sur votre annonce #{annonce.Libelle}";
-            string type = "info";
-            await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
+            string type = "offre";
+            await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type, pseudoAcheteurOffre: compte.Pseudo, valeurOffre: valeur);
         }
     }
 }

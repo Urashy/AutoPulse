@@ -12,5 +12,16 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             return await dbSet.FindAsync(idCompte, idConversation);
         }
+
+        public virtual async Task<bool> Exists(int idCompte, int idConversation)
+        {
+            bool exists = false;
+            var apourconv =  await dbSet.FindAsync(idCompte, idConversation);
+            if (apourconv != null )
+            {
+                exists = true;
+            }
+            return exists;
+        }
     }
 }

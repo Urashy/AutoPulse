@@ -179,6 +179,7 @@ namespace BlazorAutoPulse.ViewModel
                 "success" => "✅",
                 "warning" => "⚠️",
                 "error" => "❌",
+                "offre" => "💸",
                 _ => "🔔"
             };
         }

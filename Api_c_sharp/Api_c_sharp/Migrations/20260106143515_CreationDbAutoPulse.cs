@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api_c_sharp.Migrations
 {
     /// <inheritdoc />
-    public partial class CreationDB : Migration
+    public partial class CreationDbAutoPulse : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -431,6 +431,7 @@ namespace Api_c_sharp.Migrations
                     cba_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     cba_numero = table.Column<string>(type: "text", nullable: false),
+                    cba_code_securite = table.Column<string>(type: "text", nullable: false),
                     cba_date_expiration = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     com_idcompte = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -658,7 +659,9 @@ namespace Api_c_sharp.Migrations
                     com_id_acheteur = table.Column<int>(type: "integer", nullable: false),
                     cmd_id_annonce = table.Column<int>(type: "integer", nullable: false),
                     cmd_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    cmd_moyen_paiement = table.Column<int>(type: "integer", nullable: false)
+                    cmd_estpayee = table.Column<bool>(type: "boolean", nullable: false),
+                    cmd_estvalidee = table.Column<bool>(type: "boolean", nullable: false),
+                    moy_moyenpaiement = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -685,8 +688,8 @@ namespace Api_c_sharp.Migrations
                         principalColumn: "com_id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_t_e_commande_cmd_t_e_moyenpaiement_mop_cmd_moyen_paiement",
-                        column: x => x.cmd_moyen_paiement,
+                        name: "FK_t_e_commande_cmd_t_e_moyenpaiement_mop_moy_moyenpaiement",
+                        column: x => x.moy_moyenpaiement,
                         principalSchema: "public",
                         principalTable: "t_e_moyenpaiement_mop",
                         principalColumn: "mop_id",
@@ -731,7 +734,9 @@ namespace Api_c_sharp.Migrations
                     not_date_creation = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ann_id = table.Column<int>(type: "integer", nullable: true),
                     not_ancien_prix = table.Column<double>(type: "double precision", nullable: true),
-                    not_nouveau_prix = table.Column<double>(type: "double precision", nullable: true)
+                    not_nouveau_prix = table.Column<double>(type: "double precision", nullable: true),
+                    not_pseudo_acheteur_offre = table.Column<string>(type: "text", nullable: true),
+                    not_valeur_offre = table.Column<double>(type: "double precision", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1148,12 +1153,6 @@ namespace Api_c_sharp.Migrations
                 column: "cmd_id_annonce");
 
             migrationBuilder.CreateIndex(
-                name: "IX_t_e_commande_cmd_cmd_moyen_paiement",
-                schema: "public",
-                table: "t_e_commande_cmd",
-                column: "cmd_moyen_paiement");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_t_e_commande_cmd_com_id_acheteur",
                 schema: "public",
                 table: "t_e_commande_cmd",
@@ -1164,6 +1163,12 @@ namespace Api_c_sharp.Migrations
                 schema: "public",
                 table: "t_e_commande_cmd",
                 column: "com_id_vendeur");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_e_commande_cmd_moy_moyenpaiement",
+                schema: "public",
+                table: "t_e_commande_cmd",
+                column: "moy_moyenpaiement");
 
             migrationBuilder.CreateIndex(
                 name: "IX_t_e_compte_com_com_email",
