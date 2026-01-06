@@ -1,5 +1,6 @@
 ﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 {
@@ -13,15 +14,28 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.FindAsync(idCompte, idConversation);
         }
 
-        public virtual async Task<bool> Exists(int idCompte, int idConversation)
+        public virtual async Task<bool> Exists(int idCompte1, int idCompte2,int idAnnonce)
         {
-            bool exists = false;
-            var apourconv =  await dbSet.FindAsync(idCompte, idConversation);
-            if (apourconv != null )
+            var conversationsAnnonce = await context.Conversations
+                 .Where(c => c.IdAnnonce == idAnnonce)
+                 .Select(c => c.IdConversation)
+                 .ToListAsync();
+
+            if (!conversationsAnnonce.Any())
             {
-                exists = true;
+                return false;
             }
-            return exists;
+
+            // Vérifier si les deux comptes participent à une même conversation de cette annonce
+            var conversationCommune = await context.Set<APourConversation>()
+                .Where(apc => conversationsAnnonce.Contains(apc.IdConversation))
+                .GroupBy(apc => apc.IdConversation)
+                .Where(g => g.Count() == 2 &&
+                            g.Any(apc => apc.IdCompte == idCompte1) &&
+                            g.Any(apc => apc.IdCompte == idCompte2))
+                .AnyAsync();
+
+            return conversationCommune;
         }
     }
 }

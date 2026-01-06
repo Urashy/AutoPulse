@@ -141,18 +141,20 @@ namespace Api_c_sharp.Controllers
         /// <summary>
         /// Renvoie true si une laiason à partir de son identifiant.
         /// </summary>
+        /// <param name="idCompte1">Identifiant du compte 1.</param>
+        /// <param name="idCompte2">Identifiant du compte 2.</param>
+        /// <param name="idAnnonce">Identifiant de l'annonce.</param>
         /// <returns>
         /// <list type="bullet">
         /// <item><description><see cref="bool"/> vrai ou faux si la liaison existe.</description></item>
         /// </list>
         /// </returns>
         [ActionName("Exists")]
-        [HttpGet("{idConversation}/{idCompte}")]
+        [HttpGet("{idConversation}/{idCompte}/{idAnnonce}")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-        public async Task<ActionResult<bool>> Exists(int idConversation, int idCompte)
+        public async Task<ActionResult<bool>> Exists(int idCompte1, int idCompte2,int idAnnonce)
         {
-            return await _manager.Exists(idCompte, idConversation);
-
+            return await _manager.Exists(idCompte1, idCompte2,idAnnonce);
         }
     }
 }
