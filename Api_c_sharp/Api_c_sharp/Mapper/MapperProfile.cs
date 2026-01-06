@@ -177,7 +177,9 @@ public class MapperProfile : Profile
 
         //---------------------------------CarteBancaire---------------------------------
 
-        CreateMap<CarteBancaire, CarteBancaireDTO>().ReverseMap();
+        CreateMap<CarteBancaire, CarteBancaireDTO>()
+            .ForMember(dest => dest.DateExpiration, opt => opt.MapFrom(src => $"{src.DateExpiration.Month.ToString()}/{src.DateExpiration.Year.ToString().Substring(2, 2)}"))
+            .ReverseMap();
 
         CreateMap<CarteBancaireCreateDTO, CarteBancaire>()
             .ForMember(dest => dest.DateExpiration,
