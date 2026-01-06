@@ -897,10 +897,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-            var okResult = (OkObjectResult)result.Result;
-            Assert.IsInstanceOfType(okResult.Value, typeof(CompteDetailDTO));
-            var compteDto = (CompteDetailDTO)okResult.Value;
+            var compteDto = (CompteDetailDTO)result.Value;
+            Assert.IsInstanceOfType(compteDto, typeof(CompteDetailDTO));
             Assert.AreEqual(_objetcommun.Email, compteDto.Email);
             Assert.AreEqual(_objetcommun.Pseudo, compteDto.Pseudo);
         }

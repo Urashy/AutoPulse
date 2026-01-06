@@ -16,6 +16,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using MailKit.Net.Smtp;
 using MimeKit;
 using Npgsql;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Api_c_sharp.Controllers;
 
@@ -112,7 +113,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     public async Task<ActionResult<Compte>> Post([FromBody] CompteCreateDTO dto)
     {
         if (!ModelState.IsValid)
-            return ValidationProblem(ModelState);
+            return BadRequest(ModelState);
 
         var entity = _compteMapper.Map<Compte>(dto);
         entity.MotDePasse = ComputeSha256Hash(entity.MotDePasse);

@@ -13,7 +13,7 @@ namespace Api_c_sharp.Models.Repository.Managers
             public ReadableManager(AutoPulseBdContext context)
             {
                 this.context = context;
-                this.dbSet = context.Set<TEntity>();
+                this.dbSet = context?.Set<TEntity>();
             }
 
             public virtual async Task<IEnumerable<TEntity>> GetAllAsync()

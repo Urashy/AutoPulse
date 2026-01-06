@@ -763,13 +763,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             AnnonceUpdateDTO annonce = new AnnonceUpdateDTO()
             {
                 IdAnnonce = _objetcommun.IdAnnonce,
-                Libelle = "Nouvelle Annonce",
-                IdCompte = 1,
-                IdEtatAnnonce = 1,
-                IdAdresse = 1,
+                Libelle = "Update Annonce",
+                IdCompte = _objetcommun.IdCompte,
+                IdEtatAnnonce = _objetcommun.IdEtatAnnonce,
+                IdAdresse = _objetcommun.IdAdresse,
                 Prix = 25000,
                 Description = "Description de la nouvelle annonce",
-                IdVoiture = _objetcommun.IdVoiture
+                IdVoiture = _objetcommun.IdVoiture,
+                DatePublication = _objetcommun.DatePublication.Value
             };
 
             // Act
