@@ -156,7 +156,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
         
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
-        if (_hubContext != null)
+        if (_hubContext is not null)
         {
             if (newPrice < oldPrice)
             {

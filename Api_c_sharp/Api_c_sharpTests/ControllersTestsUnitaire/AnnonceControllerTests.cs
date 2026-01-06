@@ -53,7 +53,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _notificationService = new NotificationManager(_context);
             _manager = new AnnonceManager(_context);
-            _controller = new AnnonceController(_manager, _mapper, _journalService, _notificationService);
+            _controller = new AnnonceController(_manager, _mapper, _journalService, _notificationService,null);
 
             _context.Annonces.RemoveRange(_context.Annonces);
             await _context.SaveChangesAsync();
@@ -770,7 +770,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Prix = 25000,
                 Description = "Description de la nouvelle annonce",
                 IdVoiture = _objetcommun.IdVoiture,
-                DatePublication = _objetcommun.DatePublication.Value
+                DatePublication = _objetcommun.DatePublication.Value,
+                IdMiseEnAvant = _objetcommun.IdMiseEnAvant
             };
 
             // Act
