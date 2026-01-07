@@ -1108,6 +1108,62 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_plainte_pla", "public");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.RefreshToken", b =>
+                {
+                    b.Property<int>("IdRefreshToken")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("rft_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdRefreshToken"));
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("rft_date_creation");
+
+                    b.Property<DateTime>("DateExpiration")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("rft_date_expiration");
+
+                    b.Property<DateTime?>("DateRevocation")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("rft_date_revocation");
+
+                    b.Property<bool>("EstRevoque")
+                        .HasColumnType("boolean")
+                        .HasColumnName("rft_est_revoque");
+
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<string>("IpCreation")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("rft_ip_creation");
+
+                    b.Property<bool>("RememberMe")
+                        .HasColumnType("boolean")
+                        .HasColumnName("rft_remember_me");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("rft_token_hash");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("rft_user_agent");
+
+                    b.HasKey("IdRefreshToken");
+
+                    b.HasIndex("IdCompte");
+
+                    b.ToTable("t_e_refresh_token_rft", "public");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Signalement", b =>
                 {
                     b.Property<int>("IdSignalement")
@@ -1795,6 +1851,17 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("SignalementPlainteNav");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.RefreshToken", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteRefreshTokenNav")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompteRefreshTokenNav");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Signalement", b =>
                 {
                     b.HasOne("Api_c_sharp.Models.Entity.Annonce", "AnnonceSignaleNav")
@@ -1998,6 +2065,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("Plaintes");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("SignalementsFaits");
 
