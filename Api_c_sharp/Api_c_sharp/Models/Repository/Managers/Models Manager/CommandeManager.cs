@@ -12,17 +12,78 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public override async Task<IEnumerable<Commande>> GetAllAsync()
         {
-            return await dbSet.OrderBy(s => s.Date).ToListAsync();
+            return await dbSet
+                .Include(a => a.AcheteurCommande)
+                .Include(v => v.VendeurCommande)
+                .Include(x => x.CommandeEtatCommandeNav)
+                .Include(x => x.CommandeMoyenPaiementNav)
+                .Include(c => c.Offrecommande)
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.VoitureAnnonceNav)
+                        .ThenInclude(v => v.MarqueVoitureNavigation)
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.VoitureAnnonceNav)
+                        .ThenInclude(v => v.ModeleVoitureNavigation)
+                 .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.VoitureAnnonceNav)
+                        .ThenInclude(v => v.CarburantVoitureNavigation)
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.AdresseAnnonceNav)
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.EtatAnnonceNavigation)
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.CompteAnnonceNav)
+                .OrderBy(s => s.Date)
+                .ToListAsync();
         }
 
         public virtual async Task<IEnumerable<Commande>> GetCommandesByCompteId(int compteId)
         {
-            return await dbSet.Include(commande => commande.CommandeAnnonceNav)
-                .ThenInclude(annonce => annonce.CompteAnnonceNav)
-                .Include(commande => commande.CommandeMoyenPaiementNav)
-                .Include(na => na.AcheteurCommande)
-                .Where(commande => commande.IdAcheteur == compteId).ToListAsync();
+            return await dbSet
+               .Include(c => c.CommandeMoyenPaiementNav)
+               .Include(c => c.AcheteurCommande)
+               .Include(c => c.CommandeAnnonceNav)
+                   .ThenInclude(an => an.CompteAnnonceNav)
+               .Include(c => c.CommandeAnnonceNav)
+                   .ThenInclude(an => an.VoitureAnnonceNav)
+                       .ThenInclude(v => v.MarqueVoitureNavigation)
+               .Include(c => c.CommandeAnnonceNav)
+                   .ThenInclude(an => an.AdresseAnnonceNav)
+               .Where(commande => (commande.IdAcheteur == compteId || commande.IdVendeur == compteId))
+               .ToListAsync();
         }
 
+        public override async Task<Commande?> GetByIdAsync(int id)
+        {
+            return await dbSet
+                .Include(a => a.AcheteurCommande)
+                .Include(v => v.VendeurCommande)
+                .Include(x => x.CommandeEtatCommandeNav)
+                .Include(x => x.CommandeMoyenPaiementNav)
+                .Include(c => c.Offrecommande)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.VoitureAnnonceNav)
+                        .ThenInclude(voiture => voiture.MarqueVoitureNavigation)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.VoitureAnnonceNav)
+                        .ThenInclude(voiture => voiture.ModeleVoitureNavigation)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.VoitureAnnonceNav)
+                        .ThenInclude(voiture => voiture.CarburantVoitureNavigation)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.AdresseAnnonceNav)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.EtatAnnonceNavigation)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.CompteAnnonceNav)
+
+                .FirstOrDefaultAsync(c => c.IdCommande == id);
+        }
     }
 }

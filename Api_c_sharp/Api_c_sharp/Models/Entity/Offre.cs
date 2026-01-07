@@ -30,7 +30,6 @@ namespace Api_c_sharp.Models.Entity
         [Column("off_estaccepte")]
         public bool? EstAccepte { get; set; }
 
-        // Navigation properties
         [ForeignKey(nameof(IdAnnonce))]
         [InverseProperty(nameof(Annonce.Offres))]
         public virtual Annonce OffreAnnonceNav { get; set; } = null!;
@@ -38,5 +37,8 @@ namespace Api_c_sharp.Models.Entity
         [ForeignKey(nameof(IdMessage))]
         [InverseProperty(nameof(Message.Offres))]
         public virtual Message OffreMessageNav { get; set; } = null!;
+
+        [InverseProperty(nameof(Commande.Offrecommande))]
+        public virtual ICollection<Commande> CommandeOffre { get; set; } = new List<Commande>();
     }
 }
