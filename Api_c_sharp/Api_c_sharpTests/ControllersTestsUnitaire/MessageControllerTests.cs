@@ -50,7 +50,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Libelle = "Particulier"
             };
 
-            // ✅ PREMIER UTILISATEUR (vendeur)
+            // Vendeur
             Compte compte1 = new Compte()
             {
                 IdCompte = 1,
@@ -65,7 +65,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 DateDerniereConnexion = DateTime.Now
             };
 
-            // ✅ DEUXIÈME UTILISATEUR (acheteur)
+            // Acheteur
             Compte compte2 = new Compte()
             {
                 IdCompte = 2,
@@ -97,7 +97,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdAnnonce = 1
             };
 
-            // ✅ Message envoyé par le compte 1
+
             Message message1 = new Message()
             {
                 IdMessage = 1,
@@ -108,29 +108,31 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 EstLu = false,
             };
 
-            // ✅ Message envoyé par le compte 2 (NON LU)
+            // Message NON LU
             Message message2 = new Message()
             {
                 IdMessage = 2,
                 ContenuMessage = "Oui, elle est toujours disponible.",
                 DateEnvoiMessage = DateTime.Now.AddMinutes(5),
                 IdConversation = 1,
-                IdCompte = 2,  // Envoyé par l'autre utilisateur
-                EstLu = false, // NON LU
+                IdCompte = 2,  
+                EstLu = false,
             };
 
             _context.TypesCompte.Add(typecompte);
             _context.Comptes.Add(compte1);
-            _context.Comptes.Add(compte2);  // ✅ Ajouter le 2ème compte
+            _context.Comptes.Add(compte2);  
             _context.Annonces.Add(annonce);
             _context.Conversations.Add(conversation);
             _context.Messages.Add(message1);
-            _context.Messages.Add(message2);  // ✅ Ajouter le 2ème message
+            _context.Messages.Add(message2);  
             await _context.SaveChangesAsync();
 
             _objetcommun = message1;
         }
+        #region GET
 
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -154,7 +156,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -168,119 +172,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.ContenuMessage == _objetcommun.ContenuMessage));
         }
+        #endregion
 
-        [TestMethod]
-        public async Task PostMessageTest_Entity()
-        {
-            MessageCreateDTO message = new MessageCreateDTO()
-            {
-                IdConversation = 1,
-                IdCompte = 1,
-                ContenuMessage = _objetcommun.ContenuMessage,
-            };
-
-            var actionResult = await _controller.Post(message,false);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-            var created = (CreatedAtActionResult)actionResult.Result;
-
-            var createdmessage = (Message)created.Value;
-            Assert.AreEqual(message.ContenuMessage, createdmessage.ContenuMessage);
-        }
-
-        [TestMethod]
-        public async Task DeleteMessageTest()
-        {
-            var result = await _controller.Delete(_objetcommun.IdMessage);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedMessage = await _manager.GetByIdAsync(_objetcommun.IdMessage);
-            Assert.IsNull(deletedMessage);
-        }
-
-        [TestMethod]
-        public async Task NotFoundDeleteMessageTest()
-        {
-            var result = await _controller.Delete(0);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task PutMessageTest()
-        {
-            MessageUpdateDTO message = new MessageUpdateDTO()
-            {
-                IdMessage = _objetcommun.IdMessage,
-                IdCompte = 1,
-                ContenuMessage = _objetcommun.ContenuMessage,
-                DateEnvoiMessage = DateTime.Now,
-            };
-
-            var result = await _controller.Put(_objetcommun.IdMessage, message);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-
-            Message messageput = await _manager.GetByIdAsync(_objetcommun.IdMessage);
-            Assert.AreEqual(message.ContenuMessage, messageput.ContenuMessage);
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutMessageTest()
-        {
-            MessageUpdateDTO message = new MessageUpdateDTO()
-            {
-                IdCompte = 1,
-                ContenuMessage = _objetcommun.ContenuMessage,
-                DateEnvoiMessage = DateTime.Now,
-            };
-
-            var result = await _controller.Put(0, message);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-        [TestMethod]
-        public async Task BadRequestPutMessageTest()
-        {
-            MessageUpdateDTO message = new MessageUpdateDTO()
-            {
-                IdCompte = 1,
-                ContenuMessage = null,
-                DateEnvoiMessage = DateTime.Now,
-            };
-
-            // Forcer l'erreur de validation dans le test
-            _controller.ModelState.AddModelError("Contenu", "Required");
-
-            // Act
-            var result = await _controller.Put(_objetcommun.IdMessage, message);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
-        }
-
-
-        [TestMethod]
-        public async Task BadRequestPostMessageTest()
-        {
-            MessageCreateDTO message = new MessageCreateDTO()
-            {
-                IdCompte = 1,
-                ContenuMessage = _objetcommun.ContenuMessage,
-            };
-
-            _controller.ModelState.AddModelError("ContenuMessage", "Required");
-
-            var actionResult = await _controller.Post(message, false);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
-
+            #region GetUnreadCount
         [TestMethod]
         public async Task GetUnreadCountTests()
         {
             // Act
-            var result = await _controller.GetUnreadCount(1,1);
+            var result = await _controller.GetUnreadCount(1, 1);
 
             // Assert
             Assert.IsNotNull(result);
@@ -288,13 +187,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result.Value, typeof(int));
             Assert.IsTrue(result.Value >= 0);
         }
+        #endregion
 
+            #region GetMarkAsRead
         [TestMethod]
         public async Task GetByConversationAndMarkAsReadTests()
         {
-
+            // Act
             var result = await _controller.GetByConversationAndMarkAsRead(1, 1);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<MessageDTO>));
@@ -310,7 +212,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task NotFoundGetByConversationAndMarkAsReadTest_AucunMessage()
         {
             // Arrange
-            // Créer une conversation sans messages
             Conversation conversationVide = new Conversation
             {
                 IdConversation = 10,
@@ -330,5 +231,142 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
+
+        #endregion
+
+        #region POST
+        [TestMethod]
+        public async Task PostMessageTest_Entity()
+        {
+            // Arrange
+            MessageCreateDTO message = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = _objetcommun.ContenuMessage,
+            };
+
+            // Act
+            var actionResult = await _controller.Post(message,false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+
+            var createdmessage = (Message)created.Value;
+            Assert.AreEqual(message.ContenuMessage, createdmessage.ContenuMessage);
+        }
+
+        [TestMethod]
+        public async Task BadRequestPostMessageTest()
+        {
+            // Arrange
+            MessageCreateDTO message = new MessageCreateDTO()
+            {
+                IdCompte = 1,
+                ContenuMessage = _objetcommun.ContenuMessage,
+            };
+
+
+            _controller.ModelState.AddModelError("ContenuMessage", "Required");
+
+            // Act
+            var actionResult = await _controller.Post(message, false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+        #endregion
+
+        #region DELETE
+        [TestMethod]
+        public async Task DeleteMessageTest()
+        {
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdMessage);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var deletedMessage = await _manager.GetByIdAsync(_objetcommun.IdMessage);
+            Assert.IsNull(deletedMessage);
+        }
+
+        [TestMethod]
+        public async Task NotFoundDeleteMessageTest()
+        {
+            // Act
+            var result = await _controller.Delete(0);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region PUT
+        [TestMethod]
+        public async Task PutMessageTest()
+        {
+            // Arrange
+            MessageUpdateDTO message = new MessageUpdateDTO()
+            {
+                IdMessage = _objetcommun.IdMessage,
+                IdCompte = 1,
+                ContenuMessage = _objetcommun.ContenuMessage,
+                DateEnvoiMessage = DateTime.Now,
+            };
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdMessage, message);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            Message messageput = await _manager.GetByIdAsync(_objetcommun.IdMessage);
+            Assert.AreEqual(message.ContenuMessage, messageput.ContenuMessage);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutMessageTest()
+        {
+            // Arrange
+            MessageUpdateDTO message = new MessageUpdateDTO()
+            {
+                IdCompte = 1,
+                ContenuMessage = _objetcommun.ContenuMessage,
+                DateEnvoiMessage = DateTime.Now,
+            };
+
+            // Act
+            var result = await _controller.Put(0, message);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        [TestMethod]
+        public async Task BadRequestPutMessageTest()
+        {
+            // Arrange
+            MessageUpdateDTO message = new MessageUpdateDTO()
+            {
+                IdCompte = 1,
+                ContenuMessage = null,
+                DateEnvoiMessage = DateTime.Now,
+            };
+
+            // Forcer l'erreur de validation dans le test
+            _controller.ModelState.AddModelError("Contenu", "Required");
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdMessage, message);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+        #endregion
+
+        
+
+        
     }
 }
