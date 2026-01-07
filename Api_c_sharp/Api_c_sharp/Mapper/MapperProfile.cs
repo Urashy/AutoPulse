@@ -2,6 +2,7 @@ using AutoPulse.Shared.DTO;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Api_c_sharp.Models.Entity;
+using AutoPulse.Shared.DTO.IA.Benchmark;
 
 namespace Api_c_sharp.Mapper;
 
@@ -163,6 +164,14 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.DateAvis,
                 opt => opt.MapFrom(src => DateTime.UtcNow)).ReverseMap();
 
+        //---------------------------------BenchmarkIA---------------------------------
+
+        CreateMap<BenchmarkIA, BenchmarkIADTO>().ReverseMap();
+
+        CreateMap<BenchmarkIA, BenchmarkIAListDTO>();
+
+        CreateMap<BenchmarkIACreateDTO, BenchmarkIA>();
+        
         //---------------------------------Bloque---------------------------------
 
         CreateMap<Bloque, BloqueDTO>().ReverseMap();
@@ -538,7 +547,7 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.Images.Select(i => Convert.ToBase64String(i.Fichier)).ToList())).ReverseMap();
 
         //---------------------------------Vue---------------------------------
-
+        
         CreateMap<Vue, VueDTO>().ReverseMap();
 
     }

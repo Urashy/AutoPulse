@@ -1,4 +1,5 @@
 using Api_c_sharp.Models.Repository.AI;
+using AutoPulse.Shared.DTO.IA.Benchmark;
 using AutoPulse.Shared.DTO.IA.Data;
 using AutoPulse.Shared.DTO.IA.Result;
 using Microsoft.AspNetCore.Mvc;
@@ -10,12 +11,10 @@ namespace Api_c_sharp.Controllers;
 public class IAController : ControllerBase
 {
     private readonly IIAService _iaService;
-    private readonly ILogger<IAController> _logger;
 
-    public IAController(IIAService iaService, ILogger<IAController> logger)
+    public IAController(IIAService iaService)
     {
         _iaService = iaService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -43,14 +42,11 @@ public class IAController : ControllerBase
     {
         if (!ModelState.IsValid)
         {
-            _logger.LogWarning("Modèle invalide reçu");
             return BadRequest(ModelState);
         }
 
         try
         {
-            _logger.LogInformation("Réception d'une requête IA de type: {Type}", data.Type);
-
             // Validation spécifique selon le type
             var validationError = ValidateData(data);
             if (validationError != null)
@@ -64,22 +60,14 @@ public class IAController : ControllerBase
             // Vérifier si la prédiction a réussi
             if (!resultat.Success)
             {
-                _logger.LogWarning(
-                    "Prédiction échouée pour le type {Type}: {Error}",
-                    resultat.Type,
-                    resultat.Error
-                );
                 return BadRequest(new { message = resultat.Error });
             }
-
-            _logger.LogInformation("Prédiction réussie pour le type {Type}", resultat.Type);
-
+            
             // Retourner le résultat polymorphe
             return Ok(resultat);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors de la prédiction IA");
             return StatusCode(503, new
             {
                 message = "Le service IA est temporairement indisponible",
@@ -88,9 +76,6 @@ public class IAController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Vérifie l'état du service IA Python
-    /// </summary>
     [ActionName("Health")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -110,7 +95,6 @@ public class IAController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors du health check");
             return StatusCode(503, new
             {
                 status = "error",
@@ -119,9 +103,6 @@ public class IAController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Valide les données selon leur type
-    /// </summary>
     private string? ValidateData(DataAI data)
     {
         return data switch
@@ -140,5 +121,162 @@ public class IAController : ControllerBase
 
             _ => null
         };
+    }
+    
+    [ActionName("BenchmarkGetAll")]
+    [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<BenchmarkIAListDTO>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<BenchmarkIAListDTO>>> BenchmarkGetAll()
+    {
+        try
+        {
+            var benchmarks = await _iaService.GetAllBenchmarksAsync();
+            return Ok(benchmarks);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur lors de la récupération des benchmarks" });
+        }
+    }
+
+    [ActionName("BenchmarkGetById")]
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(BenchmarkIADTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BenchmarkIADTO>> BenchmarkGetById(int id)
+    {
+        try
+        {
+            var benchmark = await _iaService.GetBenchmarkByIdAsync(id);
+            if (benchmark == null)
+                return NotFound(new { message = $"Benchmark {id} introuvable" });
+
+            return Ok(benchmark);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur lors de la récupération du benchmark" });
+        }
+    }
+
+    [ActionName("BenchmarkGetLatestByType")]
+    [HttpGet]
+    [ProducesResponseType(typeof(Dictionary<string, BenchmarkIADTO>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<Dictionary<string, BenchmarkIADTO>>> BenchmarkGetLatestByType()
+    {
+        try
+        {
+            var benchmarks = await _iaService.GetLatestBenchmarksByTypeAsync();
+            return Ok(benchmarks);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur lors de la récupération des derniers benchmarks" });
+        }
+    }
+
+    [ActionName("BenchmarkGetStats")]
+    [HttpGet]
+    [ProducesResponseType(typeof(BenchmarkIAStatsDTO), StatusCodes.Status200OK)]
+    public async Task<ActionResult<BenchmarkIAStatsDTO>> BenchmarkGetStats()
+    {
+        try
+        {
+            var stats = await _iaService.GetBenchmarkStatsAsync();
+            return Ok(stats);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur lors de la récupération des statistiques" });
+        }
+    }
+
+    [ActionName("BenchmarkGetHistoryByType")]
+    [HttpGet("{modelType}")]
+    [ProducesResponseType(typeof(IEnumerable<BenchmarkIAListDTO>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<BenchmarkIAListDTO>>> BenchmarkGetHistoryByType(
+        string modelType,
+        [FromQuery] int limit = 10)
+    {
+        try
+        {
+            var benchmarks = await _iaService.GetBenchmarkHistoryByTypeAsync(modelType, limit);
+            return Ok(benchmarks);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur lors de la récupération de l'historique" });
+        }
+    }
+
+    /// <summary>
+    /// Crée un nouveau benchmark manuellement
+    /// </summary>
+    [ActionName("BenchmarkPost")]
+    [HttpPost]
+    [ProducesResponseType(typeof(BenchmarkIADTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<BenchmarkIADTO>> BenchmarkPost([FromBody] BenchmarkIACreateDTO benchmark)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var created = await _iaService.CreateBenchmarkAsync(benchmark);
+            return CreatedAtAction(nameof(BenchmarkGetById), new { id = created.IdBenchmark }, created);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur lors de la création du benchmark" });
+        }
+    }
+
+    /// <summary>
+    /// Synchronise les benchmarks depuis l'API Python
+    /// </summary>
+    [ActionName("BenchmarkSync")]
+    [HttpPost]
+    [ProducesResponseType(typeof(IEnumerable<BenchmarkIADTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<ActionResult<IEnumerable<BenchmarkIADTO>>> BenchmarkSync()
+    {
+        try
+        {
+            var benchmarks = await _iaService.SyncBenchmarksFromPythonAsync();
+            return Ok(new
+            {
+                message = $"{benchmarks.Count()} benchmarks synchronisés avec succès",
+                data = benchmarks
+            });
+        }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode(503, new { message = "Service IA indisponible pour la synchronisation" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur lors de la synchronisation des benchmarks" });
+        }
+    }
+
+    [ActionName("BenchmarkDelete")]
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> BenchmarkDelete(int id)
+    {
+        try
+        {
+            var deleted = await _iaService.DeleteBenchmarkAsync(id);
+            if (!deleted)
+                return NotFound(new { message = $"Benchmark {id} introuvable" });
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erreur lors de la suppression du benchmark" });
+        }
     }
 }

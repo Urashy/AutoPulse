@@ -18,6 +18,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<APourConversation> APourConversations { get; set; }
         public DbSet<APourCouleur> APourCouleurs { get; set; }
         public DbSet<Avis> Avis { get; set; }
+        public DbSet<BenchmarkIA> BenchmarksIA { get; set; }
         public DbSet<Bloque> Bloques { get; set; }
         public DbSet<BoiteDeVitesse> BoitesDeVitesses { get; set; }
         public DbSet<Carburant> Carburants { get; set; }
@@ -103,9 +104,7 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(a => a.MiseEnAvantAnnonceNav)
                 .WithMany(m => m.Annonces)
                 .HasForeignKey(a => a.IdMiseEnAvant);
-
-
-
+            
             //-----------------------------APourConversation-----------------------------
             modelBuilder.Entity<APourConversation>()
                 .HasKey(e => new { e.IdCompte, e.IdConversation });
@@ -152,6 +151,52 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(a => a.CommandeAvisNav)
                 .WithMany(c => c.AvisListe)
                 .HasForeignKey(a => a.IdCommande);
+           
+           //-----------------------------BenchmarkIA-----------------------------
+           modelBuilder.Entity<BenchmarkIA>()
+               .HasKey(e => e.IdBenchmark);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .HasIndex(e => e.BenchmarkId);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .HasIndex(e => new { e.ModelType, e.Timestamp });
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .Property(e => e.AvgInferenceTimeMs)
+               .HasPrecision(18, 6);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .Property(e => e.MinInferenceTimeMs)
+               .HasPrecision(18, 6);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .Property(e => e.MaxInferenceTimeMs)
+               .HasPrecision(18, 6);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .Property(e => e.StdInferenceTimeMs)
+               .HasPrecision(18, 6);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .Property(e => e.PredictionsPerSecond)
+               .HasPrecision(18, 6);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .Property(e => e.TotalTimeSeconds)
+               .HasPrecision(18, 6);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .Property(e => e.SuccessRatePercent)
+               .HasPrecision(5, 2);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .Property(e => e.MemoryTotalGb)
+               .HasPrecision(10, 2);
+
+           modelBuilder.Entity<BenchmarkIA>()
+               .Property(e => e.MemoryAvailableGb)
+               .HasPrecision(10, 2);
 
             //-----------------------------Bloque-----------------------------
             modelBuilder.Entity<Bloque>()
