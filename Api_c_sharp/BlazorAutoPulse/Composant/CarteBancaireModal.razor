@@ -1,0 +1,260 @@
+@using AutoPulse.Shared.DTO
+@using BlazorAutoPulse.Service.Interface
+@inject ICarteBancaireService CarteBancaireService
+@inject ICompteService CompteService
+
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>@(IsEditMode ? "✏️ Modifier la carte" : "➕ Ajouter une carte bancaire")</h3>
+                <button class="modal-close" @onclick="CloseModal">✕</button>
+            </div>
+
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="error-message-box">
+                        @ErrorMessage
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(SuccessMessage))
+                {
+                    <div class="success-message-box">
+                        ✓ @SuccessMessage
+                    </div>
+                }
+
+                <form>
+                    <div class="form-group">
+                        <label>Numéro de carte</label>
+                        <input type="text"
+                               placeholder="1234 5678 9012 3456"
+                               @bind="NumeroCarteInput"
+                               @oninput="FormatCardNumber"
+                               maxlength="19"
+                               class="info-input"
+                               disabled="@IsSaving"
+                               required>
+                        <small class="input-hint">16 chiffres</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Code de sécurité (CVV)</label>
+                        <input type="text"
+                               placeholder="123"
+                               @bind="CodeSecurite"
+                               maxlength="3"
+                               class="info-input"
+                               disabled="@IsSaving"
+                               required>
+                        <small class="input-hint">3 chiffres au dos de la carte</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date d'expiration</label>
+                        <input type="text"
+                               @bind="DateExpirationInput"
+                               class="info-input"
+                               disabled="@IsSaving"
+                               placeholder="01/01"
+                               required>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" @onclick="CloseModal" disabled="@IsSaving">
+                    Annuler
+                </button>
+                <button class="btn-primary" @onclick="SaveCarte" disabled="@IsSaving">
+                    @if (IsSaving)
+                    {
+                        <span>Enregistrement...</span>
+                    }
+                    else
+                    {
+                        <span>@(IsEditMode ? "Modifier" : "Ajouter")</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    [Parameter]
+    public bool IsEditMode { get; set; }
+
+    [Parameter]
+    public CarteBancaireDTO? EditCarte { get; set; }
+
+    [Parameter]
+    public EventCallback OnCarteSaved { get; set; }
+
+    private string NumeroCarteInput { get; set; } = "";
+    private string CodeSecurite { get; set; } = "";
+    private string DateExpirationInput { get; set; } = "";
+
+    private string ErrorMessage { get; set; } = "";
+    private string SuccessMessage { get; set; } = "";
+    private bool IsSaving { get; set; } = false;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            if (IsEditMode && EditCarte != null)
+            {
+                // Mode édition
+                NumeroCarteInput = FormatCardNumberDisplay(EditCarte.NumeroCarte);
+                CodeSecurite = EditCarte.CodeSecurite;
+                DateExpirationInput = EditCarte.DateExpiration;
+            }
+            else
+            {
+                // Mode création
+                ResetForm();
+            }
+
+            ErrorMessage = "";
+            SuccessMessage = "";
+        }
+    }
+
+    private void FormatCardNumber(ChangeEventArgs e)
+    {
+        var input = e.Value?.ToString() ?? "";
+        var digitsOnly = new string(input.Where(char.IsDigit).ToArray());
+
+        if (digitsOnly.Length > 16)
+            digitsOnly = digitsOnly.Substring(0, 16);
+
+        var formatted = string.Join(" ", Enumerable.Range(0, digitsOnly.Length / 4)
+            .Select(i => digitsOnly.Substring(i * 4, Math.Min(4, digitsOnly.Length - i * 4))));
+
+        if (digitsOnly.Length % 4 != 0)
+            formatted += (formatted.Length > 0 ? " " : "") + digitsOnly.Substring((digitsOnly.Length / 4) * 4);
+
+        NumeroCarteInput = formatted;
+    }
+
+    private string FormatCardNumberDisplay(string numero)
+    {
+        if (string.IsNullOrEmpty(numero))
+            return "";
+
+        return string.Join(" ", Enumerable.Range(0, numero.Length / 4)
+            .Select(i => numero.Substring(i * 4, Math.Min(4, numero.Length - i * 4))));
+    }
+
+    private async Task SaveCarte()
+    {
+        ErrorMessage = "";
+        SuccessMessage = "";
+
+        // Validation
+        var numeroSansEspaces = NumeroCarteInput.Replace(" ", "");
+
+        if (string.IsNullOrWhiteSpace(numeroSansEspaces) || numeroSansEspaces.Length != 16)
+        {
+            ErrorMessage = "Le numéro de carte doit contenir 16 chiffres";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(CodeSecurite) || CodeSecurite.Length != 3)
+        {
+            ErrorMessage = "Le code de sécurité doit contenir 3 chiffres";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(DateExpirationInput))
+        {
+            ErrorMessage = "La date d'expiration est requise";
+            return;
+        }
+
+        IsSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            var compte = await CompteService.GetMe();
+
+            if (IsEditMode && EditCarte != null)
+            {
+                // Modification
+                var carteUpdate = new CarteBancaireUpdateDTO
+                {
+                    IdCarteBancaire = EditCarte.IdCarteBancaire,
+                    NumeroCarte = numeroSansEspaces,
+                    CodeSecurite = CodeSecurite,
+                    DateExpiration = DateExpirationInput,
+                    IdCompte = compte.IdCompte
+                };
+
+                await CarteBancaireService.UpdateAdresseAsync(carteUpdate.IdCarteBancaire, carteUpdate);
+                SuccessMessage = "Carte modifiée avec succès";
+            }
+            else
+            {
+                // Création
+                var nouvelleCarte = new CarteBancaireDTO
+                {
+                    NumeroCarte = numeroSansEspaces,
+                    CodeSecurite = CodeSecurite,
+                    DateExpiration = DateExpirationInput,
+                    IdCompte = compte.IdCompte
+                };
+
+                await CarteBancaireService.CreateAsync(nouvelleCarte);
+                SuccessMessage = "Carte ajoutée avec succès";
+            }
+
+            await Task.Delay(1000);
+
+            if (OnCarteSaved.HasDelegate)
+            {
+                await OnCarteSaved.InvokeAsync();
+            }
+
+            await CloseModal();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Erreur lors de l'enregistrement de la carte";
+            Console.WriteLine($"Erreur SaveCarte: {ex.Message}");
+        }
+        finally
+        {
+            IsSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        ResetForm();
+        if (IsVisibleChanged.HasDelegate)
+        {
+            await IsVisibleChanged.InvokeAsync(false);
+        }
+    }
+
+    private void ResetForm()
+    {
+        NumeroCarteInput = "";
+        CodeSecurite = "";
+        DateExpirationInput = "";
+        ErrorMessage = "";
+        SuccessMessage = "";
+    }
+}

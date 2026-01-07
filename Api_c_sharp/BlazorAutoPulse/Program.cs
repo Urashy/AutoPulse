@@ -1,4 +1,5 @@
 using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Composant;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Authentification;

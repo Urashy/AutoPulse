@@ -19,5 +19,16 @@ namespace BlazorAutoPulse.Service.WebService
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IEnumerable<CarteBancaireDTO>>();
         }
+
+        public async Task UpdateAdresseAsync(int id, CarteBancaireUpdateDTO entity)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
+            {
+                Content = JsonContent.Create(entity)
+            };
+
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+        }
     }
 }

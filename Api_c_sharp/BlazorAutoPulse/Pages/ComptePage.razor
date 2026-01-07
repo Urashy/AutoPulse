@@ -12,6 +12,12 @@
               IsVisibleChanged="@((bool value) => VM.showAdresseModal = value)"
               OnAdresseSaved="@VM.OnAdresseSaved" />
 
+<CarteBancaireModal IsVisible="@VM.showCarteModal"
+                    IsEditMode="@VM.isEditingCarte"
+                    EditCarte="@VM.selectedCarteToEdit"
+                    IsVisibleChanged="@((bool value) => VM.showCarteModal = value)"
+                    OnCarteSaved="@VM.OnCarteSaved" />
+
 <!-- Modal suppression de compte -->
 @if (VM.modalSuppression)
 {
@@ -604,7 +610,10 @@
                         {
                             @foreach (var carteBancaire in VM.carteBancaires)
                             {
-                                <p>@carteBancaire.NumeroCarte</p>
+                                <CarteBancaireComposant CarteBancaire="@carteBancaire"
+                                                        ShowActions="true"
+                                                        OnEdit="@((cb) => VM.OpenEditCarteModal(cb))"
+                                                        OnDelete="@((cb) => VM.DeleteCarte(cb))" />
                             }
                         }
                         else
