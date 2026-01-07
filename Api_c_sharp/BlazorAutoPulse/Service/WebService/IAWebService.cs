@@ -10,9 +10,9 @@ namespace BlazorAutoPulse.Service.WebService
     {
         private readonly HttpClient _httpClient;
 
-        public IAWebService(HttpClient httpClient)
+        public IAWebService(IHttpClientFactory factory)
         {
-            _httpClient = httpClient;
+            _httpClient = factory.CreateClient("ApiClient");
         }
 
         public async Task<ResultatAI> PredictAIAsync(DataAI data)

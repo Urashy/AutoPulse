@@ -6,7 +6,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class A2fWebService : BaseWebService<A2fStatutDTO>, IA2fService
 {
-    public A2fWebService(HttpClient httpClient) : base(httpClient)
+    public A2fWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

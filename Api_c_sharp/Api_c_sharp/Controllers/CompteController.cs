@@ -28,7 +28,7 @@ namespace Api_c_sharp.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config, IJournalService _journalService) : ControllerBase
+public class CompteController(CompteManager _manager, IMapper _compteMapper, IConfiguration config, IJournalService _journalService, RefreshTokenManager _refreshTokenManager) : ControllerBase
 {
 #region CRUD Classique
     /// <summary>
@@ -274,7 +274,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         return NoContent();
     }
 #endregion
-    
+
 #region Autre methode
     /// <summary>
     /// Récupère les informations du compte actuellement authentifié.
@@ -406,17 +406,14 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 
         return NoContent();
     }
-
-    #endregion
+#endregion
 
 #region Authentification Classique
-    //----------------------------------------------
-    // LOGIN
-    //----------------------------------------------
     /// <summary>
     /// Authentifie un utilisateur. Si l'A2F est activé, renvoie un statut spécial.
     /// </summary>
     /// <param name="login">Informations de connexion.</param>
+    /// <param name="rememberMe">Si true, le refresh token dure 30 jours. Sinon, jusqu'à fermeture du navigateur.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description>Succès avec token si pas d'A2F (200).</description></item>
@@ -427,41 +424,40 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// </returns>
     [HttpPost]
     [AllowAnonymous]
+    [ActionName("Login")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody] LoginRequest login)
+    public async Task<IActionResult> Login(
+        [FromBody] LoginRequest login,
+        [FromQuery] bool rememberMe = false)
     {
         try
         {
-            // Validation des données d'entrée
             if (string.IsNullOrWhiteSpace(login.Email) || string.IsNullOrWhiteSpace(login.MotDePasse))
             {
                 return BadRequest(new { message = "Email et mot de passe requis" });
             }
 
-            // Authentification
-            Compte compte = await AuthenticateCompte(login);
-            
+            var compte = await AuthenticateCompte(login);
+
             if (compte == null)
             {
                 return Unauthorized(new { message = "Email ou mot de passe incorrect" });
             }
 
-            // Vérification A2F
+            // ✅ Vérification A2F
             var (a2fActif, derniereActivation) = await _manager.GetStatutA2f(compte.IdCompte);
             bool doitReactiverA2f = await _manager.DoitReactiverA2f(compte.IdCompte);
-
-            // Si A2F activé ou doit être réactivé, on demande un code
             if (a2fActif || doitReactiverA2f)
             {
-                // Générer et envoyer un code A2F
-                Random rand = new Random();
+                // Envoyer code A2F par email
+                var rand = new Random();
                 var codeA2f = rand.Next(0, 9999999).ToString("D7");
                 var expiration = DateTime.UtcNow.AddMinutes(15);
 
-                TokenEmail tokenA2f = new TokenEmail()
+                var tokenA2f = new TokenEmail
                 {
                     IdCompte = compte.IdCompte,
                     Email = compte.Email,
@@ -472,30 +468,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 };
 
                 await _manager.EnregistrerA2f(tokenA2f);
-                
-                string sujet = doitReactiverA2f 
-                    ? "Réactivation A2F requise" 
-                    : "Code de connexion A2F";
-                
-                string message = doitReactiverA2f
-                    ? $"Votre authentification à deux facteurs doit être réactivée.\nCode : {codeA2f}"
-                    : $"Votre code de connexion A2F : {codeA2f}";
 
-                // Envoi email (code similaire à TokenEmailController)
-                var emailMessage = new MimeMessage();
-                emailMessage.From.Add(new MailboxAddress("AutoPulse", "no-reply@autopulse.com"));
-                emailMessage.To.Add(new MailboxAddress("", compte.Email));
-                emailMessage.Subject = sujet;
-                emailMessage.Body = new TextPart("plain") { Text = message };
-
-                string user = config["Email:GmailUser"];
-                string password = config["Email:GmailPass"];
-
-                using var client = new SmtpClient();
-                await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync(user, password);
-                await client.SendAsync(emailMessage);
-                await client.DisconnectAsync(true);
+                // Envoi email (code existant)
+                await EnvoyerEmailA2f(compte.Email, codeA2f, doitReactiverA2f);
 
                 return Accepted(new
                 {
@@ -507,27 +482,34 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 });
             }
 
-            var tokenString = GenerateJwtToken(login);
-            
-            CookieOptions cookieOptions = new CookieOptions()
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.None,
-                Secure = true,
-                Expires = DateTimeOffset.UtcNow.AddDays(1),
-                Domain = null,
-                Path = "/"
-            };
-            
+            // ✅ Connexion sans A2F : Générer les tokens
+            var accessToken = GenerateJwtToken(login);
+            var refreshToken = GenerateRefreshToken();
+
+            // ✅ Stocker le refresh token en base (hashé)
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = Request.Headers["User-Agent"].ToString();
+
+            await _refreshTokenManager.StoreRefreshTokenAsync(
+                compte.IdCompte,
+                refreshToken,
+                rememberMe,
+                ipAddress,
+                userAgent
+            );
+
+            // ✅ Définir les cookies
+            SetAuthCookies(accessToken, refreshToken, rememberMe);
+
             await _journalService.LogConnexionAsync(compte.IdCompte);
-            
-            Response.Cookies.Append("access_token", tokenString, cookieOptions);
-            
-            return Ok(new { 
+
+            return Ok(new
+            {
                 message = "Login OK",
                 userId = compte.IdCompte,
                 pseudo = compte.Pseudo,
-                role = compte.IdTypeCompte
+                role = compte.IdTypeCompte,
+                rememberMe = rememberMe
             });
         }
         catch (Exception ex)
@@ -539,19 +521,41 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     
     [HttpPost]
     [Authorize]
+    [ActionName("Logout")]
     public async Task<IActionResult> Logout()
     {
         try
         {
-            await _journalService.LogDeconnexionAsync(int.Parse(User.FindFirst("idUser")?.Value));
-            // Efface le cookie JWT HTTP-only
+            var userId = User.FindFirst("idUser")?.Value;
+        
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await _journalService.LogDeconnexionAsync(int.Parse(userId));
+            }
+
+            // ✅ Révoquer le refresh token s'il existe
+            if (Request.Cookies.TryGetValue("refresh_token", out var refreshToken))
+            {
+                await _refreshTokenManager.RevokeRefreshTokenAsync(refreshToken);
+            }
+
+            // ✅ Supprimer les cookies
             Response.Cookies.Delete("access_token", new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Strict,
                 Path = "/"
             });
+
+            Response.Cookies.Delete("refresh_token", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/"
+            });
+
             return Ok(new { message = "Logout OK" });
         }
         catch (Exception ex)
@@ -560,67 +564,138 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             return StatusCode(500, new { message = "Erreur lors de la déconnexion" });
         }
     }
+    
     /// <summary>
     /// Valide le code A2F et finalise la connexion.
     /// </summary>
     /// <param name="dto">Objet contenant l'email, le code et le type de validation.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description>Succès avec token si code valide (200).</description></item>
-    /// <item><description><see cref="BadRequestResult"/> si code invalide (400).</description></item>
-    /// </list>
-    /// </returns>
-    [ActionName("ValidateA2fLogin")]
+    /// <param name="rememberMe">Si true, le refresh token dure 30 jours. Sinon, jusqu'à fermeture du navigateur.</param>
     [HttpPost]
     [AllowAnonymous]
+    [ActionName("ValidateA2fLogin")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ValidateA2fLogin([FromBody] TokenEmailVerifDTO dto)
+    public async Task<IActionResult> ValidateA2fLogin(
+        [FromBody] TokenEmailVerifDTO dto,
+        [FromQuery] bool rememberMe = false)
     {
         try
         {
-            // Vérifier le code via TokenEmailManager
-            // (nécessite injection de TokenEmailManager dans le constructeur)
-            
             var compte = await _manager.GetByNameAsync(dto.Email);
-            
+
             if (compte == null)
                 return BadRequest(new { message = "Compte introuvable" });
 
-            // Si c'était une réactivation, activer l'A2F
+            // Valider le code A2F (méthode existante à implémenter)
+            // ...
+
             if (dto.TypeToken == "A2F_ACTIVATION")
             {
                 await _manager.ActiverA2f(compte.IdCompte);
             }
 
-            // Générer le token JWT
+            // ✅ Générer les tokens
             var loginRequest = new LoginRequest { Email = dto.Email, MotDePasse = compte.MotDePasse };
-            var tokenString = GenerateJwtToken(loginRequest);
-            
-            CookieOptions cookieOptions = new CookieOptions()
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.None,
-                Secure = true,
-                Expires = DateTimeOffset.UtcNow.AddDays(1),
-                Domain = null,
-                Path = "/"
-            };
-            
+            var accessToken = GenerateJwtToken(loginRequest);
+            var refreshToken = GenerateRefreshToken();
+
+            // ✅ Stocker le refresh token
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = Request.Headers["User-Agent"].ToString();
+
+            await _refreshTokenManager.StoreRefreshTokenAsync(
+                compte.IdCompte,
+                refreshToken,
+                rememberMe,
+                ipAddress,
+                userAgent
+            );
+
+            // ✅ Définir les cookies
+            SetAuthCookies(accessToken, refreshToken, rememberMe);
+
             await _journalService.LogConnexionAsync(compte.IdCompte);
-            
-            Response.Cookies.Append("access_token", tokenString, cookieOptions);
-            
-            return Ok(new { 
+
+            return Ok(new
+            {
                 message = "Login OK",
                 userId = compte.IdCompte,
                 pseudo = compte.Pseudo,
-                role = compte.IdTypeCompte
+                role = compte.IdTypeCompte,
+                rememberMe = rememberMe
             });
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erreur ValidateA2fLogin: {ex.Message}");
+            return StatusCode(500, new { message = "Erreur serveur" });
+        }
+    }
+    
+    [HttpPost]
+    [AllowAnonymous]
+    [ActionName("Refresh")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh()
+    {
+        try
+        {
+            // ✅ Lire le refresh token du cookie
+            if (!Request.Cookies.TryGetValue("refresh_token", out var refreshToken))
+            {
+                Console.WriteLine("❌ Refresh token manquant dans le cookie");
+                return Unauthorized(new { message = "Token manquant" });
+            }
+
+            Console.WriteLine("🔄 Tentative de refresh du token...");
+
+            // ✅ Valider le refresh token et récupérer le compte
+            var compte = await _refreshTokenManager.ValidateRefreshTokenAsync(refreshToken);
+
+            if (compte == null)
+            {
+                Console.WriteLine("❌ Refresh token invalide ou expiré");
+                
+                // ✅ Supprimer les cookies invalides
+                Response.Cookies.Delete("access_token");
+                Response.Cookies.Delete("refresh_token");
+                
+                return Unauthorized(new { message = "Token invalide ou expiré" });
+            }
+
+            Console.WriteLine($"✅ Refresh token valide pour compte {compte.IdCompte}");
+
+            // ✅ Générer un nouvel access token
+            var loginRequest = new LoginRequest
+            {
+                Email = compte.Email,
+                MotDePasse = compte.MotDePasse
+            };
+            var newAccessToken = GenerateJwtToken(loginRequest);
+
+            // ✅ Mettre à jour le cookie access_token
+            var accessCookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.Strict,
+                Secure = true,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(15),
+                Path = "/"
+            };
+
+            Response.Cookies.Append("access_token", newAccessToken, accessCookieOptions);
+
+            // ✅ OPTIONNEL : Si rotation activée, mettre à jour aussi le refresh token
+            // Response.Cookies.Append("refresh_token", newRefreshToken, refreshCookieOptions);
+
+            Console.WriteLine("✅ Access token rafraîchi avec succès");
+
+            return Ok(new { message = "Token rafraîchi" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur Refresh: {ex.Message}");
             return StatusCode(500, new { message = "Erreur serveur" });
         }
     }
@@ -1009,14 +1084,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             new Claim("role", "Authorized"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("idUser", compte.IdCompte.ToString()),
-
         };
         
         var token = new JwtSecurityToken(
             issuer: config["Jwt:Issuer"],
             audience: config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(30),
+            expires: DateTime.Now.AddMinutes(15),
             signingCredentials: credentials
         );
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -1039,4 +1113,74 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         }
     }
 #endregion    
+
+#region Méthodes Helper
+    /// <summary>
+    /// Définit les cookies d'authentification
+    /// </summary>
+    private void SetAuthCookies(string accessToken, string refreshToken, bool rememberMe)
+    {
+        var accessCookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            SameSite = SameSiteMode.Strict,
+            Secure = true,
+            Expires = rememberMe ? DateTimeOffset.UtcNow.AddMinutes(15) : null,
+            Path = "/"
+        };
+
+        var refreshCookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            SameSite = SameSiteMode.Strict,
+            Secure = true,
+            // ✅ Si rememberMe = true : 30 jours, sinon : session cookie
+            Expires = rememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null,
+            Path = "/"
+        };
+
+        Response.Cookies.Append("access_token", accessToken, accessCookieOptions);
+        Response.Cookies.Append("refresh_token", refreshToken, refreshCookieOptions);
+    }
+
+    /// <summary>
+    /// Génère un refresh token aléatoire sécurisé
+    /// </summary>
+    private static string GenerateRefreshToken()
+    {
+        var randomBytes = new byte[32];
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes);
+    }
+
+    /// <summary>
+    /// Envoie un email avec le code A2F
+    /// </summary>
+    private async Task EnvoyerEmailA2f(string email, string code, bool isReactivation)
+    {
+        string sujet = isReactivation
+            ? "Réactivation A2F requise"
+            : "Code de connexion A2F";
+
+        string message = isReactivation
+            ? $"Votre authentification à deux facteurs doit être réactivée.\nCode : {code}"
+            : $"Votre code de connexion A2F : {code}";
+
+        var emailMessage = new MimeMessage();
+        emailMessage.From.Add(new MailboxAddress("AutoPulse", "no-reply@autopulse.com"));
+        emailMessage.To.Add(new MailboxAddress("", email));
+        emailMessage.Subject = sujet;
+        emailMessage.Body = new TextPart("plain") { Text = message };
+
+        string user = config["Email:GmailUser"];
+        string password = config["Email:GmailPass"];
+
+        using var client = new SmtpClient();
+        await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(user, password);
+        await client.SendAsync(emailMessage);
+        await client.DisconnectAsync(true);
+    }
+#endregion
 }

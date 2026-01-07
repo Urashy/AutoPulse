@@ -6,7 +6,9 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class PlainteWebService : BaseWebService<PlainteCreateDTO>, IPlainteService
     {
-        public PlainteWebService(HttpClient httpClient) : base(httpClient) { }
+        public PlainteWebService(IHttpClientFactory factory) : base(factory)
+        {
+        }
 
         protected override string ApiEndpoint => "Plainte";
 

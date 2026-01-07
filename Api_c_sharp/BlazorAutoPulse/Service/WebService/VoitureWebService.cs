@@ -8,7 +8,7 @@ public class VoitureWebService: BaseWebService<VoitureDetailDTO>, IVoitureServic
 {
     private IVoitureService _voitureServiceImplementation;
 
-    public VoitureWebService(HttpClient httpClient) : base(httpClient)
+    public VoitureWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

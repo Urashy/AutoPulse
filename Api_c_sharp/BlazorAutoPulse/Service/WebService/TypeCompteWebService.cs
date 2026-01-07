@@ -7,7 +7,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class TypeCompteWebService : BaseWebService<TypeCompteDTO>, ITypeCompteService
     {
-        public TypeCompteWebService(HttpClient httpClient) : base(httpClient)
+        public TypeCompteWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

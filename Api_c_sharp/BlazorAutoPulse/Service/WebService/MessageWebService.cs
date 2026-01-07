@@ -9,7 +9,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class MessageWebService: BaseWebService<MessageDTO>, IMessageService
 {
-    public MessageWebService(HttpClient httpClient) : base(httpClient)
+    public MessageWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

@@ -46,6 +46,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Pays> Pays { get; set; }
         public DbSet<PieceJointe> PiecesJointes { get; set; }
         public DbSet<Plainte> Plaintes { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<TokenEmail> TokenEmails { get; set; }
         public DbSet<Signalement> Signalements { get; set; }
         public DbSet<TypeCompte> TypesCompte { get; set; }
@@ -402,6 +403,15 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(p => p.EtatSignalementPlaintePlainteNav)
                 .WithMany(t => t.Plaintes)
                 .HasForeignKey(p => p.IdEtat);
+            
+            //-----------------------------Refresh Token-----------------------------
+            modelBuilder.Entity<RefreshToken>()
+                .HasKey(e => e.IdRefreshToken);
+            
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(p => p.CompteRefreshTokenNav)
+                .WithMany(c => c.RefreshTokens)
+                .HasForeignKey(p => p.IdCompte);
 
             //-----------------------------ReinitialisationMotDePasse-----------------------------
             modelBuilder.Entity<TokenEmail>()

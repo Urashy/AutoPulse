@@ -5,7 +5,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class TypeSignalementWebService : BaseWebService<TypeSignalementDTO>, ITypeSignalementService
 {
-    public TypeSignalementWebService(HttpClient httpClient) : base(httpClient)
+    public TypeSignalementWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

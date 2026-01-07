@@ -4,7 +4,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class VueWebService : BaseWebService<VueDTO>
     {
-        public VueWebService(HttpClient httpClient) : base(httpClient)
+        public VueWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

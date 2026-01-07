@@ -7,7 +7,7 @@ namespace BlazorAutoPulse.ViewModel;
 
 public class MotriciteWebService: BaseWebService<MotriciteDTO>
 {
-    public MotriciteWebService(HttpClient httpClient) : base(httpClient)
+    public MotriciteWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

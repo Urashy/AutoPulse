@@ -7,7 +7,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class ImageWebService : BaseWebService<ImageDTO>, IImageService
     {
-        public ImageWebService(HttpClient httpClient) : base(httpClient)
+        public ImageWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

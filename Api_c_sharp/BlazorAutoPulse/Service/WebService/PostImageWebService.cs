@@ -8,7 +8,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class PostImageWebService: BaseWebService<ImageUpload>, IPostImageService
     {
-        public PostImageWebService(HttpClient httpClient) : base(httpClient)
+        public PostImageWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

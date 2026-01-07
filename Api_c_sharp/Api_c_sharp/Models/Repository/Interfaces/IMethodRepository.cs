@@ -142,4 +142,20 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     {
         Task<IEnumerable<CarteBancaire>> GetCarteBancaireByCompteId(int compteid);
     }
+
+    public interface IRefreshTokenRepository
+    {
+        Task<RefreshToken> StoreRefreshTokenAsync(
+            int idCompte,
+            string token,
+            bool rememberMe,
+            string? ipAddress = null,
+            string? userAgent = null);
+
+        Task<Compte?> ValidateRefreshTokenAsync(string token);
+        Task<bool> RevokeRefreshTokenAsync(string token);
+        Task RevokeAllUserTokensAsync(int idCompte);
+        Task<int> CleanupExpiredTokensAsync();
+        Task<List<RefreshToken>> GetActiveUserTokensAsync(int idCompte);
+    }
 }

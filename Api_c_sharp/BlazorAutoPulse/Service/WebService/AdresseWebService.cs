@@ -9,7 +9,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class AdresseWebService: BaseWebService<AdresseDTO>, IAdresseService
 {
-    public AdresseWebService(HttpClient httpClient) : base(httpClient)
+    public AdresseWebService(IHttpClientFactory factory) : base(factory)
     {
     }
     protected override string ApiEndpoint => "Adresse";

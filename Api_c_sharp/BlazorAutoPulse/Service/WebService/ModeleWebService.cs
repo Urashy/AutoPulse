@@ -7,7 +7,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class ModeleWebService : BaseWebService<ModeleDTO>, IModeleService
     {
-        public ModeleWebService(HttpClient httpClient) : base(httpClient)
+        public ModeleWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 
