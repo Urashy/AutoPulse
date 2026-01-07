@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api_c_sharp.Migrations
 {
     [DbContext(typeof(AutoPulseBdContext))]
-    [Migration("20260106143515_CreationDbAutoPulse")]
-    partial class CreationDbAutoPulse
+    [Migration("20260107080444_CreationDBAutoPulse")]
+    partial class CreationDBAutoPulse
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -361,6 +361,10 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("cmd_id_annonce");
 
+                    b.Property<int>("IdEtatCommande")
+                        .HasColumnType("integer")
+                        .HasColumnName("etc_id");
+
                     b.Property<int>("IdMoyenPaiement")
                         .HasColumnType("integer")
                         .HasColumnName("moy_moyenpaiement");
@@ -369,11 +373,17 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("com_id_vendeur");
 
+                    b.Property<decimal>("Montant")
+                        .HasColumnType("numeric")
+                        .HasColumnName("cmd_montant");
+
                     b.HasKey("IdCommande");
 
                     b.HasIndex("IdAcheteur");
 
                     b.HasIndex("IdAnnonce");
+
+                    b.HasIndex("IdEtatCommande");
 
                     b.HasIndex("IdMoyenPaiement");
 
@@ -550,6 +560,25 @@ namespace Api_c_sharp.Migrations
                     b.HasKey("IdEtatAnnonce");
 
                     b.ToTable("t_e_etatannonce_eta", "public");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCommande", b =>
+                {
+                    b.Property<int>("IdEtatCommande")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("etc_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEtatCommande"));
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("etc_libelle");
+
+                    b.HasKey("IdEtatCommande");
+
+                    b.ToTable("t_e_etatcommande_etc", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCompte", b =>
@@ -1530,6 +1559,12 @@ namespace Api_c_sharp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Api_c_sharp.Models.Entity.EtatCommande", "CommandeEtatCommandeNav")
+                        .WithMany("Commandes")
+                        .HasForeignKey("IdEtatCommande")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Api_c_sharp.Models.Entity.MoyenPaiement", "CommandeMoyenPaiementNav")
                         .WithMany("Commandes")
                         .HasForeignKey("IdMoyenPaiement")
@@ -1545,6 +1580,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("AcheteurCommande");
 
                     b.Navigation("CommandeAnnonceNav");
+
+                    b.Navigation("CommandeEtatCommandeNav");
 
                     b.Navigation("CommandeMoyenPaiementNav");
 
@@ -1979,6 +2016,11 @@ namespace Api_c_sharp.Migrations
             modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatAnnonce", b =>
                 {
                     b.Navigation("Annonces");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCommande", b =>
+                {
+                    b.Navigation("Commandes");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCompte", b =>

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api_c_sharp.Migrations
 {
     /// <inheritdoc />
-    public partial class CreationDbAutoPulse : Migration
+    public partial class CreationDBAutoPulse : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -84,6 +84,20 @@ namespace Api_c_sharp.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_t_e_etatannonce_eta", x => x.eta_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "t_e_etatcommande_etc",
+                schema: "public",
+                columns: table => new
+                {
+                    etc_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    etc_libelle = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_e_etatcommande_etc", x => x.etc_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -661,7 +675,9 @@ namespace Api_c_sharp.Migrations
                     cmd_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     cmd_estpayee = table.Column<bool>(type: "boolean", nullable: false),
                     cmd_estvalidee = table.Column<bool>(type: "boolean", nullable: false),
-                    moy_moyenpaiement = table.Column<int>(type: "integer", nullable: false)
+                    moy_moyenpaiement = table.Column<int>(type: "integer", nullable: false),
+                    cmd_montant = table.Column<decimal>(type: "numeric", nullable: false),
+                    etc_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -686,6 +702,13 @@ namespace Api_c_sharp.Migrations
                         principalSchema: "public",
                         principalTable: "t_e_compte_com",
                         principalColumn: "com_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_t_e_commande_cmd_t_e_etatcommande_etc_etc_id",
+                        column: x => x.etc_id,
+                        principalSchema: "public",
+                        principalTable: "t_e_etatcommande_etc",
+                        principalColumn: "etc_id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_t_e_commande_cmd_t_e_moyenpaiement_mop_moy_moyenpaiement",
@@ -1165,6 +1188,12 @@ namespace Api_c_sharp.Migrations
                 column: "com_id_vendeur");
 
             migrationBuilder.CreateIndex(
+                name: "IX_t_e_commande_cmd_etc_id",
+                schema: "public",
+                table: "t_e_commande_cmd",
+                column: "etc_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_t_e_commande_cmd_moy_moyenpaiement",
                 schema: "public",
                 table: "t_e_commande_cmd",
@@ -1488,6 +1517,10 @@ namespace Api_c_sharp.Migrations
 
             migrationBuilder.DropTable(
                 name: "t_e_couleur_cou",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "t_e_etatcommande_etc",
                 schema: "public");
 
             migrationBuilder.DropTable(

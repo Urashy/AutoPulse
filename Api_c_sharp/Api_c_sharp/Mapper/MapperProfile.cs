@@ -181,9 +181,8 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.DateExpiration, opt => opt.MapFrom(src => $"{src.DateExpiration.Month.ToString()}/{src.DateExpiration.Year.ToString().Substring(2, 2)}"))
             .ReverseMap();
 
-        CreateMap<CarteBancaireCreateDTO, CarteBancaire>()
-            .ForMember(dest => dest.DateExpiration,
-                opt => opt.MapFrom(src => DateTime.SpecifyKind(src.DateExpiration, DateTimeKind.Local).ToUniversalTime()))
+        CreateMap<CarteBancaire, CarteBancaireCreateDTO>()
+           .ForMember(dest => dest.DateExpiration, opt => opt.MapFrom(src => $"{src.DateExpiration.Month.ToString()}/{src.DateExpiration.Year.ToString().Substring(2, 2)}"))
             .ReverseMap();
 
         CreateMap<CarteBancaireUpdateDTO, CarteBancaire>().ReverseMap();

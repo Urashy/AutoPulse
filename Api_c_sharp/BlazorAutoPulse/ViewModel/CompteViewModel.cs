@@ -47,6 +47,9 @@ namespace BlazorAutoPulse.ViewModel
         public bool currentPasswordValid = true;
         public bool newPasswordValid = true;
 
+        public bool showCarteModal { get; set; } = false;
+
+
         public bool modalSuppression = false;
         public bool confirmationSuppression = false;
         public string confirmationTexte = "";
@@ -779,6 +782,66 @@ namespace BlazorAutoPulse.ViewModel
                 _notificationService.ShowError(
                     "Erreur",
                     "Impossible de supprimer l'adresse"
+                );
+            }
+        }
+
+        //Carbancaire Modal Methods
+        public void OpenCreateCarteModal()
+        {
+            showCarteModal = true;
+            _refreshUI?.Invoke();
+        }
+
+        // SUPPRIMÉE : OpenEditCarteModal() n'est plus nécessaire
+
+        // Méthode appelée après la sauvegarde d'une carte (INCHANGÉE)
+        public async Task OnCarteSaved()
+        {
+            try
+            {
+                // Recharger les cartes bancaires
+                carteBancaires = await _carteBancaireService.GetCarteBancaireByCompte(compte.IdCompte);
+                showCarteModal = false;
+                _refreshUI?.Invoke();
+
+                _notificationService.ShowSuccess(
+                    "Carte enregistrée",
+                    "Votre carte bancaire a été enregistrée avec succès"
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur OnCarteSaved: {ex.Message}");
+                _notificationService.ShowError(
+                    "Erreur",
+                    "Impossible de recharger les cartes bancaires"
+                );
+            }
+        }
+
+        // Méthode pour supprimer une carte (INCHANGÉE)
+        public async Task DeleteCarte(CarteBancaireDTO carte)
+        {
+            try
+            {
+                await _carteBancaireService.DeleteAsync(carte.IdCarteBancaire);
+
+                _notificationService.ShowSuccess(
+                    "Carte supprimée",
+                    "La carte se terminant par " + carte.NumeroCarte.Substring(carte.NumeroCarte.Length - 4) + " a été supprimée avec succès"
+                );
+
+                // Recharger les cartes bancaires
+                carteBancaires = await _carteBancaireService.GetCarteBancaireByCompte(compte.IdCompte);
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur DeleteCarte: {ex.Message}");
+                _notificationService.ShowError(
+                    "Erreur",
+                    "Impossible de supprimer la carte bancaire"
                 );
             }
         }

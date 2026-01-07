@@ -12,6 +12,10 @@
               IsVisibleChanged="@((bool value) => VM.showAdresseModal = value)"
               OnAdresseSaved="@VM.OnAdresseSaved" />
 
+<CarteBancaireModal IsVisible="@VM.showCarteModal"
+                    IsVisibleChanged="@((bool value) => VM.showCarteModal = value)"
+                    OnCarteSaved="@VM.OnCarteSaved" />
+
 <!-- Modal suppression de compte -->
 @if (VM.modalSuppression)
 {
@@ -302,7 +306,7 @@
                                 Votre compte est protégé par l'authentification à deux facteurs.
                                 @if (VM.dateActivationA2f.HasValue)
                                 {
-                                    <br/>
+                                    <br />
                                     <small>Activé le @VM.dateActivationA2f.Value.ToString("dd/MM/yyyy")</small>
                                 }
                             </p>
@@ -349,10 +353,10 @@
 
                 <label for="photoProfil" class="photo-upload-overlay">
                     <div class="upload-icon">📸</div>
-                    <p class="upload-text">Cliquez pour @(VM.idImage==0 ? "ajouter" : "modifier")</p>
+                    <p class="upload-text">Cliquez pour @(VM.idImage == 0 ? "ajouter" : "modifier")</p>
                     <p class="upload-hint">JPG, PNG</p>
                 </label>
-                <InputFile id="photoProfil" OnChange="@VM.UpdateProfileImage" style="display:none"/>
+                <InputFile id="photoProfil" OnChange="@VM.UpdateProfileImage" style="display:none" />
             </div>
         </div>
 
@@ -387,11 +391,11 @@
                                 }
                             </button>
 
-                            <button @onclick="(VM.compte.IdTypeCompte == 1? VM.OpenProModal : VM.ValidateProAccount)" class="option-item-compte">
+                            <button @onclick="(VM.compte.IdTypeCompte == 1 ? VM.OpenProModal : VM.ValidateProAccount)" class="option-item-compte">
                                 <span class="option-icon">💼</span>
-                                <span>@(VM.compte.IdTypeCompte == 1? "Passer en compte pro": "Passer en personnel")</span>
+                                <span>@(VM.compte.IdTypeCompte == 1 ? "Passer en compte pro" : "Passer en personnel")</span>
                             </button>
-                            
+
                             <button @onclick="ConnexionVM.DeconnexionUtilisateur" class="option-item-compte danger">
                                 <span class="option-icon">🚪</span>
                                 <span>Déconnexion</span>
@@ -467,11 +471,11 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <label class="info-label">Nom</label>
-                        <input type="text" @bind="VM.compteEdit.Nom" class="info-input"/>
+                        <input type="text" @bind="VM.compteEdit.Nom" class="info-input" />
                     </div>
                     <div class="info-item">
                         <label class="info-label">Prénom</label>
-                        <input type="text" @bind="VM.compteEdit.Prenom" class="info-input"/>
+                        <input type="text" @bind="VM.compteEdit.Prenom" class="info-input" />
                     </div>
                     <div class="info-item">
                         <span class="info-label">Date de naissance</span>
@@ -479,21 +483,21 @@
                     </div>
                     <div class="info-item">
                         <label class="info-label">Pseudo</label>
-                        <input type="text" @bind="VM.compteEdit.Pseudo" class="info-input"/>
+                        <input type="text" @bind="VM.compteEdit.Pseudo" class="info-input" />
                     </div>
                     <div class="info-item">
                         <label class="info-label">Email</label>
-                        <input type="email" @bind="VM.compteEdit.Email" class="info-input"/>
+                        <input type="email" @bind="VM.compteEdit.Email" class="info-input" />
                     </div>
                     <div class="info-item">
                         <label class="info-label">Biographie</label>
-                        <input type="email" @bind="VM.compteEdit.Biographie" class="info-input"/>
+                        <input type="email" @bind="VM.compteEdit.Biographie" class="info-input" />
                     </div>
                     @if (VM.compte.IdTypeCompte == 2)
                     {
                         <div class="info-item">
                             <label class="info-label">Raison sociale</label>
-                            <input type="email" @bind="VM.compteEdit.RaisonSociale" class="info-input"/>
+                            <input type="email" @bind="VM.compteEdit.RaisonSociale" class="info-input" />
                         </div>
                         <div class="info-item">
                             <span class="info-label">Numéro de SIRET</span>
@@ -532,14 +536,14 @@
 
         <div class="content-section">
             <div class="section-placeholder">
-                @switch(VM.activeSection)
+                @switch (VM.activeSection)
                 {
                     case "annonces":
                         if (@VM.annonces != null && VM.annonces.Any())
                         {
                             @foreach (var annonce in VM.annonces)
                             {
-                                <AnnonceComposant Annonce="annonce" idCompte="VM.compte.IdCompte" divClass="car-card"/>
+                                <AnnonceComposant Annonce="annonce" idCompte="VM.compte.IdCompte" divClass="car-card" />
                             }
                         }
                         else
@@ -553,7 +557,7 @@
                         {
                             @foreach (var av in VM.avis)
                             {
-                                <AvisComposant Avis="av"/>
+                                <AvisComposant Avis="av" />
                             }
                         }
                         else
@@ -590,7 +594,7 @@
                         {
                             @foreach (var commande in VM.commandes)
                             {
-                                <CommandeComposant Commande="@commande"/>
+                                <CommandeComposant Commande="@commande" />
                             }
                         }
                         else
@@ -600,16 +604,22 @@
                         break;
 
                     case "cartes bancaire":
-                        if (@VM.carteBancaires != null && VM.carteBancaires.Any())
+                        @if (@VM.carteBancaires != null && VM.carteBancaires.Any())
                         {
                             @foreach (var carteBancaire in VM.carteBancaires)
                             {
-                                <p>@carteBancaire.NumeroCarte</p>
+                                <CarteBancaireComposant CarteBancaire="@carteBancaire"
+                                                        ShowActions="true"
+                                                        OnDelete="@((cb) => VM.DeleteCarte(cb))" />
                             }
                         }
                         else
                         {
-                            <p>Vous n'avez aucune carte bancaire enregistré</p>
+                            <div class="empty-state">
+                                <div class="empty-icon">💳</div>
+                                <h3>Aucune carte bancaire enregistrée</h3>
+                                <p>Ajoutez votre première carte pour faciliter vos paiements</p>
+                            </div>
                         }
                         break;
                 }
@@ -617,10 +627,19 @@
 
             @if (VM.activeSection == "adresses")
             {
-                <div class="adresses-header">
-                    <button class="btn-add-adresse" @onclick="VM.OpenCreateAdresseModal">
+                <div class="cartes-header">
+                    <button class="btn-add-carte" @onclick="VM.OpenCreateAdresseModal">
                         <span class="add-icon">➕</span>
                         <span>Ajouter une adresse</span>
+                    </button>
+                </div>
+            }
+            else if (VM.activeSection == "cartes bancaire")
+            {
+                <div class="cartes-header">
+                    <button class="btn-add-carte" @onclick="VM.OpenCreateCarteModal">
+                        <span class="add-icon">💳</span>
+                        <span>Ajouter une carte bancaire</span>
                     </button>
                 </div>
             }

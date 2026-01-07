@@ -59,7 +59,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetcommun = modele;
         }
+        #region  GET
 
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -83,7 +85,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -97,7 +101,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.LibelleModele == _objetcommun.LibelleModele));
         }
+        #endregion
 
+            #region GetModelByMarque
         [TestMethod]
         public async Task GetModelesByMarqueIdTest()
         {
@@ -120,5 +126,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
+
+        #endregion
     }
 }

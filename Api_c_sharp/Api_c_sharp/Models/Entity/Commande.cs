@@ -37,7 +37,19 @@ public class Commande
 
     [Column("moy_moyenpaiement")]
     public int IdMoyenPaiement{ get; set; }
-    
+
+    [Required]
+    [Column("cmd_montant")]
+    public decimal Montant { get; set; }
+
+    [Required]
+    [Column("etc_id")] 
+    public int IdEtatCommande { get; set; }
+
+    [ForeignKey(nameof(IdEtatCommande))]
+    [InverseProperty(nameof(EtatCommande.Commandes))]
+    public virtual EtatCommande? CommandeEtatCommandeNav { get; set; }
+
     [ForeignKey(nameof(IdMoyenPaiement))]
     [InverseProperty(nameof(MoyenPaiement.Commandes))]
     public virtual MoyenPaiement? CommandeMoyenPaiementNav { get; set; }

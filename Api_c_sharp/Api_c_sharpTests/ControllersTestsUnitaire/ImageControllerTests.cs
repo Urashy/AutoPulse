@@ -58,34 +58,116 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.SaveChangesAsync();
         }
 
+        #region GET
+
+            #region GetById
         [TestMethod]
         public async Task GetById_OK()
         {
+            // Act
             var result = await _controller.GetById(_imageCommun.IdImage);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(FileContentResult));
         }
 
         [TestMethod]
         public async Task GetById_NotFound()
         {
+            // Act
             var result = await _controller.GetById(999);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAll_OK()
         {
+            // Act
             var result = await _controller.GetAll();
 
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
         }
+        #endregion
 
+            #region GetImagesByVoitureID
+        [TestMethod]
+        public async Task GetImagesByVoitureID_OK()
+        {
+            // Act
+            var result = await _controller.GetImagesByVoitureId(20);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(FileContentResult));
+        }
+
+        [TestMethod]
+        public async Task GetImagesByVoitureID_NotFound()
+        {
+            // Act
+            var result = await _controller.GetImagesByVoitureId(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+            #region GetAllImagesByVoitureID
+        [TestMethod]
+        public async Task GetAllImagesByVoiture_OK()
+        {
+            // Act
+            var result = await _controller.GetAllImagesByVoitureId(20);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task GetAllImagesByVoiture_NoContent()
+        {
+            // Act
+            var result = await _controller.GetAllImagesByVoitureId(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NoContentResult));
+        }
+        #endregion
+
+            #region GetImageByCompteID
+        [TestMethod]
+        public async Task GetImageByCompteID_OK()
+        {
+            // Act
+            var result = await _controller.GetImageByCompteID(10);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task GetImageByCompteID_NotFound()
+        {
+            // Act
+            var result = await _controller.GetImageByCompteID(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task Post_OK()
         {
+            // Arrange
             var fileMock = new FormFile(
                 new MemoryStream(Encoding.UTF8.GetBytes("imageData")),
                 0,
@@ -102,14 +184,20 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 File = fileMock
             };
 
+            // Act
             var result = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
         }
 
+        #endregion
+
+        #region PUT
         [TestMethod]
         public async Task Put_OK()
         {
+            // Arrange
             var fileMock = new FormFile(
                 new MemoryStream(Encoding.UTF8.GetBytes("updated")),
                 0,
@@ -126,27 +214,33 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 File = fileMock
             };
 
+            // Act
             var result = await _controller.Put(_imageCommun.IdImage, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
 
         [TestMethod]
         public async Task Put_BadRequest()
         {
+            // Arrange
             var dto = new ImageUploadDTO
             {
                 IdImage = 999
             };
 
+            // Act
             var result = await _controller.Put(1, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
 
         [TestMethod]
         public async Task Put_NotFound()
         {
+            // Arrange
             var fileMock = new FormFile(new MemoryStream(new byte[1]), 0, 1, "file", "img.jpg");
 
             var dto = new ImageUploadDTO
@@ -155,73 +249,36 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 File = fileMock
             };
 
+            // Act
             var result = await _controller.Put(50, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task Delete_OK()
         {
+            // Act
             var result = await _controller.Delete(_imageCommun.IdImage);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
 
         [TestMethod]
         public async Task Delete_NotFound()
         {
+            // Act
             var result = await _controller.Delete(999);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
-        [TestMethod]
-        public async Task GetImagesByVoitureID_OK()
-        {
-            var result = await _controller.GetImagesByVoitureId(20);
-
-            Assert.IsInstanceOfType(result.Result, typeof(FileContentResult));
-        }
-
-        [TestMethod]
-        public async Task GetImagesByVoitureID_NotFound()
-        {
-            var result = await _controller.GetImagesByVoitureId(999);
-
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetAllImagesByVoiture_OK()
-        {
-            var result = await _controller.GetAllImagesByVoitureId(20);
-
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
-        public async Task GetAllImagesByVoiture_NoContent()
-        {
-            var result = await _controller.GetAllImagesByVoitureId(999);
-
-            Assert.IsInstanceOfType(result.Result, typeof(NoContentResult));
-        }
-
-        [TestMethod]
-        public async Task GetImageByCompteID_OK()
-        {
-            var result = await _controller.GetImageByCompteID(10);
-
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
-        public async Task GetImageByCompteID_NotFound()
-        {
-            var result = await _controller.GetImageByCompteID(999);
-
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
+        
     }
 }

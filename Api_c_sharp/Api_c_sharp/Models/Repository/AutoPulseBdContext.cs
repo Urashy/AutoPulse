@@ -28,6 +28,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Couleur> Couleurs { get; set; }
         public DbSet<EtatAnnonce> EtatAnnonces { get; set; }
+        public DbSet<EtatCommande> EtatCommandes { get; set; }
         public DbSet<EtatCompte> EtatComptes { get; set; }
         public DbSet<EtatSignalementPlainte> EtatSignalementsPlaintes { get; set; }
         public DbSet<Facture> Factures { get; set; }
@@ -200,6 +201,21 @@ namespace Api_c_sharp.Models.Repository
                 .WithMany(m => m.Commandes)
                 .HasForeignKey(c => c.IdMoyenPaiement);
 
+            modelBuilder.Entity<Commande>()
+                .HasOne(c => c.AcheteurCommande)
+                .WithMany(a => a.CommandeAcheteur)
+                .HasForeignKey(c => c.IdAcheteur);
+
+            modelBuilder.Entity<Commande>()
+                .HasOne(c => c.VendeurCommande)
+                .WithMany(v => v.CommandeVendeur)
+                .HasForeignKey(c => c.IdVendeur);
+
+            modelBuilder.Entity<Commande>()
+                .HasOne(c => c.CommandeEtatCommandeNav)
+                .WithMany(e => e.Commandes)
+                .HasForeignKey(c => c.IdEtatCommande);
+
             //-----------------------------Compte-----------------------------
             modelBuilder.Entity<Compte>()
                 .HasKey(e => e.IdCompte);
@@ -238,6 +254,10 @@ namespace Api_c_sharp.Models.Repository
             //-----------------------------EtatAnnonce-----------------------------
             modelBuilder.Entity<EtatAnnonce>()
                 .HasKey(e => e.IdEtatAnnonce);
+
+            //-----------------------------EtatCommande-----------------------------
+            modelBuilder.Entity<EtatCommande>()
+                .HasKey(e => e.IdEtatCommande);
 
             //-----------------------------EtatCompte-----------------------------
             modelBuilder.Entity<EtatCompte>()
