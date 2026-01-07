@@ -9,7 +9,9 @@ public class CommandeDetailDTO
     // Vendeur
     public int IdVendeur { get; set; }
     public string? PseudoVendeur { get; set; }
-    
+    public int IdEtatCommande { get; set; }
+    public string? EtatCommande { get; set; }
+
     // Acheteur
     public int IdAcheteur { get; set; }
     public string? PseudoAcheteur { get; set; }

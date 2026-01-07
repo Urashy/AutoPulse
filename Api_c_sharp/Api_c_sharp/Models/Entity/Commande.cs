@@ -28,12 +28,8 @@ public class Commande
     public DateTime Date { get; set; } = DateTime.UtcNow;
 
     [Required]
-    [Column("cmd_estpayee")]
-    public bool EstPayee { get; set; } = false;
-
-    [Required]
-    [Column("cmd_estvalidee")]
-    public bool EstValidee { get; set; } = false;
+    [Column("etc_id")]
+    public int IdEtatCommande { get; set; }
 
     [Column("moy_moyenpaiement")]
     public int IdMoyenPaiement{ get; set; }
@@ -75,4 +71,8 @@ public class Commande
     [ForeignKey(nameof(IdOffre))]
     [InverseProperty(nameof(Offre.CommandeOffre))]
     public virtual Offre? Offrecommande { get; set; }
+
+    [ForeignKey(nameof(IdEtatCommande))]
+    [InverseProperty(nameof(EtatCommande.Commandes))]
+    public virtual EtatCommande EtatCommandeCommandeNav { get; set; } = null!;
 }

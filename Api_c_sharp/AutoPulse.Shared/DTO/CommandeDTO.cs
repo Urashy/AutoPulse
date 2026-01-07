@@ -10,4 +10,6 @@ public class CommandeDTO
     public string? MoyenPaiement { get; set; }
     public int? Montant { get; set; }
 
+    public string? EtatCommande { get; set; }
+
 }

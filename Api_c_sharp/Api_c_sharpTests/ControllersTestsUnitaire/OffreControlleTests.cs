@@ -113,6 +113,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 EstLu = false,
             };
 
+            Message message2 = new Message()
+            {
+                IdMessage = 2,
+                ContenuMessage = "Bonjour, meesage 2",
+                DateEnvoiMessage = DateTime.Now,
+                IdConversation = 1,
+                IdCompte = 1,
+                EstLu = false,
+            };
+
             Offre offre = new Offre()
             {
                 Valeur = 9500,
@@ -124,6 +134,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Annonces.Add(annonce);
             _context.Conversations.Add(conversation);
             _context.Messages.Add(message1);
+            _context.Messages.Add(message2);
             _context.Offres.Add(offre);
             await _context.SaveChangesAsync();
 
@@ -203,12 +214,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PostOffreTest_Entity()
         {
-            // Arrange
+            // Supprimer l'offre existante
+            _context.Offres.Remove(_objetcommun);
+            await _context.SaveChangesAsync();
+
             OffreCreateDTO Offre = new OffreCreateDTO
             {
                 Valeur = 9000,
                 IdAnnonce = 1,
-                IdMessage = _objetcommun.IdMessage,
+                IdMessage = 1,
             };
 
             // Act
@@ -223,20 +237,25 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task BadRequestPostOffreTest()
+        public async Task PostOffreTest_ConflictWhenPendingOfferExists()
         {
-            // Arrange
-            OffreCreateDTO Offre = new OffreCreateDTO
+            // L'offre _objetcommun existe déjà et est en attente
+            OffreCreateDTO nouvelleOffre = new OffreCreateDTO
             {
-                Valeur = 0,
+                Valeur = 9000,
                 IdAnnonce = 1,
-                IdMessage = _objetcommun.IdMessage,
+                IdMessage = 1,  // Même message/conversation que _objetcommun
             };
 
-            _controller.ModelState.AddModelError("Valeur", "La Valeur doit être supérieur à 0");
+            var actionResult = await _controller.Post(nouvelleOffre);
 
-            // Act
-            var actionResult = await _controller.Post(Offre);
+            // ✅ Vérifier qu'on obtient bien un Conflict
+            Assert.IsInstanceOfType(actionResult.Result, typeof(ConflictObjectResult));
+
+            var conflict = (ConflictObjectResult)actionResult.Result;
+            Assert.AreEqual("Une offre en attente existe déjà dans cette conversation.", conflict.Value);
+        }
+
 
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));

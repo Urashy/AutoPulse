@@ -11,8 +11,8 @@ namespace Api_c_sharp.Models.Entity
         [Column("etc_id")]
         public int IdEtatCommande { get; set; }
 
-        [Required]
         [Column("etc_libelle")]
+        [Required]
         public string Libelle { get; set; } = null!;
 
         [InverseProperty(nameof(Commande.CommandeEtatCommandeNav))]

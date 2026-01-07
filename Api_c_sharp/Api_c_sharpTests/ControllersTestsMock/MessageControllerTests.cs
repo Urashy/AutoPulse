@@ -23,6 +23,7 @@ namespace Api_c_sharp.ControllersMock.Tests
     public class MessageControllerTests
     {
         private Mock<MessageManager> _mockManager;
+        private Mock<OffreManager> _mockOffreManager;
         private Mock<IJournalService> _mockJournalService;
         private Mock<IHubContext<MessageHub>> _mockHubContext;
         private Mock<IHubClients> _mockClients;
@@ -36,6 +37,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             // Création des mocks
             _mockManager = new Mock<MessageManager>(null);
+            _mockOffreManager = new Mock<OffreManager>(null);
             _mockJournalService = new Mock<IJournalService>();
             _mockHubContext = new Mock<IHubContext<MessageHub>>();
             _mockClients = new Mock<IHubClients>();
@@ -67,6 +69,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller = new MessageController(
                 _mockManager.Object,
                 _mapper,
+                _mockOffreManager.Object,
                 _mockJournalService.Object,
                 _mockHubContext.Object
             );
@@ -602,6 +605,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             var controllerWithoutHub = new MessageController(
                 _mockManager.Object,
                 _mapper,
+                _mockOffreManager.Object,
                 _mockJournalService.Object,
                 null // hubContext null
             );

@@ -18,6 +18,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private MessageController _controller;
         private AutoPulseBdContext _context;
         private MessageManager _manager;
+        private OffreManager _offreManager;
         private IMapper _mapper;
         private Message _objetcommun;
         private IJournalService _journalService;
@@ -39,7 +40,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new MessageManager(_context);
-            _controller = new MessageController(_manager, _mapper, _journalService);
+            _offreManager = new OffreManager(_context);
+            _controller = new MessageController(_manager, _mapper,_offreManager, _journalService);
 
             _context.Messages.RemoveRange(_context.Messages);
             await _context.SaveChangesAsync();
