@@ -46,6 +46,9 @@ public class Annonce
     [Column("ann_description")]
     public string? Description { get; set; }
 
+    [Column("ann_prochainemiseenavant")]
+    public int? ProchaineMiseEnAvant { get; set; }
+
 
     [ForeignKey(nameof(IdEtatAnnonce))]
     [InverseProperty(nameof(EtatAnnonce.Annonces))]

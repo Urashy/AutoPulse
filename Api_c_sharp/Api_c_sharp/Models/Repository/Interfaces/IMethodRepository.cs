@@ -159,4 +159,9 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<int> CleanupExpiredTokensAsync();
         Task<List<RefreshToken>> GetActiveUserTokensAsync(int idCompte);
     }
+    public interface IPaiementRepository
+    {
+        Task<bool> VerifPaiementAutoMiseEnAvant();
+        Task<IEnumerable<Paiement>> GetPaimentByAnnonce(int idannonce);
+    }
 }

@@ -27,7 +27,7 @@ namespace Api_c_sharp.Models.Entity
         public int IdCompte { get; set; }
 
         [Column("pmpt_date")]
-        public int DatePaiement { get; set; }
+        public DateTime DatePaiement { get; set; }
 
         [ForeignKey(nameof(IdAnnonce))]
         [InverseProperty(nameof(Annonce.Paiements))]
