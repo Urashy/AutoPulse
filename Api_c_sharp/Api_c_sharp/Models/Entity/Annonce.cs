@@ -87,4 +87,7 @@ public class Annonce
 
     [InverseProperty(nameof(Offre.OffreAnnonceNav))]
     public virtual ICollection<Offre> Offres { get; set; } = new List<Offre>();
+
+    [InverseProperty(nameof(Paiement.PaiementAnnonceNav))]
+    public virtual ICollection<Paiement> Paiements { get; set; } = new List<Paiement>();
 }

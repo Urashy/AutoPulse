@@ -22,6 +22,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private CompteController _controller = null!;
         private AutoPulseBdContext _context = null!;
         private CompteManager _manager = null!;
+        private RefreshTokenManager _tokenrefreshManager = null!;
         private IConfiguration _config = null!;
         private IMapper _mapper = null!;
         private Compte _objetcommun = null!;
@@ -57,9 +58,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _mapper = mapperconfig.CreateMapper();
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new CompteManager(_context);
+            _tokenrefreshManager = new RefreshTokenManager(_context);
 
             
-            _controller = new CompteController(_manager, _mapper, _config, _journalService);
+            _controller = new CompteController(_manager, _mapper, _config, _journalService, _tokenrefreshManager);
 
             
             var httpContext = new DefaultHttpContext();

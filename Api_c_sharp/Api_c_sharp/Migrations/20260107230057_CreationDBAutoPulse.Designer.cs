@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api_c_sharp.Migrations
 {
     [DbContext(typeof(AutoPulseBdContext))]
-    [Migration("20260107155622_ajouttokenrememberme")]
-    partial class ajouttokenrememberme
+    [Migration("20260107230057_CreationDBAutoPulse")]
+    partial class CreationDBAutoPulse
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -344,14 +344,6 @@ namespace Api_c_sharp.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("cmd_date");
-
-                    b.Property<bool>("EstPayee")
-                        .HasColumnType("boolean")
-                        .HasColumnName("cmd_estpayee");
-
-                    b.Property<bool>("EstValidee")
-                        .HasColumnType("boolean")
-                        .HasColumnName("cmd_estvalidee");
 
                     b.Property<int>("IdAcheteur")
                         .HasColumnType("integer")
@@ -1000,6 +992,54 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_offre_off", "public");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Paiement", b =>
+                {
+                    b.Property<int>("IdPaiement")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("pmt_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPaiement"));
+
+                    b.Property<int>("DatePaiement")
+                        .HasColumnType("integer")
+                        .HasColumnName("pmpt_date");
+
+                    b.Property<int>("IdAnnonce")
+                        .HasColumnType("integer")
+                        .HasColumnName("ann_id");
+
+                    b.Property<int>("IdCarteBancaire")
+                        .HasColumnType("integer")
+                        .HasColumnName("cba_id");
+
+                    b.Property<int>("IdCommande")
+                        .HasColumnType("integer")
+                        .HasColumnName("cmd_id");
+
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<int>("IdMiseEnAvant")
+                        .HasColumnType("integer")
+                        .HasColumnName("mav_id");
+
+                    b.HasKey("IdPaiement");
+
+                    b.HasIndex("IdAnnonce");
+
+                    b.HasIndex("IdCarteBancaire");
+
+                    b.HasIndex("IdCommande");
+
+                    b.HasIndex("IdCompte");
+
+                    b.HasIndex("IdMiseEnAvant");
+
+                    b.ToTable("t_e_paiement_pmt", "public");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Pays", b =>
                 {
                     b.Property<int>("IdPays")
@@ -1617,7 +1657,7 @@ namespace Api_c_sharp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Api_c_sharp.Models.Entity.EtatCommande", "CommandeEtatCommandeNav")
+                    b.HasOne("Api_c_sharp.Models.Entity.EtatCommande", "EtatCommandeCommandeNav")
                         .WithMany("Commandes")
                         .HasForeignKey("IdEtatCommande")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1645,9 +1685,9 @@ namespace Api_c_sharp.Migrations
 
                     b.Navigation("CommandeAnnonceNav");
 
-                    b.Navigation("CommandeEtatCommandeNav");
-
                     b.Navigation("CommandeMoyenPaiementNav");
+
+                    b.Navigation("EtatCommandeCommandeNav");
 
                     b.Navigation("Offrecommande");
 
@@ -1814,6 +1854,49 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("OffreAnnonceNav");
 
                     b.Navigation("OffreMessageNav");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Paiement", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Annonce", "PaiementAnnonceNav")
+                        .WithMany("Paiements")
+                        .HasForeignKey("IdAnnonce")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.CarteBancaire", "PaiementCarteBancaireNav")
+                        .WithMany("Paiements")
+                        .HasForeignKey("IdCarteBancaire")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.Commande", "PaiementCommandeNav")
+                        .WithMany("Paiements")
+                        .HasForeignKey("IdCommande")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "PaiementCompteNav")
+                        .WithMany("Paiements")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.MiseEnAvant", "PaiementMiseEnAvantNav")
+                        .WithMany("Paiements")
+                        .HasForeignKey("IdMiseEnAvant")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PaiementAnnonceNav");
+
+                    b.Navigation("PaiementCarteBancaireNav");
+
+                    b.Navigation("PaiementCommandeNav");
+
+                    b.Navigation("PaiementCompteNav");
+
+                    b.Navigation("PaiementMiseEnAvantNav");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.PieceJointe", b =>
@@ -2008,6 +2091,8 @@ namespace Api_c_sharp.Migrations
 
                     b.Navigation("Offres");
 
+                    b.Navigation("Paiements");
+
                     b.Navigation("SignalementsRecus");
 
                     b.Navigation("Vues");
@@ -2023,6 +2108,11 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("Voitures");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.CarteBancaire", b =>
+                {
+                    b.Navigation("Paiements");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Categorie", b =>
                 {
                     b.Navigation("Voitures");
@@ -2033,6 +2123,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("AvisListe");
 
                     b.Navigation("Factures");
+
+                    b.Navigation("Paiements");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Compte", b =>
@@ -2066,6 +2158,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("Messages");
 
                     b.Navigation("Notifications");
+
+                    b.Navigation("Paiements");
 
                     b.Navigation("Plaintes");
 
@@ -2131,6 +2225,8 @@ namespace Api_c_sharp.Migrations
             modelBuilder.Entity("Api_c_sharp.Models.Entity.MiseEnAvant", b =>
                 {
                     b.Navigation("Annonces");
+
+                    b.Navigation("Paiements");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Modele", b =>

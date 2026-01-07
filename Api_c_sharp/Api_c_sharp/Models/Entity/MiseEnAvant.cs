@@ -21,5 +21,8 @@ namespace Api_c_sharp.Models.Entity
 
         [InverseProperty(nameof(Annonce.MiseEnAvantAnnonceNav))]
         public virtual ICollection<Annonce> Annonces { get; set; } = new List<Annonce>();
+
+        [InverseProperty(nameof(Paiement.PaiementMiseEnAvantNav))]
+        public virtual ICollection<Paiement> Paiements { get; set; } = new List<Paiement>();
     }
 }

@@ -15,7 +15,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet
                 .Include(a => a.AcheteurCommande)
                 .Include(v => v.VendeurCommande)
-                .Include(x => x.CommandeEtatCommandeNav)
+                .Include(x => x.EtatCommandeCommandeNav)
                 .Include(x => x.CommandeMoyenPaiementNav)
                 .Include(c => c.Offrecommande)
                 .Include(ann => ann.CommandeAnnonceNav)
@@ -58,7 +58,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet
                 .Include(a => a.AcheteurCommande)
                 .Include(v => v.VendeurCommande)
-                .Include(x => x.CommandeEtatCommandeNav)
+                .Include(x => x.EtatCommandeCommandeNav)
                 .Include(x => x.CommandeMoyenPaiementNav)
                 .Include(c => c.Offrecommande)
 

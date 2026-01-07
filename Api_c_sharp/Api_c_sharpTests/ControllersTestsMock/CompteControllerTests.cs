@@ -19,6 +19,7 @@ namespace Api_c_sharp.ControllersMock.Tests
     public class CompteControllerTestsMoq
     {
         private Mock<CompteManager> _mockManager = null!;
+        private Mock<RefreshTokenManager> _mockTockenManager = null!;
         private Mock<IJournalService> _mockJournalService = null!;
         private IConfiguration _config = null!;
         private CompteController _controller = null!;
@@ -30,6 +31,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             // Création des mocks
             _mockManager = new Mock<CompteManager>(null!);
+            _mockTockenManager = new Mock<RefreshTokenManager>(null!);
             _mockJournalService = new Mock<IJournalService>();
 
             // Configuration en mémoire pour JWT
@@ -74,7 +76,8 @@ namespace Api_c_sharp.ControllersMock.Tests
                 _mockManager.Object,
                 _mapper,
                 _config,
-                _mockJournalService.Object
+                _mockJournalService.Object,
+                _mockTockenManager.Object
             );
 
             // Configuration du contexte HTTP pour les cookies

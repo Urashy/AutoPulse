@@ -15,7 +15,7 @@ namespace Api_c_sharp.Models.Entity
         [Required]
         public string Libelle { get; set; } = null!;
 
-        [InverseProperty(nameof(Commande.CommandeEtatCommandeNav))]
+        [InverseProperty(nameof(Commande.EtatCommandeCommandeNav))]
         public virtual ICollection<Commande> Commandes { get; set; } = new List<Commande>();
     }
 }

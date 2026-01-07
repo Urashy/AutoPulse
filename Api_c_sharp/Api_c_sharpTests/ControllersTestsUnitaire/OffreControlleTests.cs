@@ -45,7 +45,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _annonceManager = new AnnonceManager(_context);
             _notificationService = new NotificationManager(_context);
 
-            _controller = new OffreController(_manager, _mapper,_messageManager,_commandeManager,_annonceManager,_notificationService);
+            _controller = new OffreController(_manager, _mapper, _messageManager, _commandeManager, _annonceManager, _notificationService);
 
             _context.Offres.RemoveRange(_context.Offres);
             await _context.SaveChangesAsync();
@@ -141,7 +141,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _objetcommun = offre;
         }
         #region GET
-            #region GetById
+        #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -167,7 +167,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-            #region GetAll
+        #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -183,7 +183,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-            #region GetByMessage
+        #region GetByMessage
         [TestMethod]
         public async Task GetByMessage()
         {
@@ -257,12 +257,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
 
+        [TestMethod]
+        public async Task BadRequestPostOffreTest()
+        {
+            // Arrange
+            OffreCreateDTO Offre = new OffreCreateDTO
+            {
+                Valeur = 0,
+                IdAnnonce = 1,
+                IdMessage = _objetcommun.IdMessage,
+            };
+
+            _controller.ModelState.AddModelError("Valeur", "La Valeur doit être supérieur à 0");
+
+            // Act
+            var actionResult = await _controller.Post(Offre);
+
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
         #endregion
 
         #region DELETE
+
         [TestMethod]
         public async Task DeleteOffreTest()
         {

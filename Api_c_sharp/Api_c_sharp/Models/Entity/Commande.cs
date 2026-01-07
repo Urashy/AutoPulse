@@ -38,14 +38,6 @@ public class Commande
     [Column("off_idoffre")]
     public int IdOffre { get; set; }
 
-    [Required]
-    [Column("etc_id")] 
-    public int IdEtatCommande { get; set; }
-
-    [ForeignKey(nameof(IdEtatCommande))]
-    [InverseProperty(nameof(EtatCommande.Commandes))]
-    public virtual EtatCommande? CommandeEtatCommandeNav { get; set; }
-
     [ForeignKey(nameof(IdMoyenPaiement))]
     [InverseProperty(nameof(MoyenPaiement.Commandes))]
     public virtual MoyenPaiement? CommandeMoyenPaiementNav { get; set; }
@@ -75,4 +67,7 @@ public class Commande
     [ForeignKey(nameof(IdEtatCommande))]
     [InverseProperty(nameof(EtatCommande.Commandes))]
     public virtual EtatCommande EtatCommandeCommandeNav { get; set; } = null!;
+
+    [InverseProperty(nameof(Paiement.PaiementCommandeNav))]
+    public virtual ICollection<Paiement> Paiements { get; set; } = new List<Paiement>();
 }

@@ -30,5 +30,8 @@ namespace Api_c_sharp.Models.Entity
         [ForeignKey(nameof(IdCompte))]
         [InverseProperty(nameof(Compte.CarteBancaires))]
         public virtual Compte? CompteCarteBancaireNav { get; set; }
+
+        [InverseProperty(nameof(Paiement.PaiementCarteBancaireNav))]
+        public virtual ICollection<Paiement> Paiements { get; set; } = new List<Paiement>();
     }
 }

@@ -44,6 +44,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<MoyenPaiement> MoyensPaiements { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Offre> Offres { get; set; }
+        public DbSet<Paiement> Paiements { get; set; }
         public DbSet<Pays> Pays { get; set; }
         public DbSet<PieceJointe> PiecesJointes { get; set; }
         public DbSet<Plainte> Plaintes { get; set; }
@@ -212,7 +213,7 @@ namespace Api_c_sharp.Models.Repository
                 .HasForeignKey(c => c.IdVendeur);
 
             modelBuilder.Entity<Commande>()
-                .HasOne(c => c.CommandeEtatCommandeNav)
+                .HasOne(c => c.EtatCommandeCommandeNav)
                 .WithMany(e => e.Commandes)
                 .HasForeignKey(c => c.IdEtatCommande);
 
@@ -390,6 +391,36 @@ namespace Api_c_sharp.Models.Repository
                 .HasOne(o => o.OffreMessageNav)
                 .WithMany(c => c.Offres)
                 .HasForeignKey(o => o.IdMessage);
+
+            //-----------------------------Paiement-----------------------------
+            modelBuilder.Entity<Paiement>()
+                .HasKey(e => e.IdPaiement);
+
+            modelBuilder.Entity<Paiement>()
+                .HasOne(p => p.PaiementAnnonceNav)
+                .WithMany(a => a.Paiements)
+                .HasForeignKey(p => p.IdAnnonce);
+
+            modelBuilder.Entity<Paiement>()
+                .HasOne(p => p.PaiementCarteBancaireNav)
+                .WithMany(c => c.Paiements)
+                .HasForeignKey(p => p.IdCarteBancaire);
+
+            modelBuilder.Entity<Paiement>()
+                .HasOne(p => p.PaiementMiseEnAvantNav)
+                .WithMany(m => m.Paiements)
+                .HasForeignKey(p => p.IdMiseEnAvant);
+
+            modelBuilder.Entity<Paiement>()
+                .HasOne(p => p.PaiementCommandeNav)
+                .WithMany(c => c.Paiements)
+                .HasForeignKey(p => p.IdCommande);
+
+            modelBuilder.Entity<Paiement>()
+                .HasOne(p => p.PaiementCompteNav)
+                .WithMany(c => c.Paiements)
+                .HasForeignKey(p => p.IdCompte);
+
 
             //-----------------------------Pays-----------------------------
             modelBuilder.Entity<Pays>()

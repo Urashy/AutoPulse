@@ -9,5 +9,4 @@ public class CommandeCreateDTO
     public int IdEtatCommande { get; set; }
     public DateTime Date { get; set; }
     public int IdOffre { get; set; }
-    public int IdEtatCommande { get; set; }
 }

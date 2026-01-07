@@ -149,5 +149,8 @@ namespace Api_c_sharp.Models.Entity
         
         [InverseProperty(nameof(RefreshToken.CompteRefreshTokenNav))]
         public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+        [InverseProperty(nameof(Paiement.PaiementCompteNav))]
+        public virtual ICollection<Paiement> Paiements { get; set; } = new List<Paiement>();
     }
 }

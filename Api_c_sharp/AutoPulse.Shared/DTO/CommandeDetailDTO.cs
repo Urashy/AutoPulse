@@ -20,9 +20,6 @@ public class CommandeDetailDTO
     public AnnonceDTO? Annonce { get; set; }
 
     public OffreDTO Offre { get; set; }
-
-    public int IdEtatCommande { get; set; }
-
     // Facture
     public int? IdFacture { get; set; }
     
