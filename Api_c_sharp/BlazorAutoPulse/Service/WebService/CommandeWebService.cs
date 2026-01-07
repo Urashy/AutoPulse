@@ -6,7 +6,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class CommandeWebService : BaseWebService<CommandeDTO>, ICommandeService
     {
-        public CommandeWebService(HttpClient httpClient) : base(httpClient)
+        public CommandeWebService(IHttpClientFactory factory) : base(factory)
         {
         }
         protected override string ApiEndpoint => "Commande";

@@ -146,5 +146,8 @@ namespace Api_c_sharp.Models.Entity
 
         [InverseProperty(nameof(CarteBancaire.CompteCarteBancaireNav))]
         public virtual ICollection<CarteBancaire> CarteBancaires { get; set; } = new List<CarteBancaire>();
+        
+        [InverseProperty(nameof(RefreshToken.CompteRefreshTokenNav))]
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }

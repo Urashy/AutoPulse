@@ -6,7 +6,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class ReinitialisationMdpWebService : BaseWebService<ReinitialisationMdp>, IReinitialiseMdp
 {
-    public ReinitialisationMdpWebService(HttpClient httpClient) : base(httpClient)
+    public ReinitialisationMdpWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

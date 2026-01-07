@@ -8,7 +8,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class CarteBancaireWebService: BaseWebService<CarteBancaireDTO>, ICarteBancaireService
     {
-        public CarteBancaireWebService(HttpClient httpClient) : base(httpClient)
+        public CarteBancaireWebService(IHttpClientFactory factory) : base(factory)
         {
 
         }

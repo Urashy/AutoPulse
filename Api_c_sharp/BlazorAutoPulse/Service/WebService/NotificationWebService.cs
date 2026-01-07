@@ -6,7 +6,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class NotificationWebService : BaseWebService<NotificationDTO>, INotificationService
     {
-        public NotificationWebService(HttpClient httpClient) : base(httpClient)
+        public NotificationWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

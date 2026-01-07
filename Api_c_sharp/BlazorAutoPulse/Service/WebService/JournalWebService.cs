@@ -6,7 +6,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class JournalWebService : BaseWebService<JournalDTO>, IJournalService
     {
-        public JournalWebService(HttpClient httpClient) : base(httpClient)
+        public JournalWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

@@ -8,7 +8,7 @@ namespace BlazorAutoPulse.Service
 {
     public class AnnonceWebService : BaseWebService<AnnonceDTO>, IAnnonceService
     {
-        public AnnonceWebService(HttpClient httpClient) : base(httpClient)
+        public AnnonceWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

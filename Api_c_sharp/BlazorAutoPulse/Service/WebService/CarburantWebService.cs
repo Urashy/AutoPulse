@@ -5,7 +5,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class CarburantWebService : BaseWebService<CarburantDTO>
     {
-        public CarburantWebService(HttpClient httpClient) : base(httpClient)
+        public CarburantWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

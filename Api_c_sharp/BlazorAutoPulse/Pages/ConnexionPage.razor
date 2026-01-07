@@ -35,6 +35,24 @@
                                disabled="@VM.isLoading"
                                required>
                     </div>
+
+                    <!-- ✅ NOUVEAU : Checkbox "Se souvenir de moi" -->
+                    <div class="remember-me">
+                        <label class="checkbox-container">
+                            <input type="checkbox"
+                                   @bind="VM.rememberMe"
+                                   disabled="@VM.isLoading" />
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Se souvenir de moi pendant 30 jours</span>
+                        </label>
+                        <div class="remember-info">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                            </svg>
+                            <span>Décoché : déconnexion à la fermeture du navigateur</span>
+                        </div>
+                    </div>
+
                     <button type="button"
                             class="btn-submit"
                             @onclick="VM.ConnexionUtilisateur"
@@ -91,6 +109,17 @@
                                 <h4>Code de vérification</h4>
                                 <p>Un code a été envoyé à votre adresse email.</p>
                             </div>
+                        </div>
+                    }
+
+                    <!-- ✅ Affichage du statut "Se souvenir de moi" -->
+                    @if (VM.rememberMe)
+                    {
+                        <div class="session-info">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                            </svg>
+                            <span>Session de 30 jours activée</span>
                         </div>
                     }
 

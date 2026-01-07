@@ -7,7 +7,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class FavoriWebService : BaseWebService<FavoriDTO>, IFavorisService
     {
-        public FavoriWebService(HttpClient httpClient) : base(httpClient)
+        public FavoriWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

@@ -588,7 +588,7 @@ public class ConversationViewModel : IDisposable
         }
     }
 
-    public async Task AccepterOffre(int idOffre)
+    public async Task  AccepterOffre(int idOffre)
     {
         try
         {

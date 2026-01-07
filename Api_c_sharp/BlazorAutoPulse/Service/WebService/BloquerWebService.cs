@@ -5,7 +5,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class BloquerWebService: BaseWebService<BloqueDTO>, IBloqueService
 {
-    public BloquerWebService(HttpClient httpClient) : base(httpClient)
+    public BloquerWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 
