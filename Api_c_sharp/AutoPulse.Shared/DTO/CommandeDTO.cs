@@ -8,6 +8,8 @@ public class CommandeDTO
     public string? PseudoAcheteur { get; set; }
     public string? LibelleAnnonce { get; set; }
     public string? MoyenPaiement { get; set; }
+    public int? Montant { get; set; }
+
     public string? EtatCommande { get; set; }
 
 }

@@ -6,7 +6,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class OffreWebService : BaseWebService<OffreDTO>, IOffreService
     {
-        public OffreWebService(HttpClient httpClient) : base(httpClient)
+        public OffreWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

@@ -5,7 +5,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class CategorieWebService : BaseWebService<CategorieDTO>
     {
-        public CategorieWebService(HttpClient httpClient) : base(httpClient)
+        public CategorieWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

@@ -1,10 +1,12 @@
 using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Composant;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Authentification;
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service.WebService;
 using BlazorAutoPulse.Services;
+using BlazorAutoPulse.Services.Auth;
 using BlazorAutoPulse.ViewModel;
 using BlazorAutoPulse.ViewModel.Administration;
 using Microsoft.AspNetCore.Components.Web;
@@ -20,6 +22,31 @@ namespace BlazorAutoPulse
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
+            
+            // ========================================
+            // CONFIGURATION AUTHENTIFICATION
+            // ========================================
+
+            builder.Services.AddTransient<AuthMessageHandler>();
+
+            builder.Services.AddHttpClient("ApiClient", client =>
+                {
+                    client.BaseAddress = new Uri("http://localhost:5086/api/");
+                    client.DefaultRequestHeaders.Add("Accept", "application/json");
+                })
+                .AddHttpMessageHandler<AuthMessageHandler>();
+
+            builder.Services.AddHttpClient("RefreshClient", client =>
+            {
+                client.BaseAddress = new Uri("http://localhost:5086/api/");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+            });
+            
+            builder.Services.AddScoped<IServiceConnexion>(sp =>
+            {
+                var factory = sp.GetRequiredService<IHttpClientFactory>();
+                return new ConnexionWebService(factory);
+            });
 
             //----------------------- Service de base
             builder.Services.AddScoped<IService<MarqueDTO>, MarqueWebService>();
@@ -69,6 +96,9 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ITokenEmailService, TokenEmailWebService>();
             builder.Services.AddScoped<IImmatService, ImmatWebService>();
             builder.Services.AddScoped<ICarteBancaireService, CarteBancaireWebService>();
+            builder.Services.AddScoped<IAPourConversationService, APourConversationWebService>();
+            
+
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -102,6 +132,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ModifierAnnonceViewModel>();
             builder.Services.AddScoped<AdminPlainteViewModel>();
             builder.Services.AddScoped<AdresseModalViewModel>();
+            builder.Services.AddScoped<CommandeDetailViewModel>();
 
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService>(sp => new SignalRWebService());
@@ -114,27 +145,9 @@ namespace BlazorAutoPulse
                 client.DefaultRequestHeaders.Add("User-Agent", "BlazorAutoPulse/1.0");
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
-
-            // ✅ HttpClient en Scoped (standard pour Blazor WebAssembly)
-            builder.Services.AddScoped(sp =>
-            {
-                return new HttpClient
-                {
-                    BaseAddress = new Uri("http://localhost:5086/api/")
-                };
-            });
             
             //----------------------- State service
             builder.Services.AddScoped<ConversationStateService>();
-
-            builder.Services.AddScoped(sp =>
-            {
-                return new HttpClient
-                {
-                    BaseAddress = new Uri("http://localhost:5086/api/")
-                };
-            });
-            
 
             await builder.Build().RunAsync();
         }

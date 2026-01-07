@@ -358,9 +358,17 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("cmd_id_annonce");
 
+                    b.Property<int>("IdEtatCommande")
+                        .HasColumnType("integer")
+                        .HasColumnName("etc_id");
+
                     b.Property<int>("IdMoyenPaiement")
                         .HasColumnType("integer")
                         .HasColumnName("moy_moyenpaiement");
+
+                    b.Property<int>("IdOffre")
+                        .HasColumnType("integer")
+                        .HasColumnName("off_idoffre");
 
                     b.Property<int>("IdVendeur")
                         .HasColumnType("integer")
@@ -372,7 +380,11 @@ namespace Api_c_sharp.Migrations
 
                     b.HasIndex("IdAnnonce");
 
+                    b.HasIndex("IdEtatCommande");
+
                     b.HasIndex("IdMoyenPaiement");
+
+                    b.HasIndex("IdOffre");
 
                     b.HasIndex("IdVendeur");
 
@@ -547,6 +559,25 @@ namespace Api_c_sharp.Migrations
                     b.HasKey("IdEtatAnnonce");
 
                     b.ToTable("t_e_etatannonce_eta", "public");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCommande", b =>
+                {
+                    b.Property<int>("IdEtatCommande")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("etc_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEtatCommande"));
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("etc_libelle");
+
+                    b.HasKey("IdEtatCommande");
+
+                    b.ToTable("t_e_etatcommande_etc", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCompte", b =>
@@ -1077,6 +1108,62 @@ namespace Api_c_sharp.Migrations
                     b.ToTable("t_e_plainte_pla", "public");
                 });
 
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.RefreshToken", b =>
+                {
+                    b.Property<int>("IdRefreshToken")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("rft_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdRefreshToken"));
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("rft_date_creation");
+
+                    b.Property<DateTime>("DateExpiration")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("rft_date_expiration");
+
+                    b.Property<DateTime?>("DateRevocation")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("rft_date_revocation");
+
+                    b.Property<bool>("EstRevoque")
+                        .HasColumnType("boolean")
+                        .HasColumnName("rft_est_revoque");
+
+                    b.Property<int>("IdCompte")
+                        .HasColumnType("integer")
+                        .HasColumnName("com_id");
+
+                    b.Property<string>("IpCreation")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("rft_ip_creation");
+
+                    b.Property<bool>("RememberMe")
+                        .HasColumnType("boolean")
+                        .HasColumnName("rft_remember_me");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("rft_token_hash");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("rft_user_agent");
+
+                    b.HasKey("IdRefreshToken");
+
+                    b.HasIndex("IdCompte");
+
+                    b.ToTable("t_e_refresh_token_rft", "public");
+                });
+
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Signalement", b =>
                 {
                     b.Property<int>("IdSignalement")
@@ -1527,9 +1614,21 @@ namespace Api_c_sharp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Api_c_sharp.Models.Entity.EtatCommande", "CommandeEtatCommandeNav")
+                        .WithMany("Commandes")
+                        .HasForeignKey("IdEtatCommande")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Api_c_sharp.Models.Entity.MoyenPaiement", "CommandeMoyenPaiementNav")
                         .WithMany("Commandes")
                         .HasForeignKey("IdMoyenPaiement")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api_c_sharp.Models.Entity.Offre", "Offrecommande")
+                        .WithMany("CommandeOffre")
+                        .HasForeignKey("IdOffre")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1543,7 +1642,11 @@ namespace Api_c_sharp.Migrations
 
                     b.Navigation("CommandeAnnonceNav");
 
+                    b.Navigation("CommandeEtatCommandeNav");
+
                     b.Navigation("CommandeMoyenPaiementNav");
+
+                    b.Navigation("Offrecommande");
 
                     b.Navigation("VendeurCommande");
                 });
@@ -1746,6 +1849,17 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("EtatSignalementPlaintePlainteNav");
 
                     b.Navigation("SignalementPlainteNav");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.RefreshToken", b =>
+                {
+                    b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteRefreshTokenNav")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("IdCompte")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompteRefreshTokenNav");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Signalement", b =>
@@ -1952,6 +2066,8 @@ namespace Api_c_sharp.Migrations
 
                     b.Navigation("Plaintes");
 
+                    b.Navigation("RefreshTokens");
+
                     b.Navigation("SignalementsFaits");
 
                     b.Navigation("SignalementsRecus");
@@ -1976,6 +2092,11 @@ namespace Api_c_sharp.Migrations
             modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatAnnonce", b =>
                 {
                     b.Navigation("Annonces");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCommande", b =>
+                {
+                    b.Navigation("Commandes");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.EtatCompte", b =>
@@ -2027,6 +2148,11 @@ namespace Api_c_sharp.Migrations
             modelBuilder.Entity("Api_c_sharp.Models.Entity.MoyenPaiement", b =>
                 {
                     b.Navigation("Commandes");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Offre", b =>
+                {
+                    b.Navigation("CommandeOffre");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Pays", b =>

@@ -16,9 +16,6 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
     public event Action<int, bool?>? OnOffreStatusChanged;
     public event Action<int, int, string, DateTime, int,int, decimal, int>? OnMessageWithOffreReceived;
 
-
-    // Dans StartAsync(), ajoute l'écoute :
-
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
     public SignalRWebService()

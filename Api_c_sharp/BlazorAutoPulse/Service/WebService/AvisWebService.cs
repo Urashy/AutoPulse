@@ -6,7 +6,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class AvisWebService: BaseWebService<AvisListDTO>, IAvisService
     {
-        public AvisWebService(HttpClient httpClient) : base(httpClient)
+        public AvisWebService(IHttpClientFactory factory) : base(factory)
         {
 
         }

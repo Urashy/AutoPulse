@@ -5,7 +5,7 @@ namespace BlazorAutoPulse.Service.WebService
 {
     public class MarqueWebService : BaseWebService<MarqueDTO>
     {
-        public MarqueWebService(HttpClient httpClient) : base(httpClient)
+        public MarqueWebService(IHttpClientFactory factory) : base(factory)
         {
         }
 

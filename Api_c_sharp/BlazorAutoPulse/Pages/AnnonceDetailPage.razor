@@ -471,7 +471,14 @@ else
                     </div>
                     @if (VM.CurrentUserId != VM.Annonce.IdVendeur)
                     {
-                        <button class="btn-contact" @onclick="VM.OpenContactPopup">Contacter le vendeur</button>
+                        if (VM.ConvExistante)
+                        {
+                            <button class="btn-contact" @onclick="VM.RedirectionConversation">Envoyer un message</button>
+                        }
+                        else
+                        {
+                            <button class="btn-contact" @onclick="VM.OpenContactPopup">Contacter le vendeur</button>
+                        }
                     }
                 </div>
             </div>
@@ -659,8 +666,6 @@ else
                 </button>
             }
         </div>
-
-
 
         @if (VM.AnnonceSimilaires?.Any() == true)
         {

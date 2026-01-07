@@ -1,0 +1,332 @@
+/* ========== CARTE BANCAIRE COMPONENT ========== */
+.card-bancaire {
+    perspective: 1000px;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.card-front {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 30px;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+    .card-front::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+.card-bancaire:hover .card-front {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+}
+
+/* Header de la carte */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.card-chip {
+    width: 50px;
+    height: 40px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-type {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Numéro de carte */
+.card-number {
+    font-family: 'Courier New', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 3px;
+    margin: 25px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Footer de la carte */
+.card-footer {
+    display: flex;
+    gap: 40px;
+    align-items: flex-end;
+}
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.card-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.card-value {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge carte expirée */
+.card-expired-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255, 68, 68, 0.95);
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(255, 68, 68, 0.4);
+    animation: badgePulse 2s infinite;
+}
+
+/* Actions de la carte */
+.card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.card-btn {
+    flex: 1;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+    .card-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .card-btn:active {
+        transform: translateY(0);
+    }
+
+    .card-btn.toggle {
+        background: rgba(0, 212, 255, 0.1);
+        border-color: #00d4ff;
+        color: #00d4ff;
+    }
+
+        .card-btn.toggle:hover {
+            background: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+
+    .card-btn.edit {
+        background: rgba(255, 165, 0, 0.1);
+        border-color: #ffa500;
+        color: #ffa500;
+    }
+
+        .card-btn.edit:hover {
+            background: rgba(255, 165, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(255, 165, 0, 0.3);
+        }
+
+    .card-btn.danger {
+        background: rgba(255, 68, 68, 0.1);
+        border-color: #ff4444;
+        color: #ff4444;
+    }
+
+        .card-btn.danger:hover {
+            background: rgba(255, 68, 68, 0.2);
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.3);
+        }
+
+/* Grille des cartes bancaires */
+.cartes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+}
+
+/* État vide pour les cartes */
+.cartes-empty-state {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+}
+
+.cartes-empty-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+    animation: float 3s ease-in-out infinite;
+}
+
+.cartes-empty-state h3 {
+    color: #fff;
+    font-size: 24px;
+    margin: 0 0 15px 0;
+    font-weight: 600;
+}
+
+.cartes-empty-state p {
+    color: #888;
+    font-size: 16px;
+    margin: 0;
+    max-width: 400px;
+}
+
+/* Bouton d'ajout de carte */
+.btn-add-carte {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    color: #fff;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+    .btn-add-carte:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-add-carte:active {
+        transform: translateY(-1px);
+    }
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .cartes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+    }
+}
+
+@media (max-width: 768px) {
+    .cartes-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .card-front {
+        padding: 25px;
+        min-height: 200px;
+    }
+
+    .card-number {
+        font-size: 18px;
+        letter-spacing: 2px;
+    }
+
+    .card-actions {
+        flex-direction: column;
+    }
+
+    .card-btn {
+        width: 100%;
+    }
+
+    .cartes-empty-icon {
+        font-size: 60px;
+    }
+
+    .cartes-empty-state h3 {
+        font-size: 20px;
+    }
+
+    .cartes-empty-state p {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .card-front {
+        padding: 20px;
+        min-height: 180px;
+    }
+
+    .card-number {
+        font-size: 16px;
+        letter-spacing: 1px;
+        margin: 20px 0;
+    }
+
+    .card-chip {
+        width: 45px;
+        height: 35px;
+        font-size: 20px;
+    }
+
+    .card-type {
+        font-size: 16px;
+    }
+
+    .card-footer {
+        gap: 30px;
+    }
+
+    .card-value {
+        font-size: 14px;
+    }
+
+    .btn-add-carte {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+}

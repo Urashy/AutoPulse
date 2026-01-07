@@ -5,7 +5,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class BoiteVitesseWebService: BaseWebService<BoiteDeVitesseDTO>
 {
-    public BoiteVitesseWebService(HttpClient httpClient) : base(httpClient)
+    public BoiteVitesseWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

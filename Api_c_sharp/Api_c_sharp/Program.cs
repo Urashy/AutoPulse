@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using Api_c_sharp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -64,6 +65,7 @@ builder.Services.AddScoped<OffreManager>();
 builder.Services.AddScoped<PaysManager>();
 builder.Services.AddScoped<PieceJointeManager>();
 builder.Services.AddScoped<PlainteManager>();
+builder.Services.AddScoped<RefreshTokenManager>();
 builder.Services.AddScoped<SignalementManager>();
 builder.Services.AddScoped<TokenEmailManager>();
 builder.Services.AddScoped<TypeCompteManager>();
@@ -84,6 +86,10 @@ builder.Services.AddScoped<IJournalService>(sp => sp.GetRequiredService<JournalM
 builder.Services.AddScoped<IModeleRepository>(sp => sp.GetRequiredService<ModeleManager>());
 builder.Services.AddScoped<INotificationService>(sp => sp.GetRequiredService<NotificationManager>());
 builder.Services.AddScoped<IOffreRepository>(sp => sp.GetRequiredService<OffreManager>());
+builder.Services.AddScoped<IRefreshTokenRepository>(sp => sp.GetRequiredService<RefreshTokenManager>());
+
+// Tâche de nettoyage automatique des tokens expirés
+builder.Services.AddHostedService<RefreshTokenCleanupService>();
 
 // Enregistrement du service IA avec HttpClient
 builder.Services.AddHttpClient<IIAService, IAManager>(client =>
@@ -153,6 +159,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSignalR();
+builder.Services.AddHostedService<EfWarmupService>();
 
 var app = builder.Build();
 

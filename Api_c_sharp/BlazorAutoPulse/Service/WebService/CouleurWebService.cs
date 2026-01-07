@@ -7,7 +7,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class CouleurWebService: BaseWebService<CouleurDTO>, ICouleurService
 {
-    public CouleurWebService(HttpClient httpClient) : base(httpClient)
+    public CouleurWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

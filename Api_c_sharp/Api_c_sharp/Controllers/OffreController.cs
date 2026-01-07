@@ -142,9 +142,11 @@ namespace Api_c_sharp.Controllers
                         IdAcheteur = idAcheteur,
                         IdVendeur = annonce.IdCompte,
                         IdAnnonce = dto.IdAnnonce,
+                        IdOffre = idoffre,
                         Date = DateTime.UtcNow,
-                        IdMoyenPaiement = 1
-                    };
+                        IdMoyenPaiement = 1,
+                        IdEtatCommande = 1
+                };
 
                     var commandeEntity = _offremapper.Map<Commande>(com);
 

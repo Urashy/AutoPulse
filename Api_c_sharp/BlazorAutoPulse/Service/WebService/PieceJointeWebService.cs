@@ -9,7 +9,7 @@ public class PieceJointeWebService : BaseWebService<PieceJointeDTO>, IPieceJoint
 {
     private const long MaxFileSize = 10 * 1024 * 1024;
 
-    public PieceJointeWebService(HttpClient httpClient) : base(httpClient)
+    public PieceJointeWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

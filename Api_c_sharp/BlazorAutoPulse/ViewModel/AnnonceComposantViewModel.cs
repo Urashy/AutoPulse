@@ -7,7 +7,6 @@ namespace BlazorAutoPulse.ViewModel
     public class AnnonceComposantViewModel
     {
         private readonly IImageService _imageService;
-        private readonly ICompteService _compteService;
         private readonly FavoriStateService _favorisStateService;
 
         public bool IsFavorite { get; private set; }
@@ -17,34 +16,23 @@ namespace BlazorAutoPulse.ViewModel
 
         public AnnonceComposantViewModel(
             IImageService imageService,
-            ICompteService compteService,
             FavoriStateService favorisStateService)
         {
             _imageService = imageService;
-            _compteService = compteService;
             _favorisStateService = favorisStateService;
         }
 
-        public async Task InitializeAsync(AnnonceDTO annonce, Action refreshUI)
+        public async Task InitializeAsync(AnnonceDTO annonce, int? idCompte, Action refreshUI)
         {
             _refreshUI = refreshUI;
             _currentAnnonceId = annonce.IdAnnonce;
+            _currentUserId = idCompte;
+            IsFavorite = false;
 
-            try
+            if (_currentUserId.HasValue && annonce != null)
             {
-                var compte = await _compteService.GetMe();
-                _currentUserId = compte?.IdCompte;
-
-                if (_currentUserId.HasValue && annonce != null)
-                {
-                    // ✅ Utilisation du FavorisStateService pour vérifier le statut
-                    IsFavorite = _favorisStateService.IsFavorite(annonce.IdAnnonce);
-                }
-            }
-            catch
-            {
-                _currentUserId = null;
-                IsFavorite = false;
+                // ✅ Utilisation du FavorisStateService pour vérifier le statut
+                IsFavorite = _favorisStateService.IsFavorite(annonce.IdAnnonce);
             }
         }
 

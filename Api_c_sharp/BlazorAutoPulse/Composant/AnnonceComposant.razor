@@ -43,13 +43,16 @@
     public AnnonceDTO Annonce { get; set; }
     
     [Parameter]
+    public int? idCompte { get; set; }
+    
+    [Parameter]
     public string divClass { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         if (Annonce != null)
         {
-            await VM.InitializeAsync(Annonce, StateHasChanged);
+            await VM.InitializeAsync(Annonce, idCompte, StateHasChanged);
         }
     }
 

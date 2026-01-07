@@ -199,7 +199,7 @@ else
                         {
                             @foreach (var annonce in VM.annonces)
                             {
-                                <AnnonceComposant Annonce="annonce" divClass="car-card"/>
+                                <AnnonceComposant Annonce="annonce" idCompte="@VM.comptePublic.IdCompte" divClass="car-card"/>
                             }
                         }
                         else

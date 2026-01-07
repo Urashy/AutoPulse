@@ -8,7 +8,7 @@ namespace BlazorAutoPulse.Service;
 
 public class CompteWebService : BaseWebService<CompteDetailDTO>, ICompteService
 {
-    public CompteWebService(HttpClient httpClient) : base(httpClient)
+    public CompteWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 
