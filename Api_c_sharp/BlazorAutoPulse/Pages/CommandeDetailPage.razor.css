@@ -1,0 +1,399 @@
+.commande-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.commande-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.btn-back-mini {
+    padding: 0.5rem 1rem;
+    background: #f5f5f5;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+    .btn-back-mini:hover {
+        background: #e0e0e0;
+    }
+
+.statut-badge {
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+    .statut-badge.en-attente {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .statut-badge.en-cours {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .statut-badge.validee {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .statut-badge.terminee {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+/* Barre de progression */
+.progression-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.progression-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.progression-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.progression-step.completed .step-circle {
+    background: #4CAF50;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: #666;
+    text-align: center;
+    max-width: 100px;
+}
+
+.progression-line {
+    flex: 1;
+    height: 3px;
+    background: #e0e0e0;
+    margin: 0 1rem;
+    transition: background 0.3s;
+}
+
+    .progression-line.completed {
+        background: #4CAF50;
+    }
+
+/* Sections */
+.commande-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.info-section, .annonce-section, .action-section, .success-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+    .info-section h2, .annonce-section h2, .action-section h2 {
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+/* Carte annonce */
+.annonce-card {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+    .annonce-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+.annonce-image {
+    width: 200px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.annonce-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.annonce-details {
+    display: flex;
+    gap: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.annonce-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2196F3;
+}
+
+/* Parties */
+.parties-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.partie-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.partie-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.partie-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.btn-contact-mini {
+    padding: 0.5rem 1rem;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+    .btn-contact-mini:hover {
+        background: #1976D2;
+    }
+
+/* Paiement */
+.payment-choice {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.payment-info {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.payment-option-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+    .payment-option-card:hover {
+        border-color: #2196F3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+    }
+
+.payment-icon {
+    font-size: 3rem;
+}
+
+.payment-label {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.payment-desc {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+}
+
+.form-input {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-primary, .btn-secondary, .btn-success {
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: #2196F3;
+    color: white;
+}
+
+    .btn-primary:hover:not(:disabled) {
+        background: #1976D2;
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+.btn-secondary {
+    background: #f5f5f5;
+    color: #333;
+}
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+
+.btn-success {
+    background: #4CAF50;
+    color: white;
+}
+
+    .btn-success:hover {
+        background: #388E3C;
+    }
+
+.btn-large {
+    width: 100%;
+    padding: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.info-box {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+    .info-box p {
+        margin-bottom: 0.5rem;
+    }
+
+/* Section succès */
+.success-section {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.success-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.completed-badge {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: #4CAF50;
+    color: white;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .parties-section {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .progression-bar {
+        flex-direction: column;
+    }
+
+    .progression-line {
+        width: 3px;
+        height: 30px;
+        margin: 0.5rem 0;
+    }
+}

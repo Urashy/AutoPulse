@@ -18,5 +18,13 @@ namespace BlazorAutoPulse.Service.WebService
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IEnumerable<CommandeDTO>>();
         }
+
+        public async Task<CommandeDetailDTO> GetCommandeDetailById(int id)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetById/{id}"));
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<CommandeDetailDTO>();
+        }
     }
 }

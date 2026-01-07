@@ -1,0 +1,283 @@
+@page "/commande/{IdCommande:int}"
+@using BlazorAutoPulse.ViewModel
+@inject CommandeDetailViewModel VM
+@inject NavigationManager Navigation
+
+<PageTitle>Commande #@IdCommande - AutoPulse</PageTitle>
+
+@if (VM.IsLoading)
+{
+    <div class="loading-container">
+        <div class="loader"></div>
+        <p>Chargement de la commande...</p>
+    </div>
+}
+else if (VM.Commande == null)
+{
+    <div class="error-container">
+        <h2>Commande introuvable</h2>
+        <p>La commande que vous recherchez n'existe pas.</p>
+
+    </div>
+}
+else
+{
+    <div class="commande-detail-container">
+        <!-- En-tête avec numéro de commande et statut -->
+        <div class="commande-header">
+            <div class="header-left">
+
+                <h1>Commande #@VM.Commande.IdCommande</h1>
+            </div>
+            <div class="statut-badge @VM.GetStatutClass()">
+                @VM.GetStatutLabel()
+            </div>
+        </div>
+
+        <!-- Barre de progression -->
+        <div class="progression-container">
+            <div class="progression-bar">
+                <div class="progression-step @(VM.Commande.IdEtatCommande >= 1 ? "completed" : "")">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Commande créée</span>
+                </div>
+                <div class="progression-line @(VM.Commande.IdEtatCommande >= 2 ? "completed" : "")"></div>
+                
+                <div class="progression-step @(VM.Commande.IdEtatCommande >= 2 ? "completed" : "")">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Paiement</span>
+                </div>
+                <div class="progression-line @(VM.Commande.IdEtatCommande >= 3 ? "completed" : "")"></div>
+                
+                <div class="progression-step @(VM.Commande.IdEtatCommande >= 3 ? "completed" : "")">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Confirmation vendeur</span>
+                </div>
+                <div class="progression-line @(VM.Commande.IdEtatCommande >= 5 ? "completed" : "")"></div>
+                
+                <div class="progression-step @(VM.Commande.IdEtatCommande >= 5 ? "completed" : "")">
+                    <div class="step-circle">4</div>
+                    <span class="step-label">Terminée</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="commande-content">
+            <!-- Informations principales -->
+            <div class="info-section">
+                <h2>📋 Détails de la commande</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Date</span>
+                        <span class="info-value">@VM.Commande.Date.ToString("dd/MM/yyyy à HH:mm")</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Moyen de paiement</span>
+                        <span class="info-value">@VM.Commande.MoyenPaiement</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations de l'annonce -->
+            @if (VM.Annonce != null)
+            {
+                <div class="annonce-section">
+                    <h2>🚗 Véhicule</h2>
+                    <div class="annonce-card" @onclick='() => Navigation.NavigateTo($"/annonce/{VM.Annonce.IdAnnonce}")'>
+                        <img src="@VM.GetAnnonceImage()" alt="@VM.Annonce.Libelle" class="annonce-image" />
+                        <div class="annonce-info">
+                            <h3>@VM.Annonce.Libelle</h3>
+                            <div class="annonce-details">
+                                <span>@VM.Annonce.Marque @VM.Annonce.Modele</span>
+                                <span>@VM.Annonce.Annee</span>
+                                <span>@VM.Annonce.Kilometrage km</span>
+                            </div>
+                            <div class="annonce-price">@VM.PrixFinal.ToString("N0") €</div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Informations des parties -->
+            <div class="parties-section">
+                <div class="partie-card">
+                    <h3>👤 Acheteur</h3>
+                    <div class="partie-info">
+                        <p class="partie-name">@VM.Commande.PseudoAcheteur</p>
+                        @if (VM.IsVendeur)
+                        {
+                            <button class="btn-contact-mini" @onclick="VM.ContacterAcheteur">
+                                ✉️ Contacter
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="partie-card">
+                    <h3>👤 Vendeur</h3>
+                    <div class="partie-info">
+                        <p class="partie-name">@VM.Commande.PseudoVendeur</p>
+                        @if (VM.IsAcheteur)
+                        {
+                            <button class="btn-contact-mini" @onclick="VM.ContacterVendeur">
+                                ✉️ Contacter
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section actions selon le rôle -->
+            @if (VM.IsAcheteur && VM.Commande.IdEtatCommande == 1)
+            {
+                <!-- Acheteur : Choix du paiement -->
+                <div class="action-section">
+                    <h2>💳 Paiement</h2>
+                    
+                    @if (!VM.ShowPaymentForm)
+                    {
+                        <div class="payment-choice">
+                            <p class="payment-info">Choisissez votre mode de paiement :</p>
+                            
+                            <button class="payment-option-card" @onclick="VM.SelectPaymentCarte">
+                                <div class="payment-icon">💳</div>
+                                <div class="payment-label">Carte bancaire</div>
+                                <div class="payment-desc">Paiement en ligne sécurisé</div>
+                            </button>
+
+                            <button class="payment-option-card" @onclick="VM.SelectPaymentAutre">
+                                <div class="payment-icon">💵</div>
+                                <div class="payment-label">Autre moyen</div>
+                                <div class="payment-desc">Espèces, chèque, virement...</div>
+                            </button>
+                        </div>
+                    }
+                    else if (VM.SelectedPaymentType == "carte")
+                    {
+                        <!-- Formulaire de paiement par carte -->
+                        <div class="payment-form">
+                            <div class="form-group">
+                                <label>Numéro de carte</label>
+                                <input type="text" 
+                                       placeholder="1234 5678 9012 3456"
+                                       maxlength="19"
+                                       @bind="VM.CardNumber"
+                                       class="form-input" />
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Date d'expiration</label>
+                                    <input type="text" 
+                                           placeholder="MM/AA"
+                                           maxlength="5"
+                                           @bind="VM.CardExpiry"
+                                           class="form-input" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>CVV</label>
+                                    <input type="text" 
+                                           placeholder="123"
+                                           maxlength="3"
+                                           @bind="VM.CardCvv"
+                                           class="form-input" />
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(VM.PaymentError))
+                            {
+                                <div class="error-message-box">
+                                    @VM.PaymentError
+                                </div>
+                            }
+
+                            <div class="action-buttons">
+                                <button class="btn-secondary" @onclick="VM.CancelPayment">
+                                    Annuler
+                                </button>
+                                <button class="btn-primary" 
+                                        @onclick="VM.ValidateCardPayment"
+                                        disabled="@VM.IsProcessingPayment">
+                                    @if (VM.IsProcessingPayment)
+                                    {
+                                        <span>⏳ Traitement...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Payer @VM.PrixFinal.ToString("N0") €</span>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    else if (VM.SelectedPaymentType == "autre")
+                    {
+                        <!-- Confirmation paiement autre moyen -->
+                        <div class="autre-payment-info">
+                            <div class="info-box">
+                                <p>
+                                    Vous avez choisi de régler par un autre moyen (espèces, chèque, virement...).
+                                </p>
+                                <p>
+                                    Une fois le paiement effectué en personne avec le vendeur, 
+                                    confirmez ci-dessous pour que le vendeur puisse valider la transaction.
+                                </p>
+                            </div>
+
+                            <div class="action-buttons">
+                                <button class="btn-secondary" @onclick="VM.CancelPayment">
+                                    Annuler
+                                </button>
+                                <button class="btn-primary" @onclick="VM.ConfirmAutrePayment">
+                                    ✓ J'ai effectué le paiement
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (VM.IsVendeur && VM.Commande.IdEtatCommande == 2)
+            {
+                <!-- Vendeur : En attente de confirmation -->
+                <div class="action-section">
+                    <h2>⏳ En attente</h2>
+                    <div class="info-box">
+                        <p>L'acheteur a indiqué avoir effectué le paiement.</p>
+                        <p>Une fois que vous avez reçu l'argent, confirmez ci-dessous.</p>
+                    </div>
+
+                    <button class="btn-success btn-large" @onclick="VM.ConfirmPaymentReceived">
+                        ✓ Confirmer la réception du paiement
+                    </button>
+                </div>
+            }
+            else if (VM.Commande.IdEtatCommande >= 3)
+            {
+                <!-- Transaction validée -->
+                <div class="success-section">
+                    <div class="success-icon">✅</div>
+                    <h2>Transaction validée</h2>
+                    <p>Le paiement a été confirmé par les deux parties.</p>
+                    
+                    @if (VM.Commande.IdEtatCommande == 5)
+                    {
+                        <div class="completed-badge">
+                            🎉 Commande terminée
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter] public int IdCommande { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(IdCommande, StateHasChanged, Navigation);
+    }
+}

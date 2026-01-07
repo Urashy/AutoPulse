@@ -366,13 +366,13 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("moy_moyenpaiement");
 
+                    b.Property<int>("IdOffre")
+                        .HasColumnType("integer")
+                        .HasColumnName("off_idoffre");
+
                     b.Property<int>("IdVendeur")
                         .HasColumnType("integer")
                         .HasColumnName("com_id_vendeur");
-
-                    b.Property<decimal>("Montant")
-                        .HasColumnType("numeric")
-                        .HasColumnName("cmd_montant");
 
                     b.HasKey("IdCommande");
 
@@ -383,6 +383,8 @@ namespace Api_c_sharp.Migrations
                     b.HasIndex("IdEtatCommande");
 
                     b.HasIndex("IdMoyenPaiement");
+
+                    b.HasIndex("IdOffre");
 
                     b.HasIndex("IdVendeur");
 
@@ -1568,6 +1570,12 @@ namespace Api_c_sharp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Api_c_sharp.Models.Entity.Offre", "Offrecommande")
+                        .WithMany("CommandeOffre")
+                        .HasForeignKey("IdOffre")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Api_c_sharp.Models.Entity.Compte", "VendeurCommande")
                         .WithMany("CommandeVendeur")
                         .HasForeignKey("IdVendeur")
@@ -1581,6 +1589,8 @@ namespace Api_c_sharp.Migrations
                     b.Navigation("CommandeEtatCommandeNav");
 
                     b.Navigation("CommandeMoyenPaiementNav");
+
+                    b.Navigation("Offrecommande");
 
                     b.Navigation("VendeurCommande");
                 });
@@ -2069,6 +2079,11 @@ namespace Api_c_sharp.Migrations
             modelBuilder.Entity("Api_c_sharp.Models.Entity.MoyenPaiement", b =>
                 {
                     b.Navigation("Commandes");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.Offre", b =>
+                {
+                    b.Navigation("CommandeOffre");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Pays", b =>
