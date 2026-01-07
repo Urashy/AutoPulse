@@ -7,6 +7,10 @@ namespace BlazorAutoPulse.ViewModel
     public class HomeViewModel
     {
         private readonly IAnnonceService _annonceService;
+        private readonly ICompteService _compteService;
+        
+        // Compte
+        public CompteDetailDTO compte { get; set; }
 
         // Pagination
         public int CurrentPage { get; private set; } = 1;
@@ -26,14 +30,23 @@ namespace BlazorAutoPulse.ViewModel
 
         private Action? _refreshUI;
 
-        public HomeViewModel(IAnnonceService annonceService)
+        public HomeViewModel(IAnnonceService annonceService, ICompteService compteService)
         {
             _annonceService = annonceService;
+            _compteService = compteService;
         }
 
         public async Task InitializeAsync(Action refreshUI)
         {
             _refreshUI = refreshUI;
+            try
+            {
+                compte = await _compteService.GetMe();
+            }
+            catch
+            {
+                Console.WriteLine("Pas de compte connecté");
+            }
             await LoadPage();
         }
 

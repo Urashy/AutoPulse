@@ -107,6 +107,7 @@ namespace BlazorAutoPulse.ViewModel
             }
             catch (Exception ex)
             {
+                _nav.NavigateTo("/connexion");
                 Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
             }
         }

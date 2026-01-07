@@ -16,6 +16,8 @@ namespace BlazorAutoPulse.ViewModel
         public List<AnnonceDTO> AnnoncesFavoris { get; set; } = new List<AnnonceDTO>();
         public IEnumerable<FavoriDTO> Favoris { get; set; }
         public bool IsLoading { get; set; } = true;
+        
+        public CompteDetailDTO me { get; set; }
 
         public FavorisViewModel(
             ICompteService compteService,
@@ -36,7 +38,7 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                var me = await _compteService.GetMe();
+                me = await _compteService.GetMe();
 
                 try
                 {
