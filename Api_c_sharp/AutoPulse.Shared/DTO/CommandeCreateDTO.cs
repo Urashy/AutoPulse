@@ -6,5 +6,6 @@ public class CommandeCreateDTO
     public int IdAcheteur { get; set; }
     public int IdAnnonce { get; set; }
     public int IdMoyenPaiement { get; set; }
+    public int IdEtatCommande { get; set; }
     public DateTime Date { get; set; }
 }

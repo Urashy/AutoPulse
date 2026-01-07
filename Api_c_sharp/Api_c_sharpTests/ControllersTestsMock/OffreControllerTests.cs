@@ -170,12 +170,42 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdAnnonce = 1
             };
 
-            var adresseEntity = _mapper.Map<Offre>(offreDTO);
-            adresseEntity.IdOffre = 2;
+            var offreEntity = _mapper.Map<Offre>(offreDTO);
+            offreEntity.IdOffre = 2;
+
+            var message = new Message
+            {
+                IdMessage = 1,
+                IdCompte = 1,
+                IdConversation = 1,
+                ContenuMessage = "Test",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            var annonce = new Annonce
+            {
+                IdAnnonce = 1,
+                IdCompte = 2,
+                Libelle = "Test annonce",
+                Prix = 10000
+            };
+
+            // Mock pour vérifier qu'il n'y a pas d'offre en attente dans la conversation
+            _mockManager.Setup(m => m.PendingOfferExistsInConversation(It.IsAny<int>()))
+                        .ReturnsAsync(false);
+
+            _mockMessageManager.Setup(m => m.GetByIdAsync(offreDTO.IdMessage))
+                               .ReturnsAsync(message);
+
+            _mockAnnonceManager.Setup(m => m.GetByIdAsync(offreDTO.IdAnnonce))
+                               .ReturnsAsync(annonce);
 
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Offre>()))
-                       .ReturnsAsync(adresseEntity)
+                       .ReturnsAsync(offreEntity)
                        .Verifiable();
+
+            _notificationService.Setup(n => n.NotifOffreAnnonce(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<decimal>()))
+                               .Returns(Task.CompletedTask);
 
             // Act
             var actionResult = await _controller.Post(offreDTO);
@@ -183,9 +213,10 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
-            var createdAdresse = (Offre)created.Value;
-            Assert.AreEqual(offreDTO.Valeur, createdAdresse.Valeur);
+            var createdOffre = (Offre)created.Value;
+            Assert.AreEqual(offreDTO.Valeur, createdOffre.Valeur);
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Offre>()), Times.Once);
+            _notificationService.Verify(n => n.NotifOffreAnnonce(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<decimal>()), Times.Once);
         }
 
         [TestMethod]
@@ -208,7 +239,43 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Offre>()), Times.Never);
+        }
 
+        [TestMethod]
+        public async Task ConflictPostOffreTest_WhenPendingOfferExists()
+        {
+            // Arrange
+            OffreCreateDTO offreDTO = new OffreCreateDTO
+            {
+                Valeur = 200,
+                IdMessage = 1,
+                IdAnnonce = 1
+            };
+
+            var message = new Message
+            {
+                IdMessage = 1,
+                IdCompte = 1,
+                IdConversation = 1,
+                ContenuMessage = "Test",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            // Mock pour simuler qu'une offre en attente existe déjà
+            _mockManager.Setup(m => m.PendingOfferExistsInConversation(It.IsAny<int>()))
+                        .ReturnsAsync(true);
+
+            _mockMessageManager.Setup(m => m.GetByIdAsync(offreDTO.IdMessage))
+                               .ReturnsAsync(message);
+
+            // Act
+            var actionResult = await _controller.Post(offreDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(ConflictObjectResult));
+            var conflict = (ConflictObjectResult)actionResult.Result;
+            Assert.AreEqual("Une offre en attente existe déjà dans cette conversation.", conflict.Value);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Offre>()), Times.Never);
         }
         #endregion
 

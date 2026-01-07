@@ -17,7 +17,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .OrderByDescending(o => o.DateOffre)
                 .ToListAsync();
         }
-        public async Task<bool> PendingOfferExistsInConversation(int idConversation)
+        public virtual async Task<bool> PendingOfferExistsInConversation(int idConversation)
         {
             return await dbSet
                 .Include(o => o.OffreMessageNav)

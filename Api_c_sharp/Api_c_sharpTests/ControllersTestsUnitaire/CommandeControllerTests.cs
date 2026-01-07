@@ -105,14 +105,22 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.Annonces.AddAsync(annonce);
             await _context.MoyensPaiements.AddAsync(moyenPaiement);
 
+            EtatCommande etatCommande = new EtatCommande()
+            {
+                IdEtatCommande = 1,
+                Libelle = "En cours"
+            };
+            await _context.EtatCommandes.AddAsync(etatCommande);
+
             _commandeCommun = new Commande()
             {
                 IdCommande = 1,
                 IdAnnonce = 1,
-                IdAcheteur = 50,
-                IdVendeur = 11,
+                IdAcheteur = 1,
+                IdVendeur = 2,
                 IdMoyenPaiement = 1,
                 CommandeAnnonceNav = annonce,
+                IdEtatCommande = 1,
                 CommandeMoyenPaiementNav = moyenPaiement,
                 Date = DateTime.UtcNow
             };
@@ -167,18 +175,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             #region GetCommandeByCompteID
         [TestMethod]
-        public async Task GetCommandeByCompteIDTest()
-        {
-            // Arrange
-            var idAcheteur = _commandeCommun.IdAcheteur;
-
+         public async Task GetCommandeByCompteIDTest()
+         {
             // Act
-            var result = await _controller.GetCommandeByCompteID(idAcheteur);
-
+            var result = await _controller.GetCommandeByCompteID(_commandeCommun.IdAcheteur);
             // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
-        }
+         }
 
         [TestMethod]
         public async Task GetCommandeByCompteIDNotFoundTest()
@@ -190,7 +194,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
-        #endregion s
+        #endregion 
         #endregion
 
         #region POST

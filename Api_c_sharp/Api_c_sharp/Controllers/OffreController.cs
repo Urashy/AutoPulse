@@ -61,7 +61,7 @@ namespace Api_c_sharp.Controllers
                 
             if(message.IdCompte == annonce.IdCompte)
             {
-                idAcheteur = entity.OffreAnnonceNav.IdCompte;
+                idAcheteur = annonce.IdCompte;
             }
             else
             {
@@ -130,7 +130,7 @@ namespace Api_c_sharp.Controllers
                 
                 if(message.IdCompte == annonce.IdCompte)
                 {
-                    idAcheteur = toUpdate.OffreAnnonceNav.IdCompte;
+                    idAcheteur = annonce.IdCompte;
                 }
                 else
                 {

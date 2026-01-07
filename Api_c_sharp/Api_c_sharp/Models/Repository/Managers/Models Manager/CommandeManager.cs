@@ -21,7 +21,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .ThenInclude(annonce => annonce.CompteAnnonceNav)
                 .Include(commande => commande.CommandeMoyenPaiementNav)
                 .Include(na => na.AcheteurCommande)
-                .Where(commande => commande.IdAcheteur == compteId).ToListAsync();
+                .Where(commande => commande.IdAcheteur == compteId || commande.IdVendeur == compteId).ToListAsync();
         }
 
     }
