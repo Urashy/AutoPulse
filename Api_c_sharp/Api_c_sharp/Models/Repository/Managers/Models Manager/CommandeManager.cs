@@ -12,7 +12,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public override async Task<IEnumerable<Commande>> GetAllAsync()
         {
-            return await dbSet.OrderBy(s => s.Date).ToListAsync();
+            return await dbSet.Include(a=> a.AcheteurCommande).Include(v=> v.VendeurCommande).Include(x=>x.CommandeEtatCommandeNav).Include(x=>x.CommandeMoyenPaiementNav).Include(ann=>ann.CommandeAnnonceNav).Include(c=>c.Offrecommande).OrderBy(s => s.Date).ToListAsync();
         }
 
         public virtual async Task<IEnumerable<Commande>> GetCommandesByCompteId(int compteId)
@@ -22,6 +22,16 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Include(commande => commande.CommandeMoyenPaiementNav)
                 .Include(na => na.AcheteurCommande)
                 .Where(commande => commande.IdAcheteur == compteId).ToListAsync();
+        }
+        public override async Task<Commande?> GetByIdAsync(int id)
+        {
+            return await dbSet.Include(a => a.AcheteurCommande)
+                .Include(v => v.VendeurCommande)
+                .Include(x => x.CommandeEtatCommandeNav)
+                .Include(x => x.CommandeMoyenPaiementNav)
+                .Include(ann => ann.CommandeAnnonceNav)
+                .Include(c => c.Offrecommande)
+                .FirstOrDefaultAsync(c => c.IdCommande == id);
         }
 
     }

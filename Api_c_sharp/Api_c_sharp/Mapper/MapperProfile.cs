@@ -206,6 +206,8 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.AcheteurCommande.Pseudo))
             .ForMember(dest => dest.LibelleAnnonce,
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav.Libelle))
+            .ForMember(des=> des.Montant, 
+                opt=>opt.MapFrom(src=> src.Offrecommande.Valeur))
             .ForMember(dest => dest.MoyenPaiement,
                 opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav.TypePaiement)).ReverseMap();
 
