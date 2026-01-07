@@ -48,8 +48,6 @@ namespace BlazorAutoPulse.ViewModel
         public bool newPasswordValid = true;
 
         public bool showCarteModal { get; set; } = false;
-        public bool isEditingCarte { get; set; } = false;
-        public CarteBancaireDTO? selectedCarteToEdit { get; set; }
 
 
         public bool modalSuppression = false;
@@ -791,20 +789,13 @@ namespace BlazorAutoPulse.ViewModel
         //Carbancaire Modal Methods
         public void OpenCreateCarteModal()
         {
-            isEditingCarte = false;
-            selectedCarteToEdit = null;
             showCarteModal = true;
             _refreshUI?.Invoke();
         }
 
-        public void OpenEditCarteModal(CarteBancaireDTO carte)
-        {
-            isEditingCarte = true;
-            selectedCarteToEdit = carte;
-            showCarteModal = true;
-            _refreshUI?.Invoke();
-        }
+        // SUPPRIMÉE : OpenEditCarteModal() n'est plus nécessaire
 
+        // Méthode appelée après la sauvegarde d'une carte (INCHANGÉE)
         public async Task OnCarteSaved()
         {
             try
@@ -829,6 +820,7 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
+        // Méthode pour supprimer une carte (INCHANGÉE)
         public async Task DeleteCarte(CarteBancaireDTO carte)
         {
             try

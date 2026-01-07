@@ -1,6 +1,8 @@
 ﻿using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service.Interface;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 
 namespace BlazorAutoPulse.Service.WebService
 {
@@ -20,15 +22,19 @@ namespace BlazorAutoPulse.Service.WebService
             return await response.Content.ReadFromJsonAsync<IEnumerable<CarteBancaireDTO>>();
         }
 
-        public async Task UpdateAdresseAsync(int id, CarteBancaireUpdateDTO entity)
+        public async Task<CarteBancaireDTO> CreateCBAsync(CarteBancaireCreateDTO entity)
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
-            {
-                Content = JsonContent.Create(entity)
-            };
+            var json = JsonSerializer.Serialize(entity);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("Post"));
+            request.Content = content;
 
             var response = await SendWithCredentialsAsync(request);
+
             response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<CarteBancaireDTO>();
         }
     }
 }
