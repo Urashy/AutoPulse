@@ -82,6 +82,7 @@
 }
 
 @code {
+
     [Parameter]
     public bool IsVisible { get; set; }
 
@@ -126,7 +127,7 @@
         NumeroCarteInput = formatted;
     }
 
- 
+
 
     private async Task SaveCarte()
     {
@@ -169,6 +170,7 @@
                 IdCompte = compte.IdCompte
             };
 
+            Console.WriteLine(nouvelleCarte.DateExpiration);
             await CarteBancaireService.CreateCBAsync(nouvelleCarte);
             SuccessMessage = "Carte ajoutée avec succès";
 
