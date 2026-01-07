@@ -8,7 +8,7 @@
     <div class="modal-overlay" @onclick="CloseModal">
         <div class="modal-content" @onclick:stopPropagation="true">
             <div class="modal-header">
-                <h3>@(IsEditMode ? "✏️ Modifier la carte" : "➕ Ajouter une carte bancaire")</h3>
+                <h3>➕ Ajouter une carte bancaire</h3>
                 <button class="modal-close" @onclick="CloseModal">✕</button>
             </div>
 
@@ -70,13 +70,10 @@
                     Annuler
                 </button>
                 <button class="btn-primary" @onclick="SaveCarte" disabled="@IsSaving">
+                    Enregistrer
                     @if (IsSaving)
                     {
                         <span>Enregistrement...</span>
-                    }
-                    else
-                    {
-                        <span>@(IsEditMode ? "Modifier" : "Ajouter")</span>
                     }
                 </button>
             </div>
@@ -85,17 +82,12 @@
 }
 
 @code {
+
     [Parameter]
     public bool IsVisible { get; set; }
 
     [Parameter]
     public EventCallback<bool> IsVisibleChanged { get; set; }
-
-    [Parameter]
-    public bool IsEditMode { get; set; }
-
-    [Parameter]
-    public CarteBancaireDTO? EditCarte { get; set; }
 
     [Parameter]
     public EventCallback OnCarteSaved { get; set; }
@@ -112,19 +104,7 @@
     {
         if (IsVisible)
         {
-            if (IsEditMode && EditCarte != null)
-            {
-                // Mode édition
-                NumeroCarteInput = FormatCardNumberDisplay(EditCarte.NumeroCarte);
-                CodeSecurite = EditCarte.CodeSecurite;
-                DateExpirationInput = EditCarte.DateExpiration;
-            }
-            else
-            {
-                // Mode création
-                ResetForm();
-            }
-
+            ResetForm();
             ErrorMessage = "";
             SuccessMessage = "";
         }
@@ -147,14 +127,7 @@
         NumeroCarteInput = formatted;
     }
 
-    private string FormatCardNumberDisplay(string numero)
-    {
-        if (string.IsNullOrEmpty(numero))
-            return "";
 
-        return string.Join(" ", Enumerable.Range(0, numero.Length / 4)
-            .Select(i => numero.Substring(i * 4, Math.Min(4, numero.Length - i * 4))));
-    }
 
     private async Task SaveCarte()
     {
@@ -189,35 +162,17 @@
         {
             var compte = await CompteService.GetMe();
 
-            if (IsEditMode && EditCarte != null)
+            var nouvelleCarte = new CarteBancaireCreateDTO
             {
-                // Modification
-                var carteUpdate = new CarteBancaireUpdateDTO
-                {
-                    IdCarteBancaire = EditCarte.IdCarteBancaire,
-                    NumeroCarte = numeroSansEspaces,
-                    CodeSecurite = CodeSecurite,
-                    DateExpiration = DateExpirationInput,
-                    IdCompte = compte.IdCompte
-                };
+                NumeroCarte = numeroSansEspaces,
+                CodeSecurite = CodeSecurite,
+                DateExpiration = DateExpirationInput,
+                IdCompte = compte.IdCompte
+            };
 
-                await CarteBancaireService.UpdateAdresseAsync(carteUpdate.IdCarteBancaire, carteUpdate);
-                SuccessMessage = "Carte modifiée avec succès";
-            }
-            else
-            {
-                // Création
-                var nouvelleCarte = new CarteBancaireDTO
-                {
-                    NumeroCarte = numeroSansEspaces,
-                    CodeSecurite = CodeSecurite,
-                    DateExpiration = DateExpirationInput,
-                    IdCompte = compte.IdCompte
-                };
-
-                await CarteBancaireService.CreateAsync(nouvelleCarte);
-                SuccessMessage = "Carte ajoutée avec succès";
-            }
+            Console.WriteLine(nouvelleCarte.DateExpiration);
+            await CarteBancaireService.CreateCBAsync(nouvelleCarte);
+            SuccessMessage = "Carte ajoutée avec succès";
 
             await Task.Delay(1000);
 

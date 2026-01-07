@@ -13,9 +13,9 @@ public abstract class BaseWebService<T> : IService<T> where T : class
     protected readonly HttpClient _httpClient;
     protected abstract string ApiEndpoint { get; }
     
-    protected BaseWebService(HttpClient httpClient)
+    protected BaseWebService(IHttpClientFactory factory)
     {
-        _httpClient = httpClient;
+        _httpClient = factory.CreateClient("ApiClient");
     }
 
     protected string BuildUrl(string relativeUrl)

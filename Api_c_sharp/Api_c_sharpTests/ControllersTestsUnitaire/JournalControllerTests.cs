@@ -101,15 +101,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _objetcommun = journal;
         }
 
-        // ==========================================
-        // TESTS CRUD CLASSIQUES
-        // ==========================================
+        #region GET
+
+            #region GetById
 
         [TestMethod]
         public async Task GetByIdTest()
         {
+            // Act
             var result = await _controller.GetByID(_objetcommun.IdJournal);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(JournalDTO));
@@ -119,27 +121,39 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByIdTest()
         {
+            // Act
             var result = await _controller.GetByID(0);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
 
         [TestMethod]
+        #endregion
+
+            #region GetAll
         public async Task GetAllTest()
         {
+            // Act
             var result = await _controller.GetAll();
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<JournalDTO>));
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.ContenuJournal == _objetcommun.ContenuJournal));
         }
+        #endregion
 
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task PostJournalTest_Entity()
         {
+            // Arrange
             JournalCreateDTO journal = new JournalCreateDTO
             {
                 ContenuJournal = "Nouveau journal de test",
@@ -148,8 +162,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdTypeJournal = 1
             };
 
+            // Act
             var actionResult = await _controller.Post(journal);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
@@ -158,80 +174,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task DeleteJournalTest()
-        {
-            var result = await _controller.Delete(_objetcommun.IdJournal);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedJournal = await _manager.GetByIdAsync(_objetcommun.IdJournal);
-            Assert.IsNull(deletedJournal);
-        }
-
-        [TestMethod]
-        public async Task NotFoundDeleteJournalTest()
-        {
-            var result = await _controller.Delete(0);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task PutJournalTest()
-        {
-            JournalUpdateDTO journal = new JournalUpdateDTO()
-            {
-                IdJournal = _objetcommun.IdJournal,
-                ContenuJournal = "Journal modifié",
-                DateJournal = DateTime.UtcNow,
-                IdCompte = 1,
-                IdTypeJournal = 1
-            };
-
-            var result = await _controller.Put(_objetcommun.IdJournal, journal);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-
-            Journal journalput = await _manager.GetByIdAsync(_objetcommun.IdJournal);
-            Assert.AreEqual(journal.ContenuJournal, journalput.ContenuJournal);
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutJournalTest()
-        {
-            JournalUpdateDTO journal = new JournalUpdateDTO()
-            {
-                ContenuJournal = "Journal modifié",
-                DateJournal = DateTime.UtcNow,
-                IdCompte = 1,
-                IdTypeJournal = 1
-            };
-
-            var result = await _controller.Put(0, journal);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task BadRequestPutJournalTest()
-        {
-            JournalUpdateDTO journal = new JournalUpdateDTO()
-            {
-                ContenuJournal = null,
-                DateJournal = DateTime.UtcNow,
-                IdCompte = 1,
-                IdTypeJournal = 1
-            };
-
-            _controller.ModelState.AddModelError("ContenuJournal", "Required");
-
-            var result = await _controller.Put(_objetcommun.IdJournal, journal);
-
-            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
-        }
-
-        [TestMethod]
         public async Task BadRequestPostJournalTest()
         {
+            // Arrange
             JournalCreateDTO journal = new JournalCreateDTO()
             {
                 ContenuJournal = null,
@@ -242,15 +187,109 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _controller.ModelState.AddModelError("ContenuJournal", "Required");
 
+            // Act
             var actionResult = await _controller.Post(journal);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
 
+        #endregion
+
+        #region DELETE
+        [TestMethod]
+        public async Task DeleteJournalTest()
+        {
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdJournal);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var deletedJournal = await _manager.GetByIdAsync(_objetcommun.IdJournal);
+            Assert.IsNull(deletedJournal);
+        }
+
+        [TestMethod]
+        public async Task NotFoundDeleteJournalTest()
+        {
+            // Act
+            var result = await _controller.Delete(0);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region PUT
+        [TestMethod]
+        public async Task PutJournalTest()
+        {
+            // Arrange
+            JournalUpdateDTO journal = new JournalUpdateDTO()
+            {
+                IdJournal = _objetcommun.IdJournal,
+                ContenuJournal = "Journal modifié",
+                DateJournal = DateTime.UtcNow,
+                IdCompte = 1,
+                IdTypeJournal = 1
+            };
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdJournal, journal);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            Journal journalput = await _manager.GetByIdAsync(_objetcommun.IdJournal);
+            Assert.AreEqual(journal.ContenuJournal, journalput.ContenuJournal);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutJournalTest()
+        {
+            // Arrange
+            JournalUpdateDTO journal = new JournalUpdateDTO()
+            {
+                ContenuJournal = "Journal modifié",
+                DateJournal = DateTime.UtcNow,
+                IdCompte = 1,
+                IdTypeJournal = 1
+            };
+
+            // Act
+            var result = await _controller.Put(0, journal);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task BadRequestPutJournalTest()
+        {
+            // Arrange
+            JournalUpdateDTO journal = new JournalUpdateDTO()
+            {
+                ContenuJournal = null,
+                DateJournal = DateTime.UtcNow,
+                IdCompte = 1,
+                IdTypeJournal = 1
+            };
+
+            _controller.ModelState.AddModelError("ContenuJournal", "Required");
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdJournal, journal);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+        #endregion
+
+        #region GetFilteredJournal
         [TestMethod]
         public async Task GetFilteredJournal_ByTypeOnly_Test()
         {
-            // Arrange: Créer plusieurs journaux de différents types
+            // Arrange
             await _journalService.LogConnexionAsync(1);
             await _journalService.LogConnexionAsync(1);
             await _journalService.LogDeconnexionAsync(1);
@@ -402,15 +441,22 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region LOG
+
+            #region Connexion
         [TestMethod]
         public async Task LogConnexionAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogConnexionAsync(idCompte);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -423,11 +469,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogDeconnexionAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogDeconnexionAsync(idCompte);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -436,16 +485,21 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.AreEqual(2, lastJournal.IdTypeJournal); // Type Déconnexion
             Assert.IsTrue(lastJournal.ContenuJournal.Contains("Déconnexion"));
         }
+        #endregion
 
+            #region Compte
         [TestMethod]
         public async Task LogCreationCompteAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             string pseudo = "testuser";
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogCreationCompteAsync(idCompte, pseudo);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -458,11 +512,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogModificationProfilAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogModificationProfilAsync(idCompte);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -473,15 +530,44 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
+        public async Task LogSignalementCompteAsyncTest()
+        {
+            // Arrange
+            int idSignalant = 1;
+            int idSignale = 2;
+            int idSignalement = 10;
+            int idTypeSignalement = 1;
+            string description = "Comportement inapproprié";
+            int countBefore = _context.Journaux.Count();
+
+            // Act
+            await _journalService.LogSignalementCompteAsync(idSignalant, idSignale, idSignalement, idTypeSignalement, description);
+
+            // Assert
+            int countAfter = _context.Journaux.Count();
+            Assert.AreEqual(countBefore + 1, countAfter);
+
+            var lastJournal = await _context.Journaux.OrderByDescending(j => j.IdJournal).FirstOrDefaultAsync();
+            Assert.IsNotNull(lastJournal);
+            Assert.AreEqual(9, lastJournal.IdTypeJournal);
+            Assert.IsTrue(lastJournal.ContenuJournal.Contains("Signalement"));
+        }
+        #endregion
+
+            #region Annonce
+        [TestMethod]
         public async Task LogPublicationAnnonceAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             int idAnnonce = 100;
             string titre = "Voiture de sport";
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogPublicationAnnonceAsync(idCompte, idAnnonce, titre);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -495,13 +581,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogModificationAnnonceAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             int idAnnonce = 100;
             string titre = "Voiture modifiée";
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogModificationAnnonceAsync(idCompte, idAnnonce, titre);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -514,13 +603,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogSuppressionAnnonceAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             int idAnnonce = 100;
             string titre = "Voiture supprimée";
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogSuppressionAnnonceAsync(idCompte, idAnnonce, titre);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -533,6 +625,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogAchatAsyncTest()
         {
+            // Arrange
             int idAcheteur = 1;
             int idVendeur = 2;
             int idCommande = 50;
@@ -540,8 +633,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             int idMoyenPaiement = 1;
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogAchatAsync(idAcheteur, idVendeur, idCommande, idAnnonce, idMoyenPaiement);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -553,29 +648,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task LogSignalementCompteAsyncTest()
-        {
-            int idSignalant = 1;
-            int idSignale = 2;
-            int idSignalement = 10;
-            int idTypeSignalement = 1;
-            string description = "Comportement inapproprié";
-            int countBefore = _context.Journaux.Count();
-
-            await _journalService.LogSignalementCompteAsync(idSignalant, idSignale, idSignalement, idTypeSignalement, description);
-
-            int countAfter = _context.Journaux.Count();
-            Assert.AreEqual(countBefore + 1, countAfter);
-
-            var lastJournal = await _context.Journaux.OrderByDescending(j => j.IdJournal).FirstOrDefaultAsync();
-            Assert.IsNotNull(lastJournal);
-            Assert.AreEqual(9, lastJournal.IdTypeJournal);
-            Assert.IsTrue(lastJournal.ContenuJournal.Contains("Signalement"));
-        }
-
-        [TestMethod]
         public async Task LogSignalementAnnonceAsyncTest()
         {
+            // Arrange
             int idSignalant = 1;
             int idAnnoncesignale = 2;
             int idSignalement = 10;
@@ -583,8 +658,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             string description = "Photo inapproprié";
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogSignalementAnnonceAsync(idSignalant, idAnnoncesignale, idSignalement, idTypeSignalement, description);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -593,10 +670,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.AreEqual(10, lastJournal.IdTypeJournal);
             Assert.IsTrue(lastJournal.ContenuJournal.Contains("Signalement"));
         }
+        #endregion
 
+            #region Interaction
         [TestMethod]
         public async Task LogDepotAvisAsyncTest()
         {
+            // Arrange
             int idJugeur = 1;
             int idJuge = 2;
             int idAvis = 20;
@@ -604,8 +684,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             string description = "Excellent vendeur";
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogDepotAvisAsync(idJugeur, idJuge, idAvis, note, description);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -619,12 +701,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogMiseFavorisAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             int idAnnonce = 100;
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogMiseFavorisAsync(idCompte, idAnnonce);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -637,13 +722,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogEnvoiMessageAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             int idConversation = 5;
             string message = "Bonjour, est-ce toujours disponible ?";
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogEnvoiMessageAsync(idCompte, idConversation, message);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -656,13 +744,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogGenerationFactureAsyncTest()
         {
+            // Arrange
             int idCompte = 1;
             int idFacture = 30;
             int idCommande = 50;
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogGenerationFactureAsync(idCompte, idFacture, idCommande);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -675,12 +766,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogBlocageUtilisateurAsyncTest()
         {
+            // Arrange
             int idBloqueur = 1;
             int idBloque = 2;
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _journalService.LogBlocageUtilisateurAsync(idBloqueur, idBloque);
 
+            // Assert
             int countAfter = _context.Journaux.Count();
             Assert.AreEqual(countBefore + 1, countAfter);
 
@@ -689,17 +783,22 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.AreEqual(15, lastJournal.IdTypeJournal);
             Assert.IsTrue(lastJournal.ContenuJournal.Contains("Blocage"));
         }
+        #endregion
 
+            #region Error
         [TestMethod]
         public async Task ErrorLogActionTest()
         {
+            // Arrange
             int invalidIdCompte = -1;
             try
             {
+                // Act
                 await _journalService.LogConnexionAsync(invalidIdCompte);
             }
             catch (Exception ex)
             {
+                // Assert
                 Assert.IsNotNull(ex);
             }
         }
@@ -707,24 +806,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task LogActionAsync_WithInvalidForeignKey_ShouldHandleError()
         {
+            // Arrange
             int idCompteInexistant = 9999;
             int idTypeJournalInexistant = 9999;
             int countBefore = _context.Journaux.Count();
 
+            // Act
             await _manager.LogActionAsync(idCompteInexistant, idTypeJournalInexistant, "Test erreur");
 
             int countAfter = _context.Journaux.Count();
 
+            // Assert
             Assert.IsTrue(true, "La méthode n'a pas planté malgré des IDs invalides");
         }
 
         [TestMethod]
         public async Task LogActionAsync_WithNullContent_ShouldHandleError()
         {
+            // Arrange
             int countBefore = _context.Journaux.Count();
 
             try
             {
+                // Act
                 await _manager.LogActionAsync(1, 1, null);
             }
             catch (Exception)
@@ -733,7 +837,12 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             }
 
             int countAfter = _context.Journaux.Count();
+
+            // Assert
             Assert.IsTrue(countAfter >= countBefore, "Le système continue de fonctionner après l'erreur");
         }
+        #endregion
+
+        #endregion
     }
 }

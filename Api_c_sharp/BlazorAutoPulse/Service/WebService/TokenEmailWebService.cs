@@ -6,7 +6,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class TokenEmailWebService : BaseWebService<TokenEmailDTO>, ITokenEmailService
 {
-    public TokenEmailWebService(HttpClient httpClient) : base(httpClient)
+    public TokenEmailWebService(IHttpClientFactory factory) : base(factory)
     {
     }
     protected override string ApiEndpoint => "TokenEmail";

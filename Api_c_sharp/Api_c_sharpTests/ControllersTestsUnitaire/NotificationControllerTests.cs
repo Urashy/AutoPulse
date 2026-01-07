@@ -116,13 +116,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _annonceTest = annonce;
         }
 
-        #region Tests CRUD de base
+        #region GET
 
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
+            // Act
             var result = await _controller.GetByID(_objetcommun.IdNotification);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(NotificationDTO));
@@ -132,17 +135,39 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByIdTest()
         {
+            // Act
             var result = await _controller.GetByID(0);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
+            // Act
             var result = await _controller.GetAll();
 
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<NotificationDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.Any(n => n.Titre == _objetcommun.Titre));
+        }
+        #endregion
+
+            #region GetByCompte
+        [TestMethod]
+        public async Task GetNotificationByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetNotificationByCompteID(_objetcommun.IdCompte);
+
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<NotificationDTO>));
@@ -151,8 +176,76 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
+        public async Task NotFoundGetNotificationByCompteIDTest()
+        {
+            // Act
+            var result = await _controller.GetNotificationByCompteID(999);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetUnreadNotificationByCompteTest()
+        {
+            // Act
+            var result = await _controller.GetUnreadNotificationByCompte(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<NotificationDTO>));
+            Assert.IsTrue(result.Value.Any());
+            Assert.IsTrue(result.Value.All(n => !n.EstLue));
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetUnreadNotificationByCompteTest()
+        {
+            // Act
+            await _manager.MarkAllAsReadAsync(_objetcommun.IdCompte);
+
+            var result = await _controller.GetUnreadNotificationByCompte(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetUnreadCountByCompteTest()
+        {
+            // Act
+            var result = await _controller.GetUnreadCountByCompte(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsTrue(result.Value > 0);
+        }
+
+        [TestMethod]
+        public async Task GetUnreadCountByCompteWithNoUnreadTest()
+        {
+            // Act
+            await _manager.MarkAllAsReadAsync(_compteTest.IdCompte);
+
+            var result = await _controller.GetUnreadCountByCompte(_compteTest.IdCompte);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Value);
+        }
+        #endregion
+
+        #endregion
+
+        #region POST
+        [TestMethod]
         public async Task PostNotificationTest_Entity()
         {
+            // Arrange
             NotificationCreateDTO notification = new NotificationCreateDTO()
             {
                 Titre = "Test notification",
@@ -165,8 +258,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 NouveauPrix = null
             };
 
+            // Act
             var actionResult = await _controller.Post(notification);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
@@ -178,6 +273,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PostNotificationWithAnnonceTest()
         {
+            // Arrange
             NotificationCreateDTO notification = new NotificationCreateDTO()
             {
                 Titre = "Baisse de prix",
@@ -190,8 +286,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 UrlNavigation = $"/annonce/{_annonceTest.IdAnnonce}"
             };
 
+            // Act
             var actionResult = await _controller.Post(notification);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
@@ -203,6 +301,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPostNotificationTest()
         {
+            // Arrange
             NotificationCreateDTO notification = new NotificationCreateDTO
             {
                 Titre = null,
@@ -210,16 +309,22 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _controller.ModelState.AddModelError("Titre", "Required");
 
+            // Act
             var actionResult = await _controller.Post(notification);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteNotificationTest()
         {
+            // Act
             var result = await _controller.Delete(_objetcommun.IdNotification);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             var deletedNotification = await _manager.GetByIdAsync(_objetcommun.IdNotification);
             Assert.IsNull(deletedNotification);
@@ -228,14 +333,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundDeleteNotificationTest()
         {
+            // Act
             var result = await _controller.Delete(0);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutNotificationTest()
         {
+            // Arrange
             NotificationUpdateDTO notification = new NotificationUpdateDTO()
             {
                 IdNotification = _objetcommun.IdNotification,
@@ -249,8 +359,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 NouveauPrix = null
             };
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdNotification, notification);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var notificationPut = await _manager.GetByIdAsync(_objetcommun.IdNotification);
@@ -261,6 +373,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutNotificationTest()
         {
+            // Arrange
             NotificationUpdateDTO notification = new NotificationUpdateDTO()
             {
                 IdNotification = 1,
@@ -274,14 +387,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 NouveauPrix = null
             };
 
+            // Act
             var result = await _controller.Put(0, notification);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task BadRequestPutNotificationTest()
         {
+            // Arrange
             NotificationUpdateDTO notification = new NotificationUpdateDTO()
             {
                 IdNotification = _objetcommun.IdNotification,
@@ -297,89 +413,23 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _controller.ModelState.AddModelError("Titre", "Required");
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdNotification, notification);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
-
         #endregion
 
-        #region Tests récupération par compte
-
-        [TestMethod]
-        public async Task GetNotificationByCompteIDTest()
-        {
-            var result = await _controller.GetNotificationByCompteID(_objetcommun.IdCompte);
-
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<NotificationDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.Any(n => n.Titre == _objetcommun.Titre));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetNotificationByCompteIDTest()
-        {
-            var result = await _controller.GetNotificationByCompteID(999);
-
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetUnreadNotificationByCompteTest()
-        {
-            var result = await _controller.GetUnreadNotificationByCompte(_objetcommun.IdCompte);
-
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<NotificationDTO>));
-            Assert.IsTrue(result.Value.Any());
-            Assert.IsTrue(result.Value.All(n => !n.EstLue));
-        }
-
-        [TestMethod]
-        public async Task NotFoundGetUnreadNotificationByCompteTest()
-        {
-            await _manager.MarkAllAsReadAsync(_objetcommun.IdCompte);
-
-            var result = await _controller.GetUnreadNotificationByCompte(_objetcommun.IdCompte);
-
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetUnreadCountByCompteTest()
-        {
-            var result = await _controller.GetUnreadCountByCompte(_objetcommun.IdCompte);
-
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Value);
-            Assert.IsTrue(result.Value > 0);
-        }
-
-        [TestMethod]
-        public async Task GetUnreadCountByCompteWithNoUnreadTest()
-        {
-            await _manager.MarkAllAsReadAsync(_compteTest.IdCompte);
-
-            var result = await _controller.GetUnreadCountByCompte(_compteTest.IdCompte);
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Value);
-        }
-
-        #endregion
-
-        #region Tests marquage comme lu
+        #region MarkAsRead
 
         [TestMethod]
         public async Task MarkAsReadTest()
         {
+            // Act
             var result = await _controller.MarkAsRead(_objetcommun.IdNotification);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var notification = await _manager.GetByIdAsync(_objetcommun.IdNotification);
@@ -389,14 +439,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundMarkAsReadTest()
         {
+            // Act
             var result = await _controller.MarkAsRead(0);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task MarkAllAsReadTest()
         {
+            // Arrange
             var notification2 = new Notification
             {
                 Titre = "Deuxième notification",
@@ -410,8 +463,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Notifications.Add(notification2);
             await _context.SaveChangesAsync();
 
+            // Act
             var result = await _controller.MarkAllAsRead(_compteTest.IdCompte);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var notifications = await _manager.GetNotificationsByCompteAsync(_compteTest.IdCompte);
@@ -421,14 +476,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundMarkAllAsReadTest()
         {
+            // Act
             var result = await _controller.MarkAllAsRead(999);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task MarkAllAsReadOnlyAffectsTargetCompteTest()
         {
+            // Arrange
             var notification2 = new Notification
             {
                 Titre = "Notification compte 2",
@@ -439,6 +497,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdCompte = _compteTest2.IdCompte,
                 IdAnnonce = null
             };
+
+            // Act
             _context.Notifications.Add(notification2);
             await _context.SaveChangesAsync();
 
@@ -447,6 +507,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var notifCompte1 = await _manager.GetNotificationsByCompteAsync(_compteTest.IdCompte);
             var notifCompte2 = await _manager.GetNotificationsByCompteAsync(_compteTest2.IdCompte);
 
+            // Assert
             Assert.IsTrue(notifCompte1.All(n => n.EstLue));
             Assert.IsTrue(notifCompte2.All(n => !n.EstLue));
         }

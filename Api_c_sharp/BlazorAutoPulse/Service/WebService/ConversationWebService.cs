@@ -6,7 +6,7 @@ namespace BlazorAutoPulse.Service.WebService;
 
 public class ConversationWebService: BaseWebService<ConversationListDTO>, IConversationService
 {
-    public ConversationWebService(HttpClient httpClient) : base(httpClient)
+    public ConversationWebService(IHttpClientFactory factory) : base(factory)
     {
     }
 

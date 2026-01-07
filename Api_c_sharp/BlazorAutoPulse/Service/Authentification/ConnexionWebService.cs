@@ -11,21 +11,23 @@ public class ConnexionWebService : IServiceConnexion
 {
     private readonly HttpClient _httpClient;
 
-    public ConnexionWebService(HttpClient httpClient)
+    public ConnexionWebService(IHttpClientFactory factory)
     {
-        _httpClient = httpClient;
+        _httpClient = factory.CreateClient("ApiClient");
     }
 
-    public async Task<HttpResponseMessage> LoginUser(LoginRequest compte)
+    public async Task<HttpResponseMessage> LoginUser(LoginRequest compte, bool rememberMe = false)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "Compte/Login")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"Compte/Login?rememberMe={rememberMe}")
         {
             Content = JsonContent.Create(compte)
         };
 
+        // CRITIQUE : Toujours inclure les cookies
         request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
         var response = await _httpClient.SendAsync(request);
-        
+
         return response;
     }
 
@@ -48,23 +50,25 @@ public class ConnexionWebService : IServiceConnexion
         }
     }
     
-    public async Task<(HttpStatusCode StatusCode, HttpResponseMessage Response)> ValidateA2fLogin(TokenEmailVerifDTO dto)
+    public async Task<(HttpStatusCode StatusCode, HttpResponseMessage Response)> ValidateA2fLogin(
+        TokenEmailVerifDTO dto, bool rememberMe = false)
     {
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"Compte/ValidateA2fLogin")
+            var request = new HttpRequestMessage(
+                HttpMethod.Post, 
+                $"Compte/ValidateA2fLogin?rememberMe={rememberMe}")
             {
                 Content = JsonContent.Create(dto)
             };
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-            
+
             var response = await _httpClient.SendAsync(request);
-            
+
             return (response.StatusCode, response);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur ValidateA2fLogin : {ex.Message}");
             return (HttpStatusCode.InternalServerError, null);
         }
     }
