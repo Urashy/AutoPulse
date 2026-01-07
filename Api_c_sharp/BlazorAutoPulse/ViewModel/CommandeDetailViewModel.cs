@@ -15,7 +15,6 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IConversationService _conversationService;
 
         public CommandeDetailDTO? Commande { get; private set; }
-        public AnnonceDTO? Annonce { get; private set; }
         public bool IsLoading { get; private set; } = true;
         public int? CurrentUserId { get; private set; }
 
@@ -27,6 +26,8 @@ namespace BlazorAutoPulse.ViewModel
                                  Commande != null &&
                                  Commande.IdVendeur == CurrentUserId.Value;
 
+        public decimal PrixFinal { get; private set; } = 0m;
+
         // États du paiement
         public bool ShowPaymentForm { get; private set; } = false;
         public string? SelectedPaymentType { get; private set; }
@@ -37,8 +38,6 @@ namespace BlazorAutoPulse.ViewModel
         public string CardNumber { get; set; } = "";
         public string CardExpiry { get; set; } = "";
         public string CardCvv { get; set; } = "";
-
-        public decimal PrixFinal { get; private set; }
 
         private Action? _refreshUI;
         private NavigationManager? _nav;
@@ -64,6 +63,7 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI = refreshUI;
             _nav = nav;
             IsLoading = true;
+            PrixFinal = 0m;
             _refreshUI?.Invoke();
 
             try
@@ -86,6 +86,8 @@ namespace BlazorAutoPulse.ViewModel
 
                 if (Commande == null)
                 {
+                    IsLoading = false;
+                    _refreshUI?.Invoke();
                     return;
                 }
 
@@ -96,31 +98,31 @@ namespace BlazorAutoPulse.ViewModel
                         "Accès refusé",
                         "Vous n'avez pas accès à cette commande"
                     );
+                    IsLoading = false;
+                    _refreshUI?.Invoke();
                     _nav?.NavigateTo("/compte");
                     return;
                 }
 
-                // Charger l'annonce si disponible
-                if (Commande.Annonce != null)
+                // Définir le prix final
+                if (Commande.Offre != null && Commande.Offre.Valeur > 0)
                 {
-                    try
-                    {
-                        Annonce = Commande.Annonce;
-
-                        // Récupérer le prix depuis l'offre acceptée si disponible
-                        // Sinon utiliser le prix de l'annonce
-                        PrixFinal = Annonce.Prix ?? 0;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Erreur chargement annonce: {ex.Message}");
-                    }
+                    PrixFinal = Commande.Offre.Valeur;
+                }
+                else if (Commande.Annonce?.Prix != null && Commande.Annonce.Prix > 0)
+                {
+                    PrixFinal = Commande.Annonce.Prix.Value;
+                }
+                else
+                {
+                    PrixFinal = 0m;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur initialisation commande: {ex.Message}");
                 Commande = null;
+                PrixFinal = 0m;
             }
             finally
             {
@@ -152,10 +154,10 @@ namespace BlazorAutoPulse.ViewModel
             return Commande.IdEtatCommande switch
             {
                 1 => "en-attente",
-                2 => "payee",
-                3 => "payement-validee",
+                2 => "paiement-emis",
+                3 => "paiement-valide",
                 4 => "en-attente-livraison",
-                5 => "livraison",
+                5 => "livraison-emise",
                 6 => "livree",
                 _ => ""
             };
@@ -163,11 +165,11 @@ namespace BlazorAutoPulse.ViewModel
 
         public string GetAnnonceImage()
         {
-            if (Annonce == null) return "https://via.placeholder.com/200x150?text=Pas+d'image";
+            if (Commande?.Annonce == null) return "https://via.placeholder.com/200x150?text=Pas+d'image";
 
             try
             {
-                return _imageService.GetFirstImage(Annonce.IdVoiture);
+                return _imageService.GetFirstImage(Commande.Annonce.IdVoiture);
             }
             catch
             {
@@ -238,13 +240,18 @@ namespace BlazorAutoPulse.ViewModel
             {
                 await Task.Delay(2000);
 
-                // TODO: Appel API pour enregistrer le paiement
-                // await _commandeService.ValidatePayment(Commande.IdCommande, cardData);
+                // TODO: Appel API pour enregistrer le paiement par carte
+                // await _commandeService.ValidateCardPayment(Commande.IdCommande, new CardPaymentDTO
+                // {
+                //     CardNumber = CardNumber,
+                //     CardExpiry = CardExpiry,
+                //     CardCvv = CardCvv
+                // });
 
                 // Mise à jour de l'état de la commande
                 if (Commande != null)
                 {
-                    Commande.IdEtatCommande = 2; 
+                    Commande.IdEtatCommande = 3; // Paiement validé (carte = automatique)
                 }
 
                 _notificationService.ShowSuccess(
@@ -278,11 +285,11 @@ namespace BlazorAutoPulse.ViewModel
             try
             {
                 // TODO: Appel API pour confirmer le paiement autre moyen
-                // await _commandeService.ConfirmOtherPayment(Commande.IdCommande);
+                // await _commandeService.EmitPayment(Commande.IdCommande);
 
                 if (Commande != null)
                 {
-                    Commande.IdEtatCommande = 2; // Paiement en cours
+                    Commande.IdEtatCommande = 2; // Paiement émis
                 }
 
                 _notificationService.ShowSuccess(
@@ -308,7 +315,7 @@ namespace BlazorAutoPulse.ViewModel
         }
 
         // ============================================================================
-        // ACTIONS VENDEUR - Confirmation réception
+        // ACTIONS VENDEUR - Confirmation réception paiement
         // ============================================================================
 
         public async Task ConfirmPaymentReceived()
@@ -340,6 +347,70 @@ namespace BlazorAutoPulse.ViewModel
         }
 
         // ============================================================================
+        // ACTIONS VENDEUR - Émission de la livraison
+        // ============================================================================
+
+        public async Task EmitDelivery()
+        {
+            if (Commande == null) return;
+
+            try
+            {
+                // TODO: Appel API pour émettre la livraison
+                // await _commandeService.EmitDelivery(Commande.IdCommande);
+
+                Commande.IdEtatCommande = 5; // Livraison émise
+
+                _notificationService.ShowSuccess(
+                    "Livraison émise",
+                    "L'acheteur a été notifié que le véhicule est prêt"
+                );
+
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowError(
+                    "Erreur",
+                    "Impossible d'émettre la livraison"
+                );
+                Console.WriteLine($"Erreur émission livraison: {ex.Message}");
+            }
+        }
+
+        // ============================================================================
+        // ACTIONS ACHETEUR - Confirmation réception véhicule
+        // ============================================================================
+
+        public async Task ConfirmVehicleReceived()
+        {
+            if (Commande == null) return;
+
+            try
+            {
+                // TODO: Appel API pour confirmer la réception du véhicule
+                // await _commandeService.ConfirmVehicleReceived(Commande.IdCommande);
+
+                Commande.IdEtatCommande = 6; // Livrée
+
+                _notificationService.ShowSuccess(
+                    "Commande terminée",
+                    "Félicitations pour votre achat !"
+                );
+
+                _refreshUI?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowError(
+                    "Erreur",
+                    "Impossible de confirmer la réception du véhicule"
+                );
+                Console.WriteLine($"Erreur confirmation réception: {ex.Message}");
+            }
+        }
+
+        // ============================================================================
         // ACTIONS COMMUNES - Contact
         // ============================================================================
 
@@ -347,12 +418,10 @@ namespace BlazorAutoPulse.ViewModel
         {
             if (Commande == null) return;
 
-            // Créer ou ouvrir une conversation avec le vendeur
             try
             {
                 var conversations = await _conversationService.GetConversationsByCompteID(CurrentUserId ?? 0);
 
-                // Chercher une conversation existante avec ce vendeur pour cette annonce
                 var existingConv = conversations.FirstOrDefault(c =>
                     c.IdAnnonce == Commande.Annonce?.IdAnnonce &&
                     c.ParticipantPseudo == Commande.PseudoVendeur
@@ -364,7 +433,6 @@ namespace BlazorAutoPulse.ViewModel
                 }
                 else
                 {
-                    // Créer une nouvelle conversation
                     _nav?.NavigateTo($"/annonce/{Commande.Annonce?.IdAnnonce}");
                 }
             }

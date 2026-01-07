@@ -17,7 +17,9 @@ else if (VM.Commande == null)
     <div class="error-container">
         <h2>Commande introuvable</h2>
         <p>La commande que vous recherchez n'existe pas.</p>
-
+        <button class="btn-primary" @onclick='() => Navigation.NavigateTo("/compte")'>
+            Retour au compte
+        </button>
     </div>
 }
 else
@@ -26,7 +28,9 @@ else
         <!-- En-tête avec numéro de commande et statut -->
         <div class="commande-header">
             <div class="header-left">
-
+                <button class="btn-back" @onclick='() => Navigation.NavigateTo("/compte")'>
+                    ← Retour
+                </button>
                 <h1>Commande #@VM.Commande.IdCommande</h1>
             </div>
             <div class="statut-badge @VM.GetStatutClass()">
@@ -42,21 +46,27 @@ else
                     <span class="step-label">Commande créée</span>
                 </div>
                 <div class="progression-line @(VM.Commande.IdEtatCommande >= 2 ? "completed" : "")"></div>
-                
+
                 <div class="progression-step @(VM.Commande.IdEtatCommande >= 2 ? "completed" : "")">
                     <div class="step-circle">2</div>
                     <span class="step-label">Paiement</span>
                 </div>
                 <div class="progression-line @(VM.Commande.IdEtatCommande >= 3 ? "completed" : "")"></div>
-                
+
                 <div class="progression-step @(VM.Commande.IdEtatCommande >= 3 ? "completed" : "")">
                     <div class="step-circle">3</div>
-                    <span class="step-label">Confirmation vendeur</span>
+                    <span class="step-label">Validation vendeur</span>
                 </div>
                 <div class="progression-line @(VM.Commande.IdEtatCommande >= 5 ? "completed" : "")"></div>
-                
+
                 <div class="progression-step @(VM.Commande.IdEtatCommande >= 5 ? "completed" : "")">
                     <div class="step-circle">4</div>
+                    <span class="step-label">Livraison</span>
+                </div>
+                <div class="progression-line @(VM.Commande.IdEtatCommande >= 6 ? "completed" : "")"></div>
+
+                <div class="progression-step @(VM.Commande.IdEtatCommande >= 6 ? "completed" : "")">
+                    <div class="step-circle">5</div>
                     <span class="step-label">Terminée</span>
                 </div>
             </div>
@@ -75,24 +85,31 @@ else
                         <span class="info-label">Moyen de paiement</span>
                         <span class="info-value">@VM.Commande.MoyenPaiement</span>
                     </div>
+                    <div class="info-item">
+                        <span class="info-label">Prix final</span>
+                        <span class="info-value price-value">@(VM.PrixFinal.ToString("N0")) €</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Informations de l'annonce -->
-            @if (VM.Annonce != null)
+            @if (VM.Commande.Annonce != null)
             {
                 <div class="annonce-section">
                     <h2>🚗 Véhicule</h2>
-                    <div class="annonce-card" @onclick='() => Navigation.NavigateTo($"/annonce/{VM.Annonce.IdAnnonce}")'>
-                        <img src="@VM.GetAnnonceImage()" alt="@VM.Annonce.Libelle" class="annonce-image" />
+                    <div class="annonce-card" @onclick='() => Navigation.NavigateTo($"/annonce/{VM.Commande.Annonce.IdAnnonce}")'>
+                        <img src="@VM.GetAnnonceImage()" alt="@VM.Commande.Annonce.Libelle" class="annonce-image" />
                         <div class="annonce-info">
-                            <h3>@VM.Annonce.Libelle</h3>
+                            <h3>@VM.Commande.Annonce.Libelle</h3>
                             <div class="annonce-details">
-                                <span>@VM.Annonce.Marque @VM.Annonce.Modele</span>
-                                <span>@VM.Annonce.Annee</span>
-                                <span>@VM.Annonce.Kilometrage km</span>
+                                <span>@VM.Commande.Annonce.Marque @VM.Commande.Annonce.Modele</span>
+                                <span>@VM.Commande.Annonce.Annee</span>
+                                <span>@(VM.Commande.Annonce.Kilometrage.ToString("N0")) km</span>
+                                <span>@VM.Commande.Annonce.Carburant</span>
                             </div>
-                            <div class="annonce-price">@VM.PrixFinal.ToString("N0") €</div>
+                            <div class="annonce-location">
+                                📍 @VM.Commande.Annonce.Ville (@VM.Commande.Annonce.CodePostal)
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,6 +127,10 @@ else
                                 ✉️ Contacter
                             </button>
                         }
+                        @if (VM.IsAcheteur)
+                        {
+                            <span class="badge-vous">Vous</span>
+                        }
                     </div>
                 </div>
 
@@ -123,42 +144,45 @@ else
                                 ✉️ Contacter
                             </button>
                         }
+                        @if (VM.IsVendeur)
+                        {
+                            <span class="badge-vous">Vous</span>
+                        }
                     </div>
                 </div>
             </div>
 
-            <!-- Section actions selon le rôle -->
+            <!-- Section actions selon le rôle et l'état -->
+            @* État 1 : Acheteur doit payer *@
             @if (VM.IsAcheteur && VM.Commande.IdEtatCommande == 1)
             {
-                <!-- Acheteur : Choix du paiement -->
                 <div class="action-section">
                     <h2>💳 Paiement</h2>
-                    
+
                     @if (!VM.ShowPaymentForm)
                     {
                         <div class="payment-choice">
-                            <p class="payment-info">Choisissez votre mode de paiement :</p>
-                            
+                            <p class="payment-info">Choisissez votre mode de paiement pour finaliser l'achat :</p>
+
                             <button class="payment-option-card" @onclick="VM.SelectPaymentCarte">
                                 <div class="payment-icon">💳</div>
                                 <div class="payment-label">Carte bancaire</div>
-                                <div class="payment-desc">Paiement en ligne sécurisé</div>
+                                <div class="payment-desc">Paiement en ligne sécurisé (validation immédiate)</div>
                             </button>
 
                             <button class="payment-option-card" @onclick="VM.SelectPaymentAutre">
                                 <div class="payment-icon">💵</div>
                                 <div class="payment-label">Autre moyen</div>
-                                <div class="payment-desc">Espèces, chèque, virement...</div>
+                                <div class="payment-desc">Espèces, chèque, virement... (nécessite confirmation du vendeur)</div>
                             </button>
                         </div>
                     }
                     else if (VM.SelectedPaymentType == "carte")
                     {
-                        <!-- Formulaire de paiement par carte -->
                         <div class="payment-form">
                             <div class="form-group">
                                 <label>Numéro de carte</label>
-                                <input type="text" 
+                                <input type="text"
                                        placeholder="1234 5678 9012 3456"
                                        maxlength="19"
                                        @bind="VM.CardNumber"
@@ -168,7 +192,7 @@ else
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Date d'expiration</label>
-                                    <input type="text" 
+                                    <input type="text"
                                            placeholder="MM/AA"
                                            maxlength="5"
                                            @bind="VM.CardExpiry"
@@ -177,7 +201,7 @@ else
 
                                 <div class="form-group">
                                     <label>CVV</label>
-                                    <input type="text" 
+                                    <input type="text"
                                            placeholder="123"
                                            maxlength="3"
                                            @bind="VM.CardCvv"
@@ -193,10 +217,11 @@ else
                             }
 
                             <div class="action-buttons">
-                                <button class="btn-secondary" @onclick="VM.CancelPayment">
+                                <button class="btn-secondary" @onclick="VM.CancelPayment" disabled="@VM.IsProcessingPayment">
                                     Annuler
                                 </button>
-                                <button class="btn-primary" 
+
+                                <button class="btn-primary"
                                         @onclick="VM.ValidateCardPayment"
                                         disabled="@VM.IsProcessingPayment">
                                     @if (VM.IsProcessingPayment)
@@ -205,7 +230,7 @@ else
                                     }
                                     else
                                     {
-                                        <span>Payer @VM.PrixFinal.ToString("N0") €</span>
+                                        <span>💳 Payer @(VM.PrixFinal.ToString("N0")) €</span>
                                     }
                                 </button>
                             </div>
@@ -213,38 +238,54 @@ else
                     }
                     else if (VM.SelectedPaymentType == "autre")
                     {
-                        <!-- Confirmation paiement autre moyen -->
                         <div class="autre-payment-info">
                             <div class="info-box">
+                                <p>
+                                    <strong>Instructions :</strong>
+                                </p>
                                 <p>
                                     Vous avez choisi de régler par un autre moyen (espèces, chèque, virement...).
                                 </p>
                                 <p>
-                                    Une fois le paiement effectué en personne avec le vendeur, 
-                                    confirmez ci-dessous pour que le vendeur puisse valider la transaction.
+                                    Une fois que vous aurez effectué le paiement auprès du vendeur,
+                                    cliquez sur le bouton ci-dessous pour l'en informer. Le vendeur devra
+                                    ensuite confirmer la réception du paiement pour passer à l'étape suivante.
                                 </p>
                             </div>
 
                             <div class="action-buttons">
-                                <button class="btn-secondary" @onclick="VM.CancelPayment">
+                                <button class="btn-secondary" @onclick="VM.CancelPayment" disabled="@VM.IsProcessingPayment">
                                     Annuler
                                 </button>
-                                <button class="btn-primary" @onclick="VM.ConfirmAutrePayment">
-                                    ✓ J'ai effectué le paiement
+                                <button class="btn-primary" @onclick="VM.ConfirmAutrePayment" disabled="@VM.IsProcessingPayment">
+                                    @if (VM.IsProcessingPayment)
+                                    {
+                                        <span>⏳ Envoi...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>✓ J'ai effectué le paiement</span>
+                                    }
                                 </button>
                             </div>
                         </div>
                     }
                 </div>
             }
-            else if (VM.IsVendeur && VM.Commande.IdEtatCommande == 2)
+
+            @* État 2 : Vendeur doit confirmer réception paiement *@
+            @if (VM.IsVendeur && VM.Commande.IdEtatCommande == 2)
             {
-                <!-- Vendeur : En attente de confirmation -->
                 <div class="action-section">
-                    <h2>⏳ En attente</h2>
+                    <h2>⏳ Confirmation du paiement</h2>
                     <div class="info-box">
-                        <p>L'acheteur a indiqué avoir effectué le paiement.</p>
-                        <p>Une fois que vous avez reçu l'argent, confirmez ci-dessous.</p>
+                        <p>
+                            <strong>L'acheteur a indiqué avoir effectué le paiement.</strong>
+                        </p>
+                        <p>
+                            Une fois que vous avez bien reçu l'argent (virement, espèces, chèque...),
+                            confirmez ci-dessous pour valider la transaction et passer à l'étape de livraison.
+                        </p>
                     </div>
 
                     <button class="btn-success btn-large" @onclick="VM.ConfirmPaymentReceived">
@@ -252,20 +293,89 @@ else
                     </button>
                 </div>
             }
-            else if (VM.Commande.IdEtatCommande >= 3)
+            @if (VM.IsAcheteur && VM.Commande.IdEtatCommande == 2)
             {
-                <!-- Transaction validée -->
+                <div class="info-section waiting">
+                    <h2>⏳ En attente</h2>
+                    <p>Vous avez confirmé avoir effectué le paiement.</p>
+                    <p>Le vendeur doit maintenant confirmer la réception pour poursuivre la transaction.</p>
+                </div>
+            }
+
+            @* État 3 : Paiement validé, vendeur doit émettre livraison *@
+            @if (VM.IsVendeur && VM.Commande.IdEtatCommande == 3)
+            {
+                <div class="action-section">
+                    <h2>🚚 Livraison du véhicule</h2>
+                    <div class="info-box success">
+                        <p>✅ <strong>Le paiement a été confirmé !</strong></p>
+                        <p>
+                            Vous pouvez maintenant organiser la remise du véhicule avec l'acheteur.
+                            Une fois que vous êtes prêt à livrer le véhicule (ou que l'acheteur peut venir le chercher),
+                            cliquez sur le bouton ci-dessous.
+                        </p>
+                    </div>
+
+                    <button class="btn-primary btn-large" @onclick="VM.EmitDelivery">
+                        🚗 Émettre la livraison
+                    </button>
+                </div>
+            }
+            @if (VM.IsAcheteur && VM.Commande.IdEtatCommande == 3)
+            {
+                <div class="info-section success">
+                    <h2>✅ Paiement validé</h2>
+                    <p>Le vendeur a confirmé la réception du paiement.</p>
+                    <p>Il va maintenant organiser la livraison du véhicule.</p>
+                </div>
+            }
+
+            @* État 5 : Livraison émise, acheteur doit confirmer réception *@
+            @if (VM.IsAcheteur && VM.Commande.IdEtatCommande == 5)
+            {
+                <div class="action-section">
+                    <h2>📦 Réception du véhicule</h2>
+                    <div class="info-box">
+                        <p>
+                            <strong>Le vendeur a indiqué que le véhicule est prêt pour la livraison.</strong>
+                        </p>
+                        <p>
+                            Une fois que vous avez récupéré le véhicule et que tout est en ordre,
+                            confirmez ci-dessous pour finaliser la transaction.
+                        </p>
+                    </div>
+
+                    <button class="btn-success btn-large" @onclick="VM.ConfirmVehicleReceived">
+                        ✓ Confirmer la réception du véhicule
+                    </button>
+                </div>
+            }
+            @if (VM.IsVendeur && VM.Commande.IdEtatCommande == 5)
+            {
+                <div class="info-section waiting">
+                    <h2>⏳ En attente de confirmation</h2>
+                    <p>Vous avez émis la livraison.</p>
+                    <p>L'acheteur doit maintenant confirmer qu'il a bien reçu le véhicule.</p>
+                </div>
+            }
+
+            @* État 6 : Transaction terminée *@
+            @if (VM.Commande.IdEtatCommande == 6)
+            {
                 <div class="success-section">
-                    <div class="success-icon">✅</div>
-                    <h2>Transaction validée</h2>
-                    <p>Le paiement a été confirmé par les deux parties.</p>
-                    
-                    @if (VM.Commande.IdEtatCommande == 5)
+                    <div class="success-icon">🎉</div>
+                    <h2>Transaction terminée !</h2>
+                    @if (VM.IsAcheteur)
                     {
-                        <div class="completed-badge">
-                            🎉 Commande terminée
-                        </div>
+                        <p>Félicitations pour votre achat ! Profitez bien de votre nouveau véhicule.</p>
                     }
+                    else if (VM.IsVendeur)
+                    {
+                        <p>Félicitations ! Votre vente a été finalisée avec succès.</p>
+                    }
+                    <div class="completed-badge">
+                        ✅ Commande complétée
+                    </div>
                 </div>
             }
         </div>
