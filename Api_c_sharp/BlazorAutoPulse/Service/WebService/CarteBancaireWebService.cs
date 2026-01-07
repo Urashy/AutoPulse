@@ -17,9 +17,16 @@ namespace BlazorAutoPulse.Service.WebService
         public async Task<IEnumerable<CarteBancaireDTO>> GetCarteBancaireByCompte(int id)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetCarteBancaireByCompteID/{id}"));
-            var response = await SendWithCredentialsAsync(request);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<CarteBancaireDTO>>();
+            try
+            {
+                var response = await SendWithCredentialsAsync(request);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<IEnumerable<CarteBancaireDTO>>();
+            }
+            catch
+            {
+                return new List<CarteBancaireDTO>();
+            }
         }
 
         public async Task<CarteBancaireDTO> CreateCBAsync(CarteBancaireCreateDTO entity)

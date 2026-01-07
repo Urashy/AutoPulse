@@ -1,3 +1,4 @@
+@using System.ComponentModel.Design
 @using AutoPulse.Shared.DTO
 @using BlazorAutoPulse.Service.Interface
 @inject ICarteBancaireService CarteBancaireService
@@ -70,10 +71,13 @@
                     Annuler
                 </button>
                 <button class="btn-primary" @onclick="SaveCarte" disabled="@IsSaving">
-                    Enregistrer
                     @if (IsSaving)
                     {
                         <span>Enregistrement...</span>
+                    }
+                    else
+                    {
+                        <span>Enregistrer</span>
                     }
                 </button>
             </div>

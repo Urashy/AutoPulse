@@ -49,7 +49,6 @@ namespace BlazorAutoPulse.ViewModel
 
         public bool showCarteModal { get; set; } = false;
 
-
         public bool modalSuppression = false;
         public bool confirmationSuppression = false;
         public string confirmationTexte = "";
@@ -833,7 +832,13 @@ namespace BlazorAutoPulse.ViewModel
                 );
 
                 // Recharger les cartes bancaires
-                carteBancaires = await _carteBancaireService.GetCarteBancaireByCompte(compte.IdCompte);
+                try
+                {
+                    carteBancaires = await _carteBancaireService.GetCarteBancaireByCompte(compte.IdCompte);
+                }
+                catch
+                {
+                }
                 _refreshUI?.Invoke();
             }
             catch (Exception ex)
