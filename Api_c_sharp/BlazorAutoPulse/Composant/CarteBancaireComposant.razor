@@ -1,0 +1,113 @@
+@using AutoPulse.Shared.DTO
+
+<div class="card-bancaire">
+    <div class="card-front">
+        <div class="card-header">
+            <div class="card-chip">💳</div>
+            <div class="card-type">@GetCardType()</div>
+        </div>
+
+        <div class="card-number">
+            <span>@CarteBancaire.NumeroCarte</span>
+        </div>
+
+        <div class="card-footer">
+            <div class="card-info">
+                <div class="card-label">Expire le</div>
+                <div class="card-value">@CarteBancaire.DateExpiration</div>
+            </div>
+            <div class="card-info">
+                <div class="card-label">CVV</div>
+                <div class="card-value">
+                    <span>@CarteBancaire.CodeSecurite</span>
+                </div>
+            </div>
+        </div>
+
+        @if (IsExpired())
+        {
+            <div class="card-expired-badge">
+                ⚠️ Expirée
+            </div>
+        }
+    </div>
+
+    @if (ShowActions)
+    {
+        <div class="card-actions">
+            <button class="card-btn edit" @onclick="EditCard" @onclick:stopPropagation="true">
+                <span>✏️</span>
+                <span>Modifier</span>
+            </button>
+            <button class="card-btn danger" @onclick="DeleteCard" @onclick:stopPropagation="true">
+                <span>🗑️</span>
+                <span>Supprimer</span>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public CarteBancaireDTO CarteBancaire { get; set; }
+
+    [Parameter]
+    public bool ShowActions { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<CarteBancaireDTO> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<CarteBancaireDTO> OnDelete { get; set; }
+
+    private bool ShowFullNumber { get; set; } = false;
+    private bool ShowCvv { get; set; } = false;
+
+    private void ToggleVisibility()
+    {
+        ShowFullNumber = !ShowFullNumber;
+        ShowCvv = !ShowCvv;
+        StateHasChanged();
+    }
+
+    private string GetCardType()
+    {
+        if (string.IsNullOrEmpty(CarteBancaire?.NumeroCarte))
+            return "Carte";
+
+        var firstDigit = CarteBancaire.NumeroCarte[0];
+        return firstDigit switch
+        {
+            '4' => "VISA",
+            '5' => "Mastercard",
+            '3' => "American Express",
+            _ => "Carte"
+        };
+    }
+
+    private bool IsExpired()
+    {
+        int mois, annee;
+        mois = int.Parse(CarteBancaire.DateExpiration.Substring(0, 2));
+        annee = int.Parse("20" + CarteBancaire.DateExpiration.Substring(3, 2));
+
+        var expirationDate = new DateTime(annee, mois, DateTime.DaysInMonth(annee, mois));
+        return DateTime.Now > expirationDate;
+    }
+
+    private async Task EditCard()
+    {
+        if (OnEdit.HasDelegate)
+        {
+            await OnEdit.InvokeAsync(CarteBancaire);
+        }
+    }
+
+    private async Task DeleteCard()
+    {
+        if (OnDelete.HasDelegate)
+        {
+            await OnDelete.InvokeAsync(CarteBancaire);
+        }
+    }
+}
