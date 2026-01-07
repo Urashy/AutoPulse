@@ -1,5 +1,6 @@
 ﻿using Api_c_sharp.Models.Entity;
 using AutoPulse.Shared.DTO;
+using AutoPulse.Shared.DTO.IA.Benchmark;
 
 namespace Api_c_sharp.Models.Repository.Interfaces
 {
