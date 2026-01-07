@@ -72,10 +72,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Dispose();
         }
 
-        // ---------------------------------------------------------
-        // GET BY ID
-        // ---------------------------------------------------------
-
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetById_OK()
         {
@@ -109,17 +107,12 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // ---------------------------------------------------------
-        // GET ALL
-        // ---------------------------------------------------------
-
+            #region GetAll
         [TestMethod]
         public async Task GetAll_OK()
         {
-            // Arrange
-            // (Nothing to prepare – DB already seeded)
-
             // Act
             var result = await _controller.GetAll();
 
@@ -133,11 +126,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(list);
             Assert.AreEqual(1, ((List<TokenEmail>)list).Count);
         }
+        #endregion
 
-        // ---------------------------------------------------------
-        // GET BY STRING
-        // ---------------------------------------------------------
-
+            #region GetByString
         [TestMethod]
         public async Task GetByString_OK()
         {
@@ -169,11 +160,11 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // ---------------------------------------------------------
-        // POST
-        // ---------------------------------------------------------
+        #endregion
 
+        #region POST
         [TestMethod]
         public async Task Post_BadRequest()
         {
@@ -231,11 +222,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
+        #endregion
 
-        // ---------------------------------------------------------
-        // PUT
-        // ---------------------------------------------------------
-
+        #region PUT
         [TestMethod]
         public async Task Put_OK()
         {
@@ -293,11 +282,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+        #endregion
 
-        // ---------------------------------------------------------
-        // DELETE
-        // ---------------------------------------------------------
-
+        #region DELETE
         [TestMethod]
         public async Task Delete_OK()
         {
@@ -326,11 +313,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // ---------------------------------------------------------
-        // VERIFICATION CODE (Manager)
-        // ---------------------------------------------------------
-
+        #region VerificationCode (Manager)
         [TestMethod]
         public async Task VerificationCode_OK()
         {
@@ -395,11 +380,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsNull(result);
         }
+        #endregion
 
-        // ---------------------------------------------------------
-        // VERIF CODE (Controller)
-        // ---------------------------------------------------------
-
+        #region VerificationCode (Controller)
         [TestMethod]
         public async Task VerifCode_OK()
         {
@@ -575,11 +558,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
         }
+        #endregion
 
-        // ---------------------------------------------------------
-        // MARQUER UTILISÉ
-        // ---------------------------------------------------------
-
+        #region Marque
         [TestMethod]
         public async Task MarquerUtilise_OK()
         {
@@ -608,11 +589,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // ---------------------------------------------------------
-        // INVALIDER TOKENS PAR TYPE
-        // ---------------------------------------------------------
-
+        #region Token
         [TestMethod]
         public async Task InvaliderTokensParType_OK()
         {
@@ -625,10 +604,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
-
-        // ---------------------------------------------------------
-        // NETTOYER TOKENS EXPIRÉS
-        // ---------------------------------------------------------
 
         [TestMethod]
         public async Task NettoyerTokensExpires_OK()
@@ -657,5 +632,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var deletedEntity = await _context.TokenEmails.FindAsync(expired.IdTokenEmail);
             Assert.IsNull(deletedEntity);
         }
+        #endregion
     }
 }

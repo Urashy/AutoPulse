@@ -73,7 +73,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetcommun = pieceJointe;
         }
-
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -97,7 +98,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -111,10 +114,118 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.NomFichier == _objetcommun.NomFichier));
         }
+        #endregion
 
+            #region GetByMessage
+        [TestMethod]
+        public async Task GetByMessageTest()
+        {
+            // Arrange
+            PieceJointe pieceJointe2 = new PieceJointe
+            {
+                IdPieceJointe = 2,
+                NomFichier = "fichier_test2.txt",
+                TypeMime = "text/plain",
+                Extension = ".txt",
+                TailleFichier = 150,
+                Contenu = new byte[] { 0x4, 0x5, 0x6 },
+                DateUpload = DateTime.Now,
+                IdMessage = _objetcommun.IdMessage
+            };
+            await _context.PiecesJointes.AddAsync(pieceJointe2);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetByMessage(_objetcommun.IdMessage);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+
+            var okResult = (OkObjectResult)result.Result;
+            var piecesJointes = (IEnumerable<PieceJointeDTO>)okResult.Value;
+
+            Assert.IsNotNull(piecesJointes);
+            Assert.AreEqual(2, piecesJointes.Count());
+            Assert.IsTrue(piecesJointes.All(pj => pj.ContenuBase64 != null)); // Le contenu doit être présent
+        }
+
+        [TestMethod]
+        public async Task GetByMessageTest_EmptyResult()
+        {
+            // Act
+            var result = await _controller.GetByMessage(999);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+
+            var okResult = (OkObjectResult)result.Result;
+            var piecesJointes = (IEnumerable<PieceJointeDTO>)okResult.Value;
+
+            Assert.IsNotNull(piecesJointes);
+            Assert.AreEqual(0, piecesJointes.Count());
+        }
+
+        [TestMethod]
+        public async Task GetMetadataByMessageTest()
+        {
+            // Arrange
+            PieceJointe pieceJointe2 = new PieceJointe
+            {
+                IdPieceJointe = 2,
+                NomFichier = "fichier_metadata.txt",
+                TypeMime = "text/plain",
+                Extension = ".txt",
+                TailleFichier = 200,
+                Contenu = new byte[] { 0x7, 0x8, 0x9 },
+                DateUpload = DateTime.Now,
+                IdMessage = _objetcommun.IdMessage
+            };
+            await _context.PiecesJointes.AddAsync(pieceJointe2);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetMetadataByMessage(_objetcommun.IdMessage);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+
+            var okResult = (OkObjectResult)result.Result;
+            var piecesJointes = (IEnumerable<PieceJointeDTO>)okResult.Value;
+
+            Assert.IsNotNull(piecesJointes);
+            Assert.AreEqual(2, piecesJointes.Count());
+            Assert.IsTrue(piecesJointes.All(pj => pj.ContenuBase64 == null)); // Le contenu NE doit PAS être présent
+            Assert.AreEqual("fichier_test.txt", piecesJointes.First().NomFichier);
+        }
+
+        [TestMethod]
+        public async Task GetMetadataByMessageTest_EmptyResult()
+        {
+            // Act
+            var result = await _controller.GetMetadataByMessage(999);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+
+            var okResult = (OkObjectResult)result.Result;
+            var piecesJointes = (IEnumerable<PieceJointeDTO>)okResult.Value;
+
+            Assert.IsNotNull(piecesJointes);
+            Assert.AreEqual(0, piecesJointes.Count());
+        }
+        #endregion
+
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task PostPJTest_Entity()
         {
+            // Arrange
             PieceJointeCreateDTO pj = new PieceJointeCreateDTO
             {
                 NomFichier = "fichier_testpost.txt",
@@ -125,8 +236,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 ContenuBase64 = Convert.ToBase64String(new byte[] { 0x0, 0x1, 0x2 })
             };
 
+            // Act
             var actionResult = await _controller.Post(pj);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
@@ -136,10 +249,41 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
 
         [TestMethod]
+        public async Task BadRequestPostPJTest()
+        {
+            // Arrange
+            PieceJointeCreateDTO pj = new PieceJointeCreateDTO
+
+            {
+                NomFichier = "fichier_testpost.txt",
+                TypeMime = "text/plain",
+                Extension = ".txt",
+                TailleFichier = 100,
+                IdMessage = 1,
+                ContenuBase64 = Convert.ToBase64String(new byte[] { 0x0, 0x1, 0x2 })
+            };
+
+            // Forcer l'erreur de validation dans le test
+            _controller.ModelState.AddModelError("NomFichier", "Required");
+
+            // Act
+            var actionResult = await _controller.Post(pj);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+
+        #endregion
+
+        #region DELETE
+        [TestMethod]
         public async Task DeletePJTest()
         {
+            // Act
             var result = await _controller.Delete(_objetcommun.IdPieceJointe);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             var deletedPJ = await _manager.GetByIdAsync(_objetcommun.IdPieceJointe);
             Assert.IsNull(deletedPJ);
@@ -148,14 +292,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundDeletePJTest()
         {
+            // Act
             var result = await _controller.Delete(0);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutPJTest()
         {
+            // Arrange
             PieceJointeUploadDTO pj = new PieceJointeUploadDTO
             {
                 IdPieceJointe = _objetcommun.IdPieceJointe,
@@ -166,8 +315,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdMessage = 1
             };
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdPieceJointe, pj);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var PJput = await _manager.GetByIdAsync(_objetcommun.IdPieceJointe);
@@ -177,6 +328,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutPJTest()
         {
+            // Arrange
             PieceJointeUploadDTO pj = new PieceJointeUploadDTO
             {
                 NomFichier = "fichier_testput.txt",
@@ -186,13 +338,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdMessage = 1
             };
 
+            // Act
             var result = await _controller.Put(0, pj);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
         public async Task BadRequestPutPJTest()
         {
+            // Arrange
             PieceJointeUploadDTO pj = new PieceJointeUploadDTO
             {
                 NomFichier = null,
@@ -202,7 +357,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdMessage = 1
             };
 
-            // Forcer l'erreur de validation dans le test
+            // Forcer l'erreur de validation
             _controller.ModelState.AddModelError("NomFichier", "Required");
 
             // Act
@@ -211,30 +366,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+        #endregion
 
-
-        [TestMethod]
-        public async Task BadRequestPostPJTest()
-        {
-            PieceJointeCreateDTO pj = new PieceJointeCreateDTO
-
-            {
-                NomFichier = "fichier_testpost.txt",
-                TypeMime = "text/plain",
-                Extension = ".txt",
-                TailleFichier = 100,
-                IdMessage = 1,
-                ContenuBase64 = Convert.ToBase64String(new byte[] { 0x0, 0x1, 0x2 })
-            };
-
-            // Forcer l'erreur de validation dans le test
-            _controller.ModelState.AddModelError("NomFichier", "Required");
-
-            var actionResult = await _controller.Post(pj);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
-
+        #region UPLOAD
         [TestMethod]
         public async Task UploadTest_SingleFile()
         {
@@ -425,138 +559,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task DownloadTest()
-        {
-            // Act
-            var result = await _controller.Download(_objetcommun.IdPieceJointe);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(FileContentResult));
-
-            var fileResult = (FileContentResult)result;
-            Assert.AreEqual(_objetcommun.TypeMime, fileResult.ContentType);
-            Assert.AreEqual(_objetcommun.NomFichier, fileResult.FileDownloadName);
-            CollectionAssert.AreEqual(_objetcommun.Contenu, fileResult.FileContents);
-        }
-
-        [TestMethod]
-        public async Task NotFoundDownloadTest()
-        {
-            // Act
-            var result = await _controller.Download(0);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task GetByMessageTest()
-        {
-            // Arrange
-            PieceJointe pieceJointe2 = new PieceJointe
-            {
-                IdPieceJointe = 2,
-                NomFichier = "fichier_test2.txt",
-                TypeMime = "text/plain",
-                Extension = ".txt",
-                TailleFichier = 150,
-                Contenu = new byte[] { 0x4, 0x5, 0x6 },
-                DateUpload = DateTime.Now,
-                IdMessage = _objetcommun.IdMessage
-            };
-            await _context.PiecesJointes.AddAsync(pieceJointe2);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _controller.GetByMessage(_objetcommun.IdMessage);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-
-            var okResult = (OkObjectResult)result.Result;
-            var piecesJointes = (IEnumerable<PieceJointeDTO>)okResult.Value;
-
-            Assert.IsNotNull(piecesJointes);
-            Assert.AreEqual(2, piecesJointes.Count());
-            Assert.IsTrue(piecesJointes.All(pj => pj.ContenuBase64 != null)); // Le contenu doit être présent
-        }
-
-        [TestMethod]
-        public async Task GetByMessageTest_EmptyResult()
-        {
-            // Act
-            var result = await _controller.GetByMessage(999);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-
-            var okResult = (OkObjectResult)result.Result;
-            var piecesJointes = (IEnumerable<PieceJointeDTO>)okResult.Value;
-
-            Assert.IsNotNull(piecesJointes);
-            Assert.AreEqual(0, piecesJointes.Count());
-        }
-
-        [TestMethod]
-        public async Task GetMetadataByMessageTest()
-        {
-            // Arrange
-            PieceJointe pieceJointe2 = new PieceJointe
-            {
-                IdPieceJointe = 2,
-                NomFichier = "fichier_metadata.txt",
-                TypeMime = "text/plain",
-                Extension = ".txt",
-                TailleFichier = 200,
-                Contenu = new byte[] { 0x7, 0x8, 0x9 },
-                DateUpload = DateTime.Now,
-                IdMessage = _objetcommun.IdMessage
-            };
-            await _context.PiecesJointes.AddAsync(pieceJointe2);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _controller.GetMetadataByMessage(_objetcommun.IdMessage);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-
-            var okResult = (OkObjectResult)result.Result;
-            var piecesJointes = (IEnumerable<PieceJointeDTO>)okResult.Value;
-
-            Assert.IsNotNull(piecesJointes);
-            Assert.AreEqual(2, piecesJointes.Count());
-            Assert.IsTrue(piecesJointes.All(pj => pj.ContenuBase64 == null)); // Le contenu NE doit PAS être présent
-            Assert.AreEqual("fichier_test.txt", piecesJointes.First().NomFichier);
-        }
-
-        [TestMethod]
-        public async Task GetMetadataByMessageTest_EmptyResult()
-        {
-            // Act
-            var result = await _controller.GetMetadataByMessage(999);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-
-            var okResult = (OkObjectResult)result.Result;
-            var piecesJointes = (IEnumerable<PieceJointeDTO>)okResult.Value;
-
-            Assert.IsNotNull(piecesJointes);
-            Assert.AreEqual(0, piecesJointes.Count());
-        }
-
-        [TestMethod]
         public async Task UploadTest_ExceptionDuringAdd()
         {
             // Arrange
-            // Dispose du context pour forcer une exception lors de l'AddAsync
             _context.Dispose();
 
             var uploadDtos = new List<PieceJointeUploadDTO>
@@ -585,5 +590,39 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Aucun fichier ne doit être uploadé car l'exception est capturée
             Assert.AreEqual(0, uploadedFiles.Count);
         }
+
+        #endregion
+
+        #region DOWNLOAD
+        [TestMethod]
+        public async Task DownloadTest()
+        {
+            // Act
+            var result = await _controller.Download(_objetcommun.IdPieceJointe);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(FileContentResult));
+
+            var fileResult = (FileContentResult)result;
+            Assert.AreEqual(_objetcommun.TypeMime, fileResult.ContentType);
+            Assert.AreEqual(_objetcommun.NomFichier, fileResult.FileDownloadName);
+            CollectionAssert.AreEqual(_objetcommun.Contenu, fileResult.FileContents);
+        }
+
+        [TestMethod]
+        public async Task NotFoundDownloadTest()
+        {
+            // Act
+            var result = await _controller.Download(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        #endregion
+        
+
+        
     }
 }

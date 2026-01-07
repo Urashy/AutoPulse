@@ -137,19 +137,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.SaveChangesAsync();
         }
 
-        // -------------------------------------------------------------
-        // GET BY ID
-        // -------------------------------------------------------------
+        #region GET
+
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
-            // Given : Une Signalement existante
+            // Arrange
             var id = _signalementCommun.IdSignalement;
 
-            // When : On appelle GetById
+            // Act
             var result = await _controller.GetByID(id);
 
-            // Then : Le résultat doit être un DTO valide
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(SignalementDTO));
             Assert.AreEqual(id, result.Value.IdSignalement);
@@ -158,38 +158,38 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByIdTest()
         {
-            // Given : Un ID inexistant
+            // Arrange
             var idInexistant = 0;
 
-            // When : On appelle GetById
+            // Act
             var result = await _controller.GetByID(idInexistant);
 
-            // Then : On doit obtenir 404
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // -------------------------------------------------------------
-        // GET ALL
-        // -------------------------------------------------------------
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
-            // Given : Une base contenant au moins une signalement
-
-            // When : On appelle GetAll
+            // Act
             var result = await _controller.GetAll();
 
-            // Then : La liste doit être non vide
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
         }
+        #endregion
 
-        // -------------------------------------------------------------
-        // POST
-        // -------------------------------------------------------------
+        #endregion
+
+
+        #region POST
         [TestMethod]
         public async Task PostSignalementCompteTest()
         {
+            // Arrange
             SignalementCreateDTO signalementCreateDTO = new SignalementCreateDTO
             {
                 DescriptionSignalement = "Il a fait un truc pas bien",
@@ -199,14 +199,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             };
             ClaimCookie(1);
 
+            // Act
             var result = await _controller.Post(signalementCreateDTO);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
         }
 
         [TestMethod]
         public async Task PostSignalementAnnonceTest()
         {
+            // Arrange
             SignalementCreateDTO signalementCreateDTO = new SignalementCreateDTO
             {
                 DescriptionSignalement = "Il a fait un truc pas bien",
@@ -216,32 +219,80 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             };
             ClaimCookie(1);
 
+            // Act
             var result = await _controller.Post(signalementCreateDTO);
 
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
         }
 
         [TestMethod]
         public async Task BadRequestPostSignalementTest()
         {
+            // Arrange
             SignalementCreateDTO dto = new SignalementCreateDTO();
 
             _controller.ModelState.AddModelError("Erreur", "Required");
 
-            // When : On appelle Post
+            // Act
             var result = await _controller.Post(dto);
 
-            // Then : On récupère un 400
+            // Assert
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
         }
 
-        // -------------------------------------------------------------
-        // PUT
-        // -------------------------------------------------------------
+        [TestMethod]
+        public async Task PostBadRequestAnnonceEtCompteTest()
+        {
+            // Arrange
+            SignalementCreateDTO dto = new SignalementCreateDTO
+            {
+                DescriptionSignalement = "Description test",
+                IdAnnonceSignale = 1,
+                IdCompteSignale = 2,
+                IdTypeSignalement = 1
+            };
+            ClaimCookie(1);
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.AreEqual("Un signalement ne peut pas cibler à la fois une annonce et un compte",
+                            badRequestResult.Value);
+        }
+
+        [TestMethod]
+        public async Task PostBadRequestAucuneCibleTest()
+        {
+            // Arrange
+            SignalementCreateDTO dto = new SignalementCreateDTO
+            {
+                DescriptionSignalement = "Description test",
+                IdAnnonceSignale = null,
+                IdCompteSignale = null,
+                IdTypeSignalement = 1
+            };
+            ClaimCookie(1);
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.AreEqual("Un signalement doit cibler soit une annonce soit un compte",
+                            badRequestResult.Value);
+        }
+        #endregion
+
+        #region PUT
         [TestMethod]
         public async Task PutSignalementTest()
         {
-            // Given : Un DTO valide avec un ID correspondant
+            // Arrange
             SignalementUpdateDTO dto = new SignalementUpdateDTO
             {
                 IdSignalement = _signalementCommun.IdSignalement,
@@ -251,17 +302,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdTypeSignalement = _signalementCommun.IdTypeSignalement
             };
 
-            // When : On appelle Put
+            // Act
             var result = await _controller.Put(_signalementCommun.IdSignalement, dto);
 
-            // Then : La mise à jour doit renvoyer 204
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
         }
 
         [TestMethod]
         public async Task PutBadRequestTest()
         {
-            // Given : un DTO dont la validation doit échouer
+            // Arrange
             SignalementUpdateDTO dto = new SignalementUpdateDTO 
             { 
                 IdSignalement = _signalementCommun.IdSignalement,
@@ -270,10 +321,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _controller.ModelState.AddModelError("DescriptionSignalement", "Required");
 
-            // When
+            // Act
             var result = await _controller.Put(1, dto);
 
-            // Then
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
 
@@ -281,29 +332,28 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PutNotFoundTest()
         {
-            // Given : Une signalement inexistante
+            // Arrange
             var dto = new SignalementUpdateDTO() { IdSignalement = 10 };
 
-            // When : On appelle Put
+            // Act
             var result = await _controller.Put(10, dto);
 
-            // Then : 404 NotFound
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
-        // -------------------------------------------------------------
-        // DELETE
-        // -------------------------------------------------------------
+        #region DELETE
         [TestMethod]
         public async Task DeleteSignalementTest()
         {
-            // Given : Une signalement existante
+            // Arrange
             var id = _signalementCommun.IdSignalement;
 
-            // When : On appelle Delete
+            // Act
             var result = await _controller.Delete(id);
 
-            // Then : La signalement doit être supprimée
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             Assert.IsNull(await _manager.GetByIdAsync(id));
         }
@@ -311,28 +361,28 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundDeleteSignalementTest()
         {
-            // Given : Un ID inexistant
+            // Arrange
             var id = 0;
 
-            // When : On appelle Delete
+            // Act
             var result = await _controller.Delete(id);
 
-            // Then : 404
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region FILTRED
         [TestMethod]
         public async Task GetFilteredCompte()
         {
-            // Given: Un signalement existant avec "suspect" dans la description
-
-            // When: On filtre par état, type et recherche "suspect"
+            // Act
             var result = await _controller.GetFilteredSignalement(
                 _signalementCommun.IdEtatSignalement,
                 2,
                 "suspect");
 
-            // Then: On doit obtenir une liste avec des résultats
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any(), "Devrait trouver au moins un signalement");
@@ -341,15 +391,18 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetFilteredAnnonce()
         {
+            // Arrange
             _signalementCommun.IdCompteSignale = null;
             _signalementCommun.IdAnnonceSignale = 1;
             await _context.SaveChangesAsync();
+
+            // Act
             var result = await _controller.GetFilteredSignalement(
                 _signalementCommun.IdEtatSignalement,
                 1,
                 "suspect");
 
-            // Then: On doit obtenir une liste avec des résultats
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any(), "Devrait trouver au moins un signalement");
@@ -358,12 +411,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task EmptyResultGetFilteredSignalementTest()
         {
-            // Given: Des paramètres qui ne matchent aucun signalement
-
-            // When: On filtre avec des critères qui ne donnent aucun résultat
+            // Act
             var result = await _controller.GetFilteredSignalement(0, 0, "existe pas");
 
-            // Then: On doit obtenir une liste vide (pas une erreur)
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsFalse(result.Value.Any(), "Ne devrait trouver aucun signalement");
@@ -372,13 +423,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetFilteredSignalement_FilterByEtatOnlyTest()
         {
-            // When: Filtre uniquement par état (typeId=0 = pas de filtre type)
+            // Act
             var result = await _controller.GetFilteredSignalement(
                 _signalementCommun.IdEtatSignalement,
                 0,
                 null);
 
-            // Then
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.All(s => s.IdEtatSignalement == _signalementCommun.IdEtatSignalement));
@@ -387,10 +438,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetFilteredSignalement_CaseInsensitiveSearchTest()
         {
-            // When: Recherche avec casse mixte
+            // Act
             var result = await _controller.GetFilteredSignalement(0, 0, "CoMpOrTeMeNt");
 
-            // Then: Devrait trouver "Comportement suspect" malgré la casse différente
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
         }
@@ -398,10 +449,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetFilteredSignalement_NoFiltersTest()
         {
-            // When: Aucun filtre (etatId=0, typeId=0, recherche=null)
+            // Act
             var result = await _controller.GetFilteredSignalement(0, 0, null);
 
-            // Then: Devrait retourner tous les signalements
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
         }
@@ -409,19 +460,21 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task GetFilteredSignalement_SearchInPseudoTest()
         {
-            // When: Recherche par pseudo du compte signalant
+            // Act
             var result = await _controller.GetFilteredSignalement(0, 0, "alice");
 
-            // Then: Devrait trouver le signalement créé par alice
+            // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(s => s.PseudoSignalant == "alice"));
         }
+        #endregion
 
+        #region Update
         [TestMethod]
         public async Task UpdateEtatTest()
         {
-
+            // Arrange
             SignalementUpdateDTO dto = new SignalementUpdateDTO
             {
                 IdSignalement = _signalementCommun.IdSignalement,
@@ -433,8 +486,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             };
 
+            // Act
             var result = await _controller.UpdateEtat(_signalementCommun.IdSignalement, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var signalementMisAJour = await _manager.GetByIdAsync(_signalementCommun.IdSignalement);
@@ -444,7 +499,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task UpdateEtatNotFoundTest()
         {
-
+            // Arrange
             var idInexistant = 999;
             SignalementUpdateDTO dto = new SignalementUpdateDTO
             {
@@ -456,16 +511,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdEtatSignalement = 2
             };
 
-
+            // Act
             var result = await _controller.UpdateEtat(idInexistant, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task UpdateEtatBadRequestInvalidState5Test()
         {
-
+            // Arrange
             var id = _signalementCommun.IdSignalement;
             SignalementUpdateDTO dto = new SignalementUpdateDTO
             {
@@ -477,14 +533,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdEtatSignalement = 5
             };
 
+            // Act
             var result = await _controller.UpdateEtat(id, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
         [TestMethod]
         public async Task BadRequestUpdateEtatTest()
         {
+            // Arrange
             SignalementUpdateDTO dto = new SignalementUpdateDTO
             {
                 IdSignalement = _signalementCommun.IdSignalement,
@@ -498,56 +557,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _controller.ModelState.AddModelError("DescriptionSignalement", "Required");
 
-            // When
+            // Act
             var result = await _controller.UpdateEtat(1, dto);
 
-            // Then
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
-
-
-        [TestMethod]
-        public async Task PostBadRequestAnnonceEtCompteTest()
-        {
-
-            SignalementCreateDTO dto = new SignalementCreateDTO
-            {
-                DescriptionSignalement = "Description test",
-                IdAnnonceSignale = 1,
-                IdCompteSignale = 2,
-                IdTypeSignalement = 1
-            };
-            ClaimCookie(1);
-
-
-            var result = await _controller.Post(dto);
-
-            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
-            var badRequestResult = result.Result as BadRequestObjectResult;
-            Assert.AreEqual("Un signalement ne peut pas cibler à la fois une annonce et un compte",
-                            badRequestResult.Value);
-        }
-
-        [TestMethod]
-        public async Task PostBadRequestAucuneCibleTest()
-        {
-
-            SignalementCreateDTO dto = new SignalementCreateDTO
-            {
-                DescriptionSignalement = "Description test",
-                IdAnnonceSignale = null,
-                IdCompteSignale = null,
-                IdTypeSignalement = 1
-            };
-            ClaimCookie(1);
-
-            var result = await _controller.Post(dto);
-
-            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
-            var badRequestResult = result.Result as BadRequestObjectResult;
-            Assert.AreEqual("Un signalement doit cibler soit une annonce soit un compte",
-                            badRequestResult.Value);
-        }
+        #endregion
 
         private void ClaimCookie(int userId)
         {

@@ -98,7 +98,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetcommun = plainte;
         }
-
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -122,7 +123,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -136,117 +139,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.Description == _objetcommun.Description));
         }
+        #endregion
 
-        [TestMethod]
-        public async Task PostAdresseTest_Entity()
-        {
-            PlainteCreateDTO dto = new PlainteCreateDTO
-            {
-                Description = "Nouvelle plainte de test",
-                IdSignalement = 1,
-                IdCompte = 1
-            };
-
-            var actionResult = await _controller.Post(dto);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-            var created = (CreatedAtActionResult)actionResult.Result;
-
-            var createdAdresse = (Plainte)created.Value;
-            Assert.AreEqual(dto.Description, createdAdresse.Description);
-        }
-
-
-        [TestMethod]
-        public async Task DeleteAdresseTest()
-        {
-            var result = await _controller.Delete(_objetcommun.IdPlainte);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedAdresse = await _manager.GetByIdAsync(_objetcommun.IdPlainte);
-            Assert.IsNull(deletedAdresse);
-        }
-
-        [TestMethod]
-        public async Task NotFoundDeleteAdresseTest()
-        {
-            var result = await _controller.Delete(0);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task PutAdresseTest()
-        {
-            PlainteUpdateDTO dto = new PlainteUpdateDTO()
-            {
-                IdPlainte = _objetcommun.IdPlainte,
-                Description = "Plainte modifiée",
-                IdSignalement = 1,
-                IdCompte = 1
-            };
-
-            var result = await _controller.Put(_objetcommun.IdPlainte, dto);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-
-            var adresseput = await _manager.GetByIdAsync(_objetcommun.IdPlainte);
-            Assert.AreEqual(dto.Description, adresseput.Description);
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutAdresseTest()
-        {
-            PlainteUpdateDTO dto = new PlainteUpdateDTO()
-            {
-                IdPlainte = _objetcommun.IdPlainte,
-                Description = "Plainte modifiée",
-                IdSignalement = 1,
-                IdCompte = 1
-            };
-            var result = await _controller.Put(0, dto);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-        [TestMethod]
-        public async Task BadRequestPutAdresseTest()
-        {
-            PlainteUpdateDTO dto = new PlainteUpdateDTO()
-            {
-                IdPlainte = _objetcommun.IdPlainte,
-                Description = null,
-                IdSignalement = 1,
-                IdCompte = 1
-            };
-
-            // Forcer l'erreur de validation dans le test
-            _controller.ModelState.AddModelError("Description", "Required");
-
-            // Act
-            var result = await _controller.Put(_objetcommun.IdPlainte, dto);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
-        }
-
-
-        [TestMethod]
-        public async Task BadRequestPostAdresseTest()
-        {
-            PlainteCreateDTO dto = new PlainteCreateDTO()
-            {
-                Description = null,
-                IdSignalement = 1,
-                IdCompte = 1
-            };
-
-            _controller.ModelState.AddModelError("Description", "Required");
-
-            var actionResult = await _controller.Post(dto);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
-
+            #region GetPlainteByCompte
         [TestMethod]
         public async Task GetPlainteByCompteIDTest()
         {
@@ -269,5 +164,145 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+
+        #endregion
+
+        #endregion
+
+        #region POST
+        [TestMethod]
+        public async Task PostAdresseTest_Entity()
+        {
+            // Arrange
+            PlainteCreateDTO dto = new PlainteCreateDTO
+            {
+                Description = "Nouvelle plainte de test",
+                IdSignalement = 1,
+                IdCompte = 1
+            };
+
+            // Act
+            var actionResult = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+
+            var createdAdresse = (Plainte)created.Value;
+            Assert.AreEqual(dto.Description, createdAdresse.Description);
+        }
+
+        [TestMethod]
+        public async Task BadRequestPostAdresseTest()
+        {
+            // Arrange
+            PlainteCreateDTO dto = new PlainteCreateDTO()
+            {
+                Description = null,
+                IdSignalement = 1,
+                IdCompte = 1
+            };
+
+            _controller.ModelState.AddModelError("Description", "Required");
+
+            // Act
+            var actionResult = await _controller.Post(dto);
+            
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+        #endregion
+
+        #region DELETE
+        [TestMethod]
+        public async Task DeleteAdresseTest()
+        {
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdPlainte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var deletedAdresse = await _manager.GetByIdAsync(_objetcommun.IdPlainte);
+            Assert.IsNull(deletedAdresse);
+        }
+
+        [TestMethod]
+        public async Task NotFoundDeleteAdresseTest()
+        {
+            // Act
+            var result = await _controller.Delete(0);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region PUT
+        [TestMethod]
+        public async Task PutAdresseTest()
+        {
+            // Arrange
+            PlainteUpdateDTO dto = new PlainteUpdateDTO()
+            {
+                IdPlainte = _objetcommun.IdPlainte,
+                Description = "Plainte modifiée",
+                IdSignalement = 1,
+                IdCompte = 1
+            };
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdPlainte, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            var adresseput = await _manager.GetByIdAsync(_objetcommun.IdPlainte);
+            Assert.AreEqual(dto.Description, adresseput.Description);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutAdresseTest()
+        {
+            // Arrange
+            PlainteUpdateDTO dto = new PlainteUpdateDTO()
+            {
+                IdPlainte = _objetcommun.IdPlainte,
+                Description = "Plainte modifiée",
+                IdSignalement = 1,
+                IdCompte = 1
+            };
+
+            // Act
+            var result = await _controller.Put(0, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        [TestMethod]
+        public async Task BadRequestPutAdresseTest()
+        {
+            // Arrange
+            PlainteUpdateDTO dto = new PlainteUpdateDTO()
+            {
+                IdPlainte = _objetcommun.IdPlainte,
+                Description = null,
+                IdSignalement = 1,
+                IdCompte = 1
+            };
+
+            // Forcer l'erreur de validation dans le test
+            _controller.ModelState.AddModelError("Description", "Required");
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdPlainte, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+
+        #endregion
+        
+
+        
     }
 }
