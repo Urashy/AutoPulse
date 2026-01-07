@@ -206,18 +206,30 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.AcheteurCommande.Pseudo))
             .ForMember(dest => dest.LibelleAnnonce,
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav.Libelle))
+            .ForMember(des=> des.Montant, 
+                opt=>opt.MapFrom(src=> src.Offrecommande.Valeur))
             .ForMember(dest => dest.MoyenPaiement,
                 opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav.TypePaiement)).ReverseMap();
 
         CreateMap<Commande, CommandeDetailDTO>()
             .ForMember(dest => dest.MoyenPaiement,
-                opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav.TypePaiement))
+                opt => opt.MapFrom(src => src.CommandeMoyenPaiementNav != null ? src.CommandeMoyenPaiementNav.TypePaiement : null))
+            .ForMember(dest => dest.IdVendeur,
+                opt => opt.MapFrom(src => src.IdVendeur))
             .ForMember(dest => dest.PseudoVendeur,
-                opt => opt.MapFrom(src => src.CommandeAnnonceNav.CompteAnnonceNav.Pseudo))
+                opt => opt.MapFrom(src => src.VendeurCommande != null ? src.VendeurCommande.Pseudo : null))
+            .ForMember(dest => dest.IdAcheteur,
+                opt => opt.MapFrom(src => src.IdAcheteur))
             .ForMember(dest => dest.PseudoAcheteur,
-                opt => opt.MapFrom(src => src.AcheteurCommande.Pseudo))
+                opt => opt.MapFrom(src => src.AcheteurCommande != null ? src.AcheteurCommande.Pseudo : null))
             .ForMember(dest => dest.Annonce,
-                opt => opt.MapFrom(src => src.CommandeAnnonceNav)).ReverseMap();
+                opt => opt.MapFrom(src => src.CommandeAnnonceNav))
+            .ForMember(dest => dest.Offre,
+                opt => opt.MapFrom(src => src.Offrecommande))
+            .ForMember(dest => dest.IdFacture,
+                opt => opt.MapFrom(src => src.Factures.Any() ? src.Factures.First().IdFacture : (int?)null))
+
+            .ReverseMap();
 
         CreateMap<CommandeCreateDTO, Commande>().ReverseMap();
         CreateMap<CommandeUpdateDTO, Commande>().ReverseMap();

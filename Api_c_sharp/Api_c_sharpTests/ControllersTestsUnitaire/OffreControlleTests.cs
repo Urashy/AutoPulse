@@ -56,7 +56,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Libelle = "Particulier"
             };
 
-            // ✅ PREMIER UTILISATEUR (vendeur)
+            // Vendeur
             Compte compte1 = new Compte()
             {
                 IdCompte = 1,
@@ -71,7 +71,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 DateDerniereConnexion = DateTime.Now
             };
 
-            // ✅ DEUXIÈME UTILISATEUR (acheteur)
+            // Acheteur
             Compte compte2 = new Compte()
             {
                 IdCompte = 2,
@@ -103,7 +103,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdAnnonce = 1
             };
 
-            // ✅ Message envoyé par le compte 1
             Message message1 = new Message()
             {
                 IdMessage = 1,
@@ -130,7 +129,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetcommun = offre;
         }
-
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -154,7 +154,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -168,121 +170,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.Valeur == _objetcommun.Valeur));
         }
+        #endregion
 
-        [TestMethod]
-        public async Task PostOffreTest_Entity()
-        {
-            OffreCreateDTO Offre = new OffreCreateDTO
-            {
-                Valeur = 9000,
-                IdAnnonce = 1,
-                IdMessage = _objetcommun.IdMessage,
-            };
-
-            var actionResult = await _controller.Post(Offre);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-            var created = (CreatedAtActionResult)actionResult.Result;
-
-            var createdOffre = (Offre)created.Value;
-            Assert.AreEqual(Offre.Valeur, createdOffre.Valeur);
-        }
-
-
-        [TestMethod]
-        public async Task DeleteOffreTest()
-        {
-            var result = await _controller.Delete(_objetcommun.IdOffre);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedOffre = await _manager.GetByIdAsync(_objetcommun.IdOffre);
-            Assert.IsNull(deletedOffre);
-        }
-
-        [TestMethod]
-        public async Task NotFoundDeleteOffreTest()
-        {
-            var result = await _controller.Delete(0);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-
-        [TestMethod]
-        public async Task PutOffreTest()
-        {
-            OffreUpdateDTO offre = new OffreUpdateDTO()
-            {
-                IdOffre = _objetcommun.IdOffre,
-                Valeur = 9200,
-                DateOffre = DateTime.Now,
-                IdMessage = _objetcommun.IdMessage,
-                IdAnnonce = 1,
-            };
-
-            var result = await _controller.Put(_objetcommun.IdOffre, offre);
-
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
-
-            var offreput = await _manager.GetByIdAsync(_objetcommun.IdOffre);
-            Assert.AreEqual(offre.Valeur, offreput.Valeur);
-        }
-
-        [TestMethod]
-        public async Task NotFoundPutOffreTest()
-        {
-            OffreUpdateDTO offre = new OffreUpdateDTO()
-            {
-                IdOffre = _objetcommun.IdOffre,
-                Valeur = 9200,
-                DateOffre = DateTime.Now,
-                IdMessage = _objetcommun.IdMessage,
-                IdAnnonce = 1,
-            };
-
-            var result = await _controller.Put(0, offre);
-
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-        }
-        [TestMethod]
-        public async Task BadRequestPutOffreTest()
-        {
-            OffreUpdateDTO offre = new OffreUpdateDTO()
-            {
-                IdOffre = _objetcommun.IdOffre,
-                Valeur = 0,
-                DateOffre = DateTime.Now,
-                IdMessage = _objetcommun.IdMessage,
-                IdAnnonce = 1,
-            };
-
-            // Forcer l'erreur de validation dans le test
-            _controller.ModelState.AddModelError("Valeur", "La Valeur doit être supérieur à 0");
-
-            // Act
-            var result = await _controller.Put(_objetcommun.IdOffre, offre);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
-        }
-
-
-        [TestMethod]
-        public async Task BadRequestPostOffreTest()
-        {
-            OffreCreateDTO Offre = new OffreCreateDTO
-            {
-                Valeur = 0,
-                IdAnnonce = 1,
-                IdMessage = _objetcommun.IdMessage,
-            };
-
-            _controller.ModelState.AddModelError("Valeur", "La Valeur doit être supérieur à 0");
-
-            var actionResult = await _controller.Post(Offre);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
-
+            #region GetByMessage
         [TestMethod]
         public async Task GetByMessage()
         {
@@ -305,5 +195,144 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
+
+        #endregion
+
+        #region POST
+        [TestMethod]
+        public async Task PostOffreTest_Entity()
+        {
+            // Arrange
+            OffreCreateDTO Offre = new OffreCreateDTO
+            {
+                Valeur = 9000,
+                IdAnnonce = 1,
+                IdMessage = _objetcommun.IdMessage,
+            };
+
+            // Act
+            var actionResult = await _controller.Post(Offre);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+
+            var createdOffre = (Offre)created.Value;
+            Assert.AreEqual(Offre.Valeur, createdOffre.Valeur);
+        }
+
+        [TestMethod]
+        public async Task BadRequestPostOffreTest()
+        {
+            // Arrange
+            OffreCreateDTO Offre = new OffreCreateDTO
+            {
+                Valeur = 0,
+                IdAnnonce = 1,
+                IdMessage = _objetcommun.IdMessage,
+            };
+
+            _controller.ModelState.AddModelError("Valeur", "La Valeur doit être supérieur à 0");
+
+            // Act
+            var actionResult = await _controller.Post(Offre);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+        #endregion
+
+        #region DELETE
+        [TestMethod]
+        public async Task DeleteOffreTest()
+        {
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdOffre);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            var deletedOffre = await _manager.GetByIdAsync(_objetcommun.IdOffre);
+            Assert.IsNull(deletedOffre);
+        }
+
+        [TestMethod]
+        public async Task NotFoundDeleteOffreTest()
+        {
+            // Act
+            var result = await _controller.Delete(0);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        #endregion
+
+        #region PUT
+        [TestMethod]
+        public async Task PutOffreTest()
+        {
+            // Arrange
+            OffreUpdateDTO offre = new OffreUpdateDTO()
+            {
+                IdOffre = _objetcommun.IdOffre,
+                Valeur = 9200,
+                DateOffre = DateTime.Now,
+                IdMessage = _objetcommun.IdMessage,
+                IdAnnonce = 1,
+            };
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdOffre, offre);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            var offreput = await _manager.GetByIdAsync(_objetcommun.IdOffre);
+            Assert.AreEqual(offre.Valeur, offreput.Valeur);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutOffreTest()
+        {
+            // Arrange
+            OffreUpdateDTO offre = new OffreUpdateDTO()
+            {
+                IdOffre = _objetcommun.IdOffre,
+                Valeur = 9200,
+                DateOffre = DateTime.Now,
+                IdMessage = _objetcommun.IdMessage,
+                IdAnnonce = 1,
+            };
+
+            // Act
+            var result = await _controller.Put(0, offre);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+        [TestMethod]
+        public async Task BadRequestPutOffreTest()
+        {
+            // Arrange
+            OffreUpdateDTO offre = new OffreUpdateDTO()
+            {
+                IdOffre = _objetcommun.IdOffre,
+                Valeur = 0,
+                DateOffre = DateTime.Now,
+                IdMessage = _objetcommun.IdMessage,
+                IdAnnonce = 1,
+            };
+
+            // Forcer l'erreur de validation
+            _controller.ModelState.AddModelError("Valeur", "La Valeur doit être supérieur à 0");
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdOffre, offre);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+        #endregion
+
     }
 }

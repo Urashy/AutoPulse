@@ -68,7 +68,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Initialisation de l'objet commun après l'avoir sauvegardé
             _objetcommun = objet;
         }
-
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -92,7 +93,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -106,10 +109,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.Libelle == _objetcommun.Libelle));
         }
+        #endregion
 
+            #region GetType
         [TestMethod]
         public async Task GetTypeByCherchable()
         {
+            // Act
             var result = await _controller.GetTypeComptesPourChercher();
 
             // Assert
@@ -142,5 +148,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
+
+        #endregion
     }
 }

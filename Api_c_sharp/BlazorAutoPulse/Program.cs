@@ -97,6 +97,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IImmatService, ImmatWebService>();
             builder.Services.AddScoped<ICarteBancaireService, CarteBancaireWebService>();
             builder.Services.AddScoped<IAPourConversationService, APourConversationWebService>();
+            
+
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -130,6 +132,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ModifierAnnonceViewModel>();
             builder.Services.AddScoped<AdminPlainteViewModel>();
             builder.Services.AddScoped<AdresseModalViewModel>();
+            builder.Services.AddScoped<CommandeDetailViewModel>();
 
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService>(sp => new SignalRWebService());
