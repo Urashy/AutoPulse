@@ -155,7 +155,7 @@ public class IAManager : IIAService
 
         var stats = new BenchmarkIAStatsDTO
         {
-            TotalBenchmarks = allBenchmarks.Count,
+            TotalBenchmarks = allBenchmarks.Count/3,
             BenchmarksByModel = allBenchmarks
                 .GroupBy(b => b.ModelType)
                 .ToDictionary(g => g.Key, g => g.Count()),

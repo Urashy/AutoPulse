@@ -94,6 +94,41 @@ namespace BlazorAutoPulse.ViewModel
 
         private System.Threading.Timer? _debounceTimer;
         
+        // Variables pour le binding des select
+        private int _selectedMarqueId;
+        public int selectedMarqueId
+        {
+            get => _selectedMarqueId;
+            set
+            {
+                if (_selectedMarqueId == value) return;
+
+                _selectedMarqueId = value;
+                _ = OnMarqueChangedInternal(value);
+            }
+        }
+
+        private async Task OnMarqueChangedInternal(int marqueId)
+        {
+            await _vmAll.OnMarqueChanged(marqueId);
+            OnMarqueChanged(marqueId);
+        }
+
+        private int _selectedModeleId;
+        public int selectedModeleId
+        {
+            get => _selectedModeleId;
+            set
+            {
+                if (_selectedModeleId == value) return;
+
+                _selectedModeleId = value;
+                _ = OnModeleChangedInternal(value);
+            }
+        }
+        
+        public bool OpenCBModal { get; set; } = false;
+        
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav, GetAllViewModel vmAll)
         {
             _refreshUI = refreshUI;
@@ -137,7 +172,7 @@ namespace BlazorAutoPulse.ViewModel
             {
                 IdCompte = 1,
                 IdEtatAnnonce = 1,
-                IdMiseEnAvant = 1,
+                IdMiseEnAvant = -1,
                 DatePublication = DateTime.Now,
             };
             VoitureDetailDto = new VoitureDetailDTO
@@ -576,6 +611,13 @@ namespace BlazorAutoPulse.ViewModel
                 errors.Remove("categorie");
         }
         
+        public void OnMiseEnAvantChange(ChangeEventArgs e)
+        {
+            annonce.IdMiseEnAvant = int.Parse(e.Value.ToString());
+            if (annonce.IdMiseEnAvant != 0 && errors.ContainsKey("miseEnAvant"))
+                errors.Remove("miseEnAvant");
+        }
+        
         public void ToggleCouleur(int idCouleur)
         {
             if (selectedCouleurs.Contains(idCouleur))
@@ -702,68 +744,6 @@ namespace BlazorAutoPulse.ViewModel
                     errors.Remove("positionvolant");
             }
             _refreshUI?.Invoke();
-        }
-
-        public async Task CreateAnnonce()
-        {
-            showErrors = true;
-
-            if (!ValidateForm())
-            {
-                _refreshUI?.Invoke();
-                return;
-            }
-            
-            try
-            {
-                AdresseDTO resultAdr = new AdresseDTO();
-                if (selectedAddressId == null)
-                {
-                    adresse.IdPays = 1;
-                    adresse.IdCompte = compte.IdCompte;
-                    resultAdr = await _adresseService.CreateAdresseAsync(adresse);
-                }
-                else
-                {
-                    resultAdr = await _adresseService.GetByIdAsync(selectedAddressId.Value);
-                }
-                
-                VoitureDetailDTO resultVoitureDetailDto = await _voitureService.CreateAsync(VoitureDetailDto);
-                
-                foreach (ImageUpload image in imageUpload)
-                {
-                    image.IdVoiture = resultVoitureDetailDto.IdVoiture;
-                    Console.WriteLine(image.IdVoiture);
-                    await _postImageService.CreateAsync(image);
-                }
-                
-                foreach (int couleur in selectedCouleurs)
-                {
-                    APourCouleurDTO aPourCouleur = new APourCouleurDTO()
-                    {
-                        IdCouleur = couleur,
-                        IdVoiture = resultVoitureDetailDto.IdVoiture,
-                    };
-                    await _aPourCouleurService.CreateAsync(aPourCouleur);
-                }
-                
-                annonce.IdAdresse = resultAdr.IdAdresse;
-                annonce.IdVoiture = resultVoitureDetailDto.IdVoiture;
-                annonce.IdCompte = compte.IdCompte;
-                await _annonceService.CreateAnnonceAsync(annonce);
-                _nav.NavigateTo("/");
-
-                VoitureDetailDto = new VoitureDetailDTO();
-                adresse = new AdresseCreateDTO();
-                annonce = new AnnonceCreateDTO();
-                nomPhotos = new List<string>();
-                selectedCouleurs = new List<int>();
-            }
-            catch (Exception ex)
-            {
-                errors.Add("general", "Une erreur est survenue lors de la publication de l'annonce. Veuillez réessayer.");
-                _refreshUI?.Invoke();
-            }
         }
 
         //---------------------------------------------------------------------------
@@ -896,39 +876,6 @@ namespace BlazorAutoPulse.ViewModel
             if (errors.ContainsKey("ville")) errors.Remove("ville");
 
             _refreshUI?.Invoke();
-        }
-
-        // Variables pour le binding des select
-        private int _selectedMarqueId;
-        public int selectedMarqueId
-        {
-            get => _selectedMarqueId;
-            set
-            {
-                if (_selectedMarqueId == value) return;
-
-                _selectedMarqueId = value;
-                _ = OnMarqueChangedInternal(value);
-            }
-        }
-
-        private async Task OnMarqueChangedInternal(int marqueId)
-        {
-            await _vmAll.OnMarqueChanged(marqueId);
-            OnMarqueChanged(marqueId);
-        }
-
-        private int _selectedModeleId;
-        public int selectedModeleId
-        {
-            get => _selectedModeleId;
-            set
-            {
-                if (_selectedModeleId == value) return;
-
-                _selectedModeleId = value;
-                _ = OnModeleChangedInternal(value);
-            }
         }
         
         private async Task OnModeleChangedInternal(int marqueId)
@@ -1121,6 +1068,90 @@ namespace BlazorAutoPulse.ViewModel
             }
 
             _refreshUI?.Invoke();
+        }
+
+        public async Task CreateAnnonceOrPayMav()
+        {
+            if (annonce.IdMiseEnAvant == -1)
+            {
+                return;
+            }
+            
+            if (annonce.IdMiseEnAvant == 1)
+            {
+                CreateAnnonce();
+                return;
+            }
+
+            PayMav();
+        }
+
+        public async Task PayMav()
+        {
+            OpenCBModal = true;
+            _refreshUI?.Invoke();
+        }
+        
+        public async Task CreateAnnonce()
+        {
+            showErrors = true;
+
+            if (!ValidateForm())
+            {
+                _refreshUI?.Invoke();
+                return;
+            }
+            
+            try
+            {
+                AdresseDTO resultAdr = new AdresseDTO();
+                if (selectedAddressId == null)
+                {
+                    adresse.IdPays = 1;
+                    adresse.IdCompte = compte.IdCompte;
+                    resultAdr = await _adresseService.CreateAdresseAsync(adresse);
+                }
+                else
+                {
+                    resultAdr = await _adresseService.GetByIdAsync(selectedAddressId.Value);
+                }
+                
+                VoitureDetailDTO resultVoitureDetailDto = await _voitureService.CreateAsync(VoitureDetailDto);
+                
+                foreach (ImageUpload image in imageUpload)
+                {
+                    image.IdVoiture = resultVoitureDetailDto.IdVoiture;
+                    Console.WriteLine(image.IdVoiture);
+                    await _postImageService.CreateAsync(image);
+                }
+                
+                foreach (int couleur in selectedCouleurs)
+                {
+                    APourCouleurDTO aPourCouleur = new APourCouleurDTO()
+                    {
+                        IdCouleur = couleur,
+                        IdVoiture = resultVoitureDetailDto.IdVoiture,
+                    };
+                    await _aPourCouleurService.CreateAsync(aPourCouleur);
+                }
+                
+                annonce.IdAdresse = resultAdr.IdAdresse;
+                annonce.IdVoiture = resultVoitureDetailDto.IdVoiture;
+                annonce.IdCompte = compte.IdCompte;
+                await _annonceService.CreateAnnonceAsync(annonce);
+                _nav.NavigateTo("/");
+
+                VoitureDetailDto = new VoitureDetailDTO();
+                adresse = new AdresseCreateDTO();
+                annonce = new AnnonceCreateDTO();
+                nomPhotos = new List<string>();
+                selectedCouleurs = new List<int>();
+            }
+            catch (Exception ex)
+            {
+                errors.Add("general", "Une erreur est survenue lors de la publication de l'annonce. Veuillez réessayer.");
+                _refreshUI?.Invoke();
+            }
         }
     }
 }

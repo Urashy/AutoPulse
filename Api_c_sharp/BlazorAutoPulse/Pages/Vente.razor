@@ -7,6 +7,10 @@
 
 <PageTitle>AutoPulse - Vendre</PageTitle>
 
+@* Composant Modal Carte Bancaire *@
+<CarteBancaireModal IsVisible="@VM.OpenCBModal"
+                    IsVisibleChanged="@((bool value) => VM.OpenCBModal = value)"/>
+
 @* Composant Modal Immatriculation *@
 <ImmatModal IsVisible="@VM.showImmatModal"
             IsVisibleChanged="@((bool value) => VM.showImmatModal = value)"
@@ -698,7 +702,25 @@
                     </button>
                 </div>
 
-                <button @onclick="@VM.CreateAnnonce" type="button" class="btn-submit" style="margin-top: 20px;">Publier mon annonce</button>
+                <div class="form-group  @(VM.HasError("couleurs") ? "has-error" : "")">
+                    <label>Mise en avant</label>
+                    <select @onchange="@VM.OnMiseEnAvantChange">
+                        <option value="0">Toutes les mise en avant</option>
+                        @if (VMAll.allMiseEnAvant != null)
+                        {
+                            @foreach (var miseEnAvant in VMAll.allMiseEnAvant)
+                            {
+                                <option value="@miseEnAvant.IdMiseEnAvant">@miseEnAvant.LibelleMiseEnAvant</option>
+                            }
+                        }
+                    </select>
+                    @if (VM.HasError("miseEnAvant"))
+                    {
+                        <span class="error-message">@VM.GetError("miseEnAvant")</span>
+                    }
+                </div>
+
+                <button @onclick="@VM.CreateAnnonceOrPayMav" type="button" class="btn-submit" style="margin-top: 20px;">Publier mon annonce</button>
             </form>
         </div>
     </div>

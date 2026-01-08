@@ -14,6 +14,7 @@ public class GetAllViewModel
     private readonly IService<MotriciteDTO> _motriciteService;
     private readonly IService<BoiteDeVitesseDTO> _boiteVitesseService;
     private readonly ICouleurService _couleurService;
+    private readonly IService<MiseEnAvantDTO> _miseEnAvantService;
     
     public MarqueDTO[] allMarques;
     public ModeleDTO[] allModeles;
@@ -23,6 +24,7 @@ public class GetAllViewModel
     public CategorieDTO[] allCategories;
     public BoiteDeVitesseDTO[] allBoiteDeVitesse;
     public CouleurDTO[] allCouleurs;
+    public MiseEnAvantDTO[] allMiseEnAvant;
     
     public GetAllViewModel(
         IService<MarqueDTO> marqueService,
@@ -31,7 +33,8 @@ public class GetAllViewModel
         IService<CategorieDTO> categorieService,
         IService<MotriciteDTO> motriciteService,
         IService<BoiteDeVitesseDTO> boiteVitesseService,
-        ICouleurService couleurService)
+        ICouleurService couleurService,
+        IService<MiseEnAvantDTO> miseEnAvantService)
     {
         _marqueService = marqueService;
         _modeleService = modeleService;
@@ -40,6 +43,7 @@ public class GetAllViewModel
         _motriciteService = motriciteService;
         _boiteVitesseService = boiteVitesseService;
         _couleurService = couleurService;
+        _miseEnAvantService = miseEnAvantService;
     }
     
     public async Task InitializeAsync()
@@ -53,6 +57,7 @@ public class GetAllViewModel
         allMotricite = (await _motriciteService.GetAllAsync()).ToArray();
         allBoiteDeVitesse = (await _boiteVitesseService.GetAllAsync()).ToArray();
         allCouleurs = (await _couleurService.GetAllAsync()).ToArray();
+        allMiseEnAvant = (await _miseEnAvantService.GetAllAsync()).ToArray();
     }
     
     public async Task OnMarqueChanged(int marqueId)

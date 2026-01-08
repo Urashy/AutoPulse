@@ -60,7 +60,7 @@ namespace BlazorAutoPulse.Service.WebService
     {
         try
         {
-            var response = await _httpClient.GetAsync("/api/BenchmarkIA/GetAll");
+            var response = await _httpClient.GetAsync("/api/IA/BenchmarkGetAll");
             response.EnsureSuccessStatusCode();
 
             var benchmarks = await response.Content.ReadFromJsonAsync<IEnumerable<BenchmarkIAListDTO>>();
@@ -76,7 +76,7 @@ namespace BlazorAutoPulse.Service.WebService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"/api/BenchmarkIA/GetById/{id}");
+            var response = await _httpClient.GetAsync($"/api/IA/BenchmarkGetById/{id}");
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<BenchmarkIADTO>();
@@ -91,7 +91,7 @@ namespace BlazorAutoPulse.Service.WebService
     {
         try
         {
-            var response = await _httpClient.GetAsync("/api/BenchmarkIA/GetLatestByType");
+            var response = await _httpClient.GetAsync("/api/IA/BenchmarkGetLatestByType");
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<Dictionary<string, BenchmarkIADTO>>();
@@ -107,7 +107,7 @@ namespace BlazorAutoPulse.Service.WebService
     {
         try
         {
-            var response = await _httpClient.GetAsync("/api/BenchmarkIA/GetStats");
+            var response = await _httpClient.GetAsync("/api/IA/BenchmarkGetStats");
             response.EnsureSuccessStatusCode();
 
             var stats = await response.Content.ReadFromJsonAsync<BenchmarkIAStatsDTO>();
@@ -123,7 +123,7 @@ namespace BlazorAutoPulse.Service.WebService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"/api/BenchmarkIA/GetHistoryByType/{modelType}?limit={limit}");
+            var response = await _httpClient.GetAsync($"/api/IA/BenchmarkGetHistoryByType/{modelType}?limit={limit}");
             response.EnsureSuccessStatusCode();
 
             var history = await response.Content.ReadFromJsonAsync<IEnumerable<BenchmarkIAListDTO>>();
@@ -139,7 +139,7 @@ namespace BlazorAutoPulse.Service.WebService
     {
         try
         {
-            var response = await _httpClient.PostAsync("/api/BenchmarkIA/Sync", null);
+            var response = await _httpClient.PostAsync("/api/IA/BenchmarkSync", null);
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<SyncBenchmarkResponseDTO>();
@@ -168,7 +168,7 @@ namespace BlazorAutoPulse.Service.WebService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"/api/BenchmarkIA/Delete/{id}");
+            var response = await _httpClient.DeleteAsync($"/api/IA/BenchmarkDelete/{id}");
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
