@@ -60,6 +60,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IService<CommandeDTO>, CommandeWebService>();
             builder.Services.AddScoped<IService<VueDTO>, VueWebService>();
             builder.Services.AddScoped<IService<TypeJournalDTO>, TypeJournalWebService>();
+            builder.Services.AddScoped<IService<MiseEnAvantDTO>, MiseEnAvantWebService>();
 
             //----------------------- Service avec interface spécifique
             builder.Services.AddScoped<IAnnonceService, AnnonceWebService>();
@@ -98,8 +99,6 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ICarteBancaireService, CarteBancaireWebService>();
             builder.Services.AddScoped<IAPourConversationService, APourConversationWebService>();
             
-
-
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
             builder.Services.AddScoped<ConnexionViewModel>();
@@ -133,6 +132,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<AdminPlainteViewModel>();
             builder.Services.AddScoped<AdresseModalViewModel>();
             builder.Services.AddScoped<CommandeDetailViewModel>();
+            builder.Services.AddScoped<AdminBenchmarkIAViewModel>();
+            builder.Services.AddTransient<BenchmarkCardComponentViewModel>();
 
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService>(sp => new SignalRWebService());

@@ -1,0 +1,218 @@
+@page "/admin/benchmarks"
+@layout AdminLayout
+@using BlazorAutoPulse.ViewModel.Administration
+@using BlazorAutoPulse.Composant
+@inject AdminBenchmarkIAViewModel VM
+
+<PageTitle>Monitoring IA - Admin</PageTitle>
+
+<div class="admin-page">
+    <!-- Messages de statut -->
+    @if (VM.ShowSuccessMessage)
+    {
+        <div class="alert alert-success">
+            <span>✓</span> @VM.StatusMessage
+        </div>
+    }
+    @if (VM.ShowErrorMessage)
+    {
+        <div class="alert alert-error">
+            <span>✗</span> @VM.StatusMessage
+        </div>
+    }
+
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>🤖 Monitoring des modèles IA</h1>
+            <p class="subtitle">Surveillance des performances et benchmarks</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-health @VM.GetHealthStatusClass()" 
+                    @onclick="VM.CheckIAHealth"
+                    disabled="@VM.IsCheckingHealth">
+                @if (VM.IsCheckingHealth)
+                {
+                    <span class="spinner-small"></span>
+                    <span>Vérification...</span>
+                }
+                else
+                {
+                    <span class="health-icon">@VM.GetHealthStatusIcon()</span>
+                    <span>Service IA</span>
+                    <span class="health-status">@VM.GetHealthStatusText()</span>
+                }
+            </button>
+            <button class="btn-sync" 
+                    @onclick="VM.SyncBenchmarks"
+                    disabled="@VM.IsSyncing">
+                @if (VM.IsSyncing)
+                {
+                    <span class="spinner-small"></span>
+                    <span>Synchronisation...</span>
+                }
+                else
+                {
+                    <span>🔄</span>
+                    <span>Synchroniser</span>
+                }
+            </button>
+            <button class="btn-refresh" @onclick="VM.RefreshData" disabled="@VM.IsLoading">
+                <span>↻</span>
+            </button>
+        </div>
+    </div>
+
+    @if (VM.IsLoading)
+    {
+        <div class="loading-state">
+            <div class="loader"></div>
+            <p>Chargement des benchmarks...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Statistiques globales -->
+        @if (VM.GlobalStats != null)
+        {
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <span class="stat-value">@VM.GlobalStats.TotalBenchmarks</span>
+                        <span class="stat-label">Benchmarks totaux par IA</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-content">
+                        <span class="stat-value">@VM.GlobalStats.GlobalAvgInferenceTimeMs.ToString("F2") ms</span>
+                        <span class="stat-label">Temps moyen global</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-content">
+                        <span class="stat-value">@VM.GlobalStats.GlobalSuccessRate.ToString("F1")%</span>
+                        <span class="stat-label">Taux de succès global</span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Derniers benchmarks par modèle -->
+        <div class="section-header">
+            <h2>🎯 Derniers benchmarks par modèle</h2>
+            <p class="section-subtitle">Performance actuelle de chaque modèle IA</p>
+        </div>
+
+        <div class="benchmarks-grid">
+            @if (VM.LatestCNN != null)
+            {
+                <BenchmarkCardComponent Benchmark="@VM.LatestCNN" />
+            }
+            else
+            {
+                <div class="empty-card">
+                    <span class="empty-icon">🖼️</span>
+                    <p>Aucun benchmark CNN disponible</p>
+                </div>
+            }
+
+            @if (VM.LatestPrediction != null)
+            {
+                <BenchmarkCardComponent Benchmark="@VM.LatestPrediction" />
+            }
+            else
+            {
+                <div class="empty-card">
+                    <span class="empty-icon">💰</span>
+                    <p>Aucun benchmark de prédiction disponible</p>
+                </div>
+            }
+
+            @if (VM.LatestAjustement != null)
+            {
+                <BenchmarkCardComponent Benchmark="@VM.LatestAjustement" />
+            }
+            else
+            {
+                <div class="empty-card">
+                    <span class="empty-icon">⚖️</span>
+                    <p>Aucun benchmark d'ajustement disponible</p>
+                </div>
+            }
+        </div>
+
+        <!-- Historique -->
+        <div class="section-header">
+            <h2>📜 Historique des benchmarks</h2>
+            <div class="history-filters">
+                <select class="filter-select" @onchange="@((e) => VM.FilterHistoryByType(e.Value?.ToString() ?? "all"))">
+                    <option value="all" selected="@(VM.SelectedHistoryType == "all")">Tous les modèles</option>
+                    <option value="cnn" selected="@(VM.SelectedHistoryType == "cnn")">🖼️ CNN</option>
+                    <option value="prediction" selected="@(VM.SelectedHistoryType == "prediction")">💰 Prédiction</option>
+                    <option value="ajustement" selected="@(VM.SelectedHistoryType == "ajustement")">⚖️ Ajustement</option>
+                </select>
+                <select class="filter-select" @onchange="@((e) => VM.ChangeHistoryLimit(int.Parse(e.Value?.ToString() ?? "10")))">
+                    <option value="10" selected="@(VM.HistoryLimit == 10)">10 derniers</option>
+                    <option value="20" selected="@(VM.HistoryLimit == 20)">20 derniers</option>
+                    <option value="50" selected="@(VM.HistoryLimit == 50)">50 derniers</option>
+                </select>
+            </div>
+        </div>
+
+        @if (VM.HistoryList.Any())
+        {
+            <div class="history-table">
+                <div class="table-header">
+                    <div class="col-icon"></div>
+                    <div class="col-model">Modèle</div>
+                    <div class="col-date">Date</div>
+                    <div class="col-iterations">Itérations</div>
+                    <div class="col-success">Succès</div>
+                    <div class="col-time">Temps moyen</div>
+                    <div class="col-perf">Performance</div>
+                </div>
+                @foreach (var item in VM.HistoryList)
+                {
+                    <div class="table-row">
+                        <div class="col-icon">@VM.GetModelTypeIcon(item.ModelType)</div>
+                        <div class="col-model">
+                            <span class="model-name">@VM.GetModelTypeDisplayName(item.ModelType)</span>
+                        </div>
+                        <div class="col-date">
+                            <span class="date">@item.Timestamp.ToString("dd/MM/yyyy")</span>
+                            <span class="time">@item.Timestamp.ToString("HH:mm")</span>
+                        </div>
+                        <div class="col-iterations">@item.TotalIterations</div>
+                        <div class="col-success">
+                            <span class="success-badge">@item.SuccessRatePercent.ToString("F1")%</span>
+                        </div>
+                        <div class="col-time">@item.AvgInferenceTimeMs.ToString("F2") ms</div>
+                        <div class="col-perf">
+                            <span class="perf-badge @VM.GetPerformanceClass(item.AvgInferenceTimeMs)">
+                                @VM.GetPerformanceLevel(item.AvgInferenceTimeMs)
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <span class="empty-icon">📭</span>
+                <h3>Aucun historique disponible</h3>
+                <p>Synchronisez les benchmarks pour voir l'historique</p>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(StateHasChanged);
+    }
+}

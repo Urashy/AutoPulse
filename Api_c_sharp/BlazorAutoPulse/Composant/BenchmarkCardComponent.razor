@@ -1,0 +1,136 @@
+@using AutoPulse.Shared.DTO.IA.Benchmark
+@using BlazorAutoPulse.ViewModel
+@inject BenchmarkCardComponentViewModel VM
+
+<div class="benchmark-card @VM.GetPerformanceClass()">
+    <div class="card-header">
+        <div class="model-info">
+            <span class="model-icon">@VM.ModelIcon</span>
+            <div>
+                <h3>@VM.ModelName</h3>
+                <span class="model-type">@Benchmark.ModelType.ToUpper()</span>
+            </div>
+        </div>
+        <div class="timestamp">
+            <span class="date-badge">@Benchmark.Timestamp.ToString("dd/MM/yyyy")</span>
+            <span class="time-badge">@Benchmark.Timestamp.ToString("HH:mm")</span>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <!-- Métrique principale -->
+        <div class="main-metric">
+            <div class="metric-value">
+                <span class="value">@Benchmark.AvgInferenceTimeMs.ToString("F2")</span>
+                <span class="unit">ms</span>
+            </div>
+            <div class="metric-label">Temps moyen d'inférence</div>
+            <div class="performance-badge @VM.GetPerformanceClass()">
+                @VM.GetPerformanceLevel()
+            </div>
+        </div>
+
+        <!-- Grille de métriques -->
+        <div class="metrics-grid">
+            <div class="metric-item">
+                <div class="metric-icon">⚡</div>
+                <div class="metric-content">
+                    <span class="metric-title">Prédictions/sec</span>
+                    <span class="metric-number">@Benchmark.PredictionsPerSecond.ToString("F1")</span>
+                </div>
+            </div>
+
+            <div class="metric-item">
+                <div class="metric-icon">✓</div>
+                <div class="metric-content">
+                    <span class="metric-title">Taux de succès</span>
+                    <span class="metric-number">@Benchmark.SuccessRatePercent.ToString("F1")%</span>
+                </div>
+            </div>
+
+            <div class="metric-item">
+                <div class="metric-icon">🔄</div>
+                <div class="metric-content">
+                    <span class="metric-title">Itérations</span>
+                    <span class="metric-number">@Benchmark.TotalIterations</span>
+                </div>
+            </div>
+
+            <div class="metric-item">
+                <div class="metric-icon">⏱️</div>
+                <div class="metric-content">
+                    <span class="metric-title">Temps total</span>
+                    <span class="metric-number">@Benchmark.TotalTimeSeconds.ToString("F2")s</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barre de temps -->
+        <div class="time-range">
+            <div class="time-label">
+                <span>Min</span>
+                <span class="time-value">@Benchmark.MinInferenceTimeMs.ToString("F1")ms</span>
+            </div>
+            <div class="time-bar">
+                <div class="time-bar-fill"></div>
+                <div class="time-marker avg" style="left: @VM.GetAvgPosition()%">
+                    <span class="marker-label">Moy</span>
+                </div>
+            </div>
+            <div class="time-label">
+                <span>Max</span>
+                <span class="time-value">@Benchmark.MaxInferenceTimeMs.ToString("F1")ms</span>
+            </div>
+        </div>
+
+        <!-- Informations système -->
+        <div class="system-info">
+            <div class="system-header">
+                <span>💻 Informations système</span>
+            </div>
+            <div class="system-details">
+                <div class="system-item">
+                    <span class="system-label">Plateforme</span>
+                    <span class="system-value">@(Benchmark.Platform ?? "N/A")</span>
+                </div>
+                <div class="system-item">
+                    <span class="system-label">CPU</span>
+                    <span class="system-value">@(Benchmark.Processor ?? "N/A") (@(Benchmark.CpuCount ?? 0) cores)</span>
+                </div>
+                <div class="system-item">
+                    <span class="system-label">Mémoire</span>
+                    <span class="system-value">@(Benchmark.MemoryAvailableGb?.ToString("F1") ?? "N/A")GB / @(Benchmark.MemoryTotalGb?.ToString("F1") ?? "N/A")GB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques avancées -->
+        <div class="advanced-stats">
+            <div class="stat-row">
+                <span class="stat-label">Écart-type</span>
+                <span class="stat-value">@Benchmark.StdInferenceTimeMs.ToString("F2") ms</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Prédictions réussies</span>
+                <span class="stat-value">@Benchmark.SuccessfulPredictions / @Benchmark.TotalIterations</span>
+            </div>
+            @if (Benchmark.FailedPredictions > 0)
+            {
+                <div class="stat-row warning">
+                    <span class="stat-label">⚠️ Échecs</span>
+                    <span class="stat-value">@Benchmark.FailedPredictions</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public BenchmarkIADTO Benchmark { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VM.InitializeAsync(Benchmark);
+    }
+}
