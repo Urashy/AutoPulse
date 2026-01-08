@@ -1,0 +1,542 @@
+/* ========== MODAL OVERLAY ========== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ========== MODAL CONTENT ========== */
+.modal-content {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    border: 2px solid #00d4ff;
+    border-radius: 20px;
+    width: 95%;
+    max-width: 1600px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+    animation: slideUp 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== MODAL HEADER ========== */
+.modal-header {
+    padding: 25px 30px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #00d4ff;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.btn-close:hover {
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+}
+
+/* ========== MODAL BODY ========== */
+.modal-body {
+    padding: 30px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* ========== PAYMENT CONTAINER ========== */
+.payment-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
+    min-height: 400px;
+}
+
+/* ========== SECTION GAUCHE: INFOS PAIEMENT ========== */
+.payment-info-section {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid #333;
+    border-radius: 15px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.payment-header h3 {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+}
+
+.payment-total {
+    margin-top: auto;
+    padding: 25px;
+    background: rgba(0, 212, 255, 0.05);
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.total-label {
+    color: #aaa;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.total-amount {
+    color: #00d4ff;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+/* ========== SECTION DROITE: CARTES ========== */
+.cards-selection-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.cards-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #333;
+}
+
+.cards-header h3 {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.btn-add-card {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-add-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+}
+
+.btn-add-card span:first-child {
+    font-size: 18px;
+}
+
+/* ========== LOADING CARDS ========== */
+.loading-cards {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.loading-cards .spinner {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 20px;
+    border: 4px solid rgba(0, 212, 255, 0.2);
+    border-top-color: #00d4ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-cards p {
+    color: #00d4ff;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* ========== GRILLE DES CARTES (3 COLONNES) ========== */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.cards-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.cards-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.cards-grid::-webkit-scrollbar-thumb {
+    background: #00d4ff;
+    border-radius: 10px;
+}
+
+.cards-grid::-webkit-scrollbar-thumb:hover {
+    background: #00b8e6;
+}
+
+.cards-list{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+/* ========== CARD ITEM (VERSION COMPACTE) ========== */
+.card-item {
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 180px;
+}
+
+.card-item:hover {
+    border-color: #00d4ff;
+    background: rgba(0, 212, 255, 0.05);
+    transform: translateY(-5px);
+}
+
+.card-item.selected {
+    border-color: #00d4ff;
+    background: rgba(0, 212, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+    transform: translateY(-5px);
+}
+
+/* Radio button en haut à droite */
+.card-radio-top {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.card-radio-top input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #00d4ff;
+}
+
+/* Réduction de la taille du composant carte bancaire */
+.card-item ::deep .card-bancaire {
+    transform: scale(0.85);
+    transform-origin: top left;
+}
+
+.card-item ::deep .card-front {
+    min-height: 160px;
+    padding: 20px;
+}
+
+.card-item ::deep .card-number {
+    font-size: 16px;
+    letter-spacing: 2px;
+    margin: 15px 0;
+}
+
+.card-item ::deep .card-chip {
+    width: 40px;
+    height: 32px;
+    font-size: 20px;
+}
+
+.card-item ::deep .card-type {
+    font-size: 14px;
+}
+
+.card-item ::deep .card-value {
+    font-size: 13px;
+}
+
+.card-item ::deep .card-label {
+    font-size: 10px;
+}
+
+/* ========== NO CARDS MESSAGE ========== */
+.no-cards-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.no-cards-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.no-cards-message p {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+}
+
+.no-cards-subtitle {
+    color: #888;
+    font-size: 14px;
+}
+
+/* ========== MODAL FOOTER ========== */
+.modal-footer {
+    padding: 20px 30px;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.btn-cancel,
+.btn-pay {
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.btn-pay {
+    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    color: #fff;
+}
+
+.btn-pay:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+}
+
+.btn-pay:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1400px) {
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .payment-container {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .payment-info-section {
+        order: 2;
+    }
+
+    .cards-selection-section {
+        order: 1;
+    }
+
+    .cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .modal-header {
+        padding: 20px;
+    }
+
+    .modal-header h2 {
+        font-size: 20px;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .payment-info-section {
+        padding: 20px;
+    }
+
+    .payment-total {
+        padding: 20px;
+    }
+
+    .total-amount {
+        font-size: 28px;
+    }
+
+    .cards-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .btn-add-card {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .modal-footer {
+        padding: 15px 20px;
+        flex-direction: column-reverse;
+    }
+
+    .btn-cancel,
+    .btn-pay {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-header h2 {
+        font-size: 18px;
+    }
+
+    .btn-close {
+        width: 35px;
+        height: 35px;
+        font-size: 24px;
+    }
+
+    .payment-header h3 {
+        font-size: 18px;
+    }
+
+    .total-label {
+        font-size: 14px;
+    }
+
+    .total-amount {
+        font-size: 24px;
+    }
+
+    .cards-header h3 {
+        font-size: 16px;
+    }
+
+    .no-cards-icon {
+        font-size: 60px;
+    }
+
+    .no-cards-message p {
+        font-size: 16px;
+    }
+
+    .loading-cards .spinner {
+        width: 40px;
+        height: 40px;
+    }
+
+    .loading-cards p {
+        font-size: 14px;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}

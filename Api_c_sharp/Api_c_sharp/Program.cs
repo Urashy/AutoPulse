@@ -62,6 +62,7 @@ builder.Services.AddScoped<MotriciteManager>();
 builder.Services.AddScoped<MoyenPaiementManager>();
 builder.Services.AddScoped<NotificationManager>();
 builder.Services.AddScoped<OffreManager>();
+builder.Services.AddScoped<PaiementManager>();
 builder.Services.AddScoped<PaysManager>();
 builder.Services.AddScoped<PieceJointeManager>();
 builder.Services.AddScoped<PlainteManager>();

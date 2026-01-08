@@ -134,6 +134,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<CommandeDetailViewModel>();
             builder.Services.AddScoped<AdminBenchmarkIAViewModel>();
             builder.Services.AddTransient<BenchmarkCardComponentViewModel>();
+            builder.Services.AddTransient<PaiementModalViewModel>();
 
             //----------------------- Singleton
             builder.Services.AddSingleton<ISignalRService>(sp => new SignalRWebService());

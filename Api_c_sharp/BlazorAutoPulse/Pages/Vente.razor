@@ -7,9 +7,11 @@
 
 <PageTitle>AutoPulse - Vendre</PageTitle>
 
-@* Composant Modal Carte Bancaire *@
-<CarteBancaireModal IsVisible="@VM.OpenCBModal"
-                    IsVisibleChanged="@((bool value) => VM.OpenCBModal = value)"/>
+@* Composant Modal Paiement *@
+<PaiementModal IsVisible="@VM.showPaiementMavModal"
+               IdCB="@((int value) => VM.SetIdCb(value))"
+               IsVisibleChanged="@((bool value) => VM.showPaiementMavModal = value)"
+               OnPaymentSuccess="@VM.OnPaymentSuccess" />
 
 @* Composant Modal Immatriculation *@
 <ImmatModal IsVisible="@VM.showImmatModal"

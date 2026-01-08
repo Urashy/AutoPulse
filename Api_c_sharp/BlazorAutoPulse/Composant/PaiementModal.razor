@@ -1,0 +1,103 @@
+@using AutoPulse.Shared.DTO
+@inject PaiementModalViewModel VM
+
+<div class="modal-overlay @(IsVisible ? "active" : "")" @onclick="VM.CloseModal">
+    <div class="modal-content" @onclick:stopPropagation="true">
+        <div class="modal-header">
+            <h2>Paiement pour la mise en avant</h2>
+            <button class="btn-close" @onclick="VM.CloseModal">✕</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="payment-container">
+                <!-- Section gauche: Informations de paiement -->
+                <div class="payment-info-section">
+                    <div class="payment-header">
+                        <h3>Mise en avant: Premium</h3>
+                    </div>
+
+                    <div class="payment-total">
+                        <span class="total-label">Total à payer :</span>
+                        <span class="total-amount">10€</span>
+                    </div>
+                </div>
+
+                <!-- Section droite: Sélection de carte -->
+                <div class="cards-selection-section">
+                    <div class="cards-header">
+                        <h3>Sélectionner une carte</h3>
+                        <button class="btn-add-card" @onclick="VM.OpenCarteBancaireModal">
+                            <span>+</span>
+                            <span>Ajouter une carte</span>
+                        </button>
+                    </div>
+
+                    @if (VM.IsLoadingCards)
+                    {
+                        <div class="loading-cards">
+                            <div class="spinner"></div>
+                            <p>Chargement des cartes...</p>
+                        </div>
+                    }
+                    else if (VM.CartesBancaires != null && VM.CartesBancaires.Any())
+                    {
+                        <div class="cards-list">
+                            @foreach (var carte in VM.CartesBancaires)
+                            {
+                                <div class="card-item @(VM.SelectedCarteId == carte.IdCarteBancaire ? "selected" : "")" 
+                                     @onclick="() => VM.SelectCarte(carte.IdCarteBancaire)">
+                                    <div class="card-radio">
+                                        <input type="radio" 
+                                               name="carte" 
+                                               checked="@(VM.SelectedCarteId == carte.IdCarteBancaire)"
+                                               @onclick:stopPropagation="true" />
+                                    </div>
+                                    <CarteBancaireComposant CarteBancaire="@carte" ShowActions="false" />
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-cards-message">
+                            <div class="no-cards-icon">💳</div>
+                            <p>Aucune carte enregistrée</p>
+                            <p class="no-cards-subtitle">Ajoutez une carte pour continuer</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-cancel" @onclick="VM.CloseModal">Annuler</button>
+            <button class="btn-pay" 
+                    @onclick="VM.ProcessPayment" 
+                    disabled="@(VM.SelectedCarteId == null)">
+                Payer
+            </button>
+        </div>
+    </div>
+</div>
+
+<CarteBancaireModal IsVisible="@VM.ShowCarteBancaireModal"
+                    IsVisibleChanged="@VM.ChangeShowCarteModal"
+                    OnCarteSaved="@VM.HandleCarteSaved" />
+                    
+@code{
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback<int> IdCB { get; set; }
+    [Parameter] public EventCallback OnPaymentSuccess { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await VM.InitializeAsync(
+            IsVisible,
+            IsVisibleChanged,
+            IdCB,
+            OnPaymentSuccess,
+            StateHasChanged
+        );
+    }
+}

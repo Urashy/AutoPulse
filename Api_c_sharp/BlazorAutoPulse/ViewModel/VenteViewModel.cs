@@ -127,7 +127,9 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
         
-        public bool OpenCBModal { get; set; } = false;
+        
+        public bool showPaiementMavModal { get; set; } = false;
+        public int IdCbUse { get; set; } = 0;
         
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav, GetAllViewModel vmAll)
         {
@@ -1079,17 +1081,29 @@ namespace BlazorAutoPulse.ViewModel
             
             if (annonce.IdMiseEnAvant == 1)
             {
-                CreateAnnonce();
+                await CreateAnnonce();
                 return;
             }
 
-            PayMav();
+            await PayMav();
         }
 
         public async Task PayMav()
         {
-            OpenCBModal = true;
+            showPaiementMavModal = true;
             _refreshUI?.Invoke();
+        }
+        
+        public async Task OnPaymentSuccess()
+        {
+            showPaiementMavModal = false;
+            
+            await CreateAnnonce();
+        }
+        
+        public void SetIdCb(int id)
+        {
+            IdCbUse = id;
         }
         
         public async Task CreateAnnonce()
@@ -1121,7 +1135,6 @@ namespace BlazorAutoPulse.ViewModel
                 foreach (ImageUpload image in imageUpload)
                 {
                     image.IdVoiture = resultVoitureDetailDto.IdVoiture;
-                    Console.WriteLine(image.IdVoiture);
                     await _postImageService.CreateAsync(image);
                 }
                 
@@ -1134,10 +1147,13 @@ namespace BlazorAutoPulse.ViewModel
                     };
                     await _aPourCouleurService.CreateAsync(aPourCouleur);
                 }
-                
+
+                annonce.IdCB = IdCbUse;
                 annonce.IdAdresse = resultAdr.IdAdresse;
                 annonce.IdVoiture = resultVoitureDetailDto.IdVoiture;
                 annonce.IdCompte = compte.IdCompte;
+                Console.WriteLine("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+                Console.WriteLine(annonce.IdMiseEnAvant);
                 await _annonceService.CreateAnnonceAsync(annonce);
                 _nav.NavigateTo("/");
 
