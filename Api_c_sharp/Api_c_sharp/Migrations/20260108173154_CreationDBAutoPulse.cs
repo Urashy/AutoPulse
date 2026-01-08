@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -7,7 +6,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Api_c_sharp.Migrations
 {
-    [ExcludeFromCodeCoverage]
     /// <inheritdoc />
     public partial class CreationDBAutoPulse : Migration
     {
@@ -481,7 +479,9 @@ namespace Api_c_sharp.Migrations
                     cba_numero = table.Column<string>(type: "text", nullable: false),
                     cba_code_securite = table.Column<string>(type: "text", nullable: false),
                     cba_date_expiration = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    com_idcompte = table.Column<int>(type: "integer", nullable: false)
+                    com_idcompte = table.Column<int>(type: "integer", nullable: false),
+                    cba_typecarte = table.Column<string>(type: "text", nullable: false),
+                    cba_nomcarte = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1180,9 +1180,9 @@ namespace Api_c_sharp.Migrations
                     pmt_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ann_id = table.Column<int>(type: "integer", nullable: false),
-                    cba_id = table.Column<int>(type: "integer", nullable: false),
-                    mav_id = table.Column<int>(type: "integer", nullable: false),
-                    cmd_id = table.Column<int>(type: "integer", nullable: false),
+                    cba_id = table.Column<int>(type: "integer", nullable: true),
+                    mav_id = table.Column<int>(type: "integer", nullable: true),
+                    cmd_id = table.Column<int>(type: "integer", nullable: true),
                     com_id = table.Column<int>(type: "integer", nullable: false),
                     pmpt_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -1201,15 +1201,13 @@ namespace Api_c_sharp.Migrations
                         column: x => x.cba_id,
                         principalSchema: "public",
                         principalTable: "t_e_cartebancaire_cba",
-                        principalColumn: "cba_id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "cba_id");
                     table.ForeignKey(
                         name: "FK_t_e_paiement_pmt_t_e_commande_cmd_cmd_id",
                         column: x => x.cmd_id,
                         principalSchema: "public",
                         principalTable: "t_e_commande_cmd",
-                        principalColumn: "cmd_id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "cmd_id");
                     table.ForeignKey(
                         name: "FK_t_e_paiement_pmt_t_e_compte_com_com_id",
                         column: x => x.com_id,
@@ -1222,8 +1220,7 @@ namespace Api_c_sharp.Migrations
                         column: x => x.mav_id,
                         principalSchema: "public",
                         principalTable: "t_e_miseavant_mav",
-                        principalColumn: "mav_id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "mav_id");
                 });
 
             migrationBuilder.CreateIndex(

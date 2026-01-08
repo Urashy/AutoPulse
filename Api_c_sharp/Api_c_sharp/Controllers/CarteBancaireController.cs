@@ -37,6 +37,7 @@ namespace Api_c_sharp.Controllers
                 return BadRequest(ModelState);
 
             var entity = _mapper.Map<CarteBancaire>(dto);
+            entity.TypeCarte = GetTypeCarte(entity.NumeroCarte);
             await _manager.AddAsync(entity);
 
             return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
@@ -70,6 +71,8 @@ namespace Api_c_sharp.Controllers
                 return NotFound();
 
             var updatedEntity = _mapper.Map<CarteBancaire>(dto);
+            updatedEntity.TypeCarte = GetTypeCarte(updatedEntity.NumeroCarte);
+
             await _manager.UpdateAsync(toUpdate, updatedEntity);
 
             return NoContent();
@@ -159,6 +162,31 @@ namespace Api_c_sharp.Controllers
                 return NotFound();
 
             return new ActionResult<IEnumerable<CarteBancaireDTO>>(_mapper.Map<IEnumerable<CarteBancaireDTO>>(list));
+        }
+
+        private static string GetTypeCarte(string numeroCarte)
+        {
+            if (string.IsNullOrWhiteSpace(numeroCarte))
+                return "Classique";
+
+            if (numeroCarte.StartsWith("4"))
+                return "Visa";
+
+            if (numeroCarte.Length == 16 &&
+               (numeroCarte.StartsWith("51") ||
+                numeroCarte.StartsWith("52") ||
+                numeroCarte.StartsWith("53") ||
+                numeroCarte.StartsWith("54") ||
+                numeroCarte.StartsWith("55")))
+                return "MasterCard";
+
+            if (numeroCarte.StartsWith("34") || numeroCarte.StartsWith("37"))
+                return "American Express";
+
+            if (numeroCarte.StartsWith("6011") || numeroCarte.StartsWith("65"))
+                return "Discover";
+
+            return "Classique";
         }
     }
 }

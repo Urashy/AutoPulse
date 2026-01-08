@@ -27,6 +27,13 @@ namespace Api_c_sharp.Models.Entity
         [Column("com_idcompte")]
         public int IdCompte { get; set; }
 
+        [Required]
+        [Column("cba_typecarte")]
+        public string TypeCarte { get; set; } = null!;
+
+        [Column("cba_nomcarte")]
+        public string? NomCarte { get; set; } 
+
         [ForeignKey(nameof(IdCompte))]
         [InverseProperty(nameof(Compte.CarteBancaires))]
         public virtual Compte? CompteCarteBancaireNav { get; set; }

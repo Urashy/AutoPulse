@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api_c_sharp.Migrations
 {
     [DbContext(typeof(AutoPulseBdContext))]
-    [Migration("20260107234434_CreationDBAutoPulse")]
+    [Migration("20260108173154_CreationDBAutoPulse")]
     partial class CreationDBAutoPulse
     {
         /// <inheritdoc />
@@ -415,10 +415,19 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("com_idcompte");
 
+                    b.Property<string>("NomCarte")
+                        .HasColumnType("text")
+                        .HasColumnName("cba_nomcarte");
+
                     b.Property<string>("NumeroCarte")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("cba_numero");
+
+                    b.Property<string>("TypeCarte")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("cba_typecarte");
 
                     b.HasKey("IdCarteBancaire");
 
@@ -1123,11 +1132,11 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ann_id");
 
-                    b.Property<int>("IdCarteBancaire")
+                    b.Property<int?>("IdCarteBancaire")
                         .HasColumnType("integer")
                         .HasColumnName("cba_id");
 
-                    b.Property<int>("IdCommande")
+                    b.Property<int?>("IdCommande")
                         .HasColumnType("integer")
                         .HasColumnName("cmd_id");
 
@@ -1135,7 +1144,7 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("com_id");
 
-                    b.Property<int>("IdMiseEnAvant")
+                    b.Property<int?>("IdMiseEnAvant")
                         .HasColumnType("integer")
                         .HasColumnName("mav_id");
 
@@ -1980,15 +1989,11 @@ namespace Api_c_sharp.Migrations
 
                     b.HasOne("Api_c_sharp.Models.Entity.CarteBancaire", "PaiementCarteBancaireNav")
                         .WithMany("Paiements")
-                        .HasForeignKey("IdCarteBancaire")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("IdCarteBancaire");
 
                     b.HasOne("Api_c_sharp.Models.Entity.Commande", "PaiementCommandeNav")
                         .WithMany("Paiements")
-                        .HasForeignKey("IdCommande")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("IdCommande");
 
                     b.HasOne("Api_c_sharp.Models.Entity.Compte", "PaiementCompteNav")
                         .WithMany("Paiements")
@@ -1998,9 +2003,7 @@ namespace Api_c_sharp.Migrations
 
                     b.HasOne("Api_c_sharp.Models.Entity.MiseEnAvant", "PaiementMiseEnAvantNav")
                         .WithMany("Paiements")
-                        .HasForeignKey("IdMiseEnAvant")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("IdMiseEnAvant");
 
                     b.Navigation("PaiementAnnonceNav");
 
