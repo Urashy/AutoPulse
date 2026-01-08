@@ -74,10 +74,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdCompte = 1,
                 IdConversation = 10
             };
+            var apourvonv2 = new APourConversation
+            {
+                IdCompte = 2,
+                IdConversation = 10
+            };
 
             await _context.Comptes.AddAsync(compte);
             await _context.Conversations.AddAsync(conversation);
             await _context.APourConversations.AddAsync(entry);
+            await _context.APourConversations.AddAsync(apourvonv2);
             var compte2 = new Compte
             {
                 IdCompte = 2,
@@ -90,7 +96,21 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 DateDerniereConnexion = DateTime.Now,
                 DateNaissance = DateTime.Now,
             };
+
+            var compte3 = new Compte
+            {
+                IdCompte = 3,
+                Pseudo = "testPseudo3",
+                MotDePasse = "testPsw3",
+                Nom = "testNom3",
+                Prenom = "testPrenom3",
+                Email = "test.test@gmail.com3",
+                DateCreation = DateTime.Now,
+                DateDerniereConnexion = DateTime.Now,
+                DateNaissance = DateTime.Now,
+            };
             await _context.Comptes.AddAsync(compte2);
+            await _context.Comptes.AddAsync(compte3);
 
 
 
@@ -271,6 +291,37 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
-        #endregion 
+        #endregion
+
+        #region EXISTS
+
+        [TestMethod]
+        public async Task ExistsTrueTest()
+        {
+            var result = await _controller.Exists(1, 2, 1);
+
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Value);
+        }
+
+        [TestMethod]
+        public async Task ExistsFalseTest()
+        {
+            var result = await _controller.Exists(1, 3, 1);
+
+            Assert.IsNotNull(result);
+            Assert.IsFalse(result.Value);
+        }
+
+        [TestMethod]
+        public async Task ExistsAucuneConversationTest()
+        {
+            var result = await _controller.Exists(1, 3, 2);
+
+            Assert.IsNotNull(result);
+            Assert.IsFalse(result.Value);
+        }
+
+        #endregion
     }
 }
