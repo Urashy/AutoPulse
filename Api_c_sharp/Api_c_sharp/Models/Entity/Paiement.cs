@@ -15,13 +15,13 @@ namespace Api_c_sharp.Models.Entity
         public int IdAnnonce { get; set; }
 
         [Column("cba_id")]
-        public int IdCarteBancaire { get; set; }
+        public int? IdCarteBancaire { get; set; }
 
         [Column("mav_id")]
-        public int IdMiseEnAvant { get; set; }
+        public int? IdMiseEnAvant { get; set; }
 
         [Column("cmd_id")]
-        public int IdCommande { get; set; }
+        public int? IdCommande { get; set; }
 
         [Column("com_id")]
         public int IdCompte { get; set; }

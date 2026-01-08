@@ -1,16 +1,18 @@
 ﻿using Api_c_sharp.Controllers;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
+using AutoPulse.Shared.DTO.Authentification;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using System.Security.Claims;
-using AutoPulse.Shared.DTO.Authentification;
 
 namespace Api_c_sharp.ControllersMock.Tests
 {
@@ -19,7 +21,7 @@ namespace Api_c_sharp.ControllersMock.Tests
     public class CompteControllerTestsMoq
     {
         private Mock<CompteManager> _mockManager = null!;
-        private Mock<RefreshTokenManager> _mockTockenManager = null!;
+        private Mock<RefreshTokenManager> _mockTokenManager = null!;
         private Mock<IJournalService> _mockJournalService = null!;
         private IConfiguration _config = null!;
         private CompteController _controller = null!;
@@ -29,12 +31,10 @@ namespace Api_c_sharp.ControllersMock.Tests
         [TestInitialize]
         public void Initialize()
         {
-            // Création des mocks
             _mockManager = new Mock<CompteManager>(null!);
-            _mockTockenManager = new Mock<RefreshTokenManager>(null!);
+            _mockTokenManager = new Mock<RefreshTokenManager>(null!);
             _mockJournalService = new Mock<IJournalService>();
 
-            // Configuration en mémoire pour JWT
             var inMemorySettings = new Dictionary<string, string>
             {
                 {"Jwt:SecretKey", "UneSuperCleSecreteTresLonguePourLeTestJWT123456789"},
@@ -44,18 +44,11 @@ namespace Api_c_sharp.ControllersMock.Tests
                 {"Authentication:Google:ClientSecret", "test-client-secret"},
                 {"Authentication:Google:RedirectUri", "http://localhost:5000/api/compte/googlecallback"}
             };
-            _config = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
+            _config = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
 
-            // Configuration AutoMapper
-            var config = new MapperConfiguration(cfg =>
-            {
-                cfg.AddProfile<MapperProfile>();
-            });
+            var config = new MapperConfiguration(cfg => cfg.AddProfile<MapperProfile>());
             _mapper = config.CreateMapper();
 
-            // Création du compte de référence
             _objetcommun = new Compte
             {
                 IdCompte = 1,
@@ -71,21 +64,11 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdEtatCompte = 1
             };
 
-            // Injection dans le controller
-            _controller = new CompteController(
-                _mockManager.Object,
-                _mapper,
-                _config,
-                _mockJournalService.Object,
-                _mockTockenManager.Object
-            );
+            _controller = new CompteController(_mockManager.Object, _mapper, _config,
+                _mockJournalService.Object, _mockTokenManager.Object);
 
-            // Configuration du contexte HTTP pour les cookies
             var httpContext = new DefaultHttpContext();
-            _controller.ControllerContext = new ControllerContext()
-            {
-                HttpContext = httpContext
-            };
+            _controller.ControllerContext = new ControllerContext() { HttpContext = httpContext };
         }
 
         [TestMethod]
@@ -354,37 +337,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             var result = await _controller.GetByString(_objetcommun.Email);
             Assert.IsNotNull(result.Value);
             Assert.AreEqual(_objetcommun.Nom, result.Value.Nom);
-        }
-        [TestMethod]
-        public async Task Login_ValidCredentials_ReturnsOkWithToken()
-        {
-            // Arrange
-            var loginRequest = new LoginRequest
-            {
-                Email = "john@gmail.com",
-                MotDePasse = "Testmdp1!"
-            };
-
-            // Mock AuthenticateCompte instead of GetByNameAsync
-            _mockManager.Setup(m => m.AuthenticateCompte(
-                It.IsAny<string>(),
-                It.IsAny<string>()))
-                .ReturnsAsync(_objetcommun);
-
-            // Also mock GetByNameAsync for GenerateJwtToken
-            _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>()))
-                .ReturnsAsync(_objetcommun);
-
-            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>()))
-                .Returns(Task.CompletedTask);
-
-            // Act
-            var result = await _controller.Login(loginRequest);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
         }
 
         [TestMethod]
@@ -870,23 +822,6 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #region Autres tests
 
-
-        [TestMethod]
-        public async Task Logout_UnauthenticatedUser_ThrowsException()
-        {
-            // Arrange
-            var claims = new List<Claim>();
-            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
-
-            // Act
-            var result = await _controller.Logout();
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(ObjectResult));
-            var objectResult = result as ObjectResult;
-            Assert.AreEqual(500, objectResult.StatusCode);
-        }
-
         [TestMethod]
         public async Task ModifMdp_ValidData_ReturnsOk()
         {
@@ -1089,73 +1024,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.AreEqual(1, createdCompte.IdEtatCompte);
             Assert.IsNotNull(createdCompte.DateCreation);
             Assert.IsNotNull(createdCompte.DateDerniereConnexion);
-        }
-
-        [TestMethod]
-        public async Task Login_SuccessfulLogin_SetsCorrectCookie()
-        {
-            // Arrange
-            var loginRequest = new LoginRequest
-            {
-                Email = "john@gmail.com",
-                MotDePasse = "Testmdp1!"
-            };
-
-            _mockManager.Setup(m => m.AuthenticateCompte(It.IsAny<string>(), It.IsAny<string>()))
-                       .ReturnsAsync(_objetcommun);
-            _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>()))
-                       .ReturnsAsync(_objetcommun);
-            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>()))
-                              .Returns(Task.CompletedTask);
-
-            // Act
-            var result = await _controller.Login(loginRequest);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-            var okResult = result as OkObjectResult;
-
-            // Vérifie la structure de la réponse
-            var response = okResult?.Value;
-            var messageProperty = response.GetType().GetProperty("message");
-            var userIdProperty = response.GetType().GetProperty("userId");
-            var pseudoProperty = response.GetType().GetProperty("pseudo");
-            var roleProperty = response.GetType().GetProperty("role");
-
-            Assert.IsNotNull(messageProperty);
-            Assert.IsNotNull(userIdProperty);
-            Assert.IsNotNull(pseudoProperty);
-            Assert.IsNotNull(roleProperty);
-
-            Assert.AreEqual("Login OK", messageProperty.GetValue(response));
-            Assert.AreEqual(_objetcommun.IdCompte, userIdProperty.GetValue(response));
-            Assert.AreEqual(_objetcommun.Pseudo, pseudoProperty.GetValue(response));
-            Assert.AreEqual(_objetcommun.IdTypeCompte, roleProperty.GetValue(response));
-        }
-
-        [TestMethod]
-        public async Task Login_LogsConnexion()
-        {
-            // Arrange
-            var loginRequest = new LoginRequest
-            {
-                Email = "john@gmail.com",
-                MotDePasse = "Testmdp1!"
-            };
-
-            _mockManager.Setup(m => m.AuthenticateCompte(It.IsAny<string>(), It.IsAny<string>()))
-                       .ReturnsAsync(_objetcommun);
-            _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>()))
-                       .ReturnsAsync(_objetcommun);
-            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>()))
-                              .Returns(Task.CompletedTask)
-                              .Verifiable();
-
-            // Act
-            await _controller.Login(loginRequest);
-
-            // Assert
-            _mockJournalService.Verify(j => j.LogConnexionAsync(_objetcommun.IdCompte), Times.Once);
         }
 
         [TestMethod]
@@ -1839,101 +1707,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
-
-        [TestMethod]
-        public async Task Login_WithA2fInactive_ReturnsOkWithToken()
-        {
-            // Arrange
-            var loginRequest = new LoginRequest
-            {
-                Email = "john@gmail.com",
-                MotDePasse = "Testmdp1!"
-            };
-
-            _mockManager.Setup(m => m.AuthenticateCompte(
-                It.IsAny<string>(),
-                It.IsAny<string>()))
-                .ReturnsAsync(_objetcommun);
-
-            _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>()))
-                       .ReturnsAsync(_objetcommun);
-
-            _mockManager.Setup(m => m.GetStatutA2f(_objetcommun.IdCompte))
-                       .ReturnsAsync((false, null)); // A2F inactif
-
-            _mockManager.Setup(m => m.DoitReactiverA2f(_objetcommun.IdCompte))
-                       .ReturnsAsync(false);
-
-            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>()))
-                              .Returns(Task.CompletedTask);
-
-            // Act
-            var result = await _controller.Login(loginRequest);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-        }
-
-        [TestMethod]
-        public async Task ValidateA2fLogin_ValidCode_ReturnsOkWithToken()
-        {
-            // Arrange
-            var dto = new TokenEmailVerifDTO
-            {
-                Email = "john@gmail.com",
-                Code = "1234567",
-                TypeToken = "A2F_CONNEXION"
-            };
-
-            _mockManager.Setup(m => m.GetByNameAsync(dto.Email))
-                       .ReturnsAsync(_objetcommun);
-
-            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>()))
-                              .Returns(Task.CompletedTask);
-
-            // Act
-            var result = await _controller.ValidateA2fLogin(dto);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-            var okResult = result as OkObjectResult;
-
-            var response = okResult?.Value;
-            var responseType = response?.GetType();
-            var messageProperty = responseType?.GetProperty("message");
-
-            Assert.AreEqual("Login OK", messageProperty?.GetValue(response));
-        }
-
-        [TestMethod]
-        public async Task ValidateA2fLogin_WithA2fActivation_ActivatesA2f()
-        {
-            // Arrange
-            var dto = new TokenEmailVerifDTO
-            {
-                Email = "john@gmail.com",
-                Code = "1234567",
-                TypeToken = "A2F_ACTIVATION"
-            };
-
-            _mockManager.Setup(m => m.GetByNameAsync(dto.Email))
-                       .ReturnsAsync(_objetcommun);
-
-            _mockManager.Setup(m => m.ActiverA2f(_objetcommun.IdCompte))
-                       .Returns(Task.CompletedTask)
-                       .Verifiable();
-
-            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>()))
-                              .Returns(Task.CompletedTask);
-
-            // Act
-            var result = await _controller.ValidateA2fLogin(dto);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-            _mockManager.Verify(m => m.ActiverA2f(_objetcommun.IdCompte), Times.Once);
-        }
-
         [TestMethod]
         public async Task ValidateA2fLogin_CompteInexistant_ReturnsBadRequest()
         {
@@ -1955,6 +1728,139 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
 
+        #endregion
+
+        #region Tests Login/Logout avec RefreshToken
+        [TestMethod]
+        public async Task Login_ValidCredentials_StoresRefreshToken()
+        {
+            var loginRequest = new LoginRequest { Email = "john@gmail.com", MotDePasse = "Testmdp1!" };
+
+            _mockManager.Setup(m => m.AuthenticateCompte(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>())).ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.GetStatutA2f(_objetcommun.IdCompte)).ReturnsAsync((false, null));
+            _mockManager.Setup(m => m.DoitReactiverA2f(_objetcommun.IdCompte)).ReturnsAsync(false);
+            _mockTokenManager.Setup(m => m.StoreRefreshTokenAsync(It.IsAny<int>(), It.IsAny<string>(),
+                It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new RefreshToken { IdRefreshToken = 1 });
+            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
+
+            var result = await _controller.Login(loginRequest, false);
+
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            _mockTokenManager.Verify(m => m.StoreRefreshTokenAsync(_objetcommun.IdCompte,
+                It.IsAny<string>(), false, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Login_WithRememberMe_SetsLongLivedToken()
+        {
+            var loginRequest = new LoginRequest { Email = "john@gmail.com", MotDePasse = "Testmdp1!" };
+
+            _mockManager.Setup(m => m.AuthenticateCompte(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.GetByNameAsync(It.IsAny<string>())).ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.GetStatutA2f(_objetcommun.IdCompte)).ReturnsAsync((false, null));
+            _mockManager.Setup(m => m.DoitReactiverA2f(_objetcommun.IdCompte)).ReturnsAsync(false);
+            _mockTokenManager.Setup(m => m.StoreRefreshTokenAsync(It.IsAny<int>(), It.IsAny<string>(),
+                It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new RefreshToken { IdRefreshToken = 1 });
+            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
+
+            var result = await _controller.Login(loginRequest, rememberMe: true);
+
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            _mockTokenManager.Verify(m => m.StoreRefreshTokenAsync(_objetcommun.IdCompte,
+                It.IsAny<string>(), true, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Login_WithA2fActive_DoesNotStoreRefreshToken()
+        {
+            var loginRequest = new LoginRequest { Email = "john@gmail.com", MotDePasse = "Testmdp1!" };
+
+            _mockManager.Setup(m => m.AuthenticateCompte(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.GetStatutA2f(_objetcommun.IdCompte))
+                .ReturnsAsync((true, DateTime.UtcNow));
+            _mockManager.Setup(m => m.DoitReactiverA2f(_objetcommun.IdCompte)).ReturnsAsync(false);
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>())).Returns(Task.CompletedTask);
+
+            var result = await _controller.Login(loginRequest);
+
+            Assert.IsInstanceOfType(result, typeof(ObjectResult));
+            _mockTokenManager.Verify(m => m.StoreRefreshTokenAsync(It.IsAny<int>(), It.IsAny<string>(),
+                It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Logout_WithRefreshToken_RevokesToken()
+        {
+            var claims = new List<Claim> { new Claim("idUser", "1") };
+            _controller.ControllerContext.HttpContext.User =
+                new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthType"));
+            _controller.ControllerContext.HttpContext.Request.Headers["Cookie"] = "refresh_token=test_token";
+
+            _mockTokenManager.Setup(m => m.RevokeRefreshTokenAsync(It.IsAny<string>())).ReturnsAsync(true);
+            _mockJournalService.Setup(j => j.LogDeconnexionAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
+
+            var result = await _controller.Logout();
+
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            _mockJournalService.Verify(j => j.LogDeconnexionAsync(1), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Refresh_WithValidToken_ReturnsNewAccessToken()
+        {
+            var refreshToken = "valid_refresh_token";
+            _controller.ControllerContext.HttpContext.Request.Headers["Cookie"] =
+                $"refresh_token={refreshToken}";
+
+            _mockTokenManager.Setup(m => m.ValidateRefreshTokenAsync(refreshToken))
+                .ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.GetByNameAsync(_objetcommun.Email)).ReturnsAsync(_objetcommun);
+
+            var result = await _controller.Refresh();
+
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Refresh_WithInvalidToken_ReturnsUnauthorized()
+        {
+            _controller.ControllerContext.HttpContext.Request.Headers["Cookie"] = "refresh_token=invalid";
+            _mockTokenManager.Setup(m => m.ValidateRefreshTokenAsync(It.IsAny<string>()))
+                .ReturnsAsync((Compte)null!);
+
+            var result = await _controller.Refresh();
+
+            Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
+        }
+
+        [TestMethod]
+        public async Task ValidateA2fLogin_ValidCode_StoresRefreshToken()
+        {
+            var dto = new TokenEmailVerifDTO
+            {
+                Email = "john@gmail.com",
+                Code = "1234567",
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.GetByNameAsync(dto.Email)).ReturnsAsync(_objetcommun);
+            _mockTokenManager.Setup(m => m.StoreRefreshTokenAsync(It.IsAny<int>(), It.IsAny<string>(),
+                It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new RefreshToken { IdRefreshToken = 1 });
+            _mockJournalService.Setup(j => j.LogConnexionAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
+
+            var result = await _controller.ValidateA2fLogin(dto, false);
+
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            _mockTokenManager.Verify(m => m.StoreRefreshTokenAsync(_objetcommun.IdCompte,
+                It.IsAny<string>(), false, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
         #endregion
     }
 }

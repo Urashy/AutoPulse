@@ -17,15 +17,13 @@ namespace Api_c_sharp.ControllersMock.Tests
     public class IAControllerUnitTests
     {
         private Mock<IIAService> _mockIAService;
-        private Mock<ILogger<IAController>> _mockLogger;
         private IAController _controller;
 
         [TestInitialize]
         public void Initialize()
         {
             _mockIAService = new Mock<IIAService>();
-            _mockLogger = new Mock<ILogger<IAController>>();
-            _controller = new IAController(_mockIAService.Object, _mockLogger.Object);
+            _controller = new IAController(_mockIAService.Object);
         }
         #region Health
         [TestMethod]

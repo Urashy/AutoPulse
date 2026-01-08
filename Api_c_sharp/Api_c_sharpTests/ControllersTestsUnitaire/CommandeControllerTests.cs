@@ -47,27 +47,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Commandes.RemoveRange(_context.Commandes);
             await _context.SaveChangesAsync();
 
-
-
-
             // ----- ENTITÉS -----
 
-            var tyepeCompte = new TypeCompte()
+            // 1. TypeCompte (must be saved first)
+            var typeCompte = new TypeCompte()
             {
                 IdTypeCompte = 1,
-                Libelle = "Standard"
+                Libelle = "Standard",
+                Cherchable = true
             };
-            await _context.TypesCompte.AddAsync(tyepeCompte);
+            await _context.TypesCompte.AddAsync(typeCompte);
+            await _context.SaveChangesAsync(); // Save before creating Comptes
 
-
-            var annonce = new Annonce()
+            // 2. EtatCompte
+            var etatCompte = new EtatCompte()
             {
-                IdAnnonce = 1,
-                Libelle = "Super produit",
-                IdCompte = 1
+                IdEtatCompte = 1,
+                Libelle = "Actif"
             };
+            await _context.EtatComptes.AddAsync(etatCompte);
+            await _context.SaveChangesAsync();
 
-            var vendeur = new Compte
+            // 3. Comptes (Fixed: acheteur = 1, vendeur = 2)
+            var acheteur = new Compte
             {
                 IdCompte = 1,
                 Pseudo = "john",
@@ -78,50 +80,220 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 DateCreation = DateTime.UtcNow,
                 DateDerniereConnexion = DateTime.UtcNow,
                 DateNaissance = new DateTime(1990, 1, 1),
-                IdTypeCompte = 1
+                IdTypeCompte = 1,
+                IdEtatCompte = 1
             };
-            await _context.Comptes.AddAsync(vendeur);
+            await _context.Comptes.AddAsync(acheteur);
 
-            var acheteur = new Compte
+            var vendeur = new Compte
             {
                 IdCompte = 2,
                 Pseudo = "johny",
                 MotDePasse = "hashedpassword",
                 Nom = "Doe",
-                Prenom = "John",
+                Prenom = "Johnny",
                 Email = "johny@doe.com",
                 DateCreation = DateTime.UtcNow,
                 DateDerniereConnexion = DateTime.UtcNow,
                 DateNaissance = new DateTime(1990, 1, 1),
-                IdTypeCompte = 1
+                IdTypeCompte = 1,
+                IdEtatCompte = 1
             };
-            await _context.Comptes.AddAsync(acheteur);
+            await _context.Comptes.AddAsync(vendeur);
+            await _context.SaveChangesAsync();
+
+            // 4. Pays (needed for Adresse)
+            var pays = new Pays()
+            {
+                IdPays = 1,
+                Libelle = "France"
+            };
+            await _context.Pays.AddAsync(pays);
+            await _context.SaveChangesAsync();
+
+            // 5. Adresse
+            var adresse = new Adresse()
+            {
+                IdAdresse = 1,
+                Nom = "Domicile",
+                Numero = 10,
+                Rue = "Rue de la Paix",
+                LibelleVille = "Paris",
+                CodePostal = "75001",
+                IdCompte = 2, // Vendeur's address
+                IdPays = 1
+            };
+            await _context.Adresses.AddAsync(adresse);
+            await _context.SaveChangesAsync();
+
+            // 6. Voiture dependencies
+            var marque = new Marque()
+            {
+                IdMarque = 1,
+                LibelleMarque = "Peugeot"
+            };
+            await _context.Marques.AddAsync(marque);
+
+            var modele = new Modele()
+            {
+                IdModele = 1,
+                LibelleModele = "308",
+                IdMarque = 1
+            };
+            await _context.Modeles.AddAsync(modele);
+
+            var carburant = new Carburant()
+            {
+                IdCarburant = 1,
+                LibelleCarburant = "Diesel"
+            };
+            await _context.Carburants.AddAsync(carburant);
+
+            var boiteDeVitesse = new BoiteDeVitesse()
+            {
+                IdBoiteDeVitesse = 1,
+                LibelleBoite = "Manuelle"
+            };
+            await _context.BoitesDeVitesses.AddAsync(boiteDeVitesse);
+
+            var categorie = new Categorie()
+            {
+                IdCategorie = 1,
+                LibelleCategorie = "Berline"
+            };
+            await _context.Categories.AddAsync(categorie);
+
+            var motricite = new Motricite()
+            {
+                IdMotricite = 1,
+                LibelleMotricite = "Traction"
+            };
+            await _context.Motricites.AddAsync(motricite);
+            await _context.SaveChangesAsync();
+
+            // 7. Voiture
+            var voiture = new Voiture()
+            {
+                IdVoiture = 1,
+                IdMarque = 1,
+                IdModele = 1,
+                IdCarburant = 1,
+                IdBoiteDeVitesse = 1,
+                IdCategorie = 1,
+                IdMotricite = 1,
+                Kilometrage = 50000,
+                Annee = 2020,
+                Puissance = 130,
+                MiseEnCirculation = new DateTime(2020, 1, 1),
+                NbPlace = 5,
+                NbPorte = 5,
+                Couple = 300,
+                NbCylindres = 4,
+                NbAirbag = 6,
+                InterieurCuire = false,
+                CylindrerMoteur = 1.6,
+                PositionVolant = false
+            };
+            await _context.Voitures.AddAsync(voiture);
+            await _context.SaveChangesAsync();
+
+            // 8. EtatAnnonce
+            var etatAnnonce = new EtatAnnonce()
+            {
+                IdEtatAnnonce = 1,
+                LibelleEtatAnnonce = "Publiée"
+            };
+            await _context.EtatAnnonces.AddAsync(etatAnnonce);
+
+            // 9. MiseEnAvant
+            var miseEnAvant = new MiseEnAvant()
+            {
+                IdMiseEnAvant = 1,
+                LibelleMiseEnAvant = "Standard",
+                PrixSemaine = 0
+            };
+            await _context.MisesEnAvant.AddAsync(miseEnAvant);
+            await _context.SaveChangesAsync();
+
+            // 10. Annonce
+            var annonce = new Annonce()
+            {
+                IdAnnonce = 1,
+                Libelle = "Super produit",
+                IdCompte = 2, // Vendeur
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                IdVoiture = 1,
+                IdMiseEnAvant = 1,
+                DatePublication = DateTime.UtcNow,
+                Prix = 15000
+            };
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
+
+            // 11. MoyenPaiement
             var moyenPaiement = new MoyenPaiement()
             {
                 IdMoyenPaiement = 1,
                 TypePaiement = "Carte"
             };
-
-            await _context.Annonces.AddAsync(annonce);
             await _context.MoyensPaiements.AddAsync(moyenPaiement);
 
-            EtatCommande etatCommande = new EtatCommande()
+            // 12. EtatCommande
+            var etatCommande = new EtatCommande()
             {
                 IdEtatCommande = 1,
                 Libelle = "En cours"
             };
             await _context.EtatCommandes.AddAsync(etatCommande);
+            await _context.SaveChangesAsync();
 
+            // 13. Conversation (needed for Message)
+            var conversation = new Conversation()
+            {
+                IdConversation = 1,
+                IdAnnonce = 1,
+                DateDernierMessage = DateTime.UtcNow
+            };
+            await _context.Conversations.AddAsync(conversation);
+            await _context.SaveChangesAsync();
+
+            // 14. Message (needed for Offre)
+            var message = new Message()
+            {
+                IdMessage = 1,
+                ContenuMessage = "Je suis intéressé",
+                DateEnvoiMessage = DateTime.UtcNow,
+                IdConversation = 1,
+                IdCompte = 1, // Acheteur
+                EstLu = false
+            };
+            await _context.Messages.AddAsync(message);
+            await _context.SaveChangesAsync();
+
+            // 15. Offre (CRITICAL - was missing!)
+            var offre = new Offre()
+            {
+                IdOffre = 1,
+                IdAnnonce = 1,
+                IdMessage = 1,
+                Valeur = 14000,
+                DateOffre = DateTime.UtcNow,
+                EstAccepte = true
+            };
+            await _context.Offres.AddAsync(offre);
+            await _context.SaveChangesAsync();
+
+            // 16. Finally, create the Commande
             _commandeCommun = new Commande()
             {
                 IdCommande = 1,
                 IdAnnonce = 1,
-                IdAcheteur = 1,
-                IdVendeur = 2,
+                IdAcheteur = 1, // john
+                IdVendeur = 2,  // johny
+                IdOffre = 1,
                 IdMoyenPaiement = 1,
-                CommandeAnnonceNav = annonce,
                 IdEtatCommande = 1,
-                CommandeMoyenPaiementNav = moyenPaiement,
                 Date = DateTime.UtcNow
             };
 
@@ -130,7 +302,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         #region GET
-            #region GetById
+        #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {

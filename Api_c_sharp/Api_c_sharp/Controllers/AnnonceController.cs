@@ -353,4 +353,28 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
 
         return new ActionResult<IEnumerable<AnnonceDTO>>(_annonceMapper.Map<IEnumerable<AnnonceDTO>>(list));
     }
+
+
+    /// <summary>
+    /// Récupère la liste des paiements de mise en avant d'une annonce.
+    /// </summary>
+    /// <param name="idannonce">Identifiant de l'annonce pour recup ses annonces paiements</param>
+    /// <returns>
+    /// <see cref="PaiementDTO"/> (200 OK).
+    /// </returns>
+    [ActionName("GetPaiements")]
+    [HttpGet("{idannonce}")]
+    [ProducesResponseType(typeof(PaiementDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PaiementDTO>> GetPaiements(int idannonce)
+    {
+        Annonce? entity = await _manager.GetByIdAsync(idannonce);
+
+        if (entity is null)
+            return NotFound();
+
+        PaiementDTO paiement = await _manager.PaiementMiseEnAvant(idannonce);
+
+        return Ok(paiement);
+    }
 }

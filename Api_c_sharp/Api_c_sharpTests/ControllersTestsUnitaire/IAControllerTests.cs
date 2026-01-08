@@ -18,11 +18,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
     public class IAControllerIntegrationTests
     {
         private IAController _controller;
-        private IAManager _iaManager;
+        private IIAService _iaService;
         private HttpClient _httpClient;
         private IConfiguration _configuration;
-        private ILogger<IAManager> _managerLogger;
-        private ILogger<IAController> _controllerLogger;
 
         [TestInitialize]
         public void Initialize()
@@ -49,13 +47,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 builder.AddConsole();
                 builder.SetMinimumLevel(LogLevel.Debug);
             });
-
-            _managerLogger = loggerFactory.CreateLogger<IAManager>();
-            _controllerLogger = loggerFactory.CreateLogger<IAController>();
-
             // Création du manager et du controller
-            _iaManager = new IAManager(_httpClient, _configuration, _managerLogger);
-            _controller = new IAController(_iaManager, _controllerLogger);
+            _controller = new IAController(_iaService);
         }
 
         [TestCleanup]

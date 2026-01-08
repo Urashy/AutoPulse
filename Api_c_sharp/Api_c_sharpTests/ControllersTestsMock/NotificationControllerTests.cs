@@ -724,7 +724,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             int idAnnonce = _annonceTest.IdAnnonce;
 
             _mockManager.Setup(m => m.NotifCreationAutoAsync(
-                idComptes, url, titre, message, idAnnonce, type,0,0))
+                idComptes, url, titre, message, idAnnonce, type,0,0,"",0))
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -733,7 +733,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             _mockManager.Verify(m => m.NotifCreationAutoAsync(
-                idComptes, url, titre, message, idAnnonce, type, 0, 0), Times.Once);
+                idComptes, url, titre, message, idAnnonce, type, 0, 0, "", 0), Times.Once);
         }
 
         [TestMethod]
@@ -750,7 +750,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             double nouveauPrix = 12000;
 
             _mockManager.Setup(m => m.NotifCreationAutoAsync(
-                idComptes, url, titre, message, idAnnonce, type, ancienPrix, nouveauPrix))
+                idComptes, url, titre, message, idAnnonce, type, ancienPrix, nouveauPrix, "", 0))
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -759,7 +759,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             _mockManager.Verify(m => m.NotifCreationAutoAsync(
-                idComptes, url, titre, message, idAnnonce, type, ancienPrix, nouveauPrix), Times.Once);
+                idComptes, url, titre, message, idAnnonce, type, ancienPrix, nouveauPrix, "", 0), Times.Once);
         }
 
         [TestMethod]

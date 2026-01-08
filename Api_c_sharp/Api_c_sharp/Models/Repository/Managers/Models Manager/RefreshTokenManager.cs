@@ -12,7 +12,7 @@ public class RefreshTokenManager: WriteableReadableManager<RefreshToken>, IRefre
     {
     }
 
-    public async Task<RefreshToken> StoreRefreshTokenAsync(
+    public virtual async Task<RefreshToken> StoreRefreshTokenAsync(
         int idCompte,
         string token,
         bool rememberMe,
@@ -41,7 +41,7 @@ public class RefreshTokenManager: WriteableReadableManager<RefreshToken>, IRefre
         return refreshToken;
     }
     
-    public async Task<Compte?> ValidateRefreshTokenAsync(string token)
+    public virtual async Task<Compte?> ValidateRefreshTokenAsync(string token)
     {
         var tokenHash = ComputeSha256Hash(token);
 
@@ -60,7 +60,7 @@ public class RefreshTokenManager: WriteableReadableManager<RefreshToken>, IRefre
         return refreshToken.CompteRefreshTokenNav;
     }
     
-    public async Task<bool> RevokeRefreshTokenAsync(string token)
+    public virtual async Task<bool> RevokeRefreshTokenAsync(string token)
     {
         var tokenHash = ComputeSha256Hash(token);
 
@@ -79,7 +79,7 @@ public class RefreshTokenManager: WriteableReadableManager<RefreshToken>, IRefre
         return true;
     }
 
-    public async Task RevokeAllUserTokensAsync(int idCompte)
+    public virtual async Task RevokeAllUserTokensAsync(int idCompte)
     {
         var tokens = await dbSet
             .Where(rt => rt.IdCompte == idCompte && !rt.EstRevoque)
@@ -94,7 +94,7 @@ public class RefreshTokenManager: WriteableReadableManager<RefreshToken>, IRefre
         await context.SaveChangesAsync();
     }
 
-    public async Task<int> CleanupExpiredTokensAsync()
+    public virtual async Task<int> CleanupExpiredTokensAsync()
     {
         var cutoffDate = DateTime.UtcNow.AddDays(-7);
 
@@ -110,7 +110,7 @@ public class RefreshTokenManager: WriteableReadableManager<RefreshToken>, IRefre
         return expiredTokens.Count;
     }
 
-    public async Task<List<RefreshToken>> GetActiveUserTokensAsync(int idCompte)
+    public virtual async Task<List<RefreshToken>> GetActiveUserTokensAsync(int idCompte)
     {
         return await dbSet
             .Where(rt =>

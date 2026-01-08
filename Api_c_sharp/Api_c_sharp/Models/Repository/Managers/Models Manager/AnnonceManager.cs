@@ -247,5 +247,36 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             return listannonce;
         }
+
+        public async Task<PaiementDTO> PaiementMiseEnAvant(int idAnnonce)
+        {
+            var paiements = await context.Paiements
+                .Where(p => p.IdAnnonce == idAnnonce &&
+                            p.IdMiseEnAvant != null &&
+                            p.IdMiseEnAvant != 0)
+                .GroupBy(p => p.IdMiseEnAvant)
+                .Select(g => new
+                {
+                    IdMiseEnAvant = g.Key,
+                    NbSemaines = g.Count()
+                })
+                .ToListAsync();
+
+            var tarifs = await context.MisesEnAvant
+                .Where(m => m.IdMiseEnAvant == 2 || m.IdMiseEnAvant == 3 || m.IdMiseEnAvant == 4)
+                .ToDictionaryAsync(m => m.IdMiseEnAvant, m => m.PrixSemaine);
+
+            return new PaiementDTO
+            {
+                NbSemaineMiseEnAvantOr = paiements.FirstOrDefault(p => p.IdMiseEnAvant == 2)?.NbSemaines ?? 0,
+                PrixMiseEnAvantOr = tarifs[2],
+
+                NbSemaineMiseEnAvantPlatine = paiements.FirstOrDefault(p => p.IdMiseEnAvant == 3)?.NbSemaines ?? 0,
+                PrixMisedAvantPlatine = tarifs[3],
+
+                NbSemaineMiseEnAvantDiamant = paiements.FirstOrDefault(p => p.IdMiseEnAvant == 4)?.NbSemaines ?? 0,
+                PrixMiseEnAvantDiamant = tarifs[4]
+            };
+        }
     }
 }

@@ -50,13 +50,26 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Offres.RemoveRange(_context.Offres);
             await _context.SaveChangesAsync();
 
+            // 1. TypeCompte
             TypeCompte typecompte = new TypeCompte()
             {
                 IdTypeCompte = 1,
-                Libelle = "Particulier"
+                Libelle = "Particulier",
+                Cherchable = true
             };
+            await _context.TypesCompte.AddAsync(typecompte);
+            await _context.SaveChangesAsync();
 
-            // Vendeur
+            // 2. EtatCompte
+            var etatCompte = new EtatCompte()
+            {
+                IdEtatCompte = 1,
+                Libelle = "Actif"
+            };
+            await _context.EtatComptes.AddAsync(etatCompte);
+            await _context.SaveChangesAsync();
+
+            // 3. Comptes (Vendeur et Acheteur)
             Compte compte1 = new Compte()
             {
                 IdCompte = 1,
@@ -65,13 +78,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Nom = "Doe",
                 Prenom = "John",
                 DateNaissance = new DateTime(1990, 1, 1),
-                IdTypeCompte = typecompte.IdTypeCompte,
+                IdTypeCompte = 1,
+                IdEtatCompte = 1,
                 Pseudo = "john_doe",
                 DateCreation = DateTime.Now,
                 DateDerniereConnexion = DateTime.Now
             };
 
-            // Acheteur
             Compte compte2 = new Compte()
             {
                 IdCompte = 2,
@@ -80,62 +93,189 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Nom = "Smith",
                 Prenom = "Jane",
                 DateNaissance = new DateTime(1992, 5, 15),
-                IdTypeCompte = typecompte.IdTypeCompte,
+                IdTypeCompte = 1,
+                IdEtatCompte = 1,
                 Pseudo = "jane_smith",
                 DateCreation = DateTime.Now,
                 DateDerniereConnexion = DateTime.Now
             };
+            await _context.Comptes.AddRangeAsync(compte1, compte2);
+            await _context.SaveChangesAsync();
 
+            // 4. Pays (needed for Adresse)
+            var pays = new Pays()
+            {
+                IdPays = 1,
+                Libelle = "France"
+            };
+            await _context.Pays.AddAsync(pays);
+            await _context.SaveChangesAsync();
+
+            // 5. Adresse
+            var adresse = new Adresse()
+            {
+                IdAdresse = 1,
+                Nom = "Domicile",
+                Numero = 10,
+                Rue = "Rue de la Paix",
+                LibelleVille = "Paris",
+                CodePostal = "75001",
+                IdCompte = 1,
+                IdPays = 1
+            };
+            await _context.Adresses.AddAsync(adresse);
+            await _context.SaveChangesAsync();
+
+            // 6. Voiture dependencies
+            var marque = new Marque()
+            {
+                IdMarque = 1,
+                LibelleMarque = "Peugeot"
+            };
+            await _context.Marques.AddAsync(marque);
+
+            var modele = new Modele()
+            {
+                IdModele = 1,
+                LibelleModele = "308",
+                IdMarque = 1
+            };
+            await _context.Modeles.AddAsync(modele);
+
+            var carburant = new Carburant()
+            {
+                IdCarburant = 1,
+                LibelleCarburant = "Diesel"
+            };
+            await _context.Carburants.AddAsync(carburant);
+
+            var boiteDeVitesse = new BoiteDeVitesse()
+            {
+                IdBoiteDeVitesse = 1,
+                LibelleBoite = "Manuelle"
+            };
+            await _context.BoitesDeVitesses.AddAsync(boiteDeVitesse);
+
+            var categorie = new Categorie()
+            {
+                IdCategorie = 1,
+                LibelleCategorie = "Berline"
+            };
+            await _context.Categories.AddAsync(categorie);
+
+            var motricite = new Motricite()
+            {
+                IdMotricite = 1,
+                LibelleMotricite = "Traction"
+            };
+            await _context.Motricites.AddAsync(motricite);
+            await _context.SaveChangesAsync();
+
+            // 7. Voiture
+            var voiture = new Voiture()
+            {
+                IdVoiture = 1,
+                IdMarque = 1,
+                IdModele = 1,
+                IdCarburant = 1,
+                IdBoiteDeVitesse = 1,
+                IdCategorie = 1,
+                IdMotricite = 1,
+                Kilometrage = 50000,
+                Annee = 2020,
+                Puissance = 130,
+                MiseEnCirculation = new DateTime(2020, 1, 1),
+                NbPlace = 5,
+                NbPorte = 5,
+                Couple = 300,
+                NbCylindres = 4,
+                NbAirbag = 6,
+                InterieurCuire = false,
+                CylindrerMoteur = 1.6,
+                PositionVolant = false
+            };
+            await _context.Voitures.AddAsync(voiture);
+            await _context.SaveChangesAsync();
+
+            // 8. EtatAnnonce
+            var etatAnnonce = new EtatAnnonce()
+            {
+                IdEtatAnnonce = 1,
+                LibelleEtatAnnonce = "Publiée"
+            };
+            await _context.EtatAnnonces.AddAsync(etatAnnonce);
+
+            // 9. MiseEnAvant
+            var miseEnAvant = new MiseEnAvant()
+            {
+                IdMiseEnAvant = 1,
+                LibelleMiseEnAvant = "Standard",
+                PrixSemaine = 0
+            };
+            await _context.MisesEnAvant.AddAsync(miseEnAvant);
+            await _context.SaveChangesAsync();
+
+            // 10. Annonce (CRITICAL - needs all dependencies)
             Annonce annonce = new Annonce()
             {
+                IdAnnonce = 1,
                 Libelle = "Annonce de test",
                 IdCompte = 1,
                 IdEtatAnnonce = 1,
                 IdAdresse = 1,
                 IdVoiture = 1,
+                IdMiseEnAvant = 1,
                 Prix = 10000,
-                Description = "Description de test"
+                Description = "Description de test",
+                DatePublication = DateTime.Now
             };
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
 
+            // 11. Conversation
             Conversation conversation = new Conversation()
             {
                 IdConversation = 1,
-                IdAnnonce = 1
+                IdAnnonce = 1,
+                DateDernierMessage = DateTime.Now
             };
+            await _context.Conversations.AddAsync(conversation);
+            await _context.SaveChangesAsync();
 
+            // 12. Messages
             Message message1 = new Message()
             {
                 IdMessage = 1,
                 ContenuMessage = "Bonjour, je suis intéressé par votre annonce.",
                 DateEnvoiMessage = DateTime.Now,
                 IdConversation = 1,
-                IdCompte = 1,
+                IdCompte = 2, // Acheteur
                 EstLu = false,
             };
 
             Message message2 = new Message()
             {
                 IdMessage = 2,
-                ContenuMessage = "Bonjour, meesage 2",
+                ContenuMessage = "Bonjour, message 2",
                 DateEnvoiMessage = DateTime.Now,
                 IdConversation = 1,
-                IdCompte = 1,
+                IdCompte = 1, // Vendeur
                 EstLu = false,
             };
+            await _context.Messages.AddRangeAsync(message1, message2);
+            await _context.SaveChangesAsync();
 
+            // 13. Offre
             Offre offre = new Offre()
             {
+                IdOffre = 1,
                 Valeur = 9500,
                 DateOffre = DateTime.Now,
                 IdMessage = 1,
+                IdAnnonce = 1,
+                EstAccepte = null // En attente
             };
-            _context.TypesCompte.Add(typecompte);
-            _context.Comptes.AddRange(compte1, compte2);
-            _context.Annonces.Add(annonce);
-            _context.Conversations.Add(conversation);
-            _context.Messages.Add(message1);
-            _context.Messages.Add(message2);
-            _context.Offres.Add(offre);
+            await _context.Offres.AddAsync(offre);
             await _context.SaveChangesAsync();
 
             _objetcommun = offre;

@@ -17,6 +17,8 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task<IEnumerable<Annonce>> GetAnnoncesByCompteID(int compteId);
         Task<IEnumerable<Annonce>> GetAnnoncesSimilaires(Annonce? annonce);
         Task<bool> EstMasque(int annonceId);
+
+        Task<PaiementDTO> PaiementMiseEnAvant(int idAnnonce);
     }
 
     public interface ICompteRepository
