@@ -179,6 +179,8 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             List<Signalement>? signalements = await context.Signalements.Include(s => s.TypeSignalementSignalementNav).Where(s => s.IdAnnonceSignale == entity.IdAnnonce).ToListAsync();
 
             List<Conversation>? conversations = await context.Conversations.Where(s => s.IdAnnonce == entity.IdAnnonce).ToListAsync();
+            
+            List<Paiement>? paiements = await context.Paiements.Where(p => p.IdAnnonce == entity.IdAnnonce).ToListAsync();
 
             if (signalements != null || !signalements.Any())
             {
@@ -204,7 +206,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             }
             
 
-            if (commandes != null)
+            if (commandes != null || paiements != null || paiements.Any())
             {
                 entity.IdEtatAnnonce = 6;
                 return false;

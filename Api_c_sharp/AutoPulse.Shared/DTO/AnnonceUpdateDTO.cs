@@ -12,4 +12,5 @@ public class AnnonceUpdateDTO
     public DateTime DatePublication { get; set; }
     public int Prix { get; set; }
     public string? Description { get; set; }
+    public int IdCB { get; set; }
 }

@@ -163,7 +163,6 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     }
     public interface IPaiementRepository
     {
-        Task<bool> VerifPaiementAutoMiseEnAvant();
-        Task<IEnumerable<Paiement>> GetPaimentByAnnonce(int idannonce);
+        Task<IEnumerable<Paiement>> VerifPaiementAutoMiseEnAvant();
     }
 }

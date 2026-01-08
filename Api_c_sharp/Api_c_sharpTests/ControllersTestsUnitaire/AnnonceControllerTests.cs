@@ -20,6 +20,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private AnnonceController _controller;
         private AutoPulseBdContext _context;
         private AnnonceManager _manager;
+        private PaiementManager _paiementManager;
         private IMapper _mapper;
         private Annonce _objetcommun;
         private IJournalService _journalService;
@@ -53,7 +54,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _notificationService = new NotificationManager(_context);
             _manager = new AnnonceManager(_context);
-            _controller = new AnnonceController(_manager, _mapper, _journalService, _notificationService,null);
+            _paiementManager = new PaiementManager(_context);
+            _controller = new AnnonceController(_manager, _mapper, _paiementManager,_journalService, _notificationService,null);
 
             _context.Annonces.RemoveRange(_context.Annonces);
             await _context.SaveChangesAsync();

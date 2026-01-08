@@ -9,61 +9,82 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public PaiementManager(AutoPulseBdContext context) : base(context)
         {
         }
-
-        public Task<IEnumerable<Paiement>> GetPaimentByAnnonce(int idannonce)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> VerifPaiementAutoMiseEnAvant()
-        {
+        
+        public async Task<IEnumerable<Paiement>> VerifPaiementAutoMiseEnAvant()
+        {                
+            List<Paiement> paiementCrees = new List<Paiement>();
             try
             {
+                var targetDay = DateTime.Now.AddDays(-7);
                 List<Paiement> paiements = await dbSet
-                    .Where(pai => pai.IdMiseEnAvant != 0 && pai.DatePaiement <= DateTime.Now.AddDays(-7))
+                    .Where(pai =>
+                        pai.IdMiseEnAvant != null &&
+                        pai.DatePaiement.Day == targetDay.Day &&
+                        pai.DatePaiement.Month == targetDay.Month &&
+                        pai.DatePaiement.Year == targetDay.Year
+                    )
+                    .GroupBy(pai => pai.IdAnnonce)
+                    .Select(group => group
+                        .OrderByDescending(pai => pai.DatePaiement)
+                        .FirstOrDefault())
                     .ToListAsync();
 
                 if (!paiements.Any())
-                    return true;
+                    return paiementCrees;
 
                 Annonce annonce = new Annonce();
 
                 foreach (var paiement in paiements)
                 {
                     annonce = await context.Annonces.FirstOrDefaultAsync(ann => ann.IdAnnonce == paiement.IdAnnonce);
-                    if (annonce.IdMiseEnAvant == annonce.ProchaineMiseEnAvant || annonce.ProchaineMiseEnAvant == 1)
+                    
+                    if (annonce == null)
+                        return paiementCrees;
+                    
+                    if (annonce.ProchaineMiseEnAvant == null)
                     {
-                        if (annonce.ProchaineMiseEnAvant == 1)
-                        {
-                            annonce.IdMiseEnAvant = 1;
-                            return true;
-                        }
+                        if (annonce.IdMiseEnAvant == 1)
+                            return paiementCrees;
+                        
                         Paiement newPaiement = new Paiement
                         {
                             IdAnnonce = paiement.IdAnnonce,
-                            IdCarteBancaire = paiement.IdCarteBancaire,
-                            IdCommande = paiement.IdCommande,
+                            IdMiseEnAvant = paiement.IdMiseEnAvant,
+                            DatePaiement = DateTime.UtcNow,
                             IdCompte = paiement.IdCompte,
-                            IdMiseEnAvant = annonce.ProchaineMiseEnAvant ?? 1,
-                            DatePaiement = DateTime.Now
+                            IdCarteBancaire = paiement.IdCarteBancaire
                         };
-                        await AddAsync(newPaiement);  
+                        paiementCrees.Add(newPaiement);
+                        await context.Paiements.AddAsync(newPaiement);
                     }
-                    else
+                    else if (annonce.ProchaineMiseEnAvant >= 1)
                     {
-                        annonce.IdMiseEnAvant = annonce.ProchaineMiseEnAvant ?? 1;
-                        context.Annonces.Update(annonce);
-                        paiement.DatePaiement = DateTime.Now;
-                        paiement.IdMiseEnAvant = annonce.IdMiseEnAvant;
-                        await AddAsync(paiement);
+                        Paiement newPaiement = new Paiement
+                        {
+                            IdAnnonce = paiement.IdAnnonce,
+                            IdMiseEnAvant = annonce.ProchaineMiseEnAvant,
+                            DatePaiement = DateTime.UtcNow,
+                            IdCompte = paiement.IdCompte,
+                            IdCarteBancaire = paiement.IdCarteBancaire
+                        };
+                        paiementCrees.Add(newPaiement);
+                        annonce.IdMiseEnAvant = (int)annonce.ProchaineMiseEnAvant;
+                        annonce.ProchaineMiseEnAvant = null;
+                        await context.Paiements.AddAsync(newPaiement);
+                        
                     }
+                    else if (annonce.ProchaineMiseEnAvant == 1)
+                    {
+                        annonce.IdMiseEnAvant = (int)annonce.ProchaineMiseEnAvant;
+                        annonce.ProchaineMiseEnAvant = null;
+                    }
+                    await context.SaveChangesAsync();
                 }
-                await context.SaveChangesAsync();
-                return true;
+                return paiementCrees;
             }
             catch
             {
-                return false;
+                return paiementCrees;
             }
         }
     }

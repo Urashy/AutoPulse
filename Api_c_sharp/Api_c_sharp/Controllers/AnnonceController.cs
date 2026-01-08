@@ -18,7 +18,7 @@ namespace Api_c_sharp.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, IJournalService _journalService, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
+public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, PaiementManager _paiementManager,IJournalService _journalService, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
 {
     /// <summary>
     /// Récupère une annoncs à partir de son identifiant.
@@ -111,6 +111,19 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
            entity.IdAnnonce,
            entity.Libelle
         );
+
+        if (entity.IdMiseEnAvant > 1)
+        {
+            Paiement paiement = new Paiement
+            {
+                IdMiseEnAvant = entity.IdMiseEnAvant,
+                IdCompte = entity.IdCompte,
+                IdAnnonce = entity.IdAnnonce,
+                IdCarteBancaire = dto.IdCB,
+                DatePaiement = DateTime.UtcNow
+            };
+            await _paiementManager.AddAsync(paiement);
+        }
         await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdAnnonce }, entity);
@@ -153,7 +166,28 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
             id,
             toUpdate.Libelle
         );
-        
+
+        if (toUpdate.IdMiseEnAvant == 1 && updatedEntity.IdMiseEnAvant > 1)
+        {
+            Paiement paiement = new Paiement
+            {
+                IdMiseEnAvant = updatedEntity.IdMiseEnAvant,
+                IdCompte = updatedEntity.IdCompte,
+                IdAnnonce = updatedEntity.IdAnnonce,
+                IdCarteBancaire = dto.IdCB,
+                DatePaiement = DateTime.UtcNow
+            };
+            await _paiementManager.AddAsync(paiement);
+        }
+        else if (toUpdate.IdMiseEnAvant > 1 && updatedEntity.IdMiseEnAvant > 1 && toUpdate.IdMiseEnAvant != updatedEntity.IdMiseEnAvant)
+        {
+            updatedEntity.ProchaineMiseEnAvant = updatedEntity.IdMiseEnAvant;
+            updatedEntity.IdMiseEnAvant = toUpdate.IdMiseEnAvant;
+        }
+        else if (toUpdate.IdMiseEnAvant > 1 && updatedEntity.IdMiseEnAvant > 1 && toUpdate.ProchaineMiseEnAvant != updatedEntity.IdMiseEnAvant && toUpdate.IdMiseEnAvant == updatedEntity.IdMiseEnAvant)
+        {
+            updatedEntity.ProchaineMiseEnAvant = null;
+        }
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
         if (_hubContext is not null)
