@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Api_c_sharpTests.ControllersTestsUnitaire
+namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass]
     [TestCategory("unit")]

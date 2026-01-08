@@ -209,5 +209,48 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         #endregion
+
+        #region EXISTS
+
+        [TestMethod]
+        public async  Task ExistsTrueTest()
+        {
+            var conv = new Conversation { IdAnnonce = 1 , IdConversation = 1};
+            var entity = new APourConversation { IdCompte = 1, IdConversation = 2 };
+            var entity2 = new APourConversation { IdCompte = 2, IdConversation = 2 };
+
+            _mockManager.Setup(m => m.Exists(1, 2,1))
+            .ReturnsAsync(true);
+            var result = await _controller.Exists(1, 2, 1);
+            Assert.IsTrue(result.Value);
+        }
+
+        [TestMethod]
+        public async Task ExistsFalseTest()
+        {
+            var conv = new Conversation { IdAnnonce = 1, IdConversation = 1 };
+            var entity = new APourConversation { IdCompte = 1, IdConversation = 2 };
+            var entity2 = new APourConversation { IdCompte = 2, IdConversation = 2 };
+
+            _mockManager.Setup(m => m.Exists(1, 3, 1))
+            .ReturnsAsync(false);
+            var result = await _controller.Exists(1, 3, 1);
+            Assert.IsFalse(result.Value);
+        }
+
+
+        [TestMethod]
+        public async Task ExistsAucuneConversationTest()
+        {
+
+            _mockManager.Setup(m => m.Exists(1, 3, 2))
+            .ReturnsAsync(false);
+
+            var result = await _controller.Exists(1, 3, 2);
+
+            Assert.IsFalse(result.Value);
+        }
+
+        #endregion
     }
 }

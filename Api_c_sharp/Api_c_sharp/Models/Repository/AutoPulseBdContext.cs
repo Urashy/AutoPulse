@@ -18,7 +18,7 @@ namespace Api_c_sharp.Models.Repository
         public DbSet<APourConversation> APourConversations { get; set; }
         public DbSet<APourCouleur> APourCouleurs { get; set; }
         public DbSet<Avis> Avis { get; set; }
-        public DbSet<BenchmarkIA> BenchmarksIA { get; set; }
+        public virtual DbSet<BenchmarkIA> BenchmarksIA { get; set; }
         public DbSet<Bloque> Bloques { get; set; }
         public DbSet<BoiteDeVitesse> BoitesDeVitesses { get; set; }
         public DbSet<Carburant> Carburants { get; set; }
