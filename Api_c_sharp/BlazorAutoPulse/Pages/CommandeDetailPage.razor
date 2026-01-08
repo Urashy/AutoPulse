@@ -25,7 +25,6 @@ else if (VM.Commande == null)
 else
 {
     <div class="commande-detail-container">
-        <!-- En-tête avec numéro de commande et statut -->
         <div class="commande-header">
             <div class="header-left">
                 <button class="btn-back" @onclick='() => Navigation.NavigateTo("/compte")'>
@@ -38,12 +37,11 @@ else
             </div>
         </div>
 
-        <!-- Barre de progression -->
         <div class="progression-container">
             <div class="progression-bar">
                 <div class="progression-step @(VM.Commande.IdEtatCommande >= 1 ? "completed" : "")">
                     <div class="step-circle">1</div>
-                    <span class="step-label">Commande créée</span>
+                    <span class="step-label">Créée</span>
                 </div>
                 <div class="progression-line @(VM.Commande.IdEtatCommande >= 2 ? "completed" : "")"></div>
 
@@ -55,17 +53,19 @@ else
 
                 <div class="progression-step @(VM.Commande.IdEtatCommande >= 3 ? "completed" : "")">
                     <div class="step-circle">3</div>
-                    <span class="step-label">Validation vendeur</span>
+                    <span class="step-label">Validée</span>
                 </div>
-                <div class="progression-line @(VM.Commande.IdEtatCommande >= 5 ? "completed" : "")"></div>
 
-                <div class="progression-step @(VM.Commande.IdEtatCommande >= 5 ? "completed" : "")">
+                <div class="progression-line @(VM.Commande.IdEtatCommande >= 4 ? "completed" : "")"></div>
+
+                <div class="progression-step @(VM.Commande.IdEtatCommande >= 4 ? "completed" : "")">
                     <div class="step-circle">4</div>
                     <span class="step-label">Livraison</span>
                 </div>
-                <div class="progression-line @(VM.Commande.IdEtatCommande >= 6 ? "completed" : "")"></div>
 
-                <div class="progression-step @(VM.Commande.IdEtatCommande >= 6 ? "completed" : "")">
+                <div class="progression-line @(VM.Commande.IdEtatCommande >= 5 ? "completed" : "")"></div>
+
+                <div class="progression-step @(VM.Commande.IdEtatCommande >= 5 ? "completed" : "")">
                     <div class="step-circle">5</div>
                     <span class="step-label">Terminée</span>
                 </div>
@@ -73,7 +73,6 @@ else
         </div>
 
         <div class="commande-content">
-            <!-- Informations principales -->
             <div class="info-section">
                 <h2>📋 Détails de la commande</h2>
                 <div class="info-grid">
@@ -92,7 +91,6 @@ else
                 </div>
             </div>
 
-            <!-- Informations de l'annonce -->
             @if (VM.Commande.Annonce != null)
             {
                 <div class="annonce-section">
@@ -115,7 +113,6 @@ else
                 </div>
             }
 
-            <!-- Informations des parties -->
             <div class="parties-section">
                 <div class="partie-card">
                     <h3>👤 Acheteur</h3>
@@ -152,7 +149,6 @@ else
                 </div>
             </div>
 
-            <!-- Section actions selon le rôle et l'état -->
             @* État 1 : Acheteur doit payer *@
             @if (VM.IsAcheteur && VM.Commande.IdEtatCommande == 1)
             {
@@ -240,16 +236,12 @@ else
                     {
                         <div class="autre-payment-info">
                             <div class="info-box">
-                                <p>
-                                    <strong>Instructions :</strong>
-                                </p>
-                                <p>
-                                    Vous avez choisi de régler par un autre moyen (espèces, chèque, virement...).
-                                </p>
+                                <p><strong>Instructions :</strong></p>
+                                <p>Vous avez choisi de régler par un autre moyen (espèces, chèque, virement...).</p>
                                 <p>
                                     Une fois que vous aurez effectué le paiement auprès du vendeur,
                                     cliquez sur le bouton ci-dessous pour l'en informer. Le vendeur devra
-                                    ensuite confirmer la réception du paiement pour passer à l'étape suivante.
+                                    ensuite confirmer la réception du paiement.
                                 </p>
                             </div>
 
@@ -279,9 +271,7 @@ else
                 <div class="action-section">
                     <h2>⏳ Confirmation du paiement</h2>
                     <div class="info-box">
-                        <p>
-                            <strong>L'acheteur a indiqué avoir effectué le paiement.</strong>
-                        </p>
+                        <p><strong>L'acheteur a indiqué avoir effectué le paiement.</strong></p>
                         <p>
                             Une fois que vous avez bien reçu l'argent (virement, espèces, chèque...),
                             confirmez ci-dessous pour valider la transaction et passer à l'étape de livraison.
@@ -302,7 +292,7 @@ else
                 </div>
             }
 
-            @* État 3 : Paiement validé, vendeur doit émettre livraison *@
+            @* État 3 : Paiement validé -> Vendeur doit émettre livraison *@
             @if (VM.IsVendeur && VM.Commande.IdEtatCommande == 3)
             {
                 <div class="action-section">
@@ -311,13 +301,12 @@ else
                         <p>✅ <strong>Le paiement a été confirmé !</strong></p>
                         <p>
                             Vous pouvez maintenant organiser la remise du véhicule avec l'acheteur.
-                            Une fois que vous êtes prêt à livrer le véhicule (ou que l'acheteur peut venir le chercher),
-                            cliquez sur le bouton ci-dessous.
+                            Une fois que le véhicule est remis ou expédié, cliquez sur le bouton ci-dessous.
                         </p>
                     </div>
 
                     <button class="btn-primary btn-large" @onclick="VM.EmitDelivery">
-                        🚗 Émettre la livraison
+                        🚀 Émettre la livraison / Remise
                     </button>
                 </div>
             }
@@ -326,19 +315,17 @@ else
                 <div class="info-section success">
                     <h2>✅ Paiement validé</h2>
                     <p>Le vendeur a confirmé la réception du paiement.</p>
-                    <p>Il va maintenant organiser la livraison du véhicule.</p>
+                    <p>Il prépare actuellement la livraison du véhicule.</p>
                 </div>
             }
 
-            @* État 5 : Livraison émise, acheteur doit confirmer réception *@
-            @if (VM.IsAcheteur && VM.Commande.IdEtatCommande == 5)
+            @* État 4 : Livraison émise, acheteur doit confirmer réception *@
+            @if (VM.IsAcheteur && VM.Commande.IdEtatCommande == 4)
             {
                 <div class="action-section">
                     <h2>📦 Réception du véhicule</h2>
                     <div class="info-box">
-                        <p>
-                            <strong>Le vendeur a indiqué que le véhicule est prêt pour la livraison.</strong>
-                        </p>
+                        <p><strong>Le vendeur a indiqué que le véhicule a été remis ou expédié.</strong></p>
                         <p>
                             Une fois que vous avez récupéré le véhicule et que tout est en ordre,
                             confirmez ci-dessous pour finaliser la transaction.
@@ -350,7 +337,7 @@ else
                     </button>
                 </div>
             }
-            @if (VM.IsVendeur && VM.Commande.IdEtatCommande == 5)
+            @if (VM.IsVendeur && VM.Commande.IdEtatCommande == 4)
             {
                 <div class="info-section waiting">
                     <h2>⏳ En attente de confirmation</h2>
@@ -359,8 +346,8 @@ else
                 </div>
             }
 
-            @* État 6 : Transaction terminée *@
-            @if (VM.Commande.IdEtatCommande == 6)
+            @* État 5 : Transaction terminée *@
+            @if (VM.Commande.IdEtatCommande == 5)
             {
                 <div class="success-section">
                     <div class="success-icon">🎉</div>
@@ -381,7 +368,6 @@ else
         </div>
     </div>
 }
-
 
 @code {
     [Parameter] public int IdCommande { get; set; }

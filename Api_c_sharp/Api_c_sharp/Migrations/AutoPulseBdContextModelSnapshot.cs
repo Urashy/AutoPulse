@@ -156,6 +156,10 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ann_pri");
 
+                    b.Property<int?>("ProchaineMiseEnAvant")
+                        .HasColumnType("integer")
+                        .HasColumnName("ann_prochainemiseenavant");
+
                     b.HasKey("IdAnnonce");
 
                     b.HasIndex("IdAdresse");
@@ -215,6 +219,116 @@ namespace Api_c_sharp.Migrations
                     b.HasIndex("IdJugeur");
 
                     b.ToTable("t_e_avis_avi", "public");
+                });
+
+            modelBuilder.Entity("Api_c_sharp.Models.Entity.BenchmarkIA", b =>
+                {
+                    b.Property<int>("IdBenchmark")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("ben_id_benchmark");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdBenchmark"));
+
+                    b.Property<double>("AvgInferenceTimeMs")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("double precision")
+                        .HasColumnName("ben_avg_inference_time_ms");
+
+                    b.Property<string>("BenchmarkId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ben_benchmark_id");
+
+                    b.Property<int?>("CpuCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("ben_cpu_count");
+
+                    b.Property<int>("FailedPredictions")
+                        .HasColumnType("integer")
+                        .HasColumnName("ben_failed_predictions");
+
+                    b.Property<double>("MaxInferenceTimeMs")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("double precision")
+                        .HasColumnName("ben_max_inference_time_ms");
+
+                    b.Property<double?>("MemoryAvailableGb")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("double precision")
+                        .HasColumnName("ben_memory_available_gb");
+
+                    b.Property<double?>("MemoryTotalGb")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("double precision")
+                        .HasColumnName("ben_memory_total_gb");
+
+                    b.Property<double>("MinInferenceTimeMs")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("double precision")
+                        .HasColumnName("ben_min_inference_time_ms");
+
+                    b.Property<string>("ModelType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ben_model_type");
+
+                    b.Property<string>("Platform")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("ben_platform");
+
+                    b.Property<double>("PredictionsPerSecond")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("double precision")
+                        .HasColumnName("ben_predictions_per_second");
+
+                    b.Property<string>("Processor")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ben_processor");
+
+                    b.Property<string>("PythonVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ben_python_version");
+
+                    b.Property<double>("StdInferenceTimeMs")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("double precision")
+                        .HasColumnName("ben_std_inference_time_ms");
+
+                    b.Property<double>("SuccessRatePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("double precision")
+                        .HasColumnName("ben_success_rate_percent");
+
+                    b.Property<int>("SuccessfulPredictions")
+                        .HasColumnType("integer")
+                        .HasColumnName("ben_successful_predictions");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ben_timestamp");
+
+                    b.Property<int>("TotalIterations")
+                        .HasColumnType("integer")
+                        .HasColumnName("ben_total_iterations");
+
+                    b.Property<double>("TotalTimeSeconds")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("double precision")
+                        .HasColumnName("ben_total_time_seconds");
+
+                    b.HasKey("IdBenchmark");
+
+                    b.HasIndex("BenchmarkId");
+
+                    b.HasIndex("ModelType", "Timestamp");
+
+                    b.ToTable("t_e_benchmarksia_ben", "public");
                 });
 
             modelBuilder.Entity("Api_c_sharp.Models.Entity.Bloque", b =>
@@ -998,8 +1112,8 @@ namespace Api_c_sharp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPaiement"));
 
-                    b.Property<int>("DatePaiement")
-                        .HasColumnType("integer")
+                    b.Property<DateTime>("DatePaiement")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("pmpt_date");
 
                     b.Property<int>("IdAnnonce")

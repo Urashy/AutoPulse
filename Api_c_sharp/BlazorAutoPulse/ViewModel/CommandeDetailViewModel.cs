@@ -19,8 +19,8 @@ namespace BlazorAutoPulse.ViewModel
         public int? CurrentUserId { get; private set; }
 
         public bool IsAcheteur => CurrentUserId.HasValue &&
-                                   Commande != null &&
-                                   Commande.IdAcheteur == CurrentUserId.Value;
+                                  Commande != null &&
+                                  Commande.IdAcheteur == CurrentUserId.Value;
 
         public bool IsVendeur => CurrentUserId.HasValue &&
                                  Commande != null &&
@@ -139,10 +139,9 @@ namespace BlazorAutoPulse.ViewModel
             {
                 1 => "En attente de paiement",
                 2 => "Paiement émis",
-                3 => "Paiement validé",
-                4 => "En attente de livraison",
-                5 => "Livraison émise",
-                6 => "Livrée",
+                3 => "Paiement validé / En prépa",
+                4 => "Livraison émise", // Anciennement 5
+                5 => "Livrée", // Anciennement 6
                 _ => "Statut inconnu"
             };
         }
@@ -156,9 +155,8 @@ namespace BlazorAutoPulse.ViewModel
                 1 => "en-attente",
                 2 => "paiement-emis",
                 3 => "paiement-valide",
-                4 => "en-attente-livraison",
-                5 => "livraison-emise",
-                6 => "livree",
+                4 => "livraison-emise", // Anciennement 5
+                5 => "livree", // Anciennement 6
                 _ => ""
             };
         }
@@ -241,17 +239,13 @@ namespace BlazorAutoPulse.ViewModel
                 await Task.Delay(2000);
 
                 // TODO: Appel API pour enregistrer le paiement par carte
-                // await _commandeService.ValidateCardPayment(Commande.IdCommande, new CardPaymentDTO
-                // {
-                //     CardNumber = CardNumber,
-                //     CardExpiry = CardExpiry,
-                //     CardCvv = CardCvv
-                // });
+                // await _commandeService.ValidateCardPayment(Commande.IdCommande, new CardPaymentDTO { ... });
 
                 // Mise à jour de l'état de la commande
                 if (Commande != null)
                 {
-                    Commande.IdEtatCommande = 3; // Paiement validé (carte = automatique)
+                    // Paiement direct par carte = Validé directement (état 3)
+                    Commande.IdEtatCommande = 3;
                 }
 
                 _notificationService.ShowSuccess(
@@ -359,7 +353,7 @@ namespace BlazorAutoPulse.ViewModel
                 // TODO: Appel API pour émettre la livraison
                 // await _commandeService.EmitDelivery(Commande.IdCommande);
 
-                Commande.IdEtatCommande = 5; // Livraison émise
+                Commande.IdEtatCommande = 4; // Livraison émise (Passage de 5 à 4)
 
                 _notificationService.ShowSuccess(
                     "Livraison émise",
@@ -391,7 +385,7 @@ namespace BlazorAutoPulse.ViewModel
                 // TODO: Appel API pour confirmer la réception du véhicule
                 // await _commandeService.ConfirmVehicleReceived(Commande.IdCommande);
 
-                Commande.IdEtatCommande = 6; // Livrée
+                Commande.IdEtatCommande = 5; // Terminée (Passage de 6 à 5)
 
                 _notificationService.ShowSuccess(
                     "Commande terminée",

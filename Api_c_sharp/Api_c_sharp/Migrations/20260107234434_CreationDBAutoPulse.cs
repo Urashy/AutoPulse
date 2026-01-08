@@ -16,6 +16,38 @@ namespace Api_c_sharp.Migrations
                 name: "public");
 
             migrationBuilder.CreateTable(
+                name: "t_e_benchmarksia_ben",
+                schema: "public",
+                columns: table => new
+                {
+                    ben_id_benchmark = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ben_benchmark_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    ben_model_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    ben_timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ben_total_iterations = table.Column<int>(type: "integer", nullable: false),
+                    ben_successful_predictions = table.Column<int>(type: "integer", nullable: false),
+                    ben_failed_predictions = table.Column<int>(type: "integer", nullable: false),
+                    ben_success_rate_percent = table.Column<double>(type: "double precision", precision: 5, scale: 2, nullable: false),
+                    ben_avg_inference_time_ms = table.Column<double>(type: "double precision", precision: 18, scale: 6, nullable: false),
+                    ben_min_inference_time_ms = table.Column<double>(type: "double precision", precision: 18, scale: 6, nullable: false),
+                    ben_max_inference_time_ms = table.Column<double>(type: "double precision", precision: 18, scale: 6, nullable: false),
+                    ben_std_inference_time_ms = table.Column<double>(type: "double precision", precision: 18, scale: 6, nullable: false),
+                    ben_predictions_per_second = table.Column<double>(type: "double precision", precision: 18, scale: 6, nullable: false),
+                    ben_total_time_seconds = table.Column<double>(type: "double precision", precision: 18, scale: 6, nullable: false),
+                    ben_platform = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    ben_processor = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    ben_python_version = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    ben_cpu_count = table.Column<int>(type: "integer", nullable: true),
+                    ben_memory_total_gb = table.Column<double>(type: "double precision", precision: 10, scale: 2, nullable: true),
+                    ben_memory_available_gb = table.Column<double>(type: "double precision", precision: 10, scale: 2, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_t_e_benchmarksia_ben", x => x.ben_id_benchmark);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "t_e_boitedevitesse_boi",
                 schema: "public",
                 columns: table => new
@@ -649,7 +681,8 @@ namespace Api_c_sharp.Migrations
                     mav_id = table.Column<int>(type: "integer", nullable: false),
                     ann_dat = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ann_pri = table.Column<int>(type: "integer", nullable: false),
-                    ann_description = table.Column<string>(type: "text", nullable: true)
+                    ann_description = table.Column<string>(type: "text", nullable: true),
+                    ann_prochainemiseenavant = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1149,7 +1182,7 @@ namespace Api_c_sharp.Migrations
                     mav_id = table.Column<int>(type: "integer", nullable: false),
                     cmd_id = table.Column<int>(type: "integer", nullable: false),
                     com_id = table.Column<int>(type: "integer", nullable: false),
-                    pmpt_date = table.Column<int>(type: "integer", nullable: false)
+                    pmpt_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1250,6 +1283,18 @@ namespace Api_c_sharp.Migrations
                 schema: "public",
                 table: "t_e_avis_avi",
                 column: "com_id_jugeur");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_e_benchmarksia_ben_ben_benchmark_id",
+                schema: "public",
+                table: "t_e_benchmarksia_ben",
+                column: "ben_benchmark_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_t_e_benchmarksia_ben_ben_model_type_ben_timestamp",
+                schema: "public",
+                table: "t_e_benchmarksia_ben",
+                columns: new[] { "ben_model_type", "ben_timestamp" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_t_e_cartebancaire_cba_com_idcompte",
@@ -1571,6 +1616,10 @@ namespace Api_c_sharp.Migrations
         {
             migrationBuilder.DropTable(
                 name: "t_e_avis_avi",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "t_e_benchmarksia_ben",
                 schema: "public");
 
             migrationBuilder.DropTable(
