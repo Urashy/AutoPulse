@@ -27,7 +27,7 @@
                      @onclick="() => VM.SelectConversation(conv)">
                     <div class="conversation-avatar">
                         @if (VM.ImageSources.ContainsKey(conv.IdParticipant) &&
-                             !string.IsNullOrEmpty(VM.ImageSources[conv.IdParticipant]))
+                                        !string.IsNullOrEmpty(VM.ImageSources[conv.IdParticipant]))
                         {
                             <img src="@VM.ImageSources[conv.IdParticipant]"
                                  alt="Profile"
@@ -37,15 +37,15 @@
                         {
                             <span>👤</span>
                         }
-                    </div>
-                    <div class="conversation-info">
-                        <h4>@conv.LibelleAnnonce</h4>
-                        <p class="last-message">
-                            @(string.IsNullOrEmpty(conv.DernierMessage) ? "Aucun message" :
-                            conv.DernierMessage.Length > 40 ? conv.DernierMessage.Substring(0, 40) + "..." : conv.DernierMessage)
-                        </p>
-                    </div>
-                    @if (conv.NombreNonLu > 0)
+                </div>
+                <div class="conversation-info">
+                    <h4>@conv.LibelleAnnonce</h4>
+                    <p class="last-message">
+                        @(string.IsNullOrEmpty(conv.DernierMessage) ? "Aucun message" :
+                                            conv.DernierMessage.Length > 40 ? conv.DernierMessage.Substring(0, 40) + "..." : conv.DernierMessage)
+                </p>
+            </div>
+            @if (conv.NombreNonLu > 0)
                     {
                         <span class="unread-badge">@conv.NombreNonLu</span>
                     }
@@ -65,14 +65,9 @@
         else
         {
             <div class="conversation-header">
-                @if (VM.CommandeEnCours != null)
-                {
-                    <p>Commande N° @VM.CommandeEnCours.IdCommande</p>
-                }
-
                 <div class="conversation-avatar">
                     @if (VM.ImageSources.ContainsKey(VM.SelectedConversation.IdParticipant) &&
-                         !string.IsNullOrEmpty(VM.ImageSources[VM.SelectedConversation.IdParticipant]))
+                                    !string.IsNullOrEmpty(VM.ImageSources[VM.SelectedConversation.IdParticipant]))
                     {
                         <img src="@VM.ImageSources[VM.SelectedConversation.IdParticipant]"
                              alt="Profile"
@@ -85,14 +80,24 @@
                 </div>
                 <div class="conversation-info-header">
                     <h3>@VM.SelectedConversation.LibelleAnnonce</h3>
-
                     <NavLink href="@($"/comptepublic/{VM.SelectedConversation.IdParticipant}")" class="participant-link">
                         <span class="participant-name">@VM.SelectedConversation.ParticipantPseudo</span>
                         <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                            <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
                     </NavLink>
                 </div>
+
+                @if (VM.CommandeEnCours != null)
+                {
+                    <NavLink href="@($"/commande/{VM.CommandeEnCours.IdCommande}")" class="commande-link-header">
+                        <span class="commande-icon">📦</span>
+                        <span class="commande-text">Commande #@VM.CommandeEnCours.IdCommande</span>
+                        <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </NavLink>
+                }
             </div>
 
             <MessageContainer Messages="@VM.Messages"
@@ -202,6 +207,8 @@
         }
     </div>
 </div>
+
+
 
 @code {
     protected override async Task OnInitializedAsync()
