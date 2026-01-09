@@ -412,6 +412,104 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Annonce>()), Times.Never);
         }
+
+        [TestMethod]
+        public async Task PostAnnonceTest_WithoutPromotionLevel()
+        {
+            // Arrange
+            AnnonceCreateDTO annonceDTO = new AnnonceCreateDTO()
+            {
+                Libelle = "Nouvelle Annonce",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 25000,
+                Description = "Description de la nouvelle annonce",
+                IdVoiture = 1,
+                DatePublication = DateTime.Now,
+                IdMiseEnAvant = 1 // Standard - pas de paiement
+            };
+
+            var annonceEntity = _mapper.Map<Annonce>(annonceDTO);
+            annonceEntity.IdAnnonce = 2;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Annonce>()))
+                       .ReturnsAsync(annonceEntity)
+                       .Verifiable();
+
+            _mockJournalService.Setup(j => j.LogPublicationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            // Act
+            var actionResult = await _controller.Post(annonceDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdAnnonce = (Annonce)created.Value;
+            Assert.AreEqual(annonceDTO.Description, createdAnnonce.Description);
+
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Annonce>()), Times.Once);
+            _mockJournalService.Verify(j => j.LogPublicationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Once);
+
+            // Paiement ne doit pas être créé
+            _mockPaiementManager.Verify(m => m.AddAsync(It.IsAny<Paiement>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task PostAnnonceTest_WithPromotionLevel()
+        {
+            // Arrange
+            AnnonceCreateDTO annonceDTO = new AnnonceCreateDTO()
+            {
+                Libelle = "Nouvelle Annonce Premium",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 25000,
+                Description = "Description de la nouvelle annonce",
+                IdVoiture = 1,
+                DatePublication = DateTime.Now,
+                IdMiseEnAvant = 2, // Or - avec paiement
+                IdCB = 1
+            };
+
+            var annonceEntity = _mapper.Map<Annonce>(annonceDTO);
+            annonceEntity.IdAnnonce = 2;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Annonce>()))
+                       .ReturnsAsync(annonceEntity)
+                       .Verifiable();
+
+            _mockPaiementManager.Setup(m => m.AddAsync(It.IsAny<Paiement>()))
+                               .ReturnsAsync(new Paiement())
+                               .Verifiable();
+
+            _mockJournalService.Setup(j => j.LogPublicationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            // Act
+            var actionResult = await _controller.Post(annonceDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdAnnonce = (Annonce)created.Value;
+            Assert.AreEqual(annonceDTO.Description, createdAnnonce.Description);
+
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Annonce>()), Times.Once);
+            _mockJournalService.Verify(j => j.LogPublicationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Once);
+
+            // Paiement doit être créé
+            _mockPaiementManager.Verify(m => m.AddAsync(It.IsAny<Paiement>()), Times.Once);
+        }
+
         #endregion
 
         #region DELETE
@@ -879,6 +977,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
+        #endregion
+
+        #region PUT
         [TestMethod]
         public async Task PutAnnonceTest()
         {
@@ -892,7 +993,9 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdAdresse = 1,
                 Prix = 20000,
                 Description = "Description de l'annonce",
-                IdVoiture = 1
+                IdVoiture = 1,
+                IdMiseEnAvant = 1,
+                DatePublication = _objetcommun.DatePublication
             };
 
             AnnonceUpdateDTO annonceDTO = new AnnonceUpdateDTO()
@@ -904,7 +1007,9 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdAdresse = 1,
                 Prix = 25000,
                 Description = "Description de la nouvelle annonce",
-                IdVoiture = 1
+                IdVoiture = 1,
+                IdMiseEnAvant = 1,
+                DatePublication = _objetcommun.DatePublication.Value
             };
 
             var updatedAnnonce = _mapper.Map<Annonce>(annonceDTO);
@@ -915,16 +1020,200 @@ namespace Api_c_sharp.ControllersMock.Tests
                        .Returns(Task.CompletedTask)
                        .Verifiable();
 
+            _mockJournalService.Setup(j => j.LogModificationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
             // Act
             var result = await _controller.Put(_objetcommun.IdAnnonce, annonceDTO);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Annonce>(), It.IsAny<Annonce>()), Times.Once);
+            _mockJournalService.Verify(j => j.LogModificationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Once);
         }
-        #endregion
 
-        #region PUT
+        [TestMethod]
+        public async Task PutAnnonceTest_AddPromotionPayment()
+        {
+            // Arrange - Ajouter une promotion
+            var existingAnnonce = new Annonce
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description",
+                IdVoiture = 1,
+                IdMiseEnAvant = 1, // Standard
+                ProchaineMiseEnAvant = null,
+                DatePublication = _objetcommun.DatePublication
+            };
+
+            AnnonceUpdateDTO annonceDTO = new AnnonceUpdateDTO()
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description",
+                IdVoiture = 1,
+                IdMiseEnAvant = 2, // Or
+                IdCB = 1,
+                DatePublication = _objetcommun.DatePublication.Value
+            };
+
+            var updatedAnnonce = _mapper.Map<Annonce>(annonceDTO);
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(existingAnnonce);
+            _mockManager.Setup(m => m.UpdateAsync(existingAnnonce, updatedAnnonce))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            _mockPaiementManager.Setup(m => m.AddAsync(It.IsAny<Paiement>()))
+                               .ReturnsAsync(new Paiement())
+                               .Verifiable();
+
+            _mockJournalService.Setup(j => j.LogModificationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdAnnonce, annonceDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Annonce>(), It.IsAny<Annonce>()), Times.Once);
+            _mockPaiementManager.Verify(m => m.AddAsync(It.IsAny<Paiement>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task PutAnnonceTest_ChangePromotionLevel()
+        {
+            // Arrange - Changer de niveau de promotion
+            var existingAnnonce = new Annonce
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description",
+                IdVoiture = 1,
+                IdMiseEnAvant = 2, // Or actuellement
+                ProchaineMiseEnAvant = null,
+                DatePublication = _objetcommun.DatePublication
+            };
+
+            AnnonceUpdateDTO annonceDTO = new AnnonceUpdateDTO()
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description",
+                IdVoiture = 1,
+                IdMiseEnAvant = 3, // Platine
+                IdCB = 1,
+                DatePublication = _objetcommun.DatePublication.Value
+            };
+
+            var updatedAnnonce = _mapper.Map<Annonce>(annonceDTO);
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(existingAnnonce);
+
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Annonce>(), It.IsAny<Annonce>()))
+                       .Callback<Annonce, Annonce>((existing, updated) =>
+                       {
+                           existing.ProchaineMiseEnAvant = updated.IdMiseEnAvant; 
+                           existing.IdMiseEnAvant = updated.IdMiseEnAvant; 
+                           existing.ProchaineMiseEnAvant = 3;
+                           existing.IdMiseEnAvant = 2;
+                       })
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            _mockJournalService.Setup(j => j.LogModificationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdAnnonce, annonceDTO);
+
+            // Assert
+            var annonceAfterUpdate = await _mockManager.Object.GetByIdAsync(_objetcommun.IdAnnonce);
+
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            Assert.AreEqual(3, annonceAfterUpdate.ProchaineMiseEnAvant);
+            Assert.AreEqual(2, annonceAfterUpdate.IdMiseEnAvant);
+        }
+
+        [TestMethod]
+        public async Task PutAnnonceTest_CancelPromotionChange()
+        {
+            // Arrange - Annuler un changement de promotion prévu
+            var existingAnnonce = new Annonce
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description",
+                IdVoiture = 1,
+                IdMiseEnAvant = 2, // Or
+                ProchaineMiseEnAvant = 3, // Changement à Platine prévu
+                DatePublication = _objetcommun.DatePublication
+            };
+
+            AnnonceUpdateDTO annonceDTO = new AnnonceUpdateDTO()
+            {
+                IdAnnonce = _objetcommun.IdAnnonce,
+                Libelle = "Annonce Test",
+                IdCompte = 1,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 20000,
+                Description = "Description",
+                IdVoiture = 1,
+                IdMiseEnAvant = 2, // Garder Or - annuler le changement
+                DatePublication = _objetcommun.DatePublication.Value
+            };
+
+            var updatedAnnonce = _mapper.Map<Annonce>(annonceDTO);
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(existingAnnonce);
+            _mockManager.Setup(m => m.UpdateAsync(existingAnnonce, updatedAnnonce))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            _mockJournalService.Setup(j => j.LogModificationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdAnnonce, annonceDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            // ProchaineMiseEnAvant doit être annulé
+            Assert.IsNull(updatedAnnonce.ProchaineMiseEnAvant);
+            Assert.AreEqual(2, updatedAnnonce.IdMiseEnAvant);
+        }
+
         [TestMethod]
         public async Task PutAnnonceWithPriceDropTest()
         {
@@ -936,9 +1225,11 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdCompte = 1,
                 IdEtatAnnonce = 1,
                 IdAdresse = 1,
-                Prix = 25000,  // Prix initial plus élevé
+                Prix = 25000, // Prix initial plus élevé
                 Description = "Description de l'annonce",
-                IdVoiture = 1
+                IdVoiture = 1,
+                IdMiseEnAvant = 1,
+                DatePublication = _objetcommun.DatePublication
             };
 
             AnnonceUpdateDTO annonceDTO = new AnnonceUpdateDTO()
@@ -948,9 +1239,11 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdCompte = 1,
                 IdEtatAnnonce = 1,
                 IdAdresse = 1,
-                Prix = 20000,  // Prix réduit
+                Prix = 20000, // Prix réduit
                 Description = "Description de l'annonce",
-                IdVoiture = 1
+                IdVoiture = 1,
+                IdMiseEnAvant = 1,
+                DatePublication = _objetcommun.DatePublication.Value
             };
 
             var updatedAnnonce = _mapper.Map<Annonce>(annonceDTO);
@@ -960,20 +1253,34 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.UpdateAsync(existingAnnonce, updatedAnnonce))
                        .Returns(Task.CompletedTask);
 
+            _mockNotificationService.Setup(n => n.NotifAnnonce(
+                It.IsAny<int>(), It.IsAny<double>(), It.IsAny<double>()))
+                .Returns(Task.CompletedTask);
+
+            _mockJournalService.Setup(j => j.LogModificationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
             // Act
             var result = await _controller.Put(_objetcommun.IdAnnonce, annonceDTO);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            // CORRECTION: Vérifier l'appel avec "PriceDropNotification" 
-            // et un objet (pas des paramètres séparés)
+            _mockNotificationService.Verify(
+                n => n.NotifAnnonce(
+                    _objetcommun.IdAnnonce,
+                    25000,
+                    20000
+                ),
+                Times.Once
+            );
+
             _mockClientProxy.Verify(
                 c => c.SendCoreAsync(
-                    "PriceDropNotification",  // Nom correct
+                    "PriceDropNotification",
                     It.Is<object[]>(args =>
-                        args.Length == 1 &&
-                        args[0] != null
+                        args.Length == 1 && args[0] != null
                     ),
                     It.IsAny<CancellationToken>()
                 ),
@@ -994,7 +1301,9 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdAdresse = 1,
                 Prix = 20000,
                 Description = "Description de l'annonce",
-                IdVoiture = 1
+                IdVoiture = 1,
+                IdMiseEnAvant = 1,
+                DatePublication = _objetcommun.DatePublication
             };
 
             AnnonceUpdateDTO annonceDTO = new AnnonceUpdateDTO()
@@ -1004,9 +1313,11 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdCompte = 1,
                 IdEtatAnnonce = 1,
                 IdAdresse = 1,
-                Prix = 25000,  // Prix augmenté
+                Prix = 25000, // Prix augmenté
                 Description = "Description de l'annonce",
-                IdVoiture = 1
+                IdVoiture = 1,
+                IdMiseEnAvant = 1,
+                DatePublication = _objetcommun.DatePublication.Value
             };
 
             var updatedAnnonce = _mapper.Map<Annonce>(annonceDTO);
@@ -1016,19 +1327,18 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Setup(m => m.UpdateAsync(existingAnnonce, updatedAnnonce))
                        .Returns(Task.CompletedTask);
 
+            _mockJournalService.Setup(j => j.LogModificationAnnonceAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
             // Act
             var result = await _controller.Put(_objetcommun.IdAnnonce, annonceDTO);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            // Vérifier que le hub N'a PAS été appelé (prix augmenté)
-            _mockClientProxy.Verify(
-                c => c.SendCoreAsync(
-                    "ReceivePriceDropNotification",
-                    It.IsAny<object[]>(),
-                    It.IsAny<CancellationToken>()
-                ),
+            _mockNotificationService.Verify(
+                n => n.NotifAnnonce(It.IsAny<int>(), It.IsAny<double>(), It.IsAny<double>()),
                 Times.Never
             );
         }
@@ -1046,7 +1356,8 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdAdresse = 1,
                 Prix = 25000,
                 Description = "Description de la nouvelle annonce",
-                IdVoiture = 1
+                IdVoiture = 1,
+                DatePublication = DateTime.Now
             };
 
             _mockManager.Setup(m => m.GetByIdAsync(0))
@@ -1072,7 +1383,8 @@ namespace Api_c_sharp.ControllersMock.Tests
                 IdAdresse = 1,
                 Prix = 25000,
                 Description = "Description de la nouvelle annonce",
-                IdVoiture = 1
+                IdVoiture = 1,
+                DatePublication = DateTime.Now
             };
 
             _controller.ModelState.AddModelError("Description", "Required");
@@ -1480,7 +1792,83 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value);
         }
         #endregion
-        
+
+        #region GetPaiements
+        [TestMethod]
+        public async Task GetPaiementsTest()
+        {
+            // Arrange
+            var paiementDTO = new PaiementDTO
+            {
+                NbSemaineMiseEnAvantOr = 2,
+                PrixMiseEnAvantOr = 100,
+                NbSemaineMiseEnAvantPlatine = 1,
+                PrixMisedAvantPlatine = 200,
+                NbSemaineMiseEnAvantDiamant = 0,
+                PrixMiseEnAvantDiamant = 300
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.PaiementMiseEnAvant(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(paiementDTO);
+
+            // Act
+            var result = await _controller.GetPaiements(_objetcommun.IdAnnonce);
+
+            var created = (OkObjectResult)result.Result;
+            PaiementDTO paiementDTOresult = (PaiementDTO)created.Value;
+
+            // Assert
+            Assert.AreEqual(paiementDTO.NbSemaineMiseEnAvantOr, paiementDTOresult.NbSemaineMiseEnAvantOr);
+            Assert.AreEqual(paiementDTO.PrixMiseEnAvantOr, paiementDTOresult.PrixMiseEnAvantOr);
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetPaiementsTest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(0))
+                       .ReturnsAsync((Annonce)null);
+
+            // Act
+            var result = await _controller.GetPaiements(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetPaiementsEmptyTest()
+        {
+            // Arrange - Annonce avec aucun paiement
+            var paiementDTO = new PaiementDTO
+            {
+                NbSemaineMiseEnAvantOr = 0,
+                PrixMiseEnAvantOr = 0,
+                NbSemaineMiseEnAvantPlatine = 0,
+                PrixMisedAvantPlatine = 0,
+                NbSemaineMiseEnAvantDiamant = 0,
+                PrixMiseEnAvantDiamant = 0
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.PaiementMiseEnAvant(_objetcommun.IdAnnonce))
+                       .ReturnsAsync(paiementDTO);
+
+            // Act
+            var result = await _controller.GetPaiements(_objetcommun.IdAnnonce);
+
+            var created = (OkObjectResult)result.Result;
+            PaiementDTO paiementDTOresult = (PaiementDTO)created.Value;
+            // Assert
+            Assert.AreEqual(0, paiementDTOresult.NbSemaineMiseEnAvantOr);
+            Assert.AreEqual(0, paiementDTOresult.NbSemaineMiseEnAvantPlatine);
+            Assert.AreEqual(0, paiementDTOresult.NbSemaineMiseEnAvantDiamant);
+        }
+        #endregion
 
         private void SetupUserContext(string userId = "2")
         {

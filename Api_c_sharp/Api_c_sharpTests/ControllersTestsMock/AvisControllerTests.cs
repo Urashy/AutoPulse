@@ -92,7 +92,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 new Avis { IdAvis = 2, ContenuAvis = "B", NoteAvis = 5 }
             };
 
-            
+
             _mockManager.Setup(m => m.GetAllAsync())
                         .ReturnsAsync(data);
 
@@ -107,7 +107,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #region POST
         [TestMethod]
-        public async Task Post_ReturnsCreated()
+        public async Task Post_ReturnsCreated_WhenAvisDoesNotExist()
         {
             // Arrange
             var dto = new AvisCreateDTO
@@ -129,6 +129,9 @@ namespace Api_c_sharp.ControllersMock.Tests
                 NoteAvis = 4
             };
 
+            _mockManager.Setup(m => m.ExisteDejaAsync(dto.IdCommande, dto.IdJugeur))
+                        .ReturnsAsync(false);
+
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Avis>()))
                         .ReturnsAsync(entity);
 
@@ -137,6 +140,48 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
+            _mockManager.Verify(m => m.ExisteDejaAsync(dto.IdCommande, dto.IdJugeur), Times.Once);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Avis>()), Times.Once);
+            _mockJournal.Verify(j => j.LogDepotAvisAsync(
+                dto.IdJugeur,
+                dto.IdJugee,
+                It.IsAny<int>(),
+                dto.NoteAvis,
+                dto.ContenuAvis), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Post_ReturnsConflict_WhenAvisAlreadyExists()
+        {
+            // Arrange
+            var dto = new AvisCreateDTO
+            {
+                IdJugee = 1,
+                IdJugeur = 2,
+                IdCommande = 3,
+                ContenuAvis = "test",
+                NoteAvis = 4
+            };
+
+            _mockManager.Setup(m => m.ExisteDejaAsync(dto.IdCommande, dto.IdJugeur))
+                        .ReturnsAsync(true);
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(ConflictObjectResult));
+            var conflictResult = (ConflictObjectResult)result.Result;
+            Assert.AreEqual("Vous avez déjà déposé un avis pour cette commande.", conflictResult.Value);
+
+            _mockManager.Verify(m => m.ExisteDejaAsync(dto.IdCommande, dto.IdJugeur), Times.Once);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Avis>()), Times.Never);
+            _mockJournal.Verify(j => j.LogDepotAvisAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
@@ -152,6 +197,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+            _mockManager.Verify(m => m.ExisteDejaAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Avis>()), Times.Never);
         }
         #endregion
@@ -260,7 +306,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Act
             var result = await _controller.Delete(1);
 
-            // Asserte
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         #endregion
