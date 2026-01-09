@@ -304,7 +304,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         #region GET
-        #region GetById
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -368,7 +368,31 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
-        #endregion 
+        #endregion
+
+            #region GetByConversationID
+            [TestMethod]
+            public async Task GetCommandeByConversationIDTest()
+            {
+                // Act
+                var result = await _controller.GetCommandeByConversationID(1);
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsNotNull(result.Value);
+                Assert.IsInstanceOfType(result.Value, typeof(CommandeDTO));
+                Assert.AreEqual(result.Value.IdCommande, _commandeCommun.IdCommande );
+            }
+
+            [TestMethod]
+            public async Task NotFoundGetCommandeByConversationIDTest()
+            {
+                // Act
+                var result = await _controller.GetCommandeByConversationID(0);
+                // Assert
+                Assert.IsNotNull(result);
+                Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+            }
+            #endregion
         #endregion
 
         #region POST
@@ -409,6 +433,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         #endregion
 
         #region PUT
+
         [TestMethod]
         public async Task PutCommandeTest()
         {
@@ -420,7 +445,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdAcheteur = _commandeCommun.IdAcheteur,
                 IdAnnonce = _commandeCommun.IdAnnonce,
                 IdMoyenPaiement = _commandeCommun.IdMoyenPaiement,
-                Date = DateTime.UtcNow
+                Date = DateTime.UtcNow,
+                IdEtatCommande = 4,
             };
 
             // Act
@@ -428,6 +454,31 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            Assert.AreEqual(1, _commandeCommun.CommandeAnnonceNav.IdEtatAnnonce);
+        }
+
+
+        [TestMethod]
+        public async Task PutCommandeModifEtatAnnonceTest()
+        {
+            // Arrange
+            CommandeUpdateDTO dto = new CommandeUpdateDTO
+            {
+                IdCommande = _commandeCommun.IdCommande,
+                IdVendeur = _commandeCommun.IdVendeur,
+                IdAcheteur = _commandeCommun.IdAcheteur,
+                IdAnnonce = _commandeCommun.IdAnnonce,
+                IdMoyenPaiement = _commandeCommun.IdMoyenPaiement,
+                Date = DateTime.UtcNow,
+                IdEtatCommande = 5,
+            };
+
+            // Act
+            var result = await _controller.Put(_commandeCommun.IdCommande, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            Assert.AreEqual(2, _commandeCommun.CommandeAnnonceNav.IdEtatAnnonce);
         }
 
         [TestMethod]
