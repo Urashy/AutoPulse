@@ -21,7 +21,7 @@ public class ConversationViewModel : IDisposable
     private readonly IOffreService _offreService;
     private readonly IAnnonceService _annonceService;
     private readonly NotificationService _notificationService; 
-    private readonly CommandeWebService _commandeService;
+    private readonly ICommandeService _commandeService;
 
     public List<MessageDTO> Messages { get; private set; } = new();
     public CommandeDTO? CommandeEnCours { get; private set; }
@@ -74,7 +74,7 @@ public class ConversationViewModel : IDisposable
         IOffreService offreService,
         IAnnonceService annonceService,
         NotificationService notificationService,
-        CommandeWebService commandeService)
+        ICommandeService commandeService)
     {
         _conversationState = conversationState;
         _signalR = signalR;

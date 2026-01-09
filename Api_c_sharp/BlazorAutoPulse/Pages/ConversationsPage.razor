@@ -65,9 +65,10 @@
         else
         {
             <div class="conversation-header">
-                <p>
-                    @VM.CommandeEnCours.IdCommande
-                </p>
+                @if (VM.CommandeEnCours != null)
+                {
+                    <p>Commande N° @VM.CommandeEnCours.IdCommande</p>
+                }
 
                 <div class="conversation-avatar">
                     @if (VM.ImageSources.ContainsKey(VM.SelectedConversation.IdParticipant) &&
