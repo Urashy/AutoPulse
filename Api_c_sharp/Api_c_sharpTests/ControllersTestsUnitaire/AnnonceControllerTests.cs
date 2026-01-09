@@ -702,7 +702,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             var annonce = await _context.Annonces.FirstOrDefaultAsync(a => a.IdAnnonce == _objetcommun.IdAnnonce);
             Assert.IsNotNull(annonce);
-            Assert.AreEqual(6, annonce.IdEtatAnnonce);
+            Assert.AreEqual(5, annonce.IdEtatAnnonce);
         }
 
         [TestMethod]

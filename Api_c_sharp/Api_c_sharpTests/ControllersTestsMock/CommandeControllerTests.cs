@@ -20,11 +20,13 @@ namespace Api_c_sharp.ControllersMock.Tests
         private IMapper _mapper;
         private Mock<IJournalService> _mockJournal;
         private CommandeController _controller;
+        private Mock<AnnonceManager> _mockManagerannonce;
 
         [TestInitialize]
         public void Setup()
         {
             _mockManager = new Mock<CommandeManager>(null);
+            _mockManagerannonce = new Mock<AnnonceManager>(null);
             _mockJournal = new Mock<IJournalService>();
 
             var config = new MapperConfiguration(cfg =>
@@ -36,7 +38,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             });
 
             _mapper = config.CreateMapper();
-            _controller = new CommandeController(_mockManager.Object, _mapper, _mockJournal.Object);
+            _controller = new CommandeController(_mockManager.Object, _mapper, _mockJournal.Object,_mockManagerannonce.Object);
         }
 
         #region GET

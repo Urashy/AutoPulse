@@ -208,7 +208,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             if (commandes != null || paiements.Any())
             {
-                entity.IdEtatAnnonce = 6;
+                entity.IdEtatAnnonce = 5;
                 return false;
             }
 
