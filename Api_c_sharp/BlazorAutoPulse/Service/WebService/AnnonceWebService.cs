@@ -131,5 +131,15 @@ namespace BlazorAutoPulse.Service
             return await response.Content.ReadFromJsonAsync<IEnumerable<AnnonceDTO>>()
                    ?? Enumerable.Empty<AnnonceDTO>();
         }
+
+        public async Task<PaiementDTO> GetPaiementByIdAnnonce(int id)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetPaiements/{id}"));
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<PaiementDTO>()
+                   ?? new PaiementDTO();
+            
+        }
     }
 }

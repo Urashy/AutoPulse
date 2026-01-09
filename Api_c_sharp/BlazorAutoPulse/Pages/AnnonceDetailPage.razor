@@ -484,6 +484,81 @@ else
             </div>
         </div>
 
+        @if (VM.CurrentUserId == VM.Annonce.IdVendeur)
+        {
+            <div class="promotion-section">
+                <h3>💎 Statistiques de mise en avant</h3>
+
+                <div class="promotion-stats-grid">
+                    <!-- Or -->
+                    <div class="promotion-stat-card promotion-or">
+                        <div class="promotion-stat-header">
+                            <span class="promotion-icon">🥇</span>
+                            <span class="promotion-tier">Or</span>
+                        </div>
+                        <div class="promotion-stat-body">
+                            <div class="stat-row">
+                                <span class="stat-label">Nombre de semaines :</span>
+                                <span class="stat-value">@VM.paiement.NbSemaineMiseEnAvantOr</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Prix unitaire :</span>
+                                <span class="stat-value">@VM.paiement.PrixMiseEnAvantOr.ToString("N2") €</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Platine -->
+                    <div class="promotion-stat-card promotion-platine">
+                        <div class="promotion-stat-header">
+                            <span class="promotion-icon">🥈</span>
+                            <span class="promotion-tier">Platine</span>
+                        </div>
+                        <div class="promotion-stat-body">
+                            <div class="stat-row">
+                                <span class="stat-label">Nombre de semaines :</span>
+                                <span class="stat-value">@VM.paiement.NbSemaineMiseEnAvantPlatine</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Prix unitaire :</span>
+                                <span class="stat-value">@VM.paiement.PrixMisedAvantPlatine.ToString("N2") €</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diamant -->
+                    <div class="promotion-stat-card promotion-diamant">
+                        <div class="promotion-stat-header">
+                            <span class="promotion-icon">💎</span>
+                            <span class="promotion-tier">Diamant</span>
+                        </div>
+                        <div class="promotion-stat-body">
+                            <div class="stat-row">
+                                <span class="stat-label">Nombre de semaines :</span>
+                                <span class="stat-value">@VM.paiement.NbSemaineMiseEnAvantDiamant</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Prix unitaire :</span>
+                                <span class="stat-value">@VM.paiement.PrixMiseEnAvantDiamant.ToString("N2") €</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Résumé Total -->
+                <div class="promotion-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">📊 Nombre total de paiements :</span>
+                        <span class="summary-value">@VM.NombreTotalPaiements</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span class="summary-label">💰 Prix total dépensé :</span>
+                        <span class="summary-value-total">@VM.PrixTotal.ToString("N2") €</span>
+                    </div>
+                </div>
+            </div>
+        }
+
         <!-- Caractéristiques détaillées -->
         <div class="details-section">
             <h2>Caractéristiques détaillées</h2>

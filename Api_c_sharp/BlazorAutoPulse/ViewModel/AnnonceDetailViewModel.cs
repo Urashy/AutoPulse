@@ -98,6 +98,18 @@ namespace BlazorAutoPulse.ViewModel
         
         // Conversation existante
         public bool ConvExistante { get; set; }
+        
+        // Propriétés pour les données de mise en avant
+        public PaiementDTO paiement { get; set; }
+        public int NombreTotalPaiements => 
+            paiement.NbSemaineMiseEnAvantOr + 
+            paiement.NbSemaineMiseEnAvantPlatine + 
+            paiement.NbSemaineMiseEnAvantDiamant;
+
+        public decimal PrixTotal =>
+            (paiement.NbSemaineMiseEnAvantOr * paiement.PrixMiseEnAvantOr) +
+            (paiement.NbSemaineMiseEnAvantPlatine * paiement.PrixMisedAvantPlatine) +
+            (paiement.NbSemaineMiseEnAvantDiamant * paiement.PrixMiseEnAvantDiamant);
 
         private Action? _refreshUI;
         private IJSRuntime? _jsRuntime;
@@ -164,6 +176,7 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     await LoadVendeurProfileImage(Annonce.IdVendeur);
                     await LoadAllImages();
+                    await GetPaiements();
                     modifAnnonceUrl = $"/modifier-annonce/{Annonce.IdAnnonce}";
                 }
 
@@ -977,6 +990,11 @@ namespace BlazorAutoPulse.ViewModel
                 isLoadingContact = false;
                 _refreshUI?.Invoke();
             }
+        }
+
+        public async Task GetPaiements()
+        {
+            paiement = await _annonceService.GetPaiementByIdAnnonce(Annonce.IdAnnonce);
         }
     }
 }
