@@ -1081,7 +1081,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, compteInfo.Email),
-            new Claim("role", "Authorized"),
+            new Claim("role", compte.IdTypeCompte == 3? "Admin" : "Authorized"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("idUser", compte.IdCompte.ToString()),
         };

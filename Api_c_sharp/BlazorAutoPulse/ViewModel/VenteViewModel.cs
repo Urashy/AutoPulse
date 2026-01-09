@@ -299,7 +299,6 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // Convertir la première image en base64
                 var firstImage = imageUpload.First();
                 using var memoryStream = new MemoryStream();
                 await firstImage.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(memoryStream);
@@ -312,33 +311,28 @@ namespace BlazorAutoPulse.ViewModel
                 };
 
                 var result = await _iaService.PredictAIAsync(dataCnn);
-                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
                 if (result is ResultatCNN prediction)
                 {
                     cnnResult = prediction;
-                    Console.WriteLine("Cast réussi vers ResultatCNN");
-                }
-                else
-                {
-                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatCNN");
                 }
 
                 showCnnLoadingPopup = false;
-                
-                if (cnnResult.Success)
+        
+                if (cnnResult != null && cnnResult.Success)
                 {
                     showCnnResultPopup = true;
                 }
                 else
                 {
-                    errors.Add("cnn", cnnResult.Error ?? "Erreur lors de la reconnaissance");
+                    errors.Add("cnn", "Le service d'IA est indisponible pour le moment");
                 }
             }
             catch (Exception ex)
             {
                 showCnnLoadingPopup = false;
-                errors.Add("cnn", $"Erreur: {ex.Message}");
+                errors.Add("cnn", "Le service d'IA est indisponible pour le moment");
+                Console.WriteLine($"Erreur reconnaissance CNN: {ex.Message}");
             }
 
             _refreshUI?.Invoke();
@@ -428,7 +422,6 @@ namespace BlazorAutoPulse.ViewModel
             showPriceWarningPopup = false;
             showPriceLoadingPopup = true;
             _refreshUI?.Invoke();
-            
 
             try
             {
@@ -452,29 +445,24 @@ namespace BlazorAutoPulse.ViewModel
                 };
                 
                 var result = await _iaService.PredictAIAsync(dataPrediction);
-                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
                 if (result is ResultatPrediction prediction)
                 {
                     priceResult = prediction;
-                    Console.WriteLine("Cast réussi vers ResultatPrediction");
-                }
-                else
-                {
-                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
                 }
 
                 showPriceLoadingPopup = false;
 
-                if (!priceResult.Success)
+                if (priceResult == null || !priceResult.Success)
                 {
-                    errors.Add("price", priceResult.Error ?? "Erreur lors de la prédiction");
+                    errors.Add("price", "Le service d'IA est indisponible pour le moment");
                 }
             }
             catch (Exception ex)
             {
                 showPriceLoadingPopup = false;
-                errors.Add("price", $"Erreur: {ex.Message}");
+                errors.Add("price", "Le service d'IA est indisponible pour le moment");
+                Console.WriteLine($"Erreur prédiction prix: {ex.Message}");
             }
 
             _refreshUI?.Invoke();
@@ -520,33 +508,28 @@ namespace BlazorAutoPulse.ViewModel
                 };
 
                 var result = await _iaService.PredictAIAsync(dataAdjustment);
-                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
                 if (result is ResultatAjustement prediction)
                 {
                     adjustmentResult = prediction;
-                    Console.WriteLine("Cast réussi vers ResultatAjustement");
-                }
-                else
-                {
-                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatAjustement");
                 }
 
                 showAdjustmentLoadingPopup = false;
 
-                if (adjustmentResult.Success)
+                if (adjustmentResult != null && adjustmentResult.Success)
                 {
                     showAdjustmentResultPopup = true;
                 }
                 else
                 {
-                    errors.Add("adjustment", adjustmentResult.Error ?? "Erreur lors de l'ajustement");
+                    errors.Add("adjustment", "Le service d'IA est indisponible pour le moment");
                 }
             }
             catch (Exception ex)
             {
                 showAdjustmentLoadingPopup = false;
-                errors.Add("adjustment", $"Erreur: {ex.Message}");
+                errors.Add("adjustment", "Le service d'IA est indisponible pour le moment");
+                Console.WriteLine($"Erreur ajustement prix: {ex.Message}");
             }
 
             _refreshUI?.Invoke();

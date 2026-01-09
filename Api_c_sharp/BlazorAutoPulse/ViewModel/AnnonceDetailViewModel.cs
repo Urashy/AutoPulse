@@ -598,21 +598,16 @@ namespace BlazorAutoPulse.ViewModel
                 };
 
                 var result = await _iaService.PredictAIAsync(dataPrediction);
-                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
                 if (result is ResultatPrediction prediction)
                 {
                     priceResult = prediction;
-                    Console.WriteLine("Cast réussi vers ResultatAjustement");
-                }
-                else
-                {
-                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatAjustement");
                 }
 
                 showPriceLoadingPopup = false;
 
-                if (priceResult.Success)
+                // ✅ VÉRIFICATION DU SUCCESS
+                if (priceResult != null && priceResult.Success)
                 {
                     _notificationService.ShowSuccess(
                         "Prédiction du prix",
@@ -622,8 +617,8 @@ namespace BlazorAutoPulse.ViewModel
                 else
                 {
                     _notificationService.ShowError(
-                        "Erreur de prédiction",
-                        priceResult.Error ?? "Une erreur est survenue"
+                        "Service indisponible",
+                        "Le service d'IA est indisponible pour le moment"
                     );
                 }
             }
@@ -631,9 +626,10 @@ namespace BlazorAutoPulse.ViewModel
             {
                 showPriceLoadingPopup = false;
                 _notificationService.ShowError(
-                    "Erreur de prédiction",
-                    $"Erreur: {ex.Message}"
+                    "Service indisponible",
+                    "Le service d'IA est indisponible pour le moment"
                 );
+                Console.WriteLine($"Erreur prédiction prix: {ex.Message}");
             }
 
             _refreshUI?.Invoke();
@@ -678,29 +674,24 @@ namespace BlazorAutoPulse.ViewModel
                 };
 
                 var result = await _iaService.PredictAIAsync(dataAdjustment);
-                Console.WriteLine($"Type reçu: {result?.GetType().Name}");
 
                 if (result is ResultatAjustement prediction)
                 {
                     adjustmentResult = prediction;
-                    Console.WriteLine("Cast réussi vers ResultatPrediction");
-                }
-                else
-                {
-                    Console.WriteLine($"ERREUR: Type reçu {result?.GetType().Name} au lieu de ResultatPrediction");
                 }
 
                 showAdjustmentLoadingPopup = false;
 
-                if (adjustmentResult.Success)
+                // ✅ VÉRIFICATION DU SUCCESS
+                if (adjustmentResult != null && adjustmentResult.Success)
                 {
                     showAdjustmentResultPopup = true;
                 }
                 else
                 {
                     _notificationService.ShowError(
-                        "Erreur d'ajustement",
-                        adjustmentResult.Error ?? "Une erreur est survenue"
+                        "Service indisponible",
+                        "Le service d'IA est indisponible pour le moment"
                     );
                 }
             }
@@ -708,9 +699,10 @@ namespace BlazorAutoPulse.ViewModel
             {
                 showAdjustmentLoadingPopup = false;
                 _notificationService.ShowError(
-                    "Erreur d'ajustement",
-                    $"Erreur: Veuillez prédire le prix avant"
+                    "Service indisponible",
+                    "Le service d'IA est indisponible pour le moment"
                 );
+                Console.WriteLine($"Erreur ajustement prix: {ex.Message}");
             }
 
             _refreshUI?.Invoke();
