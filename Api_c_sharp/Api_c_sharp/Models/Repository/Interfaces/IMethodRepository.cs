@@ -51,6 +51,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
     public interface IAvisRepository
     {
+        Task<bool> ExisteDejaAsync(int idCommande, int idJugeur);
         Task<IEnumerable<Avis>> GetAvisByCompteId(int compteId);
     }
         

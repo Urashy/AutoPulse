@@ -1,4 +1,6 @@
-﻿using AutoPulse.Shared.DTO;
+﻿using System.Globalization;
+using System.Text;
+using AutoPulse.Shared.DTO;
 using AutoPulse.Shared.DTO;
 using AutoPulse.Shared.DTO.IA.Data;
 using AutoPulse.Shared.DTO.IA.Result;
@@ -29,7 +31,6 @@ namespace BlazorAutoPulse.ViewModel
         //-------------------------------- Modèles
         public List<ImageUpload> imageUpload;
         public List<AdresseDTO> compteAdresses;
-        public string envoieApi;
 
         private CompteDetailDTO compte;
         public AnnonceCreateDTO annonce;
@@ -66,7 +67,6 @@ namespace BlazorAutoPulse.ViewModel
         private Action? _refreshUI;
         private NavigationManager _nav;
         private GetAllViewModel _vmAll;
-
 
         // Nouvelles propriétés pour l'autocomplétion
         public string searchQuery { get; set; } = "";
@@ -1014,7 +1014,7 @@ namespace BlazorAutoPulse.ViewModel
                 && !string.IsNullOrWhiteSpace(vehicleData.FuelType))
             {
                 var carburant = _vmAll.allCarburants?.FirstOrDefault(c =>
-                    c.LibelleCarburant.Equals(vehicleData.FuelType, StringComparison.OrdinalIgnoreCase));
+                    RemoveAccents(c.LibelleCarburant).Equals(RemoveAccents(vehicleData.FuelType), StringComparison.OrdinalIgnoreCase));
                 if (carburant != null)
                 {
                     selectedCarburantId = carburant.IdCarburant;
@@ -1214,6 +1214,23 @@ namespace BlazorAutoPulse.ViewModel
                 errors.Add("general", "Une erreur est survenue lors de la publication de l'annonce. Veuillez réessayer.");
                 _refreshUI?.Invoke();
             }
+        }
+        
+        public static string RemoveAccents(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            var normalized = text.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder();
+
+            foreach (var c in normalized)
+            {
+                if (Char.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            }
+
+            return sb.ToString().Normalize(NormalizationForm.FormC);
         }
     }
 }
