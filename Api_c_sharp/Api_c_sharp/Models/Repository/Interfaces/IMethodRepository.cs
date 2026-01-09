@@ -56,6 +56,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         
     public interface ICommandeRepository
     {
+        Task<Commande> GetCommandeByConversation(int id);
         Task<IEnumerable<Commande>> GetCommandesByCompteId(int compteId);
     }
 

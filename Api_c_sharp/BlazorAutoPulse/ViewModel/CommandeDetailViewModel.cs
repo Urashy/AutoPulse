@@ -241,11 +241,25 @@ namespace BlazorAutoPulse.ViewModel
                 // TODO: Appel API pour enregistrer le paiement par carte
                 // await _commandeService.ValidateCardPayment(Commande.IdCommande, new CardPaymentDTO { ... });
 
+
                 // Mise à jour de l'état de la commande
                 if (Commande != null)
                 {
                     // Paiement direct par carte = Validé directement (état 3)
                     Commande.IdEtatCommande = 3;
+
+                    CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
+                    {
+                        IdCommande = Commande.IdCommande,
+                        IdVendeur = Commande.IdVendeur,
+                        IdAcheteur = Commande.IdAcheteur,
+                        IdAnnonce = Commande.Offre.IdAnnonce,
+                        IdMoyenPaiement = 1,
+                        IdOffre = Commande.Offre.IdOffre,
+                        IdEtatCommande = Commande.IdEtatCommande
+                    };
+
+                    await _commandeService.UpdateCommandeAsync(Commande.IdCommande, Commandeup);
                 }
 
                 _notificationService.ShowSuccess(
@@ -281,9 +295,25 @@ namespace BlazorAutoPulse.ViewModel
                 // TODO: Appel API pour confirmer le paiement autre moyen
                 // await _commandeService.EmitPayment(Commande.IdCommande);
 
+
+                
+
                 if (Commande != null)
                 {
                     Commande.IdEtatCommande = 2; // Paiement émis
+
+                    CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
+                    {
+                        IdCommande = Commande.IdCommande,
+                        IdVendeur = Commande.IdVendeur,
+                        IdAcheteur = Commande.IdAcheteur,
+                        IdAnnonce = Commande.Offre.IdAnnonce,
+                        IdMoyenPaiement = 1,
+                        IdOffre = Commande.Offre.IdOffre,
+                        IdEtatCommande = Commande.IdEtatCommande
+                    };
+
+                    await _commandeService.UpdateCommandeAsync(Commande.IdCommande, Commandeup);
                 }
 
                 _notificationService.ShowSuccess(
@@ -323,6 +353,19 @@ namespace BlazorAutoPulse.ViewModel
 
                 Commande.IdEtatCommande = 3; // Paiement validé
 
+                CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
+                {
+                    IdCommande = Commande.IdCommande,
+                    IdVendeur = Commande.IdVendeur,
+                    IdAcheteur = Commande.IdAcheteur,
+                    IdAnnonce = Commande.Offre.IdAnnonce,
+                    IdMoyenPaiement = 1,
+                    IdOffre = Commande.Offre.IdOffre,
+                    IdEtatCommande = Commande.IdEtatCommande
+                };
+
+                await _commandeService.UpdateCommandeAsync(Commande.IdCommande, Commandeup);
+
                 _notificationService.ShowSuccess(
                     "Paiement confirmé",
                     "La transaction a été validée avec succès"
@@ -355,6 +398,19 @@ namespace BlazorAutoPulse.ViewModel
 
                 Commande.IdEtatCommande = 4; // Livraison émise (Passage de 5 à 4)
 
+                CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
+                {
+                    IdCommande = Commande.IdCommande,
+                    IdVendeur = Commande.IdVendeur,
+                    IdAcheteur = Commande.IdAcheteur,
+                    IdAnnonce = Commande.Offre.IdAnnonce,
+                    IdMoyenPaiement = 1,
+                    IdOffre = Commande.Offre.IdOffre,
+                    IdEtatCommande = Commande.IdEtatCommande
+                };
+
+                await _commandeService.UpdateCommandeAsync(Commande.IdCommande, Commandeup);
+
                 _notificationService.ShowSuccess(
                     "Livraison émise",
                     "L'acheteur a été notifié que le véhicule est prêt"
@@ -382,10 +438,22 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // TODO: Appel API pour confirmer la réception du véhicule
-                // await _commandeService.ConfirmVehicleReceived(Commande.IdCommande);
 
-                Commande.IdEtatCommande = 5; // Terminée (Passage de 6 à 5)
+                Commande.IdEtatCommande = 5;
+
+                CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
+                {
+                    IdCommande = Commande.IdCommande,
+                    IdVendeur = Commande.IdVendeur,
+                    IdAcheteur = Commande.IdAcheteur,
+                    IdAnnonce = Commande.Offre.IdAnnonce,
+                    IdMoyenPaiement = 1,
+                    IdOffre = Commande.Offre.IdOffre,
+
+                    IdEtatCommande = Commande.IdEtatCommande
+                };
+
+                await _commandeService.UpdateCommandeAsync(Commande.IdCommande,Commandeup);
 
                 _notificationService.ShowSuccess(
                     "Commande terminée",

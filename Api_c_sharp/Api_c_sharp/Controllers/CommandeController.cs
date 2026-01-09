@@ -18,7 +18,7 @@ namespace Api_c_sharp.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CommandeController(CommandeManager _manager, IMapper _mapper, IJournalService _journalService) : ControllerBase
+public class CommandeController(CommandeManager _manager, IMapper _mapper, IJournalService _journalService,AnnonceManager _managerannonce) : ControllerBase
 {
     /// <summary>
     /// Récupère une commande à partir de son identifiant.
@@ -112,6 +112,14 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
         if (toUpdate == null)
             return NotFound();
 
+        if(dto.IdEtatCommande == 5)
+        {
+            Annonce e = await _managerannonce.GetByIdAsync(dto.IdAnnonce);
+            Annonce updated = e;
+            updated.IdEtatAnnonce = 2;
+            await _managerannonce.UpdateAsync(e, updated);
+        }
+
         var updatedEntity = _mapper.Map<Commande>(dto);
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
@@ -165,7 +173,20 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
             return NotFound();
 
         return new ActionResult<IEnumerable<CommandeDTO>>(_mapper.Map<IEnumerable<CommandeDTO>>(result));
+    }
 
+    [ActionName("GetCommandeByConversationId")]
+    [HttpGet("{idconv}")]
+    [ProducesResponseType(typeof(CommandeDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CommandeDTO>> GetCommandeByConversationID(int idconv)
+    {
+        var result = await _manager.GetCommandeByConversation(idconv);
+
+        if (result is null)
+            return NotFound();
+
+        return new ActionResult<CommandeDTO>(_mapper.Map<CommandeDTO>(result));
     }
 
 

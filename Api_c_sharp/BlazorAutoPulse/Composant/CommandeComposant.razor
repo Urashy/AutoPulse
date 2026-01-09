@@ -1,9 +1,9 @@
-﻿@using AutoPulse.Shared.DTO
+@using AutoPulse.Shared.DTO
 @using BlazorAutoPulse.ViewModel
 @inject CommandeComposantViewModel CommandeVM
 @inject NavigationManager Navigation
 
-<div class="commande-card">
+<div class="commande-card" @onclick="NavigateToCommande">
     <div class="commande-header">
         <div class="commande-icon">
             📍
@@ -12,6 +12,15 @@
     </div>
 
     <div class="commande-content">
+        <div class="commande-row">
+            <div class="commande-details">
+                <span class="commande-label">Numéro de commande</span>
+                <span class="commande-value commande-number">
+                    #@Commande.IdCommande
+                </span>
+            </div>
+        </div>
+
         <div class="commande-row">
             <div class="commande-details">
                 <span class="commande-label">Moyen de paiement</span>
@@ -30,6 +39,15 @@
                 </span>
             </div>
         </div>
+
+        <div class="commande-row">
+            <div class="commande-details">
+                <span class="commande-label">Statut</span>
+                <span class="commande-statut @GetStatutClass()">
+                    @GetStatutLabel()
+                </span>
+            </div>
+        </div>
     </div>
 
     @if (ShowActions)
@@ -45,6 +63,13 @@
             </button>
         </div>
     }
+
+    <div class="commande-link-indicator">
+        <span>Voir les détails</span>
+        <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+    </div>
 </div>
 
 @code {
@@ -71,6 +96,11 @@
         }
     }
 
+    private void NavigateToCommande()
+    {
+        Navigation.NavigateTo($"/commande/{Commande.IdCommande}");
+    }
+
     private async Task EditAddress()
     {
         if (OnEdit.HasDelegate)
@@ -85,5 +115,31 @@
         {
             await OnDelete.InvokeAsync(Commande);
         }
+    }
+
+    private string GetStatutClass()
+    {
+        return Commande.IdEtatCommande switch
+        {
+            1 => "statut-attente",
+            2 => "statut-paiement",
+            3 => "statut-valide",
+            4 => "statut-livraison",
+            5 => "statut-termine",
+            _ => ""
+        };
+    }
+
+    private string GetStatutLabel()
+    {
+        return Commande.IdEtatCommande switch
+        {
+            1 => "En attente de paiement",
+            2 => "Paiement émis",
+            3 => "Paiement validé",
+            4 => "En livraison",
+            5 => "Terminée",
+            _ => "Inconnu"
+        };
     }
 }

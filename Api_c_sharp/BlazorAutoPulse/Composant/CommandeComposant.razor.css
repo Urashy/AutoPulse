@@ -1,0 +1,274 @@
+/* ============================================================================
+   CARTE COMMANDE
+   ============================================================================ */
+.commande-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    border: 1px solid #333;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+    .commande-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.05), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .commande-card:hover::before {
+        left: 100%;
+    }
+
+    .commande-card:hover {
+        border-color: #00d4ff;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.15);
+    }
+
+    .commande-card:active {
+        transform: translateY(0) scale(0.99);
+    }
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+.commande-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.commande-icon {
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    background: rgba(0, 212, 255, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.commande-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ============================================================================
+   CONTENU
+   ============================================================================ */
+.commande-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.commande-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.commande-row-icon {
+    font-size: 20px;
+    opacity: 0.7;
+}
+
+.commande-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.commande-label {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.commande-value {
+    font-size: 15px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.commande-number {
+    font-family: 'Courier New', monospace;
+    color: #00d4ff;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+/* ============================================================================
+   STATUT
+   ============================================================================ */
+.commande-statut {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.statut-attente {
+    background: rgba(255, 170, 0, 0.15);
+    color: #ffaa00;
+    border-color: rgba(255, 170, 0, 0.3);
+}
+
+.statut-paiement {
+    background: rgba(0, 212, 255, 0.15);
+    color: #00d4ff;
+    border-color: rgba(0, 212, 255, 0.3);
+}
+
+.statut-valide {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+    border-color: rgba(0, 255, 136, 0.3);
+}
+
+.statut-livraison {
+    background: rgba(102, 126, 234, 0.15);
+    color: #667eea;
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+.statut-termine {
+    background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+    color: #000;
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+}
+
+/* ============================================================================
+   ACTIONS
+   ============================================================================ */
+.commande-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.commande-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+    .commande-btn:hover {
+        background: rgba(0, 212, 255, 0.1);
+        border-color: rgba(0, 212, 255, 0.3);
+        transform: translateY(-1px);
+    }
+
+    .commande-btn.danger:hover {
+        background: rgba(255, 68, 68, 0.1);
+        border-color: rgba(255, 68, 68, 0.3);
+        color: #ff4444;
+    }
+
+/* ============================================================================
+   LINK INDICATOR
+   ============================================================================ */
+.commande-link-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 12px;
+    margin-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    color: #00d4ff;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+}
+
+.commande-card:hover .commande-link-indicator {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.link-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.commande-card:hover .link-arrow {
+    transform: translateX(4px);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 768px) {
+    .commande-card {
+        padding: 15px;
+    }
+
+    .commande-title {
+        font-size: 16px;
+    }
+
+    .commande-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+
+    .commande-actions {
+        flex-direction: column;
+    }
+
+    .commande-btn {
+        width: 100%;
+    }
+
+    .commande-link-indicator {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

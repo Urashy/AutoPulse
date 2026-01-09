@@ -6,5 +6,7 @@ namespace BlazorAutoPulse.Service.Interface
     {
         Task<IEnumerable<CommandeDTO>> GetCommandeByCompte(int id);
         Task<CommandeDetailDTO> GetCommandeDetailById(int id);
+        Task UpdateCommandeAsync(int id, CommandeUpdateDTO entity);
+        Task<CommandeDTO> GetCommandeByIdConv(int id);
     }
 }
