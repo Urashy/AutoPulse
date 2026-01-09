@@ -2013,5 +2013,284 @@ namespace Api_c_sharp.ControllersMock.Tests
                 It.IsAny<string>(), false, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
         #endregion
+
+        #region Tests EnregistrerA2f
+
+        [TestMethod]
+        public async Task EnregistrerA2f_ValidToken_CallsManagerMethod()
+        {
+            // Arrange
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = "1234567",
+                Expiration = DateTime.UtcNow.AddMinutes(15),
+                Utilise = false,
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            // Act
+            await _mockManager.Object.EnregistrerA2f(tokenEmail);
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
+                t.IdCompte == tokenEmail.IdCompte &&
+                t.Email == tokenEmail.Email &&
+                t.Token == tokenEmail.Token &&
+                t.TypeToken == tokenEmail.TypeToken)), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task EnregistrerA2f_TokenConnexion_SavesCorrectType()
+        {
+            // Arrange
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = "9876543",
+                Expiration = DateTime.UtcNow.AddMinutes(15),
+                Utilise = false,
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.EnregistrerA2f(tokenEmail);
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
+                t.TypeToken == "A2F_CONNEXION")), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task EnregistrerA2f_TokenActivation_SavesCorrectType()
+        {
+            // Arrange
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = "5555555",
+                Expiration = DateTime.UtcNow.AddMinutes(15),
+                Utilise = false,
+                TypeToken = "A2F_ACTIVATION"
+            };
+
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.EnregistrerA2f(tokenEmail);
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
+                t.TypeToken == "A2F_ACTIVATION")), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task EnregistrerA2f_TokenNotUsed_SavesUtiliseAsFalse()
+        {
+            // Arrange
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = "7777777",
+                Expiration = DateTime.UtcNow.AddMinutes(15),
+                Utilise = false,
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.EnregistrerA2f(tokenEmail);
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
+                t.Utilise == false)), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task EnregistrerA2f_WithExpiration15Minutes_SavesCorrectExpiration()
+        {
+            // Arrange
+            var expectedExpiration = DateTime.UtcNow.AddMinutes(15);
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = "3333333",
+                Expiration = expectedExpiration,
+                Utilise = false,
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.EnregistrerA2f(tokenEmail);
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
+                t.Expiration.Subtract(expectedExpiration).TotalSeconds < 1)), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task EnregistrerA2f_MultipleTokens_SavesEachToken()
+        {
+            // Arrange
+            var tokens = new List<TokenEmail>
+    {
+        new TokenEmail
+        {
+            IdCompte = _objetcommun.IdCompte,
+            Email = _objetcommun.Email,
+            Token = "1111111",
+            Expiration = DateTime.UtcNow.AddMinutes(15),
+            Utilise = false,
+            TypeToken = "A2F_CONNEXION"
+        },
+        new TokenEmail
+        {
+            IdCompte = _objetcommun.IdCompte,
+            Email = _objetcommun.Email,
+            Token = "2222222",
+            Expiration = DateTime.UtcNow.AddMinutes(15),
+            Utilise = false,
+            TypeToken = "A2F_ACTIVATION"
+        }
+    };
+
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            foreach (var token in tokens)
+            {
+                await _mockManager.Object.EnregistrerA2f(token);
+            }
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()), Times.Exactly(2));
+        }
+
+        [TestMethod]
+        public async Task EnregistrerA2f_7DigitCode_SavesCorrectFormat()
+        {
+            // Arrange
+            var sevenDigitCode = "0123456";
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = sevenDigitCode,
+                Expiration = DateTime.UtcNow.AddMinutes(15),
+                Utilise = false,
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.EnregistrerA2f(tokenEmail);
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
+                t.Token == sevenDigitCode &&
+                t.Token.Length == 7)), Times.Once);
+        } 
+
+        [TestMethod]
+        public async Task EnregistrerA2f_TokenExpirationInFuture_IsValid()
+        {
+            // Arrange
+            var futureExpiration = DateTime.UtcNow.AddMinutes(15);
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = "8888888",
+                Expiration = futureExpiration,
+                Utilise = false,
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.EnregistrerA2f(tokenEmail);
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
+                t.Expiration > DateTime.UtcNow)), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task EnregistrerA2f_WithCorrectCompteId_AssociatesTokenToCorrectUser()
+        {
+            // Arrange
+            var differentUserId = 999;
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = differentUserId,
+                Email = "other@gmail.com",
+                Token = "4444444",
+                Expiration = DateTime.UtcNow.AddMinutes(15),
+                Utilise = false,
+                TypeToken = "A2F_CONNEXION"
+            };
+
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.EnregistrerA2f(tokenEmail);
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
+                t.IdCompte == differentUserId)), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Login_A2fEnabled_TokenExpiresIn15Minutes()
+        {
+            // Arrange
+            var loginRequest = new LoginRequest { Email = "john@gmail.com", MotDePasse = "Testmdp1!" };
+            var startTime = DateTime.UtcNow;
+
+            _mockManager.Setup(m => m.AuthenticateCompte(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(_objetcommun);
+            _mockManager.Setup(m => m.GetStatutA2f(_objetcommun.IdCompte))
+                .ReturnsAsync((true, DateTime.UtcNow));
+            _mockManager.Setup(m => m.DoitReactiverA2f(_objetcommun.IdCompte))
+                .ReturnsAsync(false);
+            _mockManager.Setup(m => m.EnregistrerA2f(It.IsAny<TokenEmail>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            // Act
+            var result = await _controller.Login(loginRequest);
+            var endTime = DateTime.UtcNow;
+
+            // Assert
+            _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
+                t.Expiration >= startTime.AddMinutes(14.5) &&
+                t.Expiration <= endTime.AddMinutes(15.5))), Times.Once);
+        }
+
+        #endregion
     }
 }

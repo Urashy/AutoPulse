@@ -313,6 +313,48 @@ namespace Api_c_sharp.ControllersMock.Tests
         #region GetActiveUserTokensAsync
 
         [TestMethod]
+        public async Task GetActiveUserTokensOrderedByDateTest()
+        {
+            // Arrange
+            var now = DateTime.UtcNow;
+            var activeTokens = new List<RefreshToken>
+            {
+                new RefreshToken
+                {
+                    IdRefreshToken = 2,
+                    TokenHash = ComputeSha256HashLocal("newest-token"),
+                    IdCompte = _compteCommun.IdCompte,
+                    DateCreation = now,
+                    DateExpiration = now.AddDays(30),
+                    RememberMe = true,
+                    EstRevoque = false
+                },
+                new RefreshToken
+                {
+                    IdRefreshToken = 3,
+                    TokenHash = ComputeSha256HashLocal("oldest-token"),
+                    IdCompte = _compteCommun.IdCompte,
+                    DateCreation = now.AddDays(-5),
+                    DateExpiration = now.AddDays(25),
+                    RememberMe = true,
+                    EstRevoque = false
+                }
+
+            };
+
+            _mockManager.Setup(m => m.GetActiveUserTokensAsync(_compteCommun.IdCompte))
+                .ReturnsAsync(activeTokens);
+
+            // Act
+            var result = await _mockManager.Object.GetActiveUserTokensAsync(_compteCommun.IdCompte);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(2, result[0].IdRefreshToken, result[0].DateCreation.ToString() +"" + result[1].DateCreation.ToString());
+        }
+
+        [TestMethod]
         public async Task GetActiveUserTokensTest()
         {
             // Arrange
@@ -360,46 +402,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.AreEqual(0, result.Count);
         }
 
-        [TestMethod]
-        public async Task GetActiveUserTokensOrderedByDateTest()
-        {
-            // Arrange
-            var now = DateTime.UtcNow;
-            var activeTokens = new List<RefreshToken>
-            {
-                new RefreshToken
-                {
-                    IdRefreshToken = 3,
-                    TokenHash = ComputeSha256HashLocal("oldest-token"),
-                    IdCompte = _compteCommun.IdCompte,
-                    DateCreation = now.AddDays(-5),
-                    DateExpiration = now.AddDays(25),
-                    RememberMe = true,
-                    EstRevoque = false
-                },
-                new RefreshToken
-                {
-                    IdRefreshToken = 2,
-                    TokenHash = ComputeSha256HashLocal("newest-token"),
-                    IdCompte = _compteCommun.IdCompte,
-                    DateCreation = now,
-                    DateExpiration = now.AddDays(30),
-                    RememberMe = true,
-                    EstRevoque = false
-                }
-            };
 
-            _mockManager.Setup(m => m.GetActiveUserTokensAsync(_compteCommun.IdCompte))
-                .ReturnsAsync(activeTokens);
-
-            // Act
-            var result = await _mockManager.Object.GetActiveUserTokensAsync(_compteCommun.IdCompte);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(2, result.Count);
-            Assert.AreEqual(2, result[0].IdRefreshToken);
-        }
 
         #endregion
 

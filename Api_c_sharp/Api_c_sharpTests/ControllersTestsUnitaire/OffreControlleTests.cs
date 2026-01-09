@@ -265,7 +265,24 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.Messages.AddRangeAsync(message1, message2);
             await _context.SaveChangesAsync();
 
-            // 13. Offre
+            // 13. MoyenPaiement (needed for Commande)
+            var moyenPaiement = new MoyenPaiement()
+            {
+                IdMoyenPaiement = 1,
+                TypePaiement = "Carte bancaire"
+            };
+            await _context.MoyensPaiements.AddAsync(moyenPaiement);
+
+            // 14. EtatCommande (needed for Commande)
+            var etatCommande = new EtatCommande()
+            {
+                IdEtatCommande = 1,
+                Libelle = "En cours"
+            };
+            await _context.EtatCommandes.AddAsync(etatCommande);
+            await _context.SaveChangesAsync();
+
+            // 15. Offre
             Offre offre = new Offre()
             {
                 IdOffre = 1,
@@ -280,6 +297,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetcommun = offre;
         }
+
         #region GET
         #region GetById
         [TestMethod]
@@ -325,10 +343,11 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #region GetByMessage
         [TestMethod]
-        public async Task GetByMessage()
+        public async Task GetByMessageTest()
         {
             // Act
             var result = await _controller.GetByMessage(_objetcommun.IdMessage);
+
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
@@ -338,16 +357,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundGetByMessage()
+        public async Task NotFoundGetByMessageTest()
         {
             // Act
             var result = await _controller.GetByMessage(0);
+
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
         #endregion
-
         #endregion
 
         #region POST
@@ -396,7 +415,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.AreEqual("Une offre en attente existe déjà dans cette conversation.", conflict.Value);
         }
 
-
         [TestMethod]
         public async Task BadRequestPostOffreTest()
         {
@@ -416,10 +434,50 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
+
+        [TestMethod]
+        public async Task PostOffreTest_WithSameCompteIdForMessageAndAnnonce()
+        {
+            // Créer une nouvelle annonce avec le même compte que le message
+            var annonceMemeCpt = new Annonce()
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce même compte",
+                IdCompte = 2, // Même que l'IdCompte du message1
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                IdVoiture = 1,
+                IdMiseEnAvant = 1,
+                Prix = 8000,
+                Description = "Test même compte",
+                DatePublication = DateTime.Now
+            };
+            await _context.Annonces.AddAsync(annonceMemeCpt);
+            await _context.SaveChangesAsync();
+
+            // Supprimer l'offre existante pour éviter le conflit
+            _context.Offres.Remove(_objetcommun);
+            await _context.SaveChangesAsync();
+
+            OffreCreateDTO offre = new OffreCreateDTO
+            {
+                Valeur = 7500,
+                IdAnnonce = 2, // L'annonce avec IdCompte = 2
+                IdMessage = 1, // Le message avec IdCompte = 2
+            };
+
+            // Act
+            var actionResult = await _controller.Post(offre);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdOffre = (Offre)created.Value;
+            Assert.AreEqual(offre.Valeur, createdOffre.Valeur);
+        }
         #endregion
 
         #region DELETE
-
         [TestMethod]
         public async Task DeleteOffreTest()
         {
@@ -455,6 +513,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 DateOffre = DateTime.Now,
                 IdMessage = _objetcommun.IdMessage,
                 IdAnnonce = 1,
+                EstAccepte = null
             };
 
             // Act
@@ -465,6 +524,123 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             var offreput = await _manager.GetByIdAsync(_objetcommun.IdOffre);
             Assert.AreEqual(offre.Valeur, offreput.Valeur);
+        }
+
+        [TestMethod]
+        public async Task PutOffreTest_WhenAccepted_CreatesCommande()
+        {
+            // Arrange
+            OffreUpdateDTO offre = new OffreUpdateDTO()
+            {
+                IdOffre = _objetcommun.IdOffre,
+                Valeur = 9200,
+                DateOffre = DateTime.Now,
+                IdMessage = _objetcommun.IdMessage,
+                IdAnnonce = 1,
+                EstAccepte = true // ✅ Offre acceptée
+            };
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdOffre, offre);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            // Vérifier qu'une commande a été créée
+            var commandes = await _context.Commandes.ToListAsync();
+            Assert.IsTrue(commandes.Any());
+
+            var commande = commandes.First();
+            Assert.AreEqual(2, commande.IdAcheteur); // IdCompte du message
+            Assert.AreEqual(1, commande.IdVendeur);  // IdCompte de l'annonce
+            Assert.AreEqual(1, commande.IdAnnonce);
+            Assert.AreEqual(_objetcommun.IdOffre, commande.IdOffre);
+        }
+
+        [TestMethod]
+        public async Task PutOffreTest_WhenAccepted_WithSameCompteId()
+        {
+            // Créer une annonce et un message avec le même IdCompte
+            var annonceMemeCpt = new Annonce()
+            {
+                IdAnnonce = 3,
+                Libelle = "Annonce même compte",
+                IdCompte = 2, // Même compte que le message
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                IdVoiture = 1,
+                IdMiseEnAvant = 1,
+                Prix = 8000,
+                Description = "Test même compte",
+                DatePublication = DateTime.Now
+            };
+            await _context.Annonces.AddAsync(annonceMemeCpt);
+            await _context.SaveChangesAsync();
+
+            var nouvelleOffre = new Offre()
+            {
+                IdOffre = 2,
+                Valeur = 7500,
+                DateOffre = DateTime.Now,
+                IdMessage = 1, // Message avec IdCompte = 2
+                IdAnnonce = 3, // Annonce avec IdCompte = 2
+                EstAccepte = null
+            };
+            await _context.Offres.AddAsync(nouvelleOffre);
+            await _context.SaveChangesAsync();
+
+            OffreUpdateDTO offre = new OffreUpdateDTO()
+            {
+                IdOffre = 2,
+                Valeur = 7500,
+                DateOffre = DateTime.Now,
+                IdMessage = 1,
+                IdAnnonce = 3,
+                EstAccepte = true
+            };
+
+            // Act
+            var result = await _controller.Put(2, offre);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            // Vérifier qu'une commande a été créée avec le bon IdAcheteur
+            var commandes = await _context.Commandes
+                .Where(c => c.IdOffre == 2)
+                .ToListAsync();
+
+            Assert.IsTrue(commandes.Any());
+            var commande = commandes.First();
+            Assert.AreEqual(2, commande.IdAcheteur); // IdCompte de l'annonce
+            Assert.AreEqual(2, commande.IdVendeur);  // IdCompte de l'annonce
+        }
+
+        [TestMethod]
+        public async Task PutOffreTest_WhenNotAccepted_NoCommandeCreated()
+        {
+            // Arrange
+            var commandesAvant = await _context.Commandes.CountAsync();
+
+            OffreUpdateDTO offre = new OffreUpdateDTO()
+            {
+                IdOffre = _objetcommun.IdOffre,
+                Valeur = 9200,
+                DateOffre = DateTime.Now,
+                IdMessage = _objetcommun.IdMessage,
+                IdAnnonce = 1,
+                EstAccepte = false // ❌ Offre refusée
+            };
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdOffre, offre);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            // Vérifier qu'aucune commande n'a été créée
+            var commandesApres = await _context.Commandes.CountAsync();
+            Assert.AreEqual(commandesAvant, commandesApres);
         }
 
         [TestMethod]
@@ -486,6 +662,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+
         [TestMethod]
         public async Task BadRequestPutOffreTest()
         {
@@ -509,6 +686,5 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
         #endregion
-
     }
 }

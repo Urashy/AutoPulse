@@ -57,7 +57,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                         paiementCrees.Add(newPaiement);
                         await context.Paiements.AddAsync(newPaiement);
                     }
-                    else if (annonce.ProchaineMiseEnAvant >= 1)
+                    else if (annonce.ProchaineMiseEnAvant > 1)
                     {
                         var newPaiement = new Paiement
                         {
@@ -83,7 +83,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 
                 return paiementCrees;
             }
-            catch (Exception ex)
+            catch
             {
                 return paiementCrees;
             }
