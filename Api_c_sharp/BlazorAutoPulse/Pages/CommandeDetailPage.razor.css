@@ -716,6 +716,297 @@
         font-size: 18px;
     }
 
+
+
+/* ============================================================================
+   SECTION FIN - FACTURE ET AVIS (AJOUT)
+   ============================================================================ */
+.fin-actions-section {
+    margin-top: 30px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid #333;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+    .fin-actions-section h3 {
+        margin: 0 0 30px 0;
+        font-size: 24px;
+        color: #00d4ff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.action-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 30px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+    .action-card:hover {
+        border-color: rgba(0, 212, 255, 0.3);
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .action-card h4 {
+        margin: 0 0 15px 0;
+        font-size: 20px;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .action-card p {
+        margin: 0 0 25px 0;
+        color: #aaa;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .action-card .btn-secondary {
+        width: 100%;
+        max-width: 250px;
+    }
+
+/* Carte avis avec style spécial */
+.avis-card {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, rgba(0, 153, 255, 0.05) 100%);
+    border-color: rgba(0, 212, 255, 0.2);
+}
+
+    .avis-card:hover {
+        border-color: rgba(0, 212, 255, 0.4);
+        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.15);
+    }
+
+/* ============================================================================
+   RATING STARS (ÉTOILES)
+   ============================================================================ */
+.rating-stars {
+    display: flex;
+    gap: 8px;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    cursor: pointer;
+    user-select: none;
+    justify-content: center;
+}
+
+.star {
+    color: #333;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+    .star:hover,
+    .star.filled {
+        color: #ffc107;
+        transform: scale(1.15);
+        text-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+    }
+
+    .star:active {
+        transform: scale(1.05);
+    }
+
+/* Animation au survol des étoiles */
+.rating-stars:hover .star {
+    color: #555;
+}
+
+.rating-stars .star:hover,
+.rating-stars .star:hover ~ .star {
+    color: #333;
+}
+
+.rating-stars .star:hover {
+    color: #ffc107;
+}
+
+/* Effet de pulsation pour les étoiles remplies */
+@keyframes starPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.star.filled {
+    animation: starPulse 0.5s ease-out;
+}
+
+/* ============================================================================
+   TEXTAREA AVIS
+   ============================================================================ */
+.avis-textarea {
+    width: 100%;
+    min-height: 120px;
+    margin-bottom: 20px;
+    resize: vertical;
+    font-size: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: #fff;
+    font-family: inherit;
+    transition: all 0.3s;
+}
+
+    .avis-textarea:focus {
+        outline: none;
+        border-color: #00d4ff;
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    }
+
+    .avis-textarea::placeholder {
+        color: #555;
+    }
+
+/* ============================================================================
+   MESSAGE AVIS ENVOYÉ
+   ============================================================================ */
+.avis-envoye-msg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 30px;
+    color: #00ff88;
+    font-weight: 600;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.check-icon {
+    font-size: 3rem;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 204, 102, 0.2));
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 255, 136, 0.3);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+    animation: checkPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes checkPop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.avis-envoye-msg p {
+    margin: 0;
+    font-size: 18px;
+    color: #00ff88;
+}
+
+/* ============================================================================
+   RESPONSIVE - SECTION FACTURE ET AVIS
+   ============================================================================ */
+@media (max-width: 768px) {
+    .fin-actions-section {
+        padding: 25px 20px;
+    }
+
+        .fin-actions-section h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+    .actions-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .action-card {
+        padding: 25px 20px;
+    }
+
+        .action-card h4 {
+            font-size: 18px;
+        }
+
+        .action-card p {
+            font-size: 14px;
+        }
+
+    .rating-stars {
+        font-size: 2rem;
+        gap: 6px;
+    }
+
+    .avis-textarea {
+        min-height: 100px;
+        font-size: 14px;
+    }
+
+    .check-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2.5rem;
+    }
+
+    .avis-envoye-msg p {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .rating-stars {
+        font-size: 1.75rem;
+    }
+
+    .check-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 2rem;
+    }
+}
+
 /* ============================================================================
    RESPONSIVE DESIGN
    ============================================================================ */

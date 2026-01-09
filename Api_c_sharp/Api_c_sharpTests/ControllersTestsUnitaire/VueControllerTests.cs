@@ -171,13 +171,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetcommun = vue;
         }
-
+        #region GET
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
-
+            // Act
             var result = await _controller.GetByIDs(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
             Assert.IsInstanceOfType(result.Value, typeof(VueDTO));
@@ -188,19 +190,23 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundGetByIdTest()
         {
-
+            // Act
             var result = await _controller.GetByIDs(9999, _objetcommun.IdCompte);
 
+            // Assert
             Assert.IsNotNull(result.Result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
-
+            // Act
             var result = await _controller.GetAll();
 
+            // Assert
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Value);
 
@@ -209,19 +215,25 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(list.Any());
             Assert.IsTrue(list.Any(x => x.IdAnnonce == _objetcommun.IdAnnonce));
         }
+        #endregion
 
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task PostNonExistantTest()
         {
-
+            // Arrange
             VueDTO dto = new VueDTO
             {
                 IdCompte = 1,
                 IdAnnonce = 2
             };
 
+            // Act
             var actionResult = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
 
             var created = (CreatedAtActionResult)actionResult.Result;
@@ -235,15 +247,17 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task PostExistantTest()
         {
-
+            // Arrange
             VueDTO dto = new VueDTO
             {
                 IdCompte = 1,
                 IdAnnonce = 1
             };
 
+            // Act
             var actionResult = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Value, typeof(VueDTO));
 
             Assert.AreEqual(dto.IdAnnonce, actionResult.Value.IdAnnonce);
@@ -253,25 +267,33 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BadRequestPostTest()
         {
+            // Arrange
             VueDTO dto = new VueDTO();
             _controller.ModelState.AddModelError("IdConversation", "Required");
 
+            // Act
             var actionResult = await _controller.Post(dto);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutTest()
         {
+            // Arrange
             VueDTO dto = new VueDTO
             {
                 IdCompte = _objetcommun.IdCompte,
                 IdAnnonce = _objetcommun.IdAnnonce
             };
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdCompte, _objetcommun.IdAnnonce, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var updated = await _manager.GetVueByIdsAsync(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
@@ -281,36 +303,46 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutTest()
         {
+            // Arrange
             VueDTO dto = new VueDTO
             {
                 IdCompte = _objetcommun.IdCompte,
                 IdAnnonce = _objetcommun.IdAnnonce
             };
 
+            // Act
             var result = await _controller.Put(9999, 1, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
         public async Task BadRequestPutTest()
         {
+            // Arrange
             VueDTO dto = new VueDTO
             {
                 IdCompte = _objetcommun.IdCompte,
             };
             _controller.ModelState.AddModelError("IdAnnonce", "Required");
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdCompte, _objetcommun.IdAnnonce, dto);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
+        #endregion
 
+        #region DELETE
         [TestMethod]
         public async Task DeleteTest()
         {
+            // Act
             var result = await _controller.Delete(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var deleted = await _manager.GetVueByIdsAsync(_objetcommun.IdCompte, _objetcommun.IdAnnonce);
@@ -320,9 +352,12 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundDeleteTest()
         {
+            // Act
             var result = await _controller.Delete(9999, _objetcommun.IdCompte);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
     }
 }
