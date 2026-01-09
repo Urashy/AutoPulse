@@ -21,8 +21,10 @@ public class ConversationViewModel : IDisposable
     private readonly IOffreService _offreService;
     private readonly IAnnonceService _annonceService;
     private readonly NotificationService _notificationService; 
+    private readonly CommandeWebService _commandeService;
 
     public List<MessageDTO> Messages { get; private set; } = new();
+    public CommandeDTO? CommandeEnCours { get; private set; }
     public ConversationListDTO? SelectedConversation { get; private set; }
     
     private string _newMessage = "";
@@ -71,7 +73,8 @@ public class ConversationViewModel : IDisposable
         IJSRuntime jsRuntime,
         IOffreService offreService,
         IAnnonceService annonceService,
-        NotificationService notificationService)
+        NotificationService notificationService,
+        CommandeWebService commandeService)
     {
         _conversationState = conversationState;
         _signalR = signalR;
@@ -82,6 +85,7 @@ public class ConversationViewModel : IDisposable
         _offreService = offreService;
         _annonceService = annonceService;
         _notificationService = notificationService;
+        _commandeService = commandeService;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
         _signalR.OnUserTyping += HandleUserTyping;
@@ -89,6 +93,7 @@ public class ConversationViewModel : IDisposable
         _conversationState.OnStateChanged += HandleGlobalStateChanged;
         _signalR.OnOffreStatusChanged += HandleOffreStatusChanged;
         _signalR.OnMessageWithOffreReceived += HandleMessageWithOffreReceived;
+        
     }
 
     public async Task InitializeAsync()
@@ -100,8 +105,21 @@ public class ConversationViewModel : IDisposable
     {
         SelectedConversation = conv;
         await LoadMessages(conv.IdConversation);
+        await LoadOffre(conv.IdConversation);
         await ABloquer(true);
         NotifyStateChanged();
+    }
+
+    private async Task LoadOffre(int conversationId)
+    {
+        try
+        {
+            CommandeEnCours = await _commandeService.GetCommandeByIdConv(conversationId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur chargement commande: {ex.Message}");
+        }
     }
 
     private async void HandleOffreStatusChanged(int idOffre, bool? estAccepte)

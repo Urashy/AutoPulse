@@ -26,5 +26,22 @@ namespace BlazorAutoPulse.Service.WebService
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<CommandeDetailDTO>();
         }
+        public async Task UpdateCommandeAsync(int id, CommandeUpdateDTO entity)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
+            {
+                Content = JsonContent.Create(entity)
+            };
+
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+        }
+        public async Task<CommandeDTO> GetCommandeByIdConv(int id)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetCommandeByConversationId/{id}"));
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<CommandeDTO>();
+        }
     }
 }

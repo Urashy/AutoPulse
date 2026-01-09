@@ -65,6 +65,9 @@
         else
         {
             <div class="conversation-header">
+                <p>
+                    @VM.CommandeEnCours.IdCommande
+                </p>
 
                 <div class="conversation-avatar">
                     @if (VM.ImageSources.ContainsKey(VM.SelectedConversation.IdParticipant) &&
