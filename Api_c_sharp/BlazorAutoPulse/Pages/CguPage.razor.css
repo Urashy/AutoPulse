@@ -1,0 +1,68 @@
+/* Rend la carte sombre pour aller avec le fond noir du body */
+.card {
+    background-color: rgba(255, 255, 255, 0.05); /* Fond gris très foncé légèrement transparent */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Bordure subtile */
+    border-radius: 12px;
+    backdrop-filter: blur(10px); /* Effet de flou moderne */
+    color: #ffffff;
+}
+
+/* Titre principal en bleu néon (récupéré de ta pagination) */
+h1 {
+    color: #00d4ff;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+/* Sous-titres */
+h3 {
+    color: #e0e0e0;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+    padding-bottom: 0.5rem;
+    margin-top: 2rem;
+    font-size: 1.5rem;
+}
+
+/* Texte secondaire (dates, notes) */
+.text-muted {
+    color: #a0a0a0 !important; /* Plus clair que le défaut bootstrap pour être lisible sur noir */
+}
+
+/* Listes */
+ul {
+    list-style-type: none; /* Enlève les puces par défaut */
+    padding-left: 1rem;
+}
+
+    ul li {
+        margin-bottom: 0.5rem;
+        padding-left: 1.5rem;
+        position: relative;
+        color: #d0d0d0;
+    }
+
+        /* Ajoute une petite puce personnalisée bleue */
+        ul li::before {
+            content: "•";
+            color: #00d4ff;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+            line-height: 1.5rem;
+        }
+
+/* Liens */
+a {
+    color: #00d4ff;
+    transition: all 0.2s;
+}
+
+    a:hover {
+        color: #66e0ff;
+        text-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+        text-decoration: none;
+    }
