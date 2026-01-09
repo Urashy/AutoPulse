@@ -6,7 +6,11 @@ public class PaiementModalViewModel
 {
     private readonly ICarteBancaireService _carteService;
     private readonly IService<MiseEnAvantDTO> _miseEnAvantService;
+    private readonly ICommandeService _commandeService;
     private readonly ICompteService _compteService;
+
+    public string title { get; set; } = "";
+    public double prix { get; set; } = 0;
 
     public bool IsVisible { get; private set; }
     public bool IsLoadingCards { get; private set; }
@@ -15,6 +19,7 @@ public class PaiementModalViewModel
     public int? SelectedCarteId { get; private set; }
     public List<CarteBancaireDTO> CartesBancaires { get; private set; } = [];
     public MiseEnAvantDTO MiseEnAvantDTO { get; private set; }
+    public CommandeDTO CommandeDto { get; private set; }
 
     public bool CanPay => SelectedCarteId.HasValue;
 
@@ -26,10 +31,12 @@ public class PaiementModalViewModel
     public PaiementModalViewModel(
         ICarteBancaireService carteService,
         IService<MiseEnAvantDTO> miseEnAvantService,
+        ICommandeService commandeService,
         ICompteService compteService)
     {
         _carteService = carteService;
         _miseEnAvantService = miseEnAvantService;
+        _commandeService = commandeService;
         _compteService = compteService;
         
         MiseEnAvantDTO = new MiseEnAvantDTO();
@@ -39,7 +46,8 @@ public class PaiementModalViewModel
         bool isVisible,
         EventCallback<bool> isVisibleChanged,
         EventCallback<int> idCB,
-        int IdMiseEnAvant,
+        int Id,
+        string type,
         EventCallback onPaymentSuccess,
         Action stateHasChanged)
     {
@@ -49,9 +57,23 @@ public class PaiementModalViewModel
         _onPaymentSuccess = onPaymentSuccess;
         _stateHasChanged = stateHasChanged;
 
-        if (IdMiseEnAvant != -1)
+        if (type == "vente")
         {
-            MiseEnAvantDTO = await _miseEnAvantService.GetByIdAsync(IdMiseEnAvant);
+            if (Id != -1)
+            {
+                MiseEnAvantDTO = await _miseEnAvantService.GetByIdAsync(Id);
+                title = $"Mise en avant: {MiseEnAvantDTO.LibelleMiseEnAvant}";
+                prix = MiseEnAvantDTO.PrixSemaine;
+            }
+        }
+        else if (type == "commande")
+        {
+            if (Id != -1)
+            {
+                CommandeDto = await _commandeService.GetByIdAsync(Id);
+                title = $"Numéro de commande: {CommandeDto.IdCommande} / Annonce : {CommandeDto.LibelleAnnonce}";
+                prix = (double)CommandeDto.Montant;
+            }
         }
         
         if (IsVisible && !CartesBancaires.Any())
@@ -117,8 +139,6 @@ public class PaiementModalViewModel
     public async Task ProcessPayment()
     {
         if (!CanPay) return;
-
-        // TODO: PaymentService
         await _onPaymentSuccess.InvokeAsync();
         await CloseModal();
     }

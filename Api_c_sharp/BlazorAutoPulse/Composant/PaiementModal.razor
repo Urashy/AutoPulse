@@ -4,7 +4,7 @@
 <div class="modal-overlay @(IsVisible ? "active" : "")" @onclick="VM.CloseModal">
     <div class="modal-content" @onclick:stopPropagation="true">
         <div class="modal-header">
-            <h2>Paiement pour la mise en avant</h2>
+            <h2>Paiement pour @((Type == "vente")? "la mise en avant" : "la commande")</h2>
             <button class="btn-close" @onclick="VM.CloseModal">✕</button>
         </div>
 
@@ -13,12 +13,12 @@
                 <!-- Section gauche: Informations de paiement -->
                 <div class="payment-info-section">
                     <div class="payment-header">
-                        <h3>Mise en avant: @VM.MiseEnAvantDTO.LibelleMiseEnAvant</h3>
+                        <h3>@VM.title</h3>
                     </div>
 
                     <div class="payment-total">
                         <span class="total-label">Total à payer :</span>
-                        <span class="total-amount">@VM.MiseEnAvantDTO.PrixSemaine€</span>
+                        <span class="total-amount">@VM.prix€</span>
                     </div>
                 </div>
 
@@ -87,8 +87,9 @@
 @code{
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
-    [Parameter] public EventCallback<int> IdCB { get; set; }
-    [Parameter] public int IdMiseEnAvant { get; set; }
+    [Parameter] public EventCallback<int> IdCb { get; set; }
+    [Parameter] public string Type { get; set; }
+    [Parameter] public int Id { get; set; }
     [Parameter] public EventCallback OnPaymentSuccess { get; set; }
 
     protected override async Task OnParametersSetAsync()
@@ -96,8 +97,9 @@
         await VM.InitializeAsync(
             IsVisible,
             IsVisibleChanged,
-            IdCB,
-            IdMiseEnAvant,
+            IdCb,
+            Id,
+            Type,
             OnPaymentSuccess,
             StateHasChanged
         );
