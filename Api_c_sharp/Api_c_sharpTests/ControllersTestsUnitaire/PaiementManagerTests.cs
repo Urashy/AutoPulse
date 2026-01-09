@@ -187,6 +187,21 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task VerifPaiementAutoMiseEnAvantListVide()
         {
+            
+            //assert
+            var paiement = new Paiement()
+            {
+                IdPaiement = 1,
+                IdAnnonce = _objetcommun.IdAnnonce + 1,
+                DatePaiement = DateTime.UtcNow.AddDays(-7), // Seulement 3 jours
+                IdMiseEnAvant = 2,
+                IdCarteBancaire = _carteCommune.IdCarteBancaire,
+                IdCompte = _compteCommun.IdCompte,
+                IdCommande = null
+            };
+            await _context.Paiements.AddAsync(paiement);
+            await _context.SaveChangesAsync();
+            
             // Act
             var result = await _manager.VerifPaiementAutoMiseEnAvant();
 
