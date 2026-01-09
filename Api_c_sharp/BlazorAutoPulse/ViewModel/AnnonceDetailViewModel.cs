@@ -49,7 +49,6 @@ namespace BlazorAutoPulse.ViewModel
         public bool IsOptionsMenuOpen { get; private set; } = false;
         public string? infoOptionAnnonce { get; private set; } = null;
 
-        public string? erreurSupprimeAnnonce = null;
         public bool estMasquer = false;
 
         public string ProfileImageSource { get; private set; } = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
@@ -481,21 +480,26 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        public async void SupprimerAnnonce()
+        public async Task SupprimerAnnonce()
         {
-            try
+            var error = await _annonceService.DeleteAsync(Annonce.IdAnnonce);
+
+            if (error == null)
             {
-                await _annonceService.DeleteAsync(Annonce.IdAnnonce);
                 _notificationService.ShowSuccess(
                     "Suppression d'annonce",
                     "Votre annonce a bien été supprimée");
+
                 IsOptionsMenuOpen = false;
                 _nav.NavigateTo("/compte");
             }
-            catch
+            else
             {
-                erreurSupprimeAnnonce = "L'annonce n'a pas pu être supprimée";
+                _notificationService.ShowError(
+                    "Suppression d'annonce",
+                    error);
             }
+
             _refreshUI?.Invoke();
         }
 
@@ -606,7 +610,6 @@ namespace BlazorAutoPulse.ViewModel
 
                 showPriceLoadingPopup = false;
 
-                // ✅ VÉRIFICATION DU SUCCESS
                 if (priceResult != null && priceResult.Success)
                 {
                     _notificationService.ShowSuccess(
