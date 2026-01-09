@@ -14,7 +14,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             return await dbSet.Where(c => c.IdJugeur == compteId || c.IdJugee == compteId ).OrderBy(a => a.DateAvis).ToListAsync();
         }
-        public async Task<bool> ExisteDejaAsync(int idCommande, int idJugeur)
+        public virtual async Task<bool> ExisteDejaAsync(int idCommande, int idJugeur)
         {
             return await dbSet.AnyAsync(a => a.IdCommande == idCommande && a.IdJugeur == idJugeur);
         }

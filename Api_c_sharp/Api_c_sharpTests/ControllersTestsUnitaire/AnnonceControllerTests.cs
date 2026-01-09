@@ -158,6 +158,30 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 PrixSemaine = 9,
             };
 
+            MiseEnAvant miseEnAvantOr = new MiseEnAvant()
+            {
+                IdMiseEnAvant = 2,
+                LibelleMiseEnAvant = "Or",
+                PrixSemaine = 100
+            };
+
+            MiseEnAvant miseEnAvantPlatine = new MiseEnAvant()
+            {
+                IdMiseEnAvant = 3,
+                LibelleMiseEnAvant = "Platine",
+                PrixSemaine = 200
+            };
+
+            MiseEnAvant miseEnAvantDiamant = new MiseEnAvant()
+            {
+                IdMiseEnAvant = 4,
+                LibelleMiseEnAvant = "Diamant",
+                PrixSemaine = 300
+            };
+
+            await _context.MisesEnAvant.AddRangeAsync(miseEnAvantOr, miseEnAvantPlatine, miseEnAvantDiamant);
+            await _context.SaveChangesAsync();
+
             Annonce annonce = new Annonce()
             {
                 IdAnnonce = 1,
@@ -1180,7 +1204,91 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value);
         }
         #endregion
-        
+
+        #region GetPaiements
+        [TestMethod]
+        public async Task GetPaiementsTest()
+        {
+            // Ajouter des paiements pour l'annonce
+            var paiement1 = new Paiement
+            {
+                IdPaiement = 1,
+                IdMiseEnAvant = 2,
+                IdCompte = _objetcommun.IdCompte,
+                IdAnnonce = _objetcommun.IdAnnonce,
+                DatePaiement = DateTime.Now,
+                IdCarteBancaire = null
+            };
+            var paiement2 = new Paiement
+            {
+                IdPaiement = 2,
+                IdMiseEnAvant = 2,
+                IdCompte = _objetcommun.IdCompte,
+                IdAnnonce = _objetcommun.IdAnnonce,
+                DatePaiement = DateTime.Now,
+                IdCarteBancaire = null
+            };
+            var paiement3 = new Paiement
+            {
+                IdPaiement = 3,
+                IdMiseEnAvant = 3,
+                IdCompte = _objetcommun.IdCompte,
+                IdAnnonce = _objetcommun.IdAnnonce,
+                DatePaiement = DateTime.Now,
+                IdCarteBancaire = null
+            };
+            await _context.Paiements.AddRangeAsync(paiement1, paiement2, paiement3);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetPaiements(_objetcommun.IdAnnonce);
+
+            var created = (OkObjectResult)result.Result;
+            PaiementDTO paiementDTO = (PaiementDTO)created.Value;
+
+            // Assert
+            Assert.IsNotNull(paiementDTO, "PaiementDTO est null");
+            Assert.IsInstanceOfType(paiementDTO, typeof(PaiementDTO));
+            Assert.AreEqual(2, paiementDTO.NbSemaineMiseEnAvantOr);
+            Assert.AreEqual(100, paiementDTO.PrixMiseEnAvantOr);
+            Assert.AreEqual(1, paiementDTO.NbSemaineMiseEnAvantPlatine);
+            Assert.AreEqual(200, paiementDTO.PrixMisedAvantPlatine);
+            Assert.AreEqual(0, paiementDTO.NbSemaineMiseEnAvantDiamant);
+            Assert.AreEqual(300, paiementDTO.PrixMiseEnAvantDiamant);
+        }
+
+        [TestMethod]
+        public async Task NotFoundGetPaiementsTest()
+        {
+            // Act
+            var result = await _controller.GetPaiements(0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetPaiementsEmptyTest()
+        {
+
+            // Act - Pas de paiements créés
+            var result = await _controller.GetPaiements(_objetcommun.IdAnnonce);
+
+            // Assert
+
+            var created = (OkObjectResult)result.Result;
+            PaiementDTO paiementDTO = (PaiementDTO)created.Value;
+
+            Assert.AreEqual(0, paiementDTO.NbSemaineMiseEnAvantOr);
+            Assert.AreEqual(0, paiementDTO.NbSemaineMiseEnAvantPlatine);
+            Assert.AreEqual(0, paiementDTO.NbSemaineMiseEnAvantDiamant);
+            Assert.AreEqual(100, paiementDTO.PrixMiseEnAvantOr);
+            Assert.AreEqual(200, paiementDTO.PrixMisedAvantPlatine);
+            Assert.AreEqual(300, paiementDTO.PrixMiseEnAvantDiamant);
+        }
+        #endregion
+
         private void SetupUserContext(string userId = "2")
         {
             var claims = new List<Claim>

@@ -250,7 +250,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return listannonce;
         }
 
-        public async Task<PaiementDTO> PaiementMiseEnAvant(int idAnnonce)
+        public virtual async Task<PaiementDTO> PaiementMiseEnAvant(int idAnnonce)
         {
             var paiements = await context.Paiements
                 .Where(p => p.IdAnnonce == idAnnonce &&

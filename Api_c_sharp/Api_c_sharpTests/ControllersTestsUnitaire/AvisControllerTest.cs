@@ -45,19 +45,20 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new AvisManager(_context);
-            _controller = new AvisController(_manager, _mapper,_journalService);
+            _controller = new AvisController(_manager, _mapper, _journalService);
 
             // Nettoyage
             _context.Avis.RemoveRange(_context.Avis);
             await _context.SaveChangesAsync();
 
-            // Création d’un avis commun
+            // Création d'un avis commun
             var avis = new Avis()
             {
                 IdAvis = 1,
                 IdJugee = 1,
+                IdJugeur = 2,
                 IdCommande = 1,
-                ContenuAvis = "Trés bonne avis",
+                ContenuAvis = "Très bonne avis",
                 DateAvis = DateTime.Now,
                 NoteAvis = 5
             };
@@ -70,7 +71,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #region GET
 
-            #region GetByID
+        #region GetByID
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -95,7 +96,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-            #region GetAll
+        #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -110,7 +111,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-            #region GetAllByCompte
+        #region GetAllByCompte
         [TestMethod]
         public async Task GetAllByCompte()
         {
@@ -146,6 +147,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var dto = new AvisCreateDTO()
             {
                 IdJugee = 2,
+                IdJugeur = 3,
                 IdCommande = 3,
                 ContenuAvis = "Correct",
                 NoteAvis = 3
@@ -174,6 +176,68 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task PostAvis_ReturnsConflict_WhenAvisAlreadyExists()
+        {
+            // Arrange
+            var dto = new AvisCreateDTO()
+            {
+                IdJugee = _objetCommun.IdJugee,
+                IdJugeur = _objetCommun.IdJugeur,
+                IdCommande = _objetCommun.IdCommande,
+                ContenuAvis = "Doublon",
+                NoteAvis = 4
+            };
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(ConflictObjectResult));
+            var conflictResult = (ConflictObjectResult)result.Result;
+            Assert.AreEqual("Vous avez déjà déposé un avis pour cette commande.", conflictResult.Value);
+        }
+
+        [TestMethod]
+        public async Task PostAvis_Success_WhenDifferentCommande()
+        {
+            // Arrange
+            var dto = new AvisCreateDTO()
+            {
+                IdJugee = _objetCommun.IdJugee,
+                IdJugeur = _objetCommun.IdJugeur,
+                IdCommande = 999, // Commande différente
+                ContenuAvis = "Nouvel avis",
+                NoteAvis = 4
+            };
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
+        }
+
+        [TestMethod]
+        public async Task PostAvis_Success_WhenDifferentJugeur()
+        {
+            // Arrange
+            var dto = new AvisCreateDTO()
+            {
+                IdJugee = _objetCommun.IdJugee,
+                IdJugeur = 999, // Jugeur différent
+                IdCommande = _objetCommun.IdCommande,
+                ContenuAvis = "Nouvel avis",
+                NoteAvis = 4
+            };
+
+            // Act
+            var result = await _controller.Post(dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
         }
         #endregion
 
@@ -211,6 +275,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             {
                 IdAvis = _objetCommun.IdAvis,
                 IdJugee = 1,
+                IdJugeur = 2,
                 IdCommande = 1,
                 ContenuAvis = "Modifié",
                 NoteAvis = 4

@@ -402,7 +402,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PaiementDTO>> GetPaiements(int idannonce)
     {
-        Annonce? entity = await _manager.GetByIdAsync(idannonce);
+        Annonce entity = await _manager.GetByIdAsync(idannonce);
 
         if (entity is null)
             return NotFound();
