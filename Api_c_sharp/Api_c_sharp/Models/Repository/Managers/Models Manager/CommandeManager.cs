@@ -86,7 +86,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .FirstOrDefaultAsync(c => c.IdCommande == id);
         }
 
-        public async Task<Commande> GetCommandeByConversation(int id)
+        public virtual async Task<Commande> GetCommandeByConversation(int id)
         {
             return await dbSet
                 .Include(a => a.AcheteurCommande)
