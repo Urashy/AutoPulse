@@ -39,12 +39,12 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 foreach (var paiement in derniersPaiementsParAnnonce)
                 {
                     if (!annonces.TryGetValue(paiement.IdAnnonce, out var annonce))
-                        continue;
+                        return paiementCrees;
                     
                     if (annonce.ProchaineMiseEnAvant == null)
                     {
                         if (annonce.IdMiseEnAvant == 1)
-                            continue;
+                            return paiementCrees;  
                         
                         var newPaiement = new Paiement
                         {

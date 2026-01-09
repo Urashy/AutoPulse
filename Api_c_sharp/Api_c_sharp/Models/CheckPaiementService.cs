@@ -6,14 +6,33 @@ namespace Api_c_sharp.Services;
 public class CheckPaiementService: BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<RefreshTokenCleanupService> _logger;
+    private readonly ILogger<CheckPaiementService> _logger;
     
     public CheckPaiementService(
         IServiceProvider serviceProvider,
-        ILogger<RefreshTokenCleanupService> logger)
+        ILogger<CheckPaiementService> logger)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+    }
+    
+    private static async Task WaitUntilScheduledTimeAsync(CancellationToken token)
+    {
+        var now = DateTime.UtcNow;
+        var scheduledTime = new TimeSpan(23, 50, 0);
+        
+        var nextRun = now.Date.Add(scheduledTime);
+        
+        if (now.TimeOfDay > scheduledTime)
+        {
+            nextRun = nextRun.AddDays(1);
+        }
+        
+        var delay = nextRun - now;
+        
+        Console.WriteLine($"⏰ Prochaine vérification planifiée à {nextRun:yyyy-MM-dd HH:mm:ss} UTC (dans {delay.TotalHours:F2} heures)");
+        
+        await Task.Delay(delay, token);
     }
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -24,6 +43,10 @@ public class CheckPaiementService: BackgroundService
         {
             try
             {
+                await WaitUntilScheduledTimeAsync(stoppingToken);
+                
+                _logger.LogInformation("🚀 Démarrage de la vérification des paiements...");
+                
                 using IServiceScope scope = _serviceProvider.CreateScope();
                 PaiementManager paiementManager = scope.ServiceProvider.GetRequiredService<PaiementManager>();
                 NotificationManager notificationManager = scope.ServiceProvider.GetRequiredService<NotificationManager>();
@@ -38,7 +61,8 @@ public class CheckPaiementService: BackgroundService
                     IdMiseEnAvant = (int)p.IdMiseEnAvant
                 }).ToList();
 
-                int nbIter = 0;
+                _logger.LogInformation($"📊 {paiementsData.Count} paiement(s) à traiter");
+
                 foreach (var paiement in paiementsData)
                 {
                     await notificationManager.NotifPaiementMiseEnAvant(
@@ -46,15 +70,21 @@ public class CheckPaiementService: BackgroundService
                         paiement.IdCompte, 
                         paiement.IdMiseEnAvant
                     );
-                    _logger.LogInformation($"Paiement {paiement.IdPaiement}, notification envoyé");
+                    _logger.LogInformation($"✅ Paiement {paiement.IdPaiement}, notification envoyée");
                 }
+                
+                _logger.LogInformation("✨ Vérification terminée avec succès");
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("🛑 Service de vérification de paiement arrêté");
+                break;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erreur lors du check des paiements");
+                _logger.LogError(ex, "❌ Erreur lors du check des paiements attente de 5 minutes");
+                await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
             }
-        
-            await Task.Delay(TimeSpan.FromHours(10), stoppingToken);
         }
     }
 }

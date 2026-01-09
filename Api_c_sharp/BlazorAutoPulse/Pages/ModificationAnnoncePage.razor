@@ -6,6 +6,16 @@
 
 <PageTitle>Modifier l'annonce - AutoPulse</PageTitle>
 
+@* Composant Modal Paiement *@
+@if (VM.Annonce != null)
+{
+    <PaiementModal
+        IsVisible="@VM.showPaiementMavModal"
+        IdCB="@((int value) => VM.SetIdCb(value))"
+        IdMiseEnAvant="@VM.Annonce.IdMiseEnAvant"
+        IsVisibleChanged="@((bool value) => VM.showPaiementMavModal = value)"
+        OnPaymentSuccess="@VM.OnPaymentSuccess" />
+}
 @if (VM.IsLoading)
 {
     <div class="loading-container">
@@ -186,8 +196,8 @@ else
             </div>
 
             <div class="form-group  @(VM.HasError("couleurs") ? "has-error" : "")">
-                <label>Mise en avant</label>
-                <select @onchange="@VM.OnMiseEnAvantChange">
+                <label>Mise en avant (effectif au prochain paiement si vous avez déja une mise en avant</label>
+                <select @bind="@VM.selectedMavId">
                     <option value="0">Toutes les mise en avant</option>
                     @if (VMAll.allMiseEnAvant != null)
                     {
@@ -208,7 +218,7 @@ else
                 <button @onclick="() => Redirect(annonceUrl)" class="btn-cancel-action">
                     Annuler
                 </button>
-                <button @onclick="VM.SaveChanges" class="btn-save" disabled="@VM.IsSaving">
+                <button @onclick="VM.SaveChangeOrUpdateCB" class="btn-save" disabled="@VM.IsSaving">
                     @(VM.IsSaving ? "Enregistrement..." : "💾 Enregistrer les modifications")
                 </button>
             </div>
