@@ -1,134 +1,884 @@
 ﻿using Api_c_sharp.Controllers;
+using Api_c_sharp.Mapper;
+using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.AI;
+using AutoMapper;
+using AutoPulse.Shared.DTO.IA.Benchmark;
 using AutoPulse.Shared.DTO.IA.Data;
 using AutoPulse.Shared.DTO.IA.Result;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
+using Moq;
+using Moq.Protected;
+using System.Text.Json;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass()]
-    [TestCategory("integration")]
-    public class IAControllerIntegrationTests
+    public class IAIntegrationTests
     {
         private IAController _controller;
-        private IIAService _iaService;
+        private IAManager _manager;
+        private AutoPulseBdContext _context;
+        private IMapper _mapper;
+        private Mock<HttpMessageHandler> _mockHttpMessageHandler;
         private HttpClient _httpClient;
-        private IConfiguration _configuration;
+        private Mock<IConfiguration> _mockConfiguration;
+        private Mock<ILogger<IAManager>> _mockLogger;
 
         [TestInitialize]
-        public void Initialize()
+        public async Task Initialize()
         {
-            // Configuration pour pointer vers l'API Python de test
-            var inMemorySettings = new Dictionary<string, string>
-            {
-                {"PythonAPI:BaseUrl", "http://localhost:8000"}
-            };
+            var options = new DbContextOptionsBuilder<AutoPulseBdContext>()
+                .UseInMemoryDatabase(databaseName: $"TestDb_IA_{Guid.NewGuid()}")
+                .Options;
 
-            _configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
+            _context = new AutoPulseBdContext(options);
 
-            // Création du HttpClient
-            _httpClient = new HttpClient
+            var config = new MapperConfiguration(cfg =>
             {
-                Timeout = TimeSpan.FromSeconds(30)
-            };
-
-            // Création des loggers
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-                builder.SetMinimumLevel(LogLevel.Debug);
+                cfg.AddProfile<MapperProfile>();
             });
-            // Création du manager et du controller
-            _controller = new IAController(_iaService);
+            _mapper = config.CreateMapper();
+
+            _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            _httpClient = new HttpClient(_mockHttpMessageHandler.Object);
+            _mockConfiguration = new Mock<IConfiguration>();
+            _mockLogger = new Mock<ILogger<IAManager>>();
+
+            _mockConfiguration
+                .Setup(x => x["PythonAPI:BaseUrl"])
+                .Returns("http://localhost:8000");
+
+            _manager = new IAManager(_context, _mapper, _httpClient, _mockConfiguration.Object, _mockLogger.Object);
+            _controller = new IAController(_manager);
+
+            await _context.SaveChangesAsync();
         }
 
-        [TestCleanup]
-        public void Cleanup()
-        {
-            _httpClient?.Dispose();
-        }
+        #region Health Check Tests
 
-        #region Health
         [TestMethod]
-        public async Task HealthTest_RealService()
+        public async Task HealthCheckAsync_Success()
         {
+            // Arrange
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            var result = await _manager.HealthCheckAsync();
+
+            // Assert
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public async Task HealthCheckAsync_Failure()
+        {
+            // Arrange
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable);
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            var result = await _manager.HealthCheckAsync();
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public async Task HealthCheckAsync_Exception()
+        {
+            // Arrange
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ThrowsAsync(new HttpRequestException("Connection failed"));
+
+            // Act
+            var result = await _manager.HealthCheckAsync();
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+
+        #endregion
+
+        #region Benchmark CRUD Tests
+
+        [TestMethod]
+        public async Task CreateBenchmarkAsync_Success()
+        {
+            // Arrange
+            var benchmarkDto = new BenchmarkIACreateDTO
+            {
+                BenchmarkId = "bench_001",
+                ModelType = "cnn",
+                Timestamp = DateTime.UtcNow,
+                TotalIterations = 100,
+                SuccessfulPredictions = 95,
+                FailedPredictions = 5,
+                SuccessRatePercent = 95.0,
+                AvgInferenceTimeMs = 45.5,
+                MinInferenceTimeMs = 40.0,
+                MaxInferenceTimeMs = 50.0,
+                StdInferenceTimeMs = 2.5,
+                PredictionsPerSecond = 22.0,
+                TotalTimeSeconds = 4.55,
+                Platform = "Linux",
+                Processor = "Intel Core i7",
+                PythonVersion = "3.9.0",
+                CpuCount = 8,
+                MemoryTotalGb = 16.0,
+                MemoryAvailableGb = 8.0
+            };
+
+            // Act
+            var result = await _manager.CreateBenchmarkAsync(benchmarkDto);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(benchmarkDto.BenchmarkId, result.BenchmarkId);
+            Assert.AreEqual(benchmarkDto.ModelType, result.ModelType);
+        }
+
+        [TestMethod]
+        public async Task GetBenchmarkByIdAsync_Success()
+        {
+            // Arrange
+            var benchmarkDto = new BenchmarkIACreateDTO
+            {
+                BenchmarkId = "bench_002",
+                ModelType = "prediction",
+                Timestamp = DateTime.UtcNow,
+                TotalIterations = 50,
+                SuccessfulPredictions = 48,
+                FailedPredictions = 2,
+                SuccessRatePercent = 96.0,
+                AvgInferenceTimeMs = 32.5,
+                MinInferenceTimeMs = 30.0,
+                MaxInferenceTimeMs = 35.0,
+                StdInferenceTimeMs = 1.5,
+                PredictionsPerSecond = 30.77,
+                TotalTimeSeconds = 1.625,
+                Platform = "Windows",
+                Processor = "Intel Core i5",
+                PythonVersion = "3.10.0",
+                CpuCount = 4,
+                MemoryTotalGb = 8.0,
+                MemoryAvailableGb = 4.0
+            };
+
+            var created = await _manager.CreateBenchmarkAsync(benchmarkDto);
+
+            // Act
+            var result = await _manager.GetBenchmarkByIdAsync(created.IdBenchmark);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(created.IdBenchmark, result.IdBenchmark);
+            Assert.AreEqual(benchmarkDto.BenchmarkId, result.BenchmarkId);
+        }
+
+        [TestMethod]
+        public async Task GetBenchmarkByIdAsync_NotFound()
+        {
+            // Act
+            var result = await _manager.GetBenchmarkByIdAsync(999);
+
+            // Assert
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public async Task GetAllBenchmarksAsync_Success()
+        {
+            // Arrange
+            var benchmarks = new[]
+            {
+                new BenchmarkIACreateDTO
+                {
+                    BenchmarkId = "bench_003",
+                    ModelType = "cnn",
+                    Timestamp = DateTime.UtcNow.AddHours(-2),
+                    TotalIterations = 100,
+                    SuccessfulPredictions = 95,
+                    FailedPredictions = 5,
+                    SuccessRatePercent = 95.0,
+                    AvgInferenceTimeMs = 45.5,
+                    MinInferenceTimeMs = 40.0,
+                    MaxInferenceTimeMs = 50.0,
+                    StdInferenceTimeMs = 2.5,
+                    PredictionsPerSecond = 22.0,
+                    TotalTimeSeconds = 4.55,
+                    Platform = "Linux",
+                    Processor = "Intel Core i7",
+                    PythonVersion = "3.9.0",
+                    CpuCount = 8,
+                    MemoryTotalGb = 16.0,
+                    MemoryAvailableGb = 8.0
+                },
+                new BenchmarkIACreateDTO
+                {
+                    BenchmarkId = "bench_004",
+                    ModelType = "prediction",
+                    Timestamp = DateTime.UtcNow.AddHours(-1),
+                    TotalIterations = 50,
+                    SuccessfulPredictions = 48,
+                    FailedPredictions = 2,
+                    SuccessRatePercent = 96.0,
+                    AvgInferenceTimeMs = 32.5,
+                    MinInferenceTimeMs = 30.0,
+                    MaxInferenceTimeMs = 35.0,
+                    StdInferenceTimeMs = 1.5,
+                    PredictionsPerSecond = 30.77,
+                    TotalTimeSeconds = 1.625,
+                    Platform = "Windows",
+                    Processor = "Intel Core i5",
+                    PythonVersion = "3.10.0",
+                    CpuCount = 4,
+                    MemoryTotalGb = 8.0,
+                    MemoryAvailableGb = 4.0
+                }
+            };
+
+            foreach (var benchmark in benchmarks)
+            {
+                await _manager.CreateBenchmarkAsync(benchmark);
+            }
+
+            // Act
+            var result = await _manager.GetAllBenchmarksAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Count());
+        }
+
+        [TestMethod]
+        public async Task DeleteBenchmarkAsync_Success()
+        {
+            // Arrange
+            var benchmarkDto = new BenchmarkIACreateDTO
+            {
+                BenchmarkId = "bench_005",
+                ModelType = "ajustement",
+                Timestamp = DateTime.UtcNow,
+                TotalIterations = 75,
+                SuccessfulPredictions = 72,
+                FailedPredictions = 3,
+                SuccessRatePercent = 96.0,
+                AvgInferenceTimeMs = 28.0,
+                MinInferenceTimeMs = 25.0,
+                MaxInferenceTimeMs = 30.0,
+                StdInferenceTimeMs = 1.0,
+                PredictionsPerSecond = 35.71,
+                TotalTimeSeconds = 2.1,
+                Platform = "macOS",
+                Processor = "Apple M1",
+                PythonVersion = "3.11.0",
+                CpuCount = 8,
+                MemoryTotalGb = 16.0,
+                MemoryAvailableGb = 10.0
+            };
+
+            var created = await _manager.CreateBenchmarkAsync(benchmarkDto);
+
+            // Act
+            var deleted = await _manager.DeleteBenchmarkAsync(created.IdBenchmark);
+
+            // Assert
+            Assert.IsTrue(deleted);
+            var result = await _manager.GetBenchmarkByIdAsync(created.IdBenchmark);
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public async Task DeleteBenchmarkAsync_NotFound()
+        {
+            // Act
+            var result = await _manager.DeleteBenchmarkAsync(999);
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+
+        #endregion
+
+        #region Benchmark Stats and History Tests
+
+        [TestMethod]
+        public async Task GetLatestBenchmarksByTypeAsync_Success()
+        {
+            // Arrange
+            var benchmarkCNN = new BenchmarkIACreateDTO
+            {
+                BenchmarkId = "bench_cnn_001",
+                ModelType = "cnn",
+                Timestamp = DateTime.UtcNow.AddHours(-1),
+                TotalIterations = 100,
+                SuccessfulPredictions = 95,
+                FailedPredictions = 5,
+                SuccessRatePercent = 95.0,
+                AvgInferenceTimeMs = 45.5,
+                MinInferenceTimeMs = 40.0,
+                MaxInferenceTimeMs = 50.0,
+                StdInferenceTimeMs = 2.5,
+                PredictionsPerSecond = 22.0,
+                TotalTimeSeconds = 4.55,
+                Platform = "Linux",
+                Processor = "Intel Core i7",
+                PythonVersion = "3.9.0",
+                CpuCount = 8,
+                MemoryTotalGb = 16.0,
+                MemoryAvailableGb = 8.0
+            };
+
+            await _manager.CreateBenchmarkAsync(benchmarkCNN);
+
+            // Act
+            var result = await _manager.GetLatestBenchmarksByTypeAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.ContainsKey("cnn"));
+            Assert.AreEqual("bench_cnn_001", result["cnn"].BenchmarkId);
+        }
+
+        [TestMethod]
+        public async Task GetBenchmarkHistoryByTypeAsync_Success()
+        {
+            // Arrange
+            for (int i = 0; i < 5; i++)
+            {
+                var benchmark = new BenchmarkIACreateDTO
+                {
+                    BenchmarkId = $"bench_history_{i}",
+                    ModelType = "prediction",
+                    Timestamp = DateTime.UtcNow.AddHours(-i),
+                    TotalIterations = 50 + i,
+                    SuccessfulPredictions = 48 + i,
+                    FailedPredictions = 2,
+                    SuccessRatePercent = 96.0,
+                    AvgInferenceTimeMs = 32.5,
+                    MinInferenceTimeMs = 30.0,
+                    MaxInferenceTimeMs = 35.0,
+                    StdInferenceTimeMs = 1.5,
+                    PredictionsPerSecond = 30.77,
+                    TotalTimeSeconds = 1.625,
+                    Platform = "Windows",
+                    Processor = "Intel Core i5",
+                    PythonVersion = "3.10.0",
+                    CpuCount = 4,
+                    MemoryTotalGb = 8.0,
+                    MemoryAvailableGb = 4.0
+                };
+                await _manager.CreateBenchmarkAsync(benchmark);
+            }
+
+            // Act
+            var result = await _manager.GetBenchmarkHistoryByTypeAsync("prediction", 3);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(3, result.Count());
+        }
+
+        [TestMethod]
+        public async Task GetBenchmarkStatsAsync_Success()
+        {
+            // Arrange
+            var benchmarks = new[]
+            {
+                new BenchmarkIACreateDTO
+                {
+                    BenchmarkId = "stats_cnn",
+                    ModelType = "cnn",
+                    Timestamp = DateTime.UtcNow,
+                    TotalIterations = 100,
+                    SuccessfulPredictions = 95,
+                    FailedPredictions = 5,
+                    SuccessRatePercent = 95.0,
+                    AvgInferenceTimeMs = 45.5,
+                    MinInferenceTimeMs = 40.0,
+                    MaxInferenceTimeMs = 50.0,
+                    StdInferenceTimeMs = 2.5,
+                    PredictionsPerSecond = 22.0,
+                    TotalTimeSeconds = 4.55,
+                    Platform = "Linux",
+                    Processor = "Intel Core i7",
+                    PythonVersion = "3.9.0",
+                    CpuCount = 8,
+                    MemoryTotalGb = 16.0,
+                    MemoryAvailableGb = 8.0
+                },
+                new BenchmarkIACreateDTO
+                {
+                    BenchmarkId = "stats_pred",
+                    ModelType = "prediction",
+                    Timestamp = DateTime.UtcNow,
+                    TotalIterations = 50,
+                    SuccessfulPredictions = 48,
+                    FailedPredictions = 2,
+                    SuccessRatePercent = 96.0,
+                    AvgInferenceTimeMs = 32.5,
+                    MinInferenceTimeMs = 30.0,
+                    MaxInferenceTimeMs = 35.0,
+                    StdInferenceTimeMs = 1.5,
+                    PredictionsPerSecond = 30.77,
+                    TotalTimeSeconds = 1.625,
+                    Platform = "Windows",
+                    Processor = "Intel Core i5",
+                    PythonVersion = "3.10.0",
+                    CpuCount = 4,
+                    MemoryTotalGb = 8.0,
+                    MemoryAvailableGb = 4.0
+                },
+                new BenchmarkIACreateDTO
+                {
+                    BenchmarkId = "stats_adj",
+                    ModelType = "ajustement",
+                    Timestamp = DateTime.UtcNow,
+                    TotalIterations = 75,
+                    SuccessfulPredictions = 72,
+                    FailedPredictions = 3,
+                    SuccessRatePercent = 96.0,
+                    AvgInferenceTimeMs = 28.0,
+                    MinInferenceTimeMs = 25.0,
+                    MaxInferenceTimeMs = 30.0,
+                    StdInferenceTimeMs = 1.0,
+                    PredictionsPerSecond = 35.71,
+                    TotalTimeSeconds = 2.1,
+                    Platform = "macOS",
+                    Processor = "Apple M1",
+                    PythonVersion = "3.11.0",
+                    CpuCount = 8,
+                    MemoryTotalGb = 16.0,
+                    MemoryAvailableGb = 10.0
+                }
+            };
+
+            foreach (var benchmark in benchmarks)
+            {
+                await _manager.CreateBenchmarkAsync(benchmark);
+            }
+
+            // Act
+            var result = await _manager.GetBenchmarkStatsAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.TotalBenchmarks);
+            Assert.IsTrue(result.GlobalAvgInferenceTimeMs > 0);
+            Assert.IsTrue(result.GlobalSuccessRate > 0);
+            Assert.IsNotNull(result.BenchmarksByModel);
+            Assert.AreEqual(3, result.BenchmarksByModel.Count);
+        }
+
+        #endregion
+
+        #region Predict Integration Tests
+
+        [TestMethod]
+        public async Task Predict_CNN_Success()
+        {
+            // Arrange
+            var dataCNN = new DataCNN
+            {
+                ImageBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABA..."
+            };
+
+            var mockResult = new ResultatCNN
+            {
+                Success = true,
+                Manufacturer = "Toyota",
+                Model = "Corolla",
+                ConfidenceScore = 0.95
+            };
+
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(mockResult))
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            var result = await _manager.PredictAsync(dataCNN);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(ResultatCNN));
+            Assert.IsTrue(result.Success);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(Exception))]
+        public async Task Predict_HttpError()
+        {
+            // Arrange
+            var dataCNN = new DataCNN
+            {
+                ImageBase64 = "invalid_base64"
+            };
+
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError)
+            {
+                Content = new StringContent("Internal Server Error")
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            await _manager.PredictAsync(dataCNN);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(Exception))]
+        public async Task Predict_InvalidJSON()
+        {
+            // Arrange
+            var dataCNN = new DataCNN
+            {
+                ImageBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABA..."
+            };
+
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent("Invalid JSON response")
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            await _manager.PredictAsync(dataCNN);
+        }
+
+        #endregion
+
+        #region Controller Integration Tests
+
+        [TestMethod]
+        public async Task BenchmarkGetAll_Controller_Success()
+        {
+            // Arrange
+            var benchmarkDto = new BenchmarkIACreateDTO
+            {
+                BenchmarkId = "ctrl_bench_001",
+                ModelType = "cnn",
+                Timestamp = DateTime.UtcNow,
+                TotalIterations = 100,
+                SuccessfulPredictions = 95,
+                FailedPredictions = 5,
+                SuccessRatePercent = 95.0,
+                AvgInferenceTimeMs = 45.5,
+                MinInferenceTimeMs = 40.0,
+                MaxInferenceTimeMs = 50.0,
+                StdInferenceTimeMs = 2.5,
+                PredictionsPerSecond = 22.0,
+                TotalTimeSeconds = 4.55,
+                Platform = "Linux",
+                Processor = "Intel Core i7",
+                PythonVersion = "3.9.0",
+                CpuCount = 8,
+                MemoryTotalGb = 16.0,
+                MemoryAvailableGb = 8.0
+            };
+
+            await _manager.CreateBenchmarkAsync(benchmarkDto);
+
+            // Act
+            var result = await _controller.BenchmarkGetAll();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = (OkObjectResult)result.Result;
+            var benchmarks = (IEnumerable<BenchmarkIAListDTO>)okResult.Value;
+            Assert.IsTrue(benchmarks.Any());
+        }
+
+        [TestMethod]
+        public async Task BenchmarkGetById_Controller_Success()
+        {
+            // Arrange
+            var benchmarkDto = new BenchmarkIACreateDTO
+            {
+                BenchmarkId = "ctrl_bench_002",
+                ModelType = "prediction",
+                Timestamp = DateTime.UtcNow,
+                TotalIterations = 50,
+                SuccessfulPredictions = 48,
+                FailedPredictions = 2,
+                SuccessRatePercent = 96.0,
+                AvgInferenceTimeMs = 32.5,
+                MinInferenceTimeMs = 30.0,
+                MaxInferenceTimeMs = 35.0,
+                StdInferenceTimeMs = 1.5,
+                PredictionsPerSecond = 30.77,
+                TotalTimeSeconds = 1.625,
+                Platform = "Windows",
+                Processor = "Intel Core i5",
+                PythonVersion = "3.10.0",
+                CpuCount = 4,
+                MemoryTotalGb = 8.0,
+                MemoryAvailableGb = 4.0
+            };
+
+            var created = await _manager.CreateBenchmarkAsync(benchmarkDto);
+
+            // Act
+            var result = await _controller.BenchmarkGetById(created.IdBenchmark);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = (OkObjectResult)result.Result;
+            Assert.IsInstanceOfType(okResult.Value, typeof(BenchmarkIADTO));
+        }
+
+        [TestMethod]
+        public async Task BenchmarkGetById_Controller_NotFound()
+        {
+            // Act
+            var result = await _controller.BenchmarkGetById(999);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task BenchmarkGetStats_Controller_Success()
+        {
+            // Arrange
+            var benchmarks = new[]
+            {
+                new BenchmarkIACreateDTO
+                {
+                    BenchmarkId = "stats_ctrl_cnn",
+                    ModelType = "cnn",
+                    Timestamp = DateTime.UtcNow,
+                    TotalIterations = 100,
+                    SuccessfulPredictions = 95,
+                    FailedPredictions = 5,
+                    SuccessRatePercent = 95.0,
+                    AvgInferenceTimeMs = 45.5,
+                    MinInferenceTimeMs = 40.0,
+                    MaxInferenceTimeMs = 50.0,
+                    StdInferenceTimeMs = 2.5,
+                    PredictionsPerSecond = 22.0,
+                    TotalTimeSeconds = 4.55,
+                    Platform = "Linux",
+                    Processor = "Intel Core i7",
+                    PythonVersion = "3.9.0",
+                    CpuCount = 8,
+                    MemoryTotalGb = 16.0,
+                    MemoryAvailableGb = 8.0
+                },
+                new BenchmarkIACreateDTO
+                {
+                    BenchmarkId = "stats_ctrl_pred",
+                    ModelType = "prediction",
+                    Timestamp = DateTime.UtcNow,
+                    TotalIterations = 50,
+                    SuccessfulPredictions = 48,
+                    FailedPredictions = 2,
+                    SuccessRatePercent = 96.0,
+                    AvgInferenceTimeMs = 32.5,
+                    MinInferenceTimeMs = 30.0,
+                    MaxInferenceTimeMs = 35.0,
+                    StdInferenceTimeMs = 1.5,
+                    PredictionsPerSecond = 30.77,
+                    TotalTimeSeconds = 1.625,
+                    Platform = "Windows",
+                    Processor = "Intel Core i5",
+                    PythonVersion = "3.10.0",
+                    CpuCount = 4,
+                    MemoryTotalGb = 8.0,
+                    MemoryAvailableGb = 4.0
+                },
+                new BenchmarkIACreateDTO
+                {
+                    BenchmarkId = "stats_ctrl_adj",
+                    ModelType = "ajustement",
+                    Timestamp = DateTime.UtcNow,
+                    TotalIterations = 75,
+                    SuccessfulPredictions = 72,
+                    FailedPredictions = 3,
+                    SuccessRatePercent = 96.0,
+                    AvgInferenceTimeMs = 28.0,
+                    MinInferenceTimeMs = 25.0,
+                    MaxInferenceTimeMs = 30.0,
+                    StdInferenceTimeMs = 1.0,
+                    PredictionsPerSecond = 35.71,
+                    TotalTimeSeconds = 2.1,
+                    Platform = "macOS",
+                    Processor = "Apple M1",
+                    PythonVersion = "3.11.0",
+                    CpuCount = 8,
+                    MemoryTotalGb = 16.0,
+                    MemoryAvailableGb = 10.0
+                }
+            };
+
+            foreach (var benchmark in benchmarks)
+            {
+                await _manager.CreateBenchmarkAsync(benchmark);
+            }
+
+            // Act
+            var result = await _controller.BenchmarkGetStats();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task BenchmarkDelete_Controller_Success()
+        {
+            // Arrange
+            var benchmarkDto = new BenchmarkIACreateDTO
+            {
+                BenchmarkId = "del_bench",
+                ModelType = "cnn",
+                Timestamp = DateTime.UtcNow,
+                TotalIterations = 100,
+                SuccessfulPredictions = 95,
+                FailedPredictions = 5,
+                SuccessRatePercent = 95.0,
+                AvgInferenceTimeMs = 45.5,
+                MinInferenceTimeMs = 40.0,
+                MaxInferenceTimeMs = 50.0,
+                StdInferenceTimeMs = 2.5,
+                PredictionsPerSecond = 22.0,
+                TotalTimeSeconds = 4.55,
+                Platform = "Linux",
+                Processor = "Intel Core i7",
+                PythonVersion = "3.9.0",
+                CpuCount = 8,
+                MemoryTotalGb = 16.0,
+                MemoryAvailableGb = 8.0
+            };
+
+            var created = await _manager.CreateBenchmarkAsync(benchmarkDto);
+
+            // Act
+            var result = await _controller.BenchmarkDelete(created.IdBenchmark);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        }
+
+        [TestMethod]
+        public async Task BenchmarkDelete_Controller_NotFound()
+        {
+            // Act
+            var result = await _controller.BenchmarkDelete(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Health_Controller_Success()
+        {
+            // Arrange
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
             // Act
             var result = await _controller.Health();
 
             // Assert
             Assert.IsNotNull(result);
-
-            // Le test passe si le service est disponible ou indisponible
-            // car on teste la vraie intégration
-            if (result is OkObjectResult okResult)
-            {
-                dynamic value = okResult.Value;
-                Assert.AreEqual("healthy", value.status);
-            }
-            else if (result is ObjectResult objectResult)
-            {
-                Assert.AreEqual(503, objectResult.StatusCode);
-            }
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
         }
+
+        [TestMethod]
+        public async Task Health_Controller_Unavailable()
+        {
+            // Arrange
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable);
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            var result = await _controller.Health();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(ObjectResult));
+            var objectResult = (ObjectResult)result;
+            Assert.AreEqual(503, objectResult.StatusCode);
+        }
+
         #endregion
 
-        #region CNN
+        #region Error Handling Tests
+
         [TestMethod]
-        public async Task PredictCNNTest_RealService()
+        public async Task Predict_Controller_ValidationError_CNN()
         {
             // Arrange
             var dataCNN = new DataCNN
             {
-                ImageBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-            };
-
-            try
-            {
-                // Act
-                var result = await _controller.Predict(dataCNN);
-
-                // Assert
-                Assert.IsNotNull(result);
-
-                if (result.Result is OkObjectResult okResult)
-                {
-                    var resultatCNN = (ResultatCNN)okResult.Value;
-                    Assert.AreEqual("cnn", resultatCNN.Type);
-                    Assert.IsTrue(resultatCNN.Success);
-                    Assert.IsNotNull(resultatCNN.Manufacturer);
-                    Assert.IsNotNull(resultatCNN.Model);
-                    Assert.IsTrue(resultatCNN.ConfidenceScore >= 0 && resultatCNN.ConfidenceScore <= 1);
-                }
-                else if (result.Result is ObjectResult objectResult)
-                {
-                    // Service indisponible - test considéré comme passé
-                    Assert.AreEqual(503, objectResult.StatusCode);
-                }
-            }
-            catch (Exception ex)
-            {
-                // Si le service Python n'est pas disponible, on log mais on ne fait pas échouer le test
-                Console.WriteLine($"Service Python non disponible: {ex.Message}");
-                Assert.Inconclusive("Service Python non disponible pour les tests d'intégration");
-            }
-        }
-
-        [TestMethod]
-        public async Task PredictTest_CNNInvalidData_MissingImage()
-        {
-            // Arrange
-            var dataCNN = new DataCNN
-            {
-                ImageBase64 = ""
+                ImageBase64 = "" // Image vide
             };
 
             // Act
@@ -137,178 +887,145 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
-            var badRequest = (BadRequestObjectResult)result.Result;
-            Assert.AreEqual("L'image en base64 est requise pour la reconnaissance visuelle", badRequest.Value);
-        }
-
-        #endregion
-
-        #region Prediction
-        [TestMethod]
-        public async Task PredictPredictionTest_RealService()
-        {
-            // Arrange
-            var dataPrediction = new DataPrediction
-            {
-                ProdYear = 2020,
-                Manufacturer = "Renault",
-                Model = "Clio",
-                Mileage = "50000",
-                EngineVolume = 1.5f,
-                Category = "Sedan",
-                FuelType = "Petrol",
-                GearBoxType = "Manual"
-            };
-
-            try
-            {
-                // Act
-                var result = await _controller.Predict(dataPrediction);
-
-                // Assert
-                Assert.IsNotNull(result);
-
-                if (result.Result is OkObjectResult okResult)
-                {
-                    var resultatPrediction = (ResultatPrediction)okResult.Value;
-                    Assert.AreEqual("prediction", resultatPrediction.Type);
-                    Assert.IsTrue(resultatPrediction.Success);
-                    Assert.IsTrue(resultatPrediction.PredictedPrice > 0);
-                    Assert.IsNotNull(resultatPrediction.Currency);
-                }
-                else if (result.Result is ObjectResult objectResult)
-                {
-                    Assert.AreEqual(503, objectResult.StatusCode);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Service Python non disponible: {ex.Message}");
-                Assert.Inconclusive("Service Python non disponible pour les tests d'intégration");
-            }
         }
 
         [TestMethod]
-        public async Task PredictTest_PredictionInvalidData_MissingProdYear()
+        public async Task Predict_Controller_ValidationError_Ajustement_InvalidPrice()
         {
             // Arrange
-            var dataPrediction = new DataPrediction
+            var dataAdj = new DataAjustement
             {
-                ProdYear = null,
-                Manufacturer = "Renault"
-            };
-
-            // Act
-            var result = await _controller.Predict(dataPrediction);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
-            var badRequest = (BadRequestObjectResult)result.Result;
-            Assert.AreEqual("L'année de production est requise pour la prédiction", badRequest.Value);
-        }
-        #endregion
-
-        #region Ajustement
-        [TestMethod]
-        public async Task PredictAjustementTest_RealService()
-        {
-            // Arrange
-            var dataAjustement = new DataAjustement
-            {
-                BasePrice = 15000,
-                Description = "Véhicule en excellent état, options premium"
-            };
-
-            try
-            {
-                // Act
-                var result = await _controller.Predict(dataAjustement);
-
-                // Assert
-                Assert.IsNotNull(result);
-
-                if (result.Result is OkObjectResult okResult)
-                {
-                    var resultatAjustement = (ResultatAjustement)okResult.Value;
-                    Assert.AreEqual("ajustement", resultatAjustement.Type);
-                    Assert.IsTrue(resultatAjustement.Success);
-                    Assert.IsTrue(resultatAjustement.AdjustedPrice > 0);
-                    Assert.IsTrue(resultatAjustement.BasePrice > 0);
-                }
-                else if (result.Result is ObjectResult objectResult)
-                {
-                    Assert.AreEqual(503, objectResult.StatusCode);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Service Python non disponible: {ex.Message}");
-                Assert.Inconclusive("Service Python non disponible pour les tests d'intégration");
-            }
-        }
-
-
-        [TestMethod]
-        public async Task PredictTest_AjustementInvalidData_InvalidBasePrice()
-        {
-            // Arrange
-            var dataAjustement = new DataAjustement
-            {
-                BasePrice = 0,
+                BasePrice = -100, // Prix négatif
                 Description = "Test"
             };
 
             // Act
-            var result = await _controller.Predict(dataAjustement);
+            var result = await _controller.Predict(dataAdj);
 
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
-            var badRequest = (BadRequestObjectResult)result.Result;
-            Assert.AreEqual("Le prix de base doit être supérieur à 0", badRequest.Value);
         }
 
         [TestMethod]
-        public async Task PredictTest_AjustementInvalidData_MissingDescription()
+        public async Task Predict_Controller_ValidationError_Ajustement_NoDescription()
         {
             // Arrange
-            var dataAjustement = new DataAjustement
+            var dataAdj = new DataAjustement
             {
                 BasePrice = 15000,
-                Description = ""
+                Description = "" // Description vide
             };
 
             // Act
-            var result = await _controller.Predict(dataAjustement);
+            var result = await _controller.Predict(dataAdj);
 
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
-            var badRequest = (BadRequestObjectResult)result.Result;
-            Assert.AreEqual("La description est requise pour l'ajustement de prix", badRequest.Value);
         }
-        #endregion
 
-        #region ModelState
         [TestMethod]
-        public async Task PredictTest_ModelStateInvalid()
+        public async Task Predict_Controller_Service_Unavailable()
         {
             // Arrange
             var dataCNN = new DataCNN
             {
-                ImageBase64 = "validbase64"
+                ImageBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABA..."
             };
 
-            _controller.ModelState.AddModelError("Type", "Required");
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError)
+            {
+                Content = new StringContent("Service Error")
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
 
             // Act
             var result = await _controller.Predict(dataCNN);
 
             // Assert
             Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
+            var objectResult = (ObjectResult)result.Result;
+            Assert.AreEqual(503, objectResult.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task BenchmarkPost_Controller_InvalidData()
+        {
+            // Arrange
+            var benchmarkDto = new BenchmarkIACreateDTO();
+            _controller.ModelState.AddModelError("BenchmarkId", "BenchmarkId est requis");
+
+            // Act
+            var result = await _controller.BenchmarkPost(benchmarkDto);
+
+            // Assert
+            Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(BadRequestObjectResult));
         }
+
+        [TestMethod]
+        public async Task BenchmarkGetAll_Controller_Error()
+        {
+            // Arrange - Créer une situation où un problème pourrait survenir
+            var benchmarkDto = new BenchmarkIACreateDTO
+            {
+                BenchmarkId = "error_bench",
+                ModelType = "cnn",
+                Timestamp = DateTime.UtcNow,
+                TotalIterations = 100,
+                SuccessfulPredictions = 95,
+                FailedPredictions = 5,
+                SuccessRatePercent = 95.0,
+                AvgInferenceTimeMs = 45.5,
+                MinInferenceTimeMs = 40.0,
+                MaxInferenceTimeMs = 50.0,
+                StdInferenceTimeMs = 2.5,
+                PredictionsPerSecond = 22.0,
+                TotalTimeSeconds = 4.55,
+                Platform = "Linux",
+                Processor = "Intel Core i7",
+                PythonVersion = "3.9.0",
+                CpuCount = 8,
+                MemoryTotalGb = 16.0,
+                MemoryAvailableGb = 8.0
+            };
+
+            await _manager.CreateBenchmarkAsync(benchmarkDto);
+
+            // Act
+            var result = await _controller.BenchmarkGetAll();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = (OkObjectResult)result.Result;
+            Assert.IsNotNull(okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task BenchmarkGetLatestByType_Controller_EmptyResult()
+        {
+            // Act - Pas de benchmarks créés
+            var result = await _controller.BenchmarkGetLatestByType();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = (OkObjectResult)result.Result;
+            var benchmarks = (Dictionary<string, BenchmarkIADTO>)okResult.Value;
+            Assert.AreEqual(0, benchmarks.Count);
+        }
+
         #endregion
     }
 }

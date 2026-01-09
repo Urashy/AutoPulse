@@ -143,6 +143,13 @@ namespace BlazorAutoPulse.ViewModel
         {
             return errors.ContainsKey(fieldName) ? errors[fieldName] : "";
         }
+        
+        public void OnMiseEnAvantChange(ChangeEventArgs e)
+        {
+            Annonce.IdMiseEnAvant = int.Parse(e.Value.ToString());
+            if (Annonce.IdMiseEnAvant != 0 && errors.ContainsKey("miseEnAvant"))
+                errors.Remove("miseEnAvant");
+        }
 
         public async Task SaveChanges()
         {
@@ -172,13 +179,13 @@ namespace BlazorAutoPulse.ViewModel
                     IdAnnonce = Annonce.IdAnnonce,
                     Libelle = Annonce.Libelle,
                     IdCompte = Annonce.IdVendeur,
-                    IdEtatAnnonce = 1, // État par défaut
+                    IdEtatAnnonce = 1,
                     IdAdresse = Annonce.IdAdresse,
                     IdVoiture = Annonce.IdVoiture,
                     IdMiseEnAvant = Annonce.IdMiseEnAvant,
                     DatePublication = Annonce.DatePublication,
                     Prix = Annonce.Prix,
-                    Description = Annonce.Description ?? ""
+                    Description = Annonce.Description ?? "",
                 };
 
                 await _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, updateAnnonceDto);

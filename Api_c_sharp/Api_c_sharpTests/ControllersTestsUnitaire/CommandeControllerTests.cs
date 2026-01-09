@@ -19,6 +19,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private CommandeController _controller;
         private AutoPulseBdContext _context;
         private CommandeManager _manager;
+        private AnnonceManager _annnonceManager;
         private IMapper _mapper;
         private Commande _commandeCommun;
         private IJournalService _journalService;
@@ -41,7 +42,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new CommandeManager(_context);
-            _controller = new CommandeController(_manager, _mapper, _journalService);
+            _annnonceManager = new AnnonceManager(_context);
+            _controller = new CommandeController(_manager, _mapper, _journalService,_annnonceManager);
 
             // Reset DB
             _context.Commandes.RemoveRange(_context.Commandes);

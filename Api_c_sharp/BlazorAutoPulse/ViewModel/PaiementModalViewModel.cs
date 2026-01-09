@@ -5,15 +5,8 @@ using Microsoft.AspNetCore.Components;
 public class PaiementModalViewModel
 {
     private readonly ICarteBancaireService _carteService;
+    private readonly IService<MiseEnAvantDTO> _miseEnAvantService;
     private readonly ICompteService _compteService;
-
-    public PaiementModalViewModel(
-        ICarteBancaireService carteService,
-        ICompteService compteService)
-    {
-        _carteService = carteService;
-        _compteService = compteService;
-    }
 
     public bool IsVisible { get; private set; }
     public bool IsLoadingCards { get; private set; }
@@ -21,6 +14,7 @@ public class PaiementModalViewModel
 
     public int? SelectedCarteId { get; private set; }
     public List<CarteBancaireDTO> CartesBancaires { get; private set; } = [];
+    public MiseEnAvantDTO MiseEnAvantDTO { get; private set; }
 
     public bool CanPay => SelectedCarteId.HasValue;
 
@@ -28,11 +22,24 @@ public class PaiementModalViewModel
     private EventCallback<int> _idCB;
     private EventCallback _onPaymentSuccess;
     private Action _stateHasChanged = () => { };
+    
+    public PaiementModalViewModel(
+        ICarteBancaireService carteService,
+        IService<MiseEnAvantDTO> miseEnAvantService,
+        ICompteService compteService)
+    {
+        _carteService = carteService;
+        _miseEnAvantService = miseEnAvantService;
+        _compteService = compteService;
+        
+        MiseEnAvantDTO = new MiseEnAvantDTO();
+    }
 
     public async Task InitializeAsync(
         bool isVisible,
         EventCallback<bool> isVisibleChanged,
         EventCallback<int> idCB,
+        int IdMiseEnAvant,
         EventCallback onPaymentSuccess,
         Action stateHasChanged)
     {
@@ -42,6 +49,11 @@ public class PaiementModalViewModel
         _onPaymentSuccess = onPaymentSuccess;
         _stateHasChanged = stateHasChanged;
 
+        if (IdMiseEnAvant != -1)
+        {
+            MiseEnAvantDTO = await _miseEnAvantService.GetByIdAsync(IdMiseEnAvant);
+        }
+        
         if (IsVisible && !CartesBancaires.Any())
             await LoadCartes();
     }

@@ -91,6 +91,7 @@ builder.Services.AddScoped<IRefreshTokenRepository>(sp => sp.GetRequiredService<
 
 // Tâche de nettoyage automatique des tokens expirés
 builder.Services.AddHostedService<RefreshTokenCleanupService>();
+builder.Services.AddHostedService<CheckPaiementService>();
 
 // Enregistrement du service IA avec HttpClient
 builder.Services.AddHttpClient<IIAService, IAManager>(client =>

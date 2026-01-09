@@ -112,6 +112,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
            entity.Libelle
         );
 
+        await _manager.AddAsync(entity);
         if (entity.IdMiseEnAvant > 1)
         {
             Paiement paiement = new Paiement
@@ -124,7 +125,6 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
             };
             await _paiementManager.AddAsync(paiement);
         }
-        await _manager.AddAsync(entity);
 
         return CreatedAtAction(nameof(GetByID), new { id = entity.IdAnnonce }, entity);
     }
