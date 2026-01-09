@@ -9,8 +9,9 @@
 
 @* Composant Modal Paiement *@
 <PaiementModal IsVisible="@VM.showPaiementMavModal"
-               IdCB="@((int value) => VM.SetIdCb(value))"
-               IdMiseEnAvant="@VM.annonce.IdMiseEnAvant"
+               IdCb="@((int value) => VM.SetIdCb(value))"
+               Id="@VM.annonce.IdMiseEnAvant"
+               Type="vente"
                IsVisibleChanged="@((bool value) => VM.showPaiementMavModal = value)"
                OnPaymentSuccess="@VM.OnPaymentSuccess" />
 
