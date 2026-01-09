@@ -4,6 +4,7 @@ using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Api_c_sharp.Models.Entity;
+using System.Configuration;
 
 namespace Api_c_sharp.Controllers;
 
@@ -75,8 +76,15 @@ public class AvisController(AvisManager _manager, IMapper _mapper, IJournalServi
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
+        bool exists = await _manager.ExisteDejaAsync(dto.IdCommande, dto.IdJugeur);
+
+        if (exists){
+            return Conflict("Vous avez déjà déposé un avis pour cette commande.");
+        }
+
         var entity = _mapper.Map<Avis>(dto);
         await _manager.AddAsync(entity);
+
         await _journalService.LogDepotAvisAsync(dto.IdJugeur, dto.IdJugee, entity.IdAvis, dto.NoteAvis, dto.ContenuAvis);
 
         return CreatedAtAction(nameof(GetById), new { id = entity.IdAvis }, entity);

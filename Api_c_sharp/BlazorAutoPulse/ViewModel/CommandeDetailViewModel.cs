@@ -13,6 +13,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IImageService _imageService;
         private readonly NotificationService _notificationService;
         private readonly IConversationService _conversationService;
+        private readonly IAvisService _avisService;
 
         public CommandeDetailDTO? Commande { get; private set; }
         public bool IsLoading { get; private set; } = true;
@@ -39,6 +40,12 @@ namespace BlazorAutoPulse.ViewModel
         public string CardExpiry { get; set; } = "";
         public string CardCvv { get; set; } = "";
 
+        //Données Avis
+        public int NoteAvis { get; set; } = 5;
+        public string ContenuAvis { get; set; } = string.Empty;
+        public bool AvisEnvoye { get; private set; } = false;
+        public bool IsSendingAvis { get; private set; } = false;
+
         private Action? _refreshUI;
         private NavigationManager? _nav;
 
@@ -48,7 +55,8 @@ namespace BlazorAutoPulse.ViewModel
             IAnnonceService annonceService,
             IImageService imageService,
             NotificationService notificationService,
-            IConversationService conversationService)
+            IConversationService conversationService,
+            IAvisService avisService)
         {
             _commandeService = commandeService;
             _compteService = compteService;
@@ -56,6 +64,7 @@ namespace BlazorAutoPulse.ViewModel
             _imageService = imageService;
             _notificationService = notificationService;
             _conversationService = conversationService;
+            _avisService = avisService;
         }
 
         public async Task InitializeAsync(int idCommande, Action refreshUI, NavigationManager nav)
@@ -537,6 +546,64 @@ namespace BlazorAutoPulse.ViewModel
                     "Erreur",
                     "Impossible de contacter l'acheteur"
                 );
+            }
+        }
+
+        // ============================================================================
+        // ACTIONS DE FIN - Facture et Avis
+        // ============================================================================
+
+        public void GenererFacture()
+        {
+            // Ne fait rien pour l'instant
+            _notificationService.ShowInfo("Facture", "La fonctionnalité de téléchargement de facture sera bientôt disponible.");
+        }
+
+        public async Task EnvoyerAvis()
+        {
+            if (Commande == null || !CurrentUserId.HasValue) return;
+
+            if (string.IsNullOrWhiteSpace(ContenuAvis))
+            {
+                _notificationService.ShowError("Erreur", "Veuillez écrire un commentaire pour votre avis.");
+                return;
+            }
+
+            IsSendingAvis = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                var avisDTO = new AvisCreateDTO
+                {
+                    IdJugeur = CurrentUserId.Value,
+                    IdJugee = IsAcheteur ? Commande.IdVendeur : Commande.IdAcheteur,
+                    IdCommande = Commande.IdCommande,
+                    ContenuAvis = ContenuAvis,
+                    NoteAvis = NoteAvis
+                };
+
+                var result = await _avisService.CreateAvis(avisDTO);
+
+                if (result.Success)
+                {
+                    AvisEnvoye = true;
+                    _notificationService.ShowSuccess("Avis envoyé", "Merci pour votre retour !");
+                }
+                else
+                {
+                    _notificationService.ShowError("Erreur", result.ErrorMessage ?? "Impossible d'envoyer l'avis");
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowError("Erreur", "Une erreur est survenue lors de l'envoi de l'avis");
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                IsSendingAvis = false;
+                _refreshUI?.Invoke();
             }
         }
     }
