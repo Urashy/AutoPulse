@@ -158,5 +158,24 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             string type = "offre";
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type, pseudoAcheteurOffre: compte.Pseudo, valeurOffre: valeur);
         }
+        
+        public virtual async Task NotifPaiementMiseEnAvant(int idannonce, int idCompte, int idMiseEnAvant)
+        {
+            List <int> idcomptes = await context.Annonces
+                .Where(a => a.IdAnnonce == idannonce)
+                .Select(a => a.IdCompte)
+                .ToListAsync();
+
+            Annonce? annonce = await context.Annonces
+                .FirstOrDefaultAsync(a => a.IdAnnonce == idannonce);
+            
+            MiseEnAvant miseEnAvant = await context.MisesEnAvant.FindAsync(idMiseEnAvant);
+
+            string url = $"/annonce/{idannonce}";
+            string titre = "Paiemement";
+            string message = $"Votre mise en avant de grade '{miseEnAvant.LibelleMiseEnAvant} à {miseEnAvant.PrixSemaine}€' pour l'annonce #{annonce.Libelle} à été renouvellé. \nLe changement de grade de la mise en avant se trouve sur la page de modificaiton d'annonce (changement prix en compte la semaine suivant).";
+            string type = "paiement";
+            await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
+        }
     }
 }

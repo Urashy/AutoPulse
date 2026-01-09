@@ -127,6 +127,82 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
         
+        private async Task OnModeleChangedInternal(int marqueId)
+        {
+            OnModeleChanged(marqueId);
+        }
+        
+        private int _selectedCarburantId;
+        public int selectedCarburantId
+        {
+            get => _selectedCarburantId;
+            set
+            {
+                if (_selectedCarburantId == value) return;
+
+                _selectedCarburantId = value;
+                _ = OnCarburantChangedInternal(value);
+            }
+        }
+
+        private async Task OnCarburantChangedInternal(int carburantId)
+        {
+            OnCarburantChange(carburantId);
+        }
+
+        private int _selectedMotriciteId;
+        public int selectedMotriciteId
+        {
+            get => _selectedMotriciteId;
+            set
+            {
+                if (_selectedMotriciteId == value) return;
+
+                _selectedMotriciteId = value;
+                _ = OnMotriciteChangedInternal(value);
+            }
+        }
+
+        private async Task OnMotriciteChangedInternal(int motriciteId)
+        {
+            OnMotriciteChange(motriciteId);
+        }
+
+        private int _selectedBoiteId;
+        public int selectedBoiteId
+        {
+            get => _selectedBoiteId;
+            set
+            {
+                if (_selectedBoiteId == value) return;
+
+                _selectedBoiteId = value;
+                _ = OnBoiteChangedInternal(value);
+            }
+        }
+
+        private async Task OnBoiteChangedInternal(int boiteId)
+        {
+            OnBoiteDeVitesseChange(boiteId);
+        }
+
+        private int _selectedCategorieId;
+        public int selectedCategorieId
+        {
+            get => _selectedCategorieId;
+            set
+            {
+                if (_selectedCategorieId == value) return;
+
+                _selectedCategorieId = value;
+                _ = OnCategorieChangedInternal(value);
+            }
+        }
+
+        private async Task OnCategorieChangedInternal(int categorieId)
+        {
+            OnCategorieChange(categorieId);
+        }
         
         public bool showPaiementMavModal { get; set; } = false;
         public int IdCbUse { get; set; } = 0;
@@ -574,9 +650,9 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        public void OnCarburantChange(ChangeEventArgs e)
+        public void OnCarburantChange(int id)
         {
-            VoitureDetailDto.IdCarburant = int.Parse(e.Value.ToString());
+            VoitureDetailDto.IdCarburant = id;
             selectedCarburantId = VoitureDetailDto.IdCarburant;
             if (VoitureDetailDto.IdCarburant == 4)
             {
@@ -589,25 +665,26 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI?.Invoke();
         }
 
-        public void OnMotriciteChange(ChangeEventArgs e)
+        public void OnMotriciteChange(int id)
         {
-            VoitureDetailDto.IdMotricite = int.Parse(e.Value.ToString());
+            VoitureDetailDto.IdMotricite = id;
             selectedMotriciteId = VoitureDetailDto.IdMotricite;
             if (VoitureDetailDto.IdMotricite != 0 && errors.ContainsKey("motricite"))
                 errors.Remove("motricite");
         }
         
-        public void OnBoiteDeVitesseChange(ChangeEventArgs e)
+        public void OnBoiteDeVitesseChange(int id)
         {
-            VoitureDetailDto.IdBoiteDeVitesse = int.Parse(e.Value.ToString());
+            VoitureDetailDto.IdBoiteDeVitesse = id;
             selectedBoiteId = VoitureDetailDto.IdBoiteDeVitesse;
             if (VoitureDetailDto.IdBoiteDeVitesse != 0 && errors.ContainsKey("boitedevitesse"))
                 errors.Remove("boitedevitesse");
+            _refreshUI?.Invoke();
         }
         
-        public void OnCategorieChange(ChangeEventArgs e)
+        public void OnCategorieChange(int id)
         {
-            VoitureDetailDto.IdCategorie = int.Parse(e.Value.ToString());
+            VoitureDetailDto.IdCategorie = id;
             selectedCategorieId = VoitureDetailDto.IdCategorie;
             if (VoitureDetailDto.IdCategorie != 0 && errors.ContainsKey("categorie"))
                 errors.Remove("categorie");
@@ -879,35 +956,6 @@ namespace BlazorAutoPulse.ViewModel
 
             _refreshUI?.Invoke();
         }
-        
-        private async Task OnModeleChangedInternal(int marqueId)
-        {
-            OnModeleChanged(marqueId);
-        }
-
-        public int selectedCarburantId
-        {
-            get => VoitureDetailDto.IdCarburant;
-            set => VoitureDetailDto.IdCarburant = value;
-        }
-
-        public int selectedMotriciteId
-        {
-            get => VoitureDetailDto.IdMotricite;
-            set => VoitureDetailDto.IdMotricite = value;
-        }
-
-        public int selectedBoiteId
-        {
-            get => VoitureDetailDto.IdBoiteDeVitesse;
-            set => VoitureDetailDto.IdBoiteDeVitesse = value;
-        }
-
-        public int selectedCategorieId
-        {
-            get => VoitureDetailDto.IdCategorie;
-            set => VoitureDetailDto.IdCategorie = value;
-        }
 
         public void OpenImmatModal()
         {
@@ -1152,8 +1200,6 @@ namespace BlazorAutoPulse.ViewModel
                 annonce.IdAdresse = resultAdr.IdAdresse;
                 annonce.IdVoiture = resultVoitureDetailDto.IdVoiture;
                 annonce.IdCompte = compte.IdCompte;
-                Console.WriteLine("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-                Console.WriteLine(annonce.IdMiseEnAvant);
                 await _annonceService.CreateAnnonceAsync(annonce);
                 _nav.NavigateTo("/");
 

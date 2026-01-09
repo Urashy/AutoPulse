@@ -24,11 +24,10 @@ public class RefreshTokenCleanupService : BackgroundService
                 // Attendre 24h (ou au démarrage, attendre 1h)
                 await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
 
-                using var scope = _serviceProvider.CreateScope();
-                var refreshTokenManager = scope.ServiceProvider
-                    .GetRequiredService<RefreshTokenManager>();
+                using IServiceScope scope = _serviceProvider.CreateScope();
+                RefreshTokenManager refreshTokenManager = scope.ServiceProvider.GetRequiredService<RefreshTokenManager>();
 
-                var deletedCount = await refreshTokenManager.CleanupExpiredTokensAsync();
+                int deletedCount = await refreshTokenManager.CleanupExpiredTokensAsync();
 
                 _logger.LogInformation("✅ Nettoyage effectué : {Count} token(s) supprimé(s)", 
                     deletedCount);
