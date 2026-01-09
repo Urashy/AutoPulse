@@ -364,10 +364,66 @@ else
                         ✅ Commande complétée
                     </div>
                 </div>
+
+                @* NOUVELLE SECTION: DOCUMENTS ET AVIS *@
+                <div class="fin-actions-section">
+                    <h3>Documents et Avis</h3>
+
+                    <div class="actions-grid">
+                        <div class="action-card">
+                            <h4>📄 Facture</h4>
+                            <p>Téléchargez la facture de votre transaction.</p>
+                            <button class="btn-secondary" @onclick="VM.GenererFacture">
+                                ⬇️ Générer la facture
+                            </button>
+                        </div>
+
+                        <div class="action-card avis-card">
+                            <h4>⭐ Laisser un avis</h4>
+                            @if (!VM.AvisEnvoye)
+                            {
+                                <p>Notez votre expérience avec @(VM.IsAcheteur ? "le vendeur" : "l'acheteur").</p>
+
+                                <div class="rating-stars">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        int starValue = i;
+                                        <span class="star @(starValue <= VM.NoteAvis ? "filled" : "")"
+                                              @onclick="() => VM.NoteAvis = starValue">★</span>
+                                    }
+                                </div>
+
+                                <textarea class="form-input avis-textarea"
+                                          placeholder="Racontez votre expérience..."
+                                          @bind="VM.ContenuAvis"></textarea>
+
+                                <button class="btn-primary" @onclick="VM.EnvoyerAvis" disabled="@VM.IsSendingAvis">
+                                    @if (VM.IsSendingAvis)
+                                    {
+                                        <span>Envoi...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Envoyer mon avis</span>
+                                    }
+                                </button>
+                            }
+                            else
+                            {
+                                <div class="avis-envoye-msg">
+                                    <span class="check-icon">✓</span>
+                                    <p>Merci ! Votre avis a bien été envoyé.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
             }
         </div>
     </div>
 }
+
+
 
 @code {
     [Parameter] public int IdCommande { get; set; }

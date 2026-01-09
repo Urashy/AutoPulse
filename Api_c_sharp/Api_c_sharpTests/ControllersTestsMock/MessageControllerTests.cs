@@ -278,7 +278,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region POST Tests
+        #region POST
 
         [TestMethod]
         public async Task Post_OK_WithoutOffre_CreatesMessage()

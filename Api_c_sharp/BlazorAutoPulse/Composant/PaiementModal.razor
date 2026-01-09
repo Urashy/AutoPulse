@@ -13,12 +13,12 @@
                 <!-- Section gauche: Informations de paiement -->
                 <div class="payment-info-section">
                     <div class="payment-header">
-                        <h3>Mise en avant: Premium</h3>
+                        <h3>Mise en avant: @VM.MiseEnAvantDTO.LibelleMiseEnAvant</h3>
                     </div>
 
                     <div class="payment-total">
                         <span class="total-label">Total à payer :</span>
-                        <span class="total-amount">10€</span>
+                        <span class="total-amount">@VM.MiseEnAvantDTO.PrixSemaine€</span>
                     </div>
                 </div>
 
@@ -88,6 +88,7 @@
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
     [Parameter] public EventCallback<int> IdCB { get; set; }
+    [Parameter] public int IdMiseEnAvant { get; set; }
     [Parameter] public EventCallback OnPaymentSuccess { get; set; }
 
     protected override async Task OnParametersSetAsync()
@@ -96,6 +97,7 @@
             IsVisible,
             IsVisibleChanged,
             IdCB,
+            IdMiseEnAvant,
             OnPaymentSuccess,
             StateHasChanged
         );

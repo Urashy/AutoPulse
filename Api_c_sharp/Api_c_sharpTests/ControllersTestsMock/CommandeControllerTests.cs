@@ -20,11 +20,13 @@ namespace Api_c_sharp.ControllersMock.Tests
         private IMapper _mapper;
         private Mock<IJournalService> _mockJournal;
         private CommandeController _controller;
+        private Mock<AnnonceManager> _mockManagerannonce;
 
         [TestInitialize]
         public void Setup()
         {
             _mockManager = new Mock<CommandeManager>(null);
+            _mockManagerannonce = new Mock<AnnonceManager>(null);
             _mockJournal = new Mock<IJournalService>();
 
             var config = new MapperConfiguration(cfg =>
@@ -36,7 +38,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             });
 
             _mapper = config.CreateMapper();
-            _controller = new CommandeController(_mockManager.Object, _mapper, _mockJournal.Object);
+            _controller = new CommandeController(_mockManager.Object, _mapper, _mockJournal.Object,_mockManagerannonce.Object);
         }
 
         #region GET
@@ -88,6 +90,56 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result.Value);
             Assert.AreEqual(2, result.Value.Count());
         }
+
+        #region GetCommandeByConversationID Tests
+        [TestMethod]
+        public async Task GetCommandeByConversationID_ReturnsOk_WhenExists()
+        {
+            // Arrange
+            var commande = new Commande
+            {
+                IdCommande = 5,
+                IdAcheteur = 2,
+                IdVendeur = 3,
+                IdAnnonce = 4,
+                IdMoyenPaiement = 1,
+                IdEtatCommande = 1,
+                Date = DateTime.Now
+            };
+
+            _mockManager.Setup(m => m.GetCommandeByConversation(1))
+                       .ReturnsAsync(commande)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.GetCommandeByConversationID(1);
+
+            // Assert
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(CommandeDTO));
+            Assert.AreEqual(commande.IdCommande, result.Value.IdCommande);
+            Assert.AreEqual(commande.IdEtatCommande, result.Value.IdEtatCommande);
+            _mockManager.Verify(m => m.GetCommandeByConversation(1), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetCommandeByConversationID_ReturnsNotFound_WhenNotExists()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetCommandeByConversation(999))
+                       .ReturnsAsync((Commande)null)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.GetCommandeByConversationID(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+            _mockManager.Verify(m => m.GetCommandeByConversation(999), Times.Once);
+        }
+
+
+        #endregion
         #endregion
 
         #region POST

@@ -180,6 +180,7 @@ namespace BlazorAutoPulse.ViewModel
                 "warning" => "⚠️",
                 "error" => "❌",
                 "offre" => "💸",
+                "paiement" => "💶",
                 _ => "🔔"
             };
         }

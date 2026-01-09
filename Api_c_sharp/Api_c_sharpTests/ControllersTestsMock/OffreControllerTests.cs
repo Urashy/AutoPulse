@@ -12,6 +12,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using Api_c_sharp.Models.Repository.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using Api_c_sharp.Hubs;
 
 namespace Api_c_sharp.ControllersMock.Tests
 {
@@ -23,10 +25,11 @@ namespace Api_c_sharp.ControllersMock.Tests
         private Mock<CommandeManager> _mockCommandeManager;
         private Mock<MessageManager> _mockMessageManager;
         private Mock<AnnonceManager> _mockAnnonceManager;
+        private Mock<INotificationService> _notificationService;
+        private Mock<IHubContext<MessageHub>> _mockHubContext;
         private OffreController _controller;
         private IMapper _mapper;
         private Offre _objetcommun;
-        private Mock<INotificationService> _notificationService;
 
         [TestInitialize]
         public void Initialize()
@@ -36,15 +39,18 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockCommandeManager = new Mock<CommandeManager>(null);
             _mockAnnonceManager = new Mock<AnnonceManager>(null);
             _mockMessageManager = new Mock<MessageManager>(null);
+            _notificationService = new Mock<INotificationService>();
+            _mockHubContext = new Mock<IHubContext<MessageHub>>();
 
-            // Création de l'adresse de référence
+            // Création de l'offre de référence
             _objetcommun = new Offre
             {
                 IdOffre = 1,
                 DateOffre = System.DateTime.Now,
                 Valeur = 99,
                 IdMessage = 1,
-                IdAnnonce = 1
+                IdAnnonce = 1,
+                EstAccepte = null
             };
 
             // Configuration AutoMapper
@@ -54,10 +60,18 @@ namespace Api_c_sharp.ControllersMock.Tests
             });
             _mapper = config.CreateMapper();
 
-            _notificationService = new Mock<INotificationService>();
             // Injection dans le controller
-            _controller = new OffreController(_mockManager.Object, _mapper,_mockMessageManager.Object,_mockCommandeManager.Object,_mockAnnonceManager.Object,_notificationService.Object);
+            _controller = new OffreController(
+                _mockManager.Object,
+                _mapper,
+                _mockMessageManager.Object,
+                _mockCommandeManager.Object,
+                _mockAnnonceManager.Object,
+                _notificationService.Object,
+                _mockHubContext.Object
+            );
         }
+
         #region GET
         [TestMethod]
         public async Task GetByIdTest()
@@ -95,7 +109,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task GetAllTest()
         {
             // Arrange
-            var adressesList = new List<Offre>
+            var offresList = new List<Offre>
             {
                 _objetcommun,
                 new Offre
@@ -104,12 +118,13 @@ namespace Api_c_sharp.ControllersMock.Tests
                     DateOffre = System.DateTime.Now,
                     Valeur = 150,
                     IdMessage = 2,
-                    IdAnnonce = 1
+                    IdAnnonce = 1,
+                    EstAccepte = null
                 }
             };
 
             _mockManager.Setup(m => m.GetAllAsync())
-                       .ReturnsAsync(adressesList);
+                       .ReturnsAsync(offresList);
 
             // Act
             var result = await _controller.GetAll();
@@ -122,14 +137,15 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(result.Value.Any(o => o.Valeur == _objetcommun.Valeur));
             Assert.AreEqual(2, result.Value.Count());
         }
+
         [TestMethod]
-        public async Task GetByMessage()
+        public async Task GetByMessageTest()
         {
             // Arrange
-            var annoncesList = new List<Offre> { _objetcommun };
+            var offresList = new List<Offre> { _objetcommun };
 
             _mockManager.Setup(m => m.GetOffresByMessageIdAsync(1))
-                       .ReturnsAsync(annoncesList);
+                       .ReturnsAsync(offresList);
 
             // Act
             var result = await _controller.GetByMessage(1);
@@ -143,7 +159,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundGetByMessage()
+        public async Task NotFoundGetByMessageTest()
         {
             // Arrange
             _mockManager.Setup(m => m.GetOffresByMessageIdAsync(0))
@@ -160,7 +176,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #region POST
         [TestMethod]
-        public async Task PostAdresseTest()
+        public async Task PostOffreTest()
         {
             // Arrange
             OffreCreateDTO offreDTO = new OffreCreateDTO
@@ -207,6 +223,12 @@ namespace Api_c_sharp.ControllersMock.Tests
             _notificationService.Setup(n => n.NotifOffreAnnonce(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<decimal>()))
                                .Returns(Task.CompletedTask);
 
+            // Mock SignalR
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            _mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+
             // Act
             var actionResult = await _controller.Post(offreDTO);
 
@@ -220,7 +242,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task BadRequestPostAdresseTest()
+        public async Task BadRequestPostOffreTest()
         {
             // Arrange
             OffreCreateDTO offreDTO = new OffreCreateDTO
@@ -277,11 +299,72 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.AreEqual("Une offre en attente existe déjà dans cette conversation.", conflict.Value);
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Offre>()), Times.Never);
         }
+
+        [TestMethod]
+        public async Task PostOffreTest_WithSameCompteIdForMessageAndAnnonce()
+        {
+            // Arrange
+            OffreCreateDTO offreDTO = new OffreCreateDTO
+            {
+                Valeur = 200,
+                IdMessage = 1,
+                IdAnnonce = 1
+            };
+
+            var offreEntity = _mapper.Map<Offre>(offreDTO);
+            offreEntity.IdOffre = 2;
+
+            // Même IdCompte pour le message et l'annonce
+            var message = new Message
+            {
+                IdMessage = 1,
+                IdCompte = 1,
+                IdConversation = 1,
+                ContenuMessage = "Test",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            var annonce = new Annonce
+            {
+                IdAnnonce = 1,
+                IdCompte = 1, // Même compte que le message
+                Libelle = "Test annonce",
+                Prix = 10000
+            };
+
+            _mockManager.Setup(m => m.PendingOfferExistsInConversation(It.IsAny<int>()))
+                        .ReturnsAsync(false);
+
+            _mockMessageManager.Setup(m => m.GetByIdAsync(offreDTO.IdMessage))
+                               .ReturnsAsync(message);
+
+            _mockAnnonceManager.Setup(m => m.GetByIdAsync(offreDTO.IdAnnonce))
+                               .ReturnsAsync(annonce);
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Offre>()))
+                       .ReturnsAsync(offreEntity);
+
+            _notificationService.Setup(n => n.NotifOffreAnnonce(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<decimal>()))
+                               .Returns(Task.CompletedTask);
+
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            _mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+
+            // Act
+            var actionResult = await _controller.Post(offreDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            // Vérifier que la notification est envoyée avec le bon IdCompte (celui de l'annonce)
+            _notificationService.Verify(n => n.NotifOffreAnnonce(1, 1, 200), Times.Once);
+        }
         #endregion
 
         #region DELETE
         [TestMethod]
-        public async Task DeleteAdresseTest()
+        public async Task DeleteOffreTest()
         {
             // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdOffre))
@@ -299,7 +382,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteAdresseTest()
+        public async Task NotFoundDeleteOffreTest()
         {
             // Arrange
             _mockManager.Setup(m => m.GetByIdAsync(0))
@@ -315,37 +398,57 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #region PUT
         [TestMethod]
-        public async Task PutAdresseTest()
+        public async Task PutOffreTest()
         {
             // Arrange
-            Offre existingoffre = new Offre()
+            Offre existingOffre = new Offre()
             {
                 IdOffre = _objetcommun.IdOffre,
                 Valeur = 150,
                 DateOffre = _objetcommun.DateOffre,
                 IdMessage = 1,
-                IdAnnonce = 1
+                IdAnnonce = 1,
+                EstAccepte = null
             };
 
-            OffreUpdateDTO updatedAdresseDTO = new OffreUpdateDTO()
+            OffreUpdateDTO updatedOffreDTO = new OffreUpdateDTO()
             {
                 IdOffre = _objetcommun.IdOffre,
                 Valeur = 180,
                 DateOffre = _objetcommun.DateOffre,
                 IdMessage = 1,
-                IdAnnonce = 1
+                IdAnnonce = 1,
+                EstAccepte = null
             };
 
-            var updatedoffre = _mapper.Map<Offre>(updatedAdresseDTO);
+            var message = new Message
+            {
+                IdMessage = 1,
+                IdCompte = 1,
+                IdConversation = 1,
+                ContenuMessage = "Test",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            var updatedOffre = _mapper.Map<Offre>(updatedOffreDTO);
 
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdOffre))
-                       .ReturnsAsync(existingoffre);
-            _mockManager.Setup(m => m.UpdateAsync(existingoffre, updatedoffre))
+                       .ReturnsAsync(existingOffre);
+
+            _mockMessageManager.Setup(m => m.GetByIdAsync(1))
+                               .ReturnsAsync(message);
+
+            _mockManager.Setup(m => m.UpdateAsync(existingOffre, updatedOffre))
                        .Returns(Task.CompletedTask)
                        .Verifiable();
 
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            _mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+
             // Act
-            var result = await _controller.Put(_objetcommun.IdOffre, updatedAdresseDTO);
+            var result = await _controller.Put(_objetcommun.IdOffre, updatedOffreDTO);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
@@ -353,10 +456,157 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
-        public async Task NotFoundPutAdresseTest()
+        public async Task PutOffreTest_WhenAccepted_CreatesCommande()
         {
             // Arrange
-            OffreUpdateDTO updatedAdresseDTO = new OffreUpdateDTO()
+            Offre existingOffre = new Offre()
+            {
+                IdOffre = _objetcommun.IdOffre,
+                Valeur = 150,
+                DateOffre = _objetcommun.DateOffre,
+                IdMessage = 1,
+                IdAnnonce = 1,
+                EstAccepte = null
+            };
+
+            OffreUpdateDTO updatedOffreDTO = new OffreUpdateDTO()
+            {
+                IdOffre = _objetcommun.IdOffre,
+                Valeur = 180,
+                DateOffre = _objetcommun.DateOffre,
+                IdMessage = 1,
+                IdAnnonce = 1,
+                EstAccepte = true // Offre acceptée
+            };
+
+            var message = new Message
+            {
+                IdMessage = 1,
+                IdCompte = 2, // Acheteur
+                IdConversation = 1,
+                ContenuMessage = "Test",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            var annonce = new Annonce
+            {
+                IdAnnonce = 1,
+                IdCompte = 1, // Vendeur
+                Libelle = "Test annonce",
+                Prix = 10000
+            };
+
+            var updatedOffre = _mapper.Map<Offre>(updatedOffreDTO);
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdOffre))
+                       .ReturnsAsync(existingOffre);
+
+            _mockMessageManager.Setup(m => m.GetByIdAsync(1))
+                               .ReturnsAsync(message);
+
+            _mockAnnonceManager.Setup(m => m.GetByIdAsync(1))
+                               .ReturnsAsync(annonce);
+
+            _mockManager.Setup(m => m.UpdateAsync(existingOffre, updatedOffre))
+                       .Returns(Task.CompletedTask);
+
+            _mockCommandeManager.Setup(m => m.AddAsync(It.IsAny<Commande>()))
+                                .ReturnsAsync((Commande c) => c)
+                                .Verifiable();
+
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            _mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdOffre, updatedOffreDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockCommandeManager.Verify(m => m.AddAsync(It.IsAny<Commande>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task PutOffreTest_WhenAccepted_WithSameCompteId()
+        {
+            // Arrange
+            Offre existingOffre = new Offre()
+            {
+                IdOffre = _objetcommun.IdOffre,
+                Valeur = 150,
+                DateOffre = _objetcommun.DateOffre,
+                IdMessage = 1,
+                IdAnnonce = 1,
+                EstAccepte = null
+            };
+
+            OffreUpdateDTO updatedOffreDTO = new OffreUpdateDTO()
+            {
+                IdOffre = _objetcommun.IdOffre,
+                Valeur = 180,
+                DateOffre = _objetcommun.DateOffre,
+                IdMessage = 1,
+                IdAnnonce = 1,
+                EstAccepte = true
+            };
+
+            // Même IdCompte pour le message et l'annonce
+            var message = new Message
+            {
+                IdMessage = 1,
+                IdCompte = 1,
+                IdConversation = 1,
+                ContenuMessage = "Test",
+                DateEnvoiMessage = DateTime.Now
+            };
+
+            var annonce = new Annonce
+            {
+                IdAnnonce = 1,
+                IdCompte = 1, // Même compte
+                Libelle = "Test annonce",
+                Prix = 10000
+            };
+
+            var updatedOffre = _mapper.Map<Offre>(updatedOffreDTO);
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdOffre))
+                       .ReturnsAsync(existingOffre);
+
+            _mockMessageManager.Setup(m => m.GetByIdAsync(1))
+                               .ReturnsAsync(message);
+
+            _mockAnnonceManager.Setup(m => m.GetByIdAsync(1))
+                               .ReturnsAsync(annonce);
+
+            _mockManager.Setup(m => m.UpdateAsync(existingOffre, updatedOffre))
+                       .Returns(Task.CompletedTask);
+
+            _mockCommandeManager.Setup(m => m.AddAsync(It.IsAny<Commande>()))
+                                .ReturnsAsync((Commande c) => c);
+
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            _mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+
+            // Act
+            var result = await _controller.Put(_objetcommun.IdOffre, updatedOffreDTO);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            // Vérifier que la commande est créée avec le bon IdAcheteur
+            _mockCommandeManager.Verify(m => m.AddAsync(It.Is<Commande>(c =>
+                c.IdAcheteur == 1 && c.IdVendeur == 1
+            )), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task NotFoundPutOffreTest()
+        {
+            // Arrange
+            OffreUpdateDTO updatedOffreDTO = new OffreUpdateDTO()
             {
                 IdOffre = _objetcommun.IdOffre,
                 Valeur = 180,
@@ -369,17 +619,17 @@ namespace Api_c_sharp.ControllersMock.Tests
                        .ReturnsAsync((Offre)null);
 
             // Act
-            var result = await _controller.Put(0, updatedAdresseDTO);
+            var result = await _controller.Put(0, updatedOffreDTO);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
 
         [TestMethod]
-        public async Task BadRequestPutAdresseTest()
+        public async Task BadRequestPutOffreTest()
         {
             // Arrange
-            OffreUpdateDTO updatedAdresseDTO = new OffreUpdateDTO()
+            OffreUpdateDTO updatedOffreDTO = new OffreUpdateDTO()
             {
                 IdOffre = _objetcommun.IdOffre,
                 Valeur = 180,
@@ -391,7 +641,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _controller.ModelState.AddModelError("Valeur", "La Valeur doit être supérieur à 0");
 
             // Act
-            var result = await _controller.Put(_objetcommun.IdOffre, updatedAdresseDTO);
+            var result = await _controller.Put(_objetcommun.IdOffre, updatedOffreDTO);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));

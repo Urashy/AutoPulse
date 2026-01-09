@@ -97,7 +97,6 @@ public class MessageController(
 
         await _journalService.LogEnvoiMessageAsync(dto.IdCompte, dto.IdConversation, dto.ContenuMessage);
         entity = await _manager.AddAsync(entity);
-        Console.WriteLine(entity.Offres.Count);
 
         if (_hubContext != null && !withOffre)
         {

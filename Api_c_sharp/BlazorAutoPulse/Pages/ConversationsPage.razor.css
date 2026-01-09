@@ -113,8 +113,8 @@
     border-bottom: 1px solid #333;
     background: #0a0a0a;
     flex-shrink: 0;
-    
     display: flex;
+    align-items: center;
 }
 
 .conversation-header h3 {
@@ -517,6 +517,103 @@
     font-weight: 500;
 }
 
+/* ========== HEADER LINKS ========== */
+.header-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* ========== LIEN COMMANDE ========== */
+.commande-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(81, 101, 214, 0.1));
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Remplacez les blocs existants pour .commande-link-header par celui-ci */
+.commande-link-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(81, 101, 214, 0.15));
+    border: 1px solid rgba(102, 126, 234, 0.4);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-left: auto; 
+}
+    .commande-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .commande-link:hover::before {
+        left: 100%;
+    }
+
+    .commande-link:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(81, 101, 214, 0.2));
+        border-color: rgba(102, 126, 234, 0.5);
+        transform: translateX(4px);
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .commande-link:active {
+        transform: translateX(2px) scale(0.98);
+    }
+
+.commande-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.commande-text {
+    font-family: 'Courier New', monospace;
+    position: relative;
+    z-index: 1;
+}
+
+.commande-link .link-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.commande-link:hover .link-arrow {
+    transform: translateX(4px);
+}
+
+
 /* ========== BOUTON D'ENVOI EN MODE OFFRE ========== */
 .send-btn.offre-mode {
     background: linear-gradient(135deg, #00d4ff, #0099ff);
@@ -533,25 +630,91 @@
     margin-top: 10px;
 }
 
+/* ========== SECTION DROITE DU HEADER ========== */
+.header-right-section {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    padding-left: 20px;
+}
+
+
+    .commande-link-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .commande-link-header:hover::before {
+        left: 100%;
+    }
+
+    .commande-link-header:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(81, 101, 214, 0.25));
+        border-color: rgba(102, 126, 234, 0.6);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .commande-link-header:active {
+        transform: translateY(0) scale(0.98);
+    }
+
+.commande-icon {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.commande-text {
+    font-family: 'Courier New', monospace;
+    position: relative;
+    z-index: 1;
+    font-weight: 700;
+}
+
+.commande-link-header .link-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.commande-link-header:hover .link-arrow {
+    transform: translateX(4px);
+}
+
+.conversation-info-header {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    flex: 1; /* AJOUT : Prend tout l'espace disponible */
+    min-width: 0; /* AJOUT : Permet au texte de se réduire si besoin (éviter de casser le layout) */
+    margin-right: 10px; /* AJOUT : Petit espace de sécurité avec le bouton */
+}
+
 /* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
-    .input-toolbar {
-        padding: 8px 10px;
+@media (max-width: 968px) {
+    .header-right-section {
+        margin-left: 0;
+        margin-top: 10px;
+        padding-left: 0;
+        width: 100%;
     }
 
-    .toolbar-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
+    .commande-link-header {
+        width: 100%;
+        justify-content: center;
     }
 
-    .offre-input-zone {
-        margin: 10px;
-        padding: 12px;
-    }
-
-    .offre-input-field {
-        font-size: 14px;
-        padding: 8px 35px 8px 12px;
+    .conversation-header {
+        flex-wrap: wrap;
     }
 }

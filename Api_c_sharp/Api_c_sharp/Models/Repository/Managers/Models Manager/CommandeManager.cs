@@ -85,5 +85,38 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
                 .FirstOrDefaultAsync(c => c.IdCommande == id);
         }
+
+        public virtual async Task<Commande> GetCommandeByConversation(int id)
+        {
+            return await dbSet
+                .Include(a => a.AcheteurCommande)
+                .Include(v => v.VendeurCommande)
+                .Include(x => x.EtatCommandeCommandeNav)
+                .Include(x => x.CommandeMoyenPaiementNav)
+                .Include(c => c.Offrecommande)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.VoitureAnnonceNav)
+                        .ThenInclude(voiture => voiture.MarqueVoitureNavigation)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.VoitureAnnonceNav)
+                        .ThenInclude(voiture => voiture.ModeleVoitureNavigation)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.VoitureAnnonceNav)
+                        .ThenInclude(voiture => voiture.CarburantVoitureNavigation)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.AdresseAnnonceNav)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.EtatAnnonceNavigation)
+
+                .Include(ann => ann.CommandeAnnonceNav)
+                    .ThenInclude(an => an.CompteAnnonceNav)
+                    .FirstOrDefaultAsync(c => c.Offrecommande.OffreMessageNav.IdConversation == id);
+        }
+
     }
 }

@@ -51,11 +51,13 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
     public interface IAvisRepository
     {
+        Task<bool> ExisteDejaAsync(int idCommande, int idJugeur);
         Task<IEnumerable<Avis>> GetAvisByCompteId(int compteId);
     }
         
     public interface ICommandeRepository
     {
+        Task<Commande> GetCommandeByConversation(int id);
         Task<IEnumerable<Commande>> GetCommandesByCompteId(int compteId);
     }
 

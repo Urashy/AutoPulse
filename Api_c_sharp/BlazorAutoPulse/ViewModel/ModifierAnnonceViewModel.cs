@@ -21,6 +21,27 @@ namespace BlazorAutoPulse.ViewModel
         public Dictionary<string, string> errors { get; set; } = new();
         public bool showErrors { get; set; } = false;
         public string? successMessage { get; set; } = null;
+        
+        public bool showPaiementMavModal { get; set; } = false;
+        public int IdCbUse { get; set; } = 0;
+        
+        private int _selectedMavId;
+        public int selectedMavId
+        {
+            get => _selectedMavId;
+            set
+            {
+                if (_selectedMavId == value) return;
+
+                _selectedMavId = value;
+                _ = OnMavChangedInternal(value);
+            }
+        }
+        
+        private async Task OnMavChangedInternal(int marqueId)
+        {
+            OnMiseEnAvantChange(marqueId);
+        }
 
         private Action? _refreshUI;
         private NavigationManager? _nav;
@@ -42,6 +63,7 @@ namespace BlazorAutoPulse.ViewModel
             _refreshUI = refreshUI;
             _nav = nav;
             IsLoading = true;
+            successMessage = null;
             _refreshUI?.Invoke();
 
             try
@@ -61,6 +83,7 @@ namespace BlazorAutoPulse.ViewModel
 
                 // Charger l'annonce
                 Annonce = await _annonceService.GetAnnonceDetailById(idAnnonce);
+                selectedMavId = Annonce.IdMiseEnAvant;
                 Voiture = await _voitureService.GetByIdAsync(Annonce.IdVoiture);
                 Console.WriteLine(Annonce.IdVoiture);
 
@@ -143,6 +166,37 @@ namespace BlazorAutoPulse.ViewModel
         {
             return errors.ContainsKey(fieldName) ? errors[fieldName] : "";
         }
+        
+        public void OnMiseEnAvantChange(int id)
+        {
+            Annonce.IdMiseEnAvant = id;
+            if (Annonce.IdMiseEnAvant != 0 && errors.ContainsKey("miseEnAvant"))
+                errors.Remove("miseEnAvant");
+        }
+
+        public async Task SaveChangeOrUpdateCB()
+        {
+            if (Annonce.IdMiseEnAvant == 1)
+            {
+                await SaveChanges();
+                return;
+            }
+            
+            showPaiementMavModal = true;
+            _refreshUI?.Invoke();
+        }
+        
+        public void SetIdCb(int id)
+        {
+            IdCbUse = id;
+        }
+        
+        public async Task OnPaymentSuccess()
+        {
+            showPaiementMavModal = false;
+            
+            await SaveChanges();
+        }
 
         public async Task SaveChanges()
         {
@@ -172,13 +226,14 @@ namespace BlazorAutoPulse.ViewModel
                     IdAnnonce = Annonce.IdAnnonce,
                     Libelle = Annonce.Libelle,
                     IdCompte = Annonce.IdVendeur,
-                    IdEtatAnnonce = 1, // État par défaut
+                    IdEtatAnnonce = 1,
                     IdAdresse = Annonce.IdAdresse,
                     IdVoiture = Annonce.IdVoiture,
                     IdMiseEnAvant = Annonce.IdMiseEnAvant,
                     DatePublication = Annonce.DatePublication,
                     Prix = Annonce.Prix,
-                    Description = Annonce.Description ?? ""
+                    Description = Annonce.Description ?? "",
+                    IdCB = IdCbUse
                 };
 
                 await _annonceService.UpdateAnnonceAsync(Annonce.IdAnnonce, updateAnnonceDto);
