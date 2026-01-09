@@ -67,7 +67,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             _objetcommun = objet;
         }
+        #region GET
 
+            #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -91,7 +93,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
 
+            #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -105,10 +109,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsTrue(result.Value.Any());
             Assert.IsTrue(result.Value.Any(o => o.Kilometrage == _objetcommun.Kilometrage));
         }
+        #endregion
 
+        #endregion
+
+        #region POST
         [TestMethod]
         public async Task PostVoitureTest_Entity()
         {
+            // Arrange
             var voiture = new VoitureCreateDTO
             {
                 IdMarque = 1,
@@ -125,8 +134,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 NbPorte = 5
             };
 
+            // Act
             var actionResult = await _controller.Post(voiture);
 
+            // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
@@ -134,12 +145,34 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.AreEqual(voiture.Kilometrage, createdVoiture.Kilometrage);
         }
 
+        [TestMethod]
+        public async Task BadRequestPostVoitureTest()
+        {
+            // Arrange
+            var voiture = new VoitureCreateDTO
+            {
+                Kilometrage = 0
+            };
 
+            _controller.ModelState.AddModelError("Kilometrage", "Required");
+
+            // Act
+            var actionResult = await _controller.Post(voiture);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
+        }
+
+        #endregion
+
+        #region DELETE
         [TestMethod]
         public async Task DeleteVoitureTest()
         {
+            // Act
             var result = await _controller.Delete(_objetcommun.IdVoiture);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             var deletedVoiture = await _manager.GetByIdAsync(_objetcommun.IdVoiture);
             Assert.IsNull(deletedVoiture);
@@ -148,14 +181,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundDeleteVoitureTest()
         {
+            // Act
             var result = await _controller.Delete(0);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
 
+        #region PUT
         [TestMethod]
         public async Task PutVoitureTest()
         {
+            // Arrange
             VoitureUpdateDTO voiture = new VoitureUpdateDTO()
             {
                 IdVoiture = _objetcommun.IdVoiture,
@@ -172,8 +210,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 NbPorte = 5,
             };
 
+            // Act
             var result = await _controller.Put(_objetcommun.IdVoiture, voiture);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
             var fetchedVoiture = await _manager.GetByIdAsync(_objetcommun.IdVoiture);
@@ -183,27 +223,30 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task NotFoundPutVoitureTest()
         {
+            // Arrange
             VoitureUpdateDTO voiture = new VoitureUpdateDTO()
             {
                 IdVoiture = 0,
                 Kilometrage = 10000
             };
 
+            // Act
             var result = await _controller.Put(0, voiture);
 
+            // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
         public async Task BadRequestPutVoitureTest()
         {
-            // Arrange : voiture avec kilométrage invalide
+            // Arrange
             VoitureUpdateDTO voiture = new VoitureUpdateDTO()
             {
                 IdVoiture = _objetcommun.IdVoiture,
                 Kilometrage = -20
             };
 
-            // Forcer l'erreur de validation dans le test
+            // Forcer l'erreur de validation
             _controller.ModelState.AddModelError("Kilometrage", "Le kilométrage doit être supérieur à 0");
 
             // Act
@@ -212,22 +255,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
-
-
-        [TestMethod]
-        public async Task BadRequestPostVoitureTest()
-        {
-            var voiture = new VoitureCreateDTO
-            {
-                Kilometrage = 0
-            };
-
-            _controller.ModelState.AddModelError("Kilometrage", "Required");
-
-            var actionResult = await _controller.Post(voiture);
-
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-        }
-
+        #endregion
     }
 }
