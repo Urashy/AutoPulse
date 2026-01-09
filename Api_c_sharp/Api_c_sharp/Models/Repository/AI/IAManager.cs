@@ -24,7 +24,7 @@ public class IAManager : IIAService
         _pythonApiUrl = configuration["PythonAPI:BaseUrl"] ?? "http://localhost:8000";
     }
     
-    public async Task<ResultatAI> PredictAsync(DataAI data)
+    public virtual async Task<ResultatAI> PredictAsync(DataAI data)
     {
         try
         {
@@ -97,7 +97,7 @@ public class IAManager : IIAService
         }
     }
     
-    public async Task<bool> HealthCheckAsync()
+    public virtual async Task<bool> HealthCheckAsync()
     {
         try
         {
@@ -110,7 +110,7 @@ public class IAManager : IIAService
         }
     }
     
-    public async Task<IEnumerable<BenchmarkIAListDTO>> GetAllBenchmarksAsync()
+    public virtual async Task<IEnumerable<BenchmarkIAListDTO>> GetAllBenchmarksAsync()
     {
         var benchmarks = await _context.BenchmarksIA
             .OrderByDescending(b => b.Timestamp)
@@ -119,7 +119,7 @@ public class IAManager : IIAService
         return _mapper.Map<IEnumerable<BenchmarkIAListDTO>>(benchmarks);
     }
 
-    public async Task<BenchmarkIADTO?> GetBenchmarkByIdAsync(int id)
+    public virtual async Task<BenchmarkIADTO?> GetBenchmarkByIdAsync(int id)
     {
         var benchmark = await _context.BenchmarksIA
             .FirstOrDefaultAsync(b => b.IdBenchmark == id);
@@ -127,7 +127,7 @@ public class IAManager : IIAService
         return benchmark != null ? _mapper.Map<BenchmarkIADTO>(benchmark) : null;
     }
 
-    public async Task<Dictionary<string, BenchmarkIADTO>> GetLatestBenchmarksByTypeAsync()
+    public virtual async Task<Dictionary<string, BenchmarkIADTO>> GetLatestBenchmarksByTypeAsync()
     {
         var result = new Dictionary<string, BenchmarkIADTO>();
         var types = new[] { "cnn", "prediction", "ajustement" };
