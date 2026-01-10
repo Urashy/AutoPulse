@@ -1,5 +1,6 @@
 @page "/commande/{IdCommande:int}"
 @using BlazorAutoPulse.ViewModel
+@using BlazorAutoPulse.Composant
 @inject CommandeDetailViewModel VM
 @inject NavigationManager Navigation
 
@@ -177,32 +178,27 @@ else
                     {
                         <div class="payment-form">
                             <div class="form-group">
-                                <label>Numéro de carte</label>
-                                <input type="text"
-                                       placeholder="1234 5678 9012 3456"
-                                       maxlength="19"
-                                       @bind="VM.CardNumber"
-                                       class="form-input" />
-                            </div>
+                                <label>Sélectionnez une carte</label>
+                                @if (VM.MesCartes.Any())
+                                {
+                                    <select class="form-input" @bind="VM.SelectedCardId">
+                                        @foreach (var carte in VM.MesCartes)
+                                        {
+                                            <option value="@carte.IdCarteBancaire">
+                                                💳 **** **** **** @carte.NumeroCarte.Substring(Math.Max(0, carte.NumeroCarte.Length - 4))
+                                                (Exp: @carte.DateExpiration)
+                                            </option>
+                                        }
+                                    </select>
+                                }
+                                else
+                                {
+                                    <p class="no-data-msg">Aucune carte enregistrée.</p>
+                                }
 
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Date d'expiration</label>
-                                    <input type="text"
-                                           placeholder="MM/AA"
-                                           maxlength="5"
-                                           @bind="VM.CardExpiry"
-                                           class="form-input" />
-                                </div>
-
-                                <div class="form-group">
-                                    <label>CVV</label>
-                                    <input type="text"
-                                           placeholder="123"
-                                           maxlength="3"
-                                           @bind="VM.CardCvv"
-                                           class="form-input" />
-                                </div>
+                                <button class="btn-link mt-2" style="margin-top:10px; text-decoration:underline; border:none; background:none; color:#007bff; cursor:pointer;" @onclick="VM.OpenAddCardModal">
+                                    ➕ Ajouter une nouvelle carte
+                                </button>
                             </div>
 
                             @if (!string.IsNullOrEmpty(VM.PaymentError))
@@ -219,7 +215,7 @@ else
 
                                 <button class="btn-primary"
                                         @onclick="VM.ValidateCardPayment"
-                                        disabled="@VM.IsProcessingPayment">
+                                        disabled="@(VM.IsProcessingPayment || !VM.MesCartes.Any())">
                                     @if (VM.IsProcessingPayment)
                                     {
                                         <span>⏳ Traitement...</span>
@@ -240,8 +236,8 @@ else
                                 <p>Vous avez choisi de régler par un autre moyen (espèces, chèque, virement...).</p>
                                 <p>
                                     Une fois que vous aurez effectué le paiement auprès du vendeur,
-                                    cliquez sur le bouton ci-dessous pour l'en informer. Le vendeur devra
-                                    ensuite confirmer la réception du paiement.
+                                    cliquez sur le bouton ci-dessous pour l'en informer.
+                                    Le vendeur devra ensuite confirmer la réception du paiement.
                                 </p>
                             </div>
 
@@ -354,18 +350,23 @@ else
                     <h2>Transaction terminée !</h2>
                     @if (VM.IsAcheteur)
                     {
-                        <p>Félicitations pour votre achat ! Profitez bien de votre nouveau véhicule.</p>
+                        <p>
+                            Félicitations pour votre achat !
+                            Profitez bien de votre nouveau véhicule.
+                        </p>
                     }
                     else if (VM.IsVendeur)
                     {
-                        <p>Félicitations ! Votre vente a été finalisée avec succès.</p>
+                        <p>
+                            Félicitations !
+                            Votre vente a été finalisée avec succès.
+                        </p>
                     }
                     <div class="completed-badge">
                         ✅ Commande complétée
                     </div>
                 </div>
 
-                @* NOUVELLE SECTION: DOCUMENTS ET AVIS *@
                 <div class="fin-actions-section">
                     <h3>Documents et Avis</h3>
 
@@ -421,9 +422,11 @@ else
             }
         </div>
     </div>
+
+    <CarteBancaireModal IsVisible="@VM.IsCardModalVisible"
+                        IsVisibleChanged="@((val) => VM.IsCardModalVisible = val)"
+                        OnCarteSaved="@VM.OnCardAdded" />
 }
-
-
 
 @code {
     [Parameter] public int IdCommande { get; set; }

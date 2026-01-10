@@ -55,6 +55,16 @@
                     </div>
 
                     <div class="form-group">
+                        <label>Nom du titulaire</label>
+                        <input type="text"
+                               placeholder="John Doe"
+                               @bind="NomCarte"
+                               class="info-input"
+                               disabled="@IsSaving"
+                               required>
+                    </div>
+
+                    <div class="form-group">
                         <label>Date d'expiration</label>
                         <input type="text"
                                @bind="DateExpirationInput"
@@ -98,6 +108,7 @@
     private string NumeroCarteInput { get; set; } = "";
     private string CodeSecurite { get; set; } = "";
     private string DateExpirationInput { get; set; } = "";
+    private string NomCarte { get; set; } = "";
 
     private string ErrorMessage { get; set; } = "";
     private string SuccessMessage { get; set; } = "";
@@ -158,6 +169,12 @@
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(NomCarte))
+        {
+            ErrorMessage = "Le nom de la carte est requis";
+            return;
+        }
+
         IsSaving = true;
         StateHasChanged();
 
@@ -170,7 +187,8 @@
                 NumeroCarte = numeroSansEspaces,
                 CodeSecurite = CodeSecurite,
                 DateExpiration = DateExpirationInput,
-                IdCompte = compte.IdCompte
+                IdCompte = compte.IdCompte,
+                NomCarte = NomCarte
             };
 
             Console.WriteLine(nouvelleCarte.DateExpiration);
@@ -212,7 +230,9 @@
         NumeroCarteInput = "";
         CodeSecurite = "";
         DateExpirationInput = "";
+        NomCarte = "";
         ErrorMessage = "";
         SuccessMessage = "";
+
     }
 }

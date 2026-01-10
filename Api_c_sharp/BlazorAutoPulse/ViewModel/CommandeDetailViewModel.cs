@@ -14,6 +14,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly NotificationService _notificationService;
         private readonly IConversationService _conversationService;
         private readonly IAvisService _avisService;
+        private readonly IMoyenPaiementService _moyenPaiementService;
+        private readonly ICarteBancaireService _carteBancaireService;
 
         public CommandeDetailDTO? Commande { get; private set; }
         public bool IsLoading { get; private set; } = true;
@@ -35,12 +37,13 @@ namespace BlazorAutoPulse.ViewModel
         public bool IsProcessingPayment { get; private set; } = false;
         public string PaymentError { get; private set; } = "";
 
-        // Données carte bancaire
-        public string CardNumber { get; set; } = "";
-        public string CardExpiry { get; set; } = "";
-        public string CardCvv { get; set; } = "";
+        // Gestion des Cartes et Moyens de Paiement
+        public List<MoyenPaiementDTO> MoyensPaiement { get; private set; } = new();
+        public List<CarteBancaireDTO> MesCartes { get; private set; } = new();
+        public int? SelectedCardId { get; set; }
+        public bool IsCardModalVisible { get; set; } = false;
 
-        //Données Avis
+        // Données Avis
         public int NoteAvis { get; set; } = 5;
         public string ContenuAvis { get; set; } = string.Empty;
         public bool AvisEnvoye { get; private set; } = false;
@@ -56,7 +59,9 @@ namespace BlazorAutoPulse.ViewModel
             IImageService imageService,
             NotificationService notificationService,
             IConversationService conversationService,
-            IAvisService avisService)
+            IAvisService avisService,
+            IMoyenPaiementService moyenPaiementService,
+            ICarteBancaireService carteBancaireService)
         {
             _commandeService = commandeService;
             _compteService = compteService;
@@ -65,6 +70,8 @@ namespace BlazorAutoPulse.ViewModel
             _notificationService = notificationService;
             _conversationService = conversationService;
             _avisService = avisService;
+            _moyenPaiementService = moyenPaiementService;
+            _carteBancaireService = carteBancaireService;
         }
 
         public async Task InitializeAsync(int idCommande, Action refreshUI, NavigationManager nav)
@@ -126,6 +133,12 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     PrixFinal = 0m;
                 }
+
+                // Si c'est l'acheteur et qu'il doit payer, on charge les infos de paiement
+                if (IsAcheteur && Commande.IdEtatCommande == 1)
+                {
+                    await LoadPaymentData();
+                }
             }
             catch (Exception ex)
             {
@@ -140,6 +153,26 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
+        private async Task LoadPaymentData()
+        {
+            try
+            {
+                MoyensPaiement = (await _moyenPaiementService.GetAllAsync()).ToList();
+                if (CurrentUserId.HasValue)
+                {
+                    MesCartes = (await _carteBancaireService.GetCarteBancaireByCompte(CurrentUserId.Value)).ToList();
+                    if (MesCartes.Any())
+                    {
+                        SelectedCardId = MesCartes.First().IdCarteBancaire;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur chargement données paiement: {ex.Message}");
+            }
+        }
+
         public string GetStatutLabel()
         {
             if (Commande == null) return "";
@@ -149,8 +182,8 @@ namespace BlazorAutoPulse.ViewModel
                 1 => "En attente de paiement",
                 2 => "Paiement émis",
                 3 => "Paiement validé / En prépa",
-                4 => "Livraison émise", // Anciennement 5
-                5 => "Livrée", // Anciennement 6
+                4 => "Livraison émise",
+                5 => "Livrée",
                 _ => "Statut inconnu"
             };
         }
@@ -164,8 +197,8 @@ namespace BlazorAutoPulse.ViewModel
                 1 => "en-attente",
                 2 => "paiement-emis",
                 3 => "paiement-valide",
-                4 => "livraison-emise", // Anciennement 5
-                5 => "livree", // Anciennement 6
+                4 => "livraison-emise",
+                5 => "livree",
                 _ => ""
             };
         }
@@ -188,6 +221,27 @@ namespace BlazorAutoPulse.ViewModel
         // ACTIONS ACHETEUR - Paiement
         // ============================================================================
 
+        // Gestion de la modale d'ajout de carte
+        public void OpenAddCardModal()
+        {
+            IsCardModalVisible = true;
+            _refreshUI?.Invoke();
+        }
+
+        public async Task OnCardAdded()
+        {
+            if (CurrentUserId.HasValue)
+            {
+                MesCartes = (await _carteBancaireService.GetCarteBancaireByCompte(CurrentUserId.Value)).ToList();
+                // Sélectionner la dernière carte (supposée être celle ajoutée, ou par ID max)
+                if (MesCartes.Any())
+                {
+                    SelectedCardId = MesCartes.MaxBy(c => c.IdCarteBancaire)?.IdCarteBancaire;
+                }
+            }
+            _refreshUI?.Invoke();
+        }
+
         public void SelectPaymentCarte()
         {
             SelectedPaymentType = "carte";
@@ -208,9 +262,6 @@ namespace BlazorAutoPulse.ViewModel
         {
             ShowPaymentForm = false;
             SelectedPaymentType = null;
-            CardNumber = "";
-            CardExpiry = "";
-            CardCvv = "";
             PaymentError = "";
             _refreshUI?.Invoke();
         }
@@ -219,23 +270,9 @@ namespace BlazorAutoPulse.ViewModel
         {
             PaymentError = "";
 
-            if (string.IsNullOrWhiteSpace(CardNumber) || CardNumber.Length < 16)
+            if (!SelectedCardId.HasValue)
             {
-                PaymentError = "Numéro de carte invalide";
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(CardExpiry) || CardExpiry.Length != 5)
-            {
-                PaymentError = "Date d'expiration invalide (format: MM/AA)";
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(CardCvv) || CardCvv.Length != 3)
-            {
-                PaymentError = "CVV invalide";
+                PaymentError = "Veuillez sélectionner une carte bancaire ou en ajouter une nouvelle.";
                 _refreshUI?.Invoke();
                 return;
             }
@@ -245,27 +282,31 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
+                // Simulation délai bancaire
                 await Task.Delay(2000);
 
-                // TODO: Appel API pour enregistrer le paiement par carte
-                // await _commandeService.ValidateCardPayment(Commande.IdCommande, new CardPaymentDTO { ... });
+                // Récupération de l'ID du moyen de paiement "Carte bancaire"
+                // On cherche celui qui contient "carte" ou on prend 1 par défaut
+                int idMoyenPaiementCB = MoyensPaiement
+                    .FirstOrDefault(m => m.TypePaiement.ToLower().Contains("carte"))?.IdMoyenPaiement ?? 1;
 
-
-                // Mise à jour de l'état de la commande
                 if (Commande != null)
                 {
-                    // Paiement direct par carte = Validé directement (état 3)
+                    // Paiement par carte validé directement -> État 3
                     Commande.IdEtatCommande = 3;
+                    // Mise à jour locale pour l'affichage immédiat
+                    Commande.MoyenPaiement = "Carte bancaire";
 
                     CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
                     {
                         IdCommande = Commande.IdCommande,
                         IdVendeur = Commande.IdVendeur,
                         IdAcheteur = Commande.IdAcheteur,
-                        IdAnnonce = Commande.Offre.IdAnnonce,
-                        IdMoyenPaiement = 1,
+                        IdAnnonce = Commande.Offre != null ? Commande.Offre.IdAnnonce : Commande.Annonce!.IdAnnonce,
                         IdOffre = Commande.Offre.IdOffre,
-                        IdEtatCommande = Commande.IdEtatCommande
+                        IdEtatCommande = Commande.IdEtatCommande,
+                        // On enregistre le vrai moyen de paiement
+                        IdMoyenPaiement = idMoyenPaiementCB
                     };
 
                     await _commandeService.UpdateCommandeAsync(Commande.IdCommande, Commandeup);
@@ -276,11 +317,7 @@ namespace BlazorAutoPulse.ViewModel
                     "Votre paiement a été enregistré avec succès"
                 );
 
-                // Reset du formulaire
                 ShowPaymentForm = false;
-                CardNumber = "";
-                CardExpiry = "";
-                CardCvv = "";
             }
             catch (Exception ex)
             {
@@ -301,25 +338,25 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // TODO: Appel API pour confirmer le paiement autre moyen
-                // await _commandeService.EmitPayment(Commande.IdCommande);
-
-
-                
+                // Récupération de l'ID d'un moyen de paiement "Autre"
+                // On prend le premier qui n'est PAS "Carte", ou 2 par défaut
+                int idMoyenPaiementAutre = MoyensPaiement
+                    .FirstOrDefault(m => !m.TypePaiement.ToLower().Contains("carte"))?.IdMoyenPaiement ?? 2;
 
                 if (Commande != null)
                 {
                     Commande.IdEtatCommande = 2; // Paiement émis
+                    Commande.MoyenPaiement = "Autre";
 
                     CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
                     {
                         IdCommande = Commande.IdCommande,
                         IdVendeur = Commande.IdVendeur,
                         IdAcheteur = Commande.IdAcheteur,
-                        IdAnnonce = Commande.Offre.IdAnnonce,
-                        IdMoyenPaiement = 1,
+                        IdAnnonce = Commande.Offre != null ? Commande.Offre.IdAnnonce : Commande.Annonce!.IdAnnonce,
                         IdOffre = Commande.Offre.IdOffre,
-                        IdEtatCommande = Commande.IdEtatCommande
+                        IdEtatCommande = Commande.IdEtatCommande,
+                        IdMoyenPaiement = idMoyenPaiementAutre
                     };
 
                     await _commandeService.UpdateCommandeAsync(Commande.IdCommande, Commandeup);
@@ -357,20 +394,26 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // TODO: Appel API pour confirmer la réception du paiement
-                // await _commandeService.ConfirmPaymentReceived(Commande.IdCommande);
-
                 Commande.IdEtatCommande = 3; // Paiement validé
+
+                // On garde le moyen de paiement existant s'il est déjà défini
+                int currentMoyenPaiementId = 1; // Valeur par défaut si inconnue
+                if (!string.IsNullOrEmpty(Commande.MoyenPaiement))
+                {
+                    // Tentative de retrouver l'ID à partir du libellé actuel, sinon garde par défaut
+                    var mp = MoyensPaiement.FirstOrDefault(m => m.TypePaiement == Commande.MoyenPaiement);
+                    if (mp != null) currentMoyenPaiementId = mp.IdMoyenPaiement;
+                }
 
                 CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
                 {
                     IdCommande = Commande.IdCommande,
                     IdVendeur = Commande.IdVendeur,
                     IdAcheteur = Commande.IdAcheteur,
-                    IdAnnonce = Commande.Offre.IdAnnonce,
-                    IdMoyenPaiement = 1,
+                    IdAnnonce = Commande.Offre != null ? Commande.Offre.IdAnnonce : Commande.Annonce!.IdAnnonce,
                     IdOffre = Commande.Offre.IdOffre,
-                    IdEtatCommande = Commande.IdEtatCommande
+                    IdEtatCommande = Commande.IdEtatCommande,
+                    IdMoyenPaiement = currentMoyenPaiementId
                 };
 
                 await _commandeService.UpdateCommandeAsync(Commande.IdCommande, Commandeup);
@@ -402,20 +445,22 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // TODO: Appel API pour émettre la livraison
-                // await _commandeService.EmitDelivery(Commande.IdCommande);
+                Commande.IdEtatCommande = 4; // Livraison émise
 
-                Commande.IdEtatCommande = 4; // Livraison émise (Passage de 5 à 4)
+                // On garde le moyen de paiement existant
+                int currentMoyenPaiementId = 1;
+                var mp = MoyensPaiement.FirstOrDefault(m => m.TypePaiement == Commande.MoyenPaiement);
+                if (mp != null) currentMoyenPaiementId = mp.IdMoyenPaiement;
 
                 CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
                 {
                     IdCommande = Commande.IdCommande,
                     IdVendeur = Commande.IdVendeur,
                     IdAcheteur = Commande.IdAcheteur,
-                    IdAnnonce = Commande.Offre.IdAnnonce,
-                    IdMoyenPaiement = 1,
+                    IdAnnonce = Commande.Offre != null ? Commande.Offre.IdAnnonce : Commande.Annonce!.IdAnnonce,
                     IdOffre = Commande.Offre.IdOffre,
-                    IdEtatCommande = Commande.IdEtatCommande
+                    IdEtatCommande = Commande.IdEtatCommande,
+                    IdMoyenPaiement = currentMoyenPaiementId
                 };
 
                 await _commandeService.UpdateCommandeAsync(Commande.IdCommande, Commandeup);
@@ -447,22 +492,25 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-
                 Commande.IdEtatCommande = 5;
+
+                // On garde le moyen de paiement existant
+                int currentMoyenPaiementId = 1;
+                var mp = MoyensPaiement.FirstOrDefault(m => m.TypePaiement == Commande.MoyenPaiement);
+                if (mp != null) currentMoyenPaiementId = mp.IdMoyenPaiement;
 
                 CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
                 {
                     IdCommande = Commande.IdCommande,
                     IdVendeur = Commande.IdVendeur,
                     IdAcheteur = Commande.IdAcheteur,
-                    IdAnnonce = Commande.Offre.IdAnnonce,
-                    IdMoyenPaiement = 1,
+                    IdAnnonce = Commande.Offre != null ? Commande.Offre.IdAnnonce : Commande.Annonce!.IdAnnonce,
                     IdOffre = Commande.Offre.IdOffre,
-
-                    IdEtatCommande = Commande.IdEtatCommande
+                    IdEtatCommande = Commande.IdEtatCommande,
+                    IdMoyenPaiement = currentMoyenPaiementId
                 };
 
-                await _commandeService.UpdateCommandeAsync(Commande.IdCommande,Commandeup);
+                await _commandeService.UpdateCommandeAsync(Commande.IdCommande, Commandeup);
 
                 _notificationService.ShowSuccess(
                     "Commande terminée",
@@ -555,7 +603,6 @@ namespace BlazorAutoPulse.ViewModel
 
         public void GenererFacture()
         {
-            // Ne fait rien pour l'instant
             _notificationService.ShowInfo("Facture", "La fonctionnalité de téléchargement de facture sera bientôt disponible.");
         }
 
