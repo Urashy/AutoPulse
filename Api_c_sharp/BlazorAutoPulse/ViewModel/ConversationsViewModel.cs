@@ -572,26 +572,25 @@ public class ConversationViewModel : IDisposable
                 );
             }
 
-            // Upload des fichiers en arrière-plan
             if (filesToUpload.Any())
             {
-                _ = Task.Run(async () =>
+                try
                 {
-                    try
-                    {
-                        var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
-                            createdMessage.IdMessage,
-                            filesToUpload);
+                    Console.WriteLine($"📤 Upload de {filesToUpload.Count} fichier(s)...");
+        
+                    var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
+                        createdMessage.IdMessage,
+                        filesToUpload);
 
-                        createdMessage.PiecesJointes = uploadedFiles;
-                        await Task.Delay(200);
-                        NotifyStateChanged();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"❌ Erreur upload: {ex.Message}");
-                    }
-                });
+                    Console.WriteLine($"✅ {uploadedFiles.Count} fichier(s) uploadé(s)");
+
+                    await LoadMessages(SelectedConversation.IdConversation);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Erreur upload: {ex.Message}");
+                    _notificationService.ShowError("Erreur upload", "Impossible d'envoyer les fichiers");
+                }
             }
         }
         catch (Exception ex)

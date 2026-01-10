@@ -207,6 +207,14 @@ namespace BlazorAutoPulse.ViewModel
         public bool showPaiementMavModal { get; set; } = false;
         public int IdCbUse { get; set; } = 0;
         
+        // ============================================================================
+        // PROPRIÉTÉS CARROUSEL D'IMAGES
+        // ============================================================================
+        public int CurrentImageIndex { get; set; } = 0;
+        public bool CanGoPrevious => CurrentImageIndex > 0;
+        public bool CanGoNext => CurrentImageIndex < imageUpload.Count - 1;
+        private Dictionary<int, string> _imageCache = new Dictionary<int, string>();
+        
         public async Task InitializeAsync(Action refreshUI, NavigationManager nav, GetAllViewModel vmAll)
         {
             _refreshUI = refreshUI;
@@ -601,17 +609,62 @@ namespace BlazorAutoPulse.ViewModel
 
         public async Task UploadImage(InputFileChangeEventArgs e)
         {
-            foreach (var file in e.GetMultipleFiles())
+            var startIndex = imageUpload.Count;
+            var files = e.GetMultipleFiles(10);
+            
+            try
             {
-                nomPhotos.Add(file.Name);
-                ImageUpload image = new ImageUpload();
-                image.File = file;
-                imageUpload.Add(image);
+                foreach (var file in files)
+                {
+                    nomPhotos.Add(file.Name);
+                    
+                    ImageUpload image = new ImageUpload();
+                    image.File = file;
+                    imageUpload.Add(image);
+                    
+                    try
+                    {
+                        const long maxFileSize = 10 * 1024 * 1024;
+                        
+                        using var memoryStream = new MemoryStream();
+                        using var stream = file.OpenReadStream(maxFileSize);
+                        await stream.CopyToAsync(memoryStream);
+                        
+                        var imageBytes = memoryStream.ToArray();
+                        var base64 = Convert.ToBase64String(imageBytes);
+                        
+                        var imageIndex = imageUpload.Count - 1;
+                        _imageCache[imageIndex] = $"data:{file.ContentType};base64,{base64}";
+                        
+                        Console.WriteLine($"✅ Image {imageIndex} chargée : {file.Name} ({imageBytes.Length} bytes)");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Erreur lors du chargement de {file.Name}: {ex.Message}");
+
+                        imageUpload.RemoveAt(imageUpload.Count - 1);
+                        nomPhotos.RemoveAt(nomPhotos.Count - 1);
+                    }
+                    
+                    _refreshUI?.Invoke();
+                }
+                
+                if (startIndex == 0 && imageUpload.Any())
+                {
+                    CurrentImageIndex = 0;
+                }
+                
+                if (errors.ContainsKey("photos"))
+                    errors.Remove("photos");
+
+                Console.WriteLine($"📊 Upload terminé : {imageUpload.Count} images, cache : {_imageCache.Count} entrées");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erreur générale lors de l'upload : {ex.Message}");
+                errors.Add("photos", $"Erreur lors de l'upload : {ex.Message}");
             }
             
-            if (errors.ContainsKey("photos"))
-                errors.Remove("photos");
-
             _refreshUI?.Invoke();
         }
 
@@ -1101,6 +1154,136 @@ namespace BlazorAutoPulse.ViewModel
             }
 
             _refreshUI?.Invoke();
+        }
+        
+        public void NextImage()
+        {
+            if (CanGoNext)
+            {
+                CurrentImageIndex++;
+                _refreshUI?.Invoke();
+            }
+        }
+        
+        public void PreviousImage()
+        {
+            if (CanGoPrevious)
+            {
+                CurrentImageIndex--;
+                _refreshUI?.Invoke();
+            }
+        }
+        
+        public void SelectImage(int index)
+        {
+            if (index >= 0 && index < imageUpload.Count)
+            {
+                CurrentImageIndex = index;
+                _refreshUI?.Invoke();
+            }
+        }
+        
+        public string GetCurrentImageUrl()
+        {
+            if (!imageUpload.Any() || CurrentImageIndex < 0 || CurrentImageIndex >= imageUpload.Count)
+                return string.Empty;
+
+            if (_imageCache.ContainsKey(CurrentImageIndex))
+            {
+                return _imageCache[CurrentImageIndex];
+            }
+
+            return string.Empty;
+        }
+        
+        public string GetThumbnailUrl(int index)
+        {
+            if (index < 0 || index >= imageUpload.Count)
+                return string.Empty;
+
+            if (_imageCache.ContainsKey(index))
+            {
+                return _imageCache[index];
+            }
+
+            return string.Empty;
+        }
+        
+        public async Task PreloadImagesAsync()
+        {
+            for (int i = 0; i < imageUpload.Count; i++)
+            {
+                if (!_imageCache.ContainsKey(i))
+                {
+                    try
+                    {
+                        var image = imageUpload[i];
+                        var imageBytes = await GetImageBytesAsync(image.File);
+                        var base64 = Convert.ToBase64String(imageBytes);
+                        _imageCache[i] = $"data:{image.File.ContentType};base64,{base64}";
+                
+                        _refreshUI?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erreur lors du chargement de l'image {i}: {ex.Message}");
+                    }
+                }
+            }
+        }
+        
+        private async Task<byte[]> GetImageBytesAsync(IBrowserFile file)
+        {
+            const long maxFileSize = 10 * 1024 * 1024;
+    
+            using var memoryStream = new MemoryStream();
+            using var stream = file.OpenReadStream(maxFileSize);
+            await stream.CopyToAsync(memoryStream);
+            return memoryStream.ToArray();
+        }
+        
+        public void RemoveImage(int index)
+        {
+            if (index >= 0 && index < imageUpload.Count)
+            {
+                imageUpload.RemoveAt(index);
+                nomPhotos.RemoveAt(index);
+        
+                var newCache = new Dictionary<int, string>();
+                for (int i = 0; i < imageUpload.Count; i++)
+                {
+                    if (i < index && _imageCache.ContainsKey(i))
+                    {
+                        newCache[i] = _imageCache[i];
+                    }
+                    else if (i >= index && _imageCache.ContainsKey(i + 1))
+                    {
+                        newCache[i] = _imageCache[i + 1];
+                    }
+                }
+                _imageCache = newCache;
+        
+                if (CurrentImageIndex >= imageUpload.Count && imageUpload.Any())
+                {
+                    CurrentImageIndex = imageUpload.Count - 1;
+                }
+                else if (!imageUpload.Any())
+                {
+                    CurrentImageIndex = 0;
+                }
+        
+                if (!imageUpload.Any() && !errors.ContainsKey("photos"))
+                {
+                    errors.Add("photos", "Au moins une photo est requise");
+                }
+        
+                _refreshUI?.Invoke();
+            }
+        }
+        
+        public void RemoveCurrentImage()
+        {
+            RemoveImage(CurrentImageIndex);
         }
 
         public async Task CreateAnnonceOrPayMav()
