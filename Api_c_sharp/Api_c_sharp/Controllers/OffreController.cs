@@ -121,37 +121,43 @@ namespace Api_c_sharp.Controllers
 
             var message = await _managermessage.GetByIdAsync(toUpdate.IdMessage);
 
+            var annonce = await _managerannonce.GetByIdAsync(toUpdate.IdAnnonce);
+
+            int idAcheteur;
+            
+            if(message.IdCompte == annonce.IdCompte)
+            {
+                idAcheteur = annonce.IdCompte;
+            }
+            else
+            {
+                idAcheteur = message.IdCompte;
+            }
+
+            Commande commandeEntity = new Commande();
+            
             if (updated.EstAccepte == true)
             {
-                         
-                var annonce = await _managerannonce.GetByIdAsync(toUpdate.IdAnnonce);
-
-                int idAcheteur;
-                
-                if(message.IdCompte == annonce.IdCompte)
-                {
-                    idAcheteur = annonce.IdCompte;
-                }
-                else
-                {
-                    idAcheteur = message.IdCompte;
-                }
 
                 CommandeCreateDTO com = new CommandeCreateDTO
-                    {
-                        IdAcheteur = idAcheteur,
-                        IdVendeur = annonce.IdCompte,
-                        IdAnnonce = dto.IdAnnonce,
-                        IdOffre = idoffre,
-                        Date = DateTime.UtcNow,
-                        IdMoyenPaiement = 1,
-                        IdEtatCommande = 1
+                {
+                    IdAcheteur = idAcheteur,
+                    IdVendeur = annonce.IdCompte,
+                    IdAnnonce = dto.IdAnnonce,
+                    IdOffre = idoffre,
+                    Date = DateTime.UtcNow,
+                    IdMoyenPaiement = 1,
+                    IdEtatCommande = 1
                 };
 
-                    var commandeEntity = _offremapper.Map<Commande>(com);
+                commandeEntity = _offremapper.Map<Commande>(com);
 
-                    await _managercommande.AddAsync(commandeEntity);
-                
+                await _managercommande.AddAsync(commandeEntity);
+            }
+
+            if (updated.EstAccepte != null)
+            {
+                await _notifService.NotifOfrreAccepterOuRejeter(annonce.IdAnnonce, idAcheteur, commandeEntity.IdCommande, updated.Valeur, (bool)updated.EstAccepte);
             }
 
             if (_hubContext != null)

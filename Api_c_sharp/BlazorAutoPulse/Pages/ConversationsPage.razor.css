@@ -392,14 +392,15 @@
 .input-toolbar {
     display: flex;
     gap: 8px;
-    padding: 10px 15px;
+    padding: 8px 15px;
     background: rgba(255, 255, 255, 0.02);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center;
 }
 
 .toolbar-btn {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -410,24 +411,26 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
 }
 
-    .toolbar-btn:hover {
-        background: rgba(0, 212, 255, 0.1);
-        border-color: rgba(0, 212, 255, 0.3);
-        transform: scale(1.05);
-    }
+.toolbar-btn:hover {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: rgba(0, 212, 255, 0.3);
+    transform: scale(1.05);
+}
 
-    .toolbar-btn.active {
-        background: linear-gradient(135deg, #00d4ff, #0099ff);
-        border-color: #00d4ff;
-        box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
-    }
+.toolbar-btn.active {
+    background: linear-gradient(135deg, #00d4ff, #0099ff);
+    border-color: #00d4ff;
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
 
-    .toolbar-btn:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-    }
+.toolbar-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
 
 /* ========== ZONE DE SAISIE D'OFFRE ========== */
 .offre-input-zone {

@@ -84,10 +84,25 @@ nav {
 
 footer {
     background: #0a0a0a;
-    padding: 20px;
+    padding: 15px 20px;
     text-align: center;
     border-top: 1px solid #222;
     color: #666;
+    font-size: 13px;
+}
+
+footer p {
+    margin: 5px 0;
+    line-height: 1.4;
+}
+
+footer a {
+    color: #666;
+    transition: color 0.3s;
+}
+
+footer a:hover {
+    color: #00d4ff;
 }
 
 .conversation-link {
