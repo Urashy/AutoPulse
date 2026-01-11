@@ -14,4 +14,5 @@ public interface INotificationService
     Task NotifSuppressionAnnonce(int idannonce);
     Task NotifOffreAnnonce(int idannonce, int idAcheteur, decimal valeur);
     Task NotifPaiementMiseEnAvant(int idannonce, int idCompte, int idMiseEnAvant);
+    Task NotifOfrreAccepterOuRejeter(int idannonce, int idCompte, int idCommande, decimal montant, bool estAccepte);
 }

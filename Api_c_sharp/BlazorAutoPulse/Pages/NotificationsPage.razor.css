@@ -293,3 +293,45 @@
         flex-wrap: wrap;
     }
 }
+
+/* OFFRE STATUS DETAILS */
+.offre-status-details {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.offre-status-details.accepted {
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.offre-status-details.refused {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.status-icon {
+    font-size: 20px;
+}
+
+.offre-status-details.accepted .status-text {
+    color: #00ff88;
+}
+
+.offre-status-details.refused .status-text {
+    color: #ff4444;
+}
+
+.offre-amount {
+    margin-left: auto;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    font-weight: 700;
+    color: #fff;
+}

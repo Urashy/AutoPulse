@@ -781,13 +781,6 @@ else
                 }
             </div>
         }
-
-        @if (!string.IsNullOrEmpty(VM.erreurSupprimeAnnonce))
-        {
-            <div class="error-message-box">
-                @VM.erreurSupprimeAnnonce
-            </div>
-        }
         <SignalementModal VM="@SignalementVM" genreSignalement="annonce"/>
     </div>
 }

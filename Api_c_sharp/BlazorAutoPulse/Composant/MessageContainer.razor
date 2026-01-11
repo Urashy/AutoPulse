@@ -35,29 +35,70 @@
 
                         @if (msg.PiecesJointes != null && msg.PiecesJointes.Any())
                         {
-                            <div class="message-attachments">
-                                @foreach (var pj in msg.PiecesJointes)
-                                {
-                                    <div class="attachment-item">
-                                        @if (pj.EstImage)
-                                        {
-                                            <a href="@pj.DataUrl" target="_blank" download="@pj.NomFichier">
-                                                <img src="@pj.DataUrl" alt="@pj.NomFichier" class="attachment-image" />
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <a href="@pj.DataUrl" class="attachment-file" download="@pj.NomFichier">
-                                                <span class="file-icon">@pj.IconeType</span>
-                                                <div class="file-details">
-                                                    <span class="file-name">@pj.NomFichier</span>
-                                                    <span class="file-size">@pj.TailleFormatee</span>
+                            var images = msg.PiecesJointes.Where(pj => pj.EstImage).ToList();
+                            var files = msg.PiecesJointes.Where(pj => !pj.EstImage).ToList();
+
+                            @* Galerie d'images *@
+                            @if (images.Any())
+                            {
+                                <div class="message-attachments-images">
+                                    @if (images.Count == 1)
+                                    {
+                                        <div class="image-single" @onclick="() => OpenGallery(msg.IdMessage, images, 0)">
+                                            <img src="@images[0].DataUrl" alt="@images[0].NomFichier" class="attachment-image" />
+                                        </div>
+                                    }
+                                    else if (images.Count == 2)
+                                    {
+                                        <div class="image-grid-two">
+                                            <div class="image-item" @onclick="() => OpenGallery(msg.IdMessage, images, 0)">
+                                                <img src="@images[0].DataUrl" alt="@images[0].NomFichier" />
+                                            </div>
+                                            <div class="image-item image-overlay" @onclick="() => OpenGallery(msg.IdMessage, images, 1)">
+                                                <img src="@images[1].DataUrl" alt="@images[1].NomFichier" />
+                                                @if (images.Count > 2)
+                                                {
+                                                    <div class="overlay-count">
+                                                        <span>+@(images.Count - 2)</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="image-grid-multiple">
+                                            <div class="image-item" @onclick="() => OpenGallery(msg.IdMessage, images, 0)">
+                                                <img src="@images[0].DataUrl" alt="@images[0].NomFichier" />
+                                            </div>
+                                            <div class="image-item image-overlay" @onclick="() => OpenGallery(msg.IdMessage, images, 1)">
+                                                <img src="@images[1].DataUrl" alt="@images[1].NomFichier" />
+                                                <div class="overlay-blur"></div>
+                                                <div class="overlay-count">
+                                                    <span>+@(images.Count - 1)</span>
                                                 </div>
-                                            </a>
-                                        }
-                                    </div>
-                                }
-                            </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            @* Fichiers non-images *@
+                            @if (files.Any())
+                            {
+                                <div class="message-attachments-files">
+                                    @foreach (var pj in files)
+                                    {
+                                        <a href="@pj.DataUrl" class="attachment-file" download="@pj.NomFichier">
+                                            <span class="file-icon">@pj.IconeType</span>
+                                            <div class="file-details">
+                                                <span class="file-name">@pj.NomFichier</span>
+                                                <span class="file-size">@pj.TailleFormatee</span>
+                                            </div>
+                                        </a>
+                                    }
+                                </div>
+                            }
                         }
 
                         <div class="message-footer">
@@ -108,6 +149,36 @@
     }
 </div>
 
+@* Modal Galerie *@
+@if (_showGallery)
+{
+    <div class="gallery-modal" @onclick="CloseGallery">
+        <div class="gallery-close" @onclick="CloseGallery">✕</div>
+        
+        <div class="gallery-nav gallery-nav-prev" @onclick="PreviousImage" @onclick:stopPropagation="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </div>
+
+        <div class="gallery-content" @onclick:stopPropagation="true">
+            <img src="@_currentImages[_currentImageIndex].DataUrl" 
+                 alt="@_currentImages[_currentImageIndex].NomFichier" 
+                 class="gallery-image" />
+            <div class="gallery-info">
+                <span class="gallery-counter">@(_currentImageIndex + 1) / @_currentImages.Count</span>
+                <span class="gallery-filename">@_currentImages[_currentImageIndex].NomFichier</span>
+            </div>
+        </div>
+
+        <div class="gallery-nav gallery-nav-next" @onclick="NextImage" @onclick:stopPropagation="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public List<MessageDTO> Messages { get; set; } = new();
     [Parameter] public int CurrentUserId { get; set; }
@@ -117,13 +188,15 @@
     [Parameter] public int? ConversationId { get; set; }
     [Parameter] public EventCallback<int> OnOffreAccept { get; set; }
     [Parameter] public EventCallback<int> OnOffreRefuse { get; set; }
-
-    // Paramètres de blocage
     [Parameter] public string BlocageType { get; set; } = "";
 
     private ElementReference _messagesContainerRef;
     private int? _previousConversationId;
     private int _previousMessageCount = 0;
+
+    private bool _showGallery = false;
+    private List<PieceJointeDTO> _currentImages = new();
+    private int _currentImageIndex = 0;
 
     private bool IsBlocked => BlocageType == "je suis bloquer" || BlocageType == "est bloquer";
 
@@ -157,6 +230,38 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Erreur scroll: {ex.Message}");
+        }
+    }
+
+    private void OpenGallery(int messageId, List<PieceJointeDTO> images, int startIndex)
+    {
+        _currentImages = images;
+        _currentImageIndex = startIndex;
+        _showGallery = true;
+        StateHasChanged();
+    }
+
+    private void CloseGallery()
+    {
+        _showGallery = false;
+        StateHasChanged();
+    }
+
+    private void NextImage()
+    {
+        if (_currentImageIndex < _currentImages.Count - 1)
+        {
+            _currentImageIndex++;
+            StateHasChanged();
+        }
+    }
+
+    private void PreviousImage()
+    {
+        if (_currentImageIndex > 0)
+        {
+            _currentImageIndex--;
+            StateHasChanged();
         }
     }
 

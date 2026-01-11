@@ -12,27 +12,6 @@
         📎
     </label>
 
-    @* Affichage des fichiers sélectionnés au-dessus de l'input *@
-    @if (ViewModel.SelectedFiles.Any())
-    {
-        <div class="selected-files-popup">
-            @foreach (var (file, index) in ViewModel.SelectedFiles.Select((f, i) => (f, i)))
-            {
-                <div class="selected-file-compact">
-                    <span class="file-icon-small">@ViewModel.GetFileIcon(file.Name)</span>
-                    <span class="file-name-compact" title="@file.Name">@file.Name</span>
-                    <span class="file-size-compact">@ViewModel.FormatFileSize(file.Size)</span>
-                    <button type="button"
-                            class="remove-file-compact"
-                            @onclick="() => ViewModel.RemoveFile(index)"
-                            aria-label="Supprimer">
-                        ✕
-                    </button>
-                </div>
-            }
-        </div>
-    }
-
     @if (!string.IsNullOrEmpty(ViewModel.ErrorMessage))
     {
         <div class="file-error-popup">

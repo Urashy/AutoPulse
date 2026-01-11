@@ -63,6 +63,8 @@ public class ConversationViewModel : IDisposable
 
     public string OffreInfoMessage { get; private set; } = "";
     public string OffreInfoClass { get; private set; } = "";
+    
+    public event Func<Task>? OnScrollRequested;
 
     public ConversationViewModel(
         ConversationStateService conversationState,
@@ -108,6 +110,12 @@ public class ConversationViewModel : IDisposable
         await LoadOffre(conv.IdConversation);
         await ABloquer(true);
         NotifyStateChanged();
+        
+        if (OnScrollRequested != null)
+        {
+            await Task.Delay(100);
+            await OnScrollRequested.Invoke();
+        }
     }
 
     private async Task LoadOffre(int conversationId)
@@ -183,7 +191,6 @@ public class ConversationViewModel : IDisposable
         {
             if (senderId == CurrentUserId)
             {
-                // Notre propre message : vérifier s'il existe déjà par contenu ET date
                 var exists = Messages.Any(m => 
                     m.IdCompte == senderId && 
                     m.ContenuMessage == message && 
@@ -205,7 +212,6 @@ public class ConversationViewModel : IDisposable
                 EstLu = false
             };
 
-            // Pour les messages des autres, vérifier aussi
             var messageExists = Messages.Any(m => 
                 m.IdCompte == senderId && 
                 m.ContenuMessage == message && 
@@ -216,6 +222,11 @@ public class ConversationViewModel : IDisposable
                 Messages.Add(newMsg);
                 Console.WriteLine($"📨 Message reçu de {senderId}: {message.Substring(0, Math.Min(30, message.Length))}...");
                 NotifyStateChanged();
+            
+                if (OnScrollRequested != null)
+                {
+                    await OnScrollRequested.Invoke();
+                }
             }
             else
             {
@@ -223,8 +234,6 @@ public class ConversationViewModel : IDisposable
             }
         }
     }
-
-    // Dans ConversationViewModel.cs
 
     private void HandleMessagesRead(int conversationId, int userIdReader)
     {
@@ -444,16 +453,14 @@ public class ConversationViewModel : IDisposable
             OffreError = "Montant invalide";
             OffreInfoMessage = "";
         }
-        NotifyStateChanged(); // Important pour rafraîchir l'UI immédiatement
+        NotifyStateChanged();
     }
-
 
     public async Task SendMessageWithOffre()
     {
         if (SelectedConversation == null)
             return;
 
-        // ✅ Autoriser l'envoi si : message texte OU offre OU fichiers
         bool hasContent = !string.IsNullOrWhiteSpace(NewMessage) ||
                           (ShowOffreMode && OffreAmount > 0) ||
                           SelectedFiles.Any();
@@ -461,7 +468,6 @@ public class ConversationViewModel : IDisposable
         if (!hasContent)
             return;
 
-        // ✅ Valider l'offre si le mode offre est activé
         if (ShowOffreMode && OffreAmount <= 0)
         {
             OffreError = "Le montant doit être supérieur à 0";
@@ -469,7 +475,6 @@ public class ConversationViewModel : IDisposable
             return;
         }
 
-        // ✅ Sauvegarder les valeurs avant reset
         var messageText = string.IsNullOrWhiteSpace(NewMessage)
             ? (ShowOffreMode ? $"💰 Offre de {OffreAmount:N0} €" : "[Fichier(s) joint(s)]")
             : NewMessage.Trim();
@@ -478,7 +483,6 @@ public class ConversationViewModel : IDisposable
         var offreAmountToSend = ShowOffreMode ? OffreAmount : 0;
         var annonceIdToSend = AnnonceIdForOffre;
 
-        // ✅ Reset immédiat
         _newMessage = "";
         OffreAmount = 0;
         OffreError = "";
@@ -491,7 +495,6 @@ public class ConversationViewModel : IDisposable
         {
             IsUploadingFiles = true;
 
-            // ✅ Créer le message texte
             var messageDto = new MessageCreateDTO
             {
                 IdConversation = SelectedConversation.IdConversation,
@@ -504,17 +507,12 @@ public class ConversationViewModel : IDisposable
             if (!result.Success)
             {
                 Console.WriteLine($"❌ Erreur API : {result.ErrorMessage}");
-
                 _newMessage = messageText;
-
-
                 _notificationService.ShowError("Erreur lors de l'envoie du message",result.ErrorMessage);
-
                 NotifyStateChanged();
                 return; 
             }
 
-            // CAS DE SUCCÈS
             var createdMessage = result.Data;
 
             if (createdMessage == null)
@@ -525,7 +523,6 @@ public class ConversationViewModel : IDisposable
                 return;
             }
 
-            // ✅ Créer l'offre LIÉE au message (SI mode offre était activé)
             if (offreAmountToSend > 0 && annonceIdToSend.HasValue)
             {
                 try
@@ -537,7 +534,6 @@ public class ConversationViewModel : IDisposable
                         Valeur = offreAmountToSend
                     };
 
-                    // ✅ Récupérer directement l'offre créée
                     var offreCreee = await _offreService.CreateAsync(offreDto);
 
                     if (offreCreee != null)
@@ -549,13 +545,18 @@ public class ConversationViewModel : IDisposable
                             CurrentUserId,
                             messageText,
                             createdMessage.IdMessage,
-                            offreCreee.IdOffre,  // ✅ Utiliser l'IdOffre retourné
+                            offreCreee.IdOffre,
                             offreAmountToSend,
                             annonceIdToSend.Value
                         );
 
-                        // ✅ Recharger pour afficher l'offre via le composant
                         await LoadMessages(SelectedConversation.IdConversation);
+                        
+                        if (OnScrollRequested != null)
+                        {
+                            await Task.Delay(300);
+                            await OnScrollRequested.Invoke();
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -572,26 +573,30 @@ public class ConversationViewModel : IDisposable
                 );
             }
 
-            // Upload des fichiers en arrière-plan
             if (filesToUpload.Any())
             {
-                _ = Task.Run(async () =>
+                try
                 {
-                    try
-                    {
-                        var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
-                            createdMessage.IdMessage,
-                            filesToUpload);
+                    Console.WriteLine($"📤 Upload de {filesToUpload.Count} fichier(s)...");
+        
+                    var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
+                        createdMessage.IdMessage,
+                        filesToUpload);
 
-                        createdMessage.PiecesJointes = uploadedFiles;
-                        await Task.Delay(200);
-                        NotifyStateChanged();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"❌ Erreur upload: {ex.Message}");
-                    }
-                });
+                    Console.WriteLine($"✅ {uploadedFiles.Count} fichier(s) uploadé(s)");
+
+                    await LoadMessages(SelectedConversation.IdConversation);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Erreur upload: {ex.Message}");
+                    _notificationService.ShowError("Erreur upload", "Impossible d'envoyer les fichiers");
+                }
+            }
+
+            if (OnScrollRequested != null)
+            {
+                await OnScrollRequested.Invoke();
             }
         }
         catch (Exception ex)
@@ -646,19 +651,19 @@ public class ConversationViewModel : IDisposable
             Console.WriteLine($"❌ Erreur refus offre: {ex.Message}");
         }
     }
+
     private async void HandleMessageWithOffreReceived(
-    int conversationId,
-    int senderId,
-    string message,
-    DateTime date,
-    int idMessage,
-    int idOffre,  // ✅ Recevoir l'IdOffre
-    decimal offreValeur,
-    int idAnnonce)
+        int conversationId,
+        int senderId,
+        string message,
+        DateTime date,
+        int idMessage,
+        int idOffre,
+        decimal offreValeur,
+        int idAnnonce)
     {
         if (SelectedConversation?.IdConversation == conversationId)
         {
-            // Vérifier si le message existe déjà
             var exists = Messages.Any(m =>
                 m.IdCompte == senderId &&
                 m.ContenuMessage == message &&
@@ -666,7 +671,6 @@ public class ConversationViewModel : IDisposable
 
             if (!exists)
             {
-                // Créer le message avec l'offre
                 var newMsg = new MessageDTO
                 {
                     IdMessage = idMessage,
@@ -676,22 +680,27 @@ public class ConversationViewModel : IDisposable
                     DateEnvoiMessage = date,
                     EstLu = senderId == CurrentUserId,
                     Offres = new List<OffreDTO>
-                {
-                    new OffreDTO
                     {
-                        IdOffre = idOffre,  // ✅ Utiliser l'IdOffre reçu
-                        IdMessage = idMessage,
-                        Valeur = offreValeur,
-                        IdAnnonce = idAnnonce,
-                        DateOffre = date,
-                        EstAccepte = null
+                        new OffreDTO
+                        {
+                            IdOffre = idOffre,
+                            IdMessage = idMessage,
+                            Valeur = offreValeur,
+                            IdAnnonce = idAnnonce,
+                            DateOffre = date,
+                            EstAccepte = null
+                        }
                     }
-                }
                 };
 
                 Messages.Add(newMsg);
                 Console.WriteLine($"✅ Message avec offre de {offreValeur}€ (IdOffre={idOffre}) ajouté");
                 NotifyStateChanged();
+
+                if (OnScrollRequested != null)
+                {
+                    await OnScrollRequested.Invoke();
+                }
             }
         }
     }

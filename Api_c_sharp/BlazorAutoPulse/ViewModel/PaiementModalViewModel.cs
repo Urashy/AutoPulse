@@ -72,10 +72,10 @@ public class PaiementModalViewModel
             {
                 CommandeDto = await _commandeService.GetByIdAsync(Id);
                 title = $"Numéro de commande: {CommandeDto.IdCommande} / Annonce : {CommandeDto.LibelleAnnonce}";
-                prix = (double)CommandeDto.Montant;
+                prix = CommandeDto.Montant.HasValue ? (double)CommandeDto.Montant.Value : 0;
             }
         }
-        
+
         if (IsVisible && !CartesBancaires.Any())
             await LoadCartes();
     }

@@ -69,12 +69,17 @@ public abstract class BaseWebService<T> : IService<T> where T : class
         response.EnsureSuccessStatusCode();
     }
 
-    public virtual async Task DeleteAsync(int id)
+    public virtual async Task<string?> DeleteAsync(int id)
     {
         var request = new HttpRequestMessage(HttpMethod.Delete, BuildUrl($"Delete/{id}"));
         var response = await SendWithCredentialsAsync(request);
 
-        response.EnsureSuccessStatusCode();
+        if (response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadAsStringAsync();
     }
     
     public async Task<ServiceResult<T>> PostWithErrorHandlingAsync(T entity, string action = "Post")

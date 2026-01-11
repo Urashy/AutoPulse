@@ -79,6 +79,23 @@
                                 <span class="new-price">@notification.ValeurOffre?.ToString("N0")€</span>
                             </div>
                         }
+                        @if (notification.Type == "offreaccepte")
+                        {
+                            <div class="offre-status-details accepted">
+                                <span class="status-icon">✅</span>
+                                <span class="status-text">Offre acceptée</span>
+                                <span class="offre-amount">@notification.ValeurOffre?.ToString("N0")€</span>
+                            </div>
+                        }
+
+                        @if (notification.Type == "offrerefuse")
+                        {
+                            <div class="offre-status-details refused">
+                                <span class="status-icon">❌</span>
+                                <span class="status-text">Offre refusée</span>
+                                <span class="offre-amount">@notification.ValeurOffre?.ToString("N0")€</span>
+                            </div>
+                        }
                     </div>
                     
                     <div class="notification-actions">

@@ -177,5 +177,20 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             string type = "paiement";
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
         }
+        
+        public virtual async Task NotifOfrreAccepterOuRejeter(int idannonce, int idCompte, int idCommande, decimal montant, bool estAccepte)
+        {
+
+            Annonce? annonce = await context.Annonces
+                .FirstOrDefaultAsync(a => a.IdAnnonce == idannonce);
+            
+            Commande? commande = await context.Commandes.FindAsync(idCommande);
+
+            string url = $"/annonce/{idannonce}";
+            string titre = "Paiemement";
+            string message = $"Votre offre pour l'annonce #{annonce.Libelle} à {montant}€ à été {(estAccepte? "accepté" : "refusé")}";
+            string type = $"offre{(estAccepte? "accepte" : "refuse")}";
+            await NotifCreationAutoAsync(new List<int>(){idCompte}, url, titre, message, idannonce, type, valeurOffre: montant);
+        }
     }
 }

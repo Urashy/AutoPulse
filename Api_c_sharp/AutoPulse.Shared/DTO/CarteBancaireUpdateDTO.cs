@@ -14,5 +14,7 @@ namespace AutoPulse.Shared.DTO
         public string? DateExpiration { get; set; }
         public string? NomCarte { get; set; }
         public int IdCompte { get; set; }
+        public string NomTitulaire { get; set; }
+
     }
 }

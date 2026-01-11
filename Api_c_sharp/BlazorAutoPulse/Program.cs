@@ -61,6 +61,8 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IService<VueDTO>, VueWebService>();
             builder.Services.AddScoped<IService<TypeJournalDTO>, TypeJournalWebService>();
             builder.Services.AddScoped<IService<MiseEnAvantDTO>, MiseEnAvantWebService>();
+            builder.Services.AddScoped<IMoyenPaiementService, MoyenPaiementWebService>();
+
 
             //----------------------- Service avec interface spécifique
             builder.Services.AddScoped<IAnnonceService, AnnonceWebService>();

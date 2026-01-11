@@ -238,12 +238,16 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.CommandeAnnonceNav))
             .ForMember(dest => dest.Offre,
                 opt => opt.MapFrom(src => src.Offrecommande))
+            .ForMember(dest => dest.EtatCommande,
+                opt => opt.MapFrom(src => src.EtatCommandeCommandeNav.Libelle))
             .ForMember(dest => dest.IdFacture,
                 opt => opt.MapFrom(src => src.Factures.Any() ? src.Factures.First().IdFacture : (int?)null))
 
             .ReverseMap();
 
-        CreateMap<CommandeCreateDTO, Commande>().ReverseMap();
+        CreateMap<CommandeCreateDTO, Commande>()
+            .ForMember(dest => dest.Date, opt => opt.Ignore()) 
+            .ReverseMap();
         CreateMap<CommandeUpdateDTO, Commande>().ReverseMap();
 
         //---------------------------------Compte---------------------------------

@@ -239,28 +239,128 @@
                 </div>
 
                 <div class="form-group @(VM.HasError("photos") ? "has-error" : "")">
-                    <label>Photos du véhicule (la première sera la photo de couverture)</label>
-                    <label for="vehiclePhotos" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
-                        <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
-                        <p style="color: #aaa;">Cliquez pour ajouter des photos</p>
-                        <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
-                    </label>
-                    <InputFile id="vehiclePhotos" OnChange="@VM.UploadImage" multiple style="display:none"/>
+                    <label>Photos du véhicule (ajouter la première sera la photo de couverture puis ajouter les autres, 10 images de 10 mb max)</label>
+
+                    @if (!VM.imageUpload.Any())
+                    {
+                        <label for="vehiclePhotos" class="file-upload" style="cursor: pointer; display: block; border: 2px dashed #ccc; padding: 20px; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">📸</div>
+                            <p style="color: #aaa;">Cliquez pour la photo de couverture</p>
+                            <p style="color: #666; font-size: 14px; margin-top: 10px;">JPG, PNG - Max 10 photos</p>
+                        </label>
+                        <InputFile id="vehiclePhotos" OnChange="@VM.UploadImage" multiple style="display:none"/>
+                    }
+                    else
+                    {
+                        <!-- Carrousel d'images -->
+                        <div class="images-carousel-section">
+                            <!-- Image principale -->
+                            <div class="main-image-carousel">
+                                @if (!string.IsNullOrEmpty(VM.GetCurrentImageUrl()))
+                                {
+                                    <img src="@VM.GetCurrentImageUrl()" alt="Photo @(VM.CurrentImageIndex + 1)" />
+
+                                    <!-- Bouton supprimer sur l'image -->
+                                    <button type="button"
+                                            class="btn-delete-image"
+                                            @onclick="VM.RemoveCurrentImage"
+                                            title="Supprimer cette photo">
+                                        🗑️
+                                    </button>
+
+                                    <!-- Badge numéro de photo -->
+                                    <div class="image-badge">
+                                        Photo @(VM.CurrentImageIndex + 1) / @VM.imageUpload.Count
+                                        @if (VM.CurrentImageIndex == 0)
+                                        {
+                                            <span class="cover-badge">📌 Couverture</span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Indicateur de chargement -->
+                                    <div class="image-loading">
+                                        <div class="spinner-image"></div>
+                                        <p>Chargement de l'image @(VM.CurrentImageIndex + 1)...</p>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Navigation -->
+                            @if (VM.imageUpload.Count > 1)
+                            {
+                                <div class="image-navigation-carousel">
+                                    <button type="button"
+                                            @onclick="VM.PreviousImage"
+                                            class="nav-btn"
+                                            disabled="@(!VM.CanGoPrevious)">
+                                        ◀
+                                    </button>
+                                    <div class="image-counter">
+                                        @(VM.CurrentImageIndex + 1) / @VM.imageUpload.Count
+                                    </div>
+                                    <button type="button"
+                                            @onclick="VM.NextImage"
+                                            class="nav-btn"
+                                            disabled="@(!VM.CanGoNext)">
+                                        ▶
+                                    </button>
+                                </div>
+
+                                <!-- Miniatures -->
+                                <div class="thumbnails-carousel">
+                                    @for (int i = 0; i < VM.imageUpload.Count; i++)
+                                    {
+                                        var index = i;
+                                        var thumbnailUrl = VM.GetThumbnailUrl(index);
+
+                                        <div class="thumbnail-carousel @(index == VM.CurrentImageIndex ? "active" : "") @(string.IsNullOrEmpty(thumbnailUrl) ? "loading" : "")"
+                                             @onclick="() => VM.SelectImage(index)">
+
+                                            @if (!string.IsNullOrEmpty(thumbnailUrl))
+                                            {
+                                                <img src="@thumbnailUrl" alt="Miniature @(index + 1)" />
+
+                                                @if (index == 0)
+                                                {
+                                                    <div class="thumbnail-cover-indicator">📌</div>
+                                                }
+
+                                                <button type="button"
+                                                        class="btn-delete-thumbnail"
+                                                        @onclick="() => VM.RemoveImage(index)"
+                                                        @onclick:stopPropagation="true"
+                                                        title="Supprimer">
+                                                    ✕
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <div class="thumbnail-loading">
+                                                    <div class="spinner-thumbnail"></div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Bouton ajouter plus de photos -->
+                            <label for="vehiclePhotos" class="btn-add-more-photos">
+                                <span class="add-icon">➕</span>
+                                Ajouter d'autres photos (@VM.imageUpload.Count / 10)
+                            </label>
+                            <InputFile id="vehiclePhotos" OnChange="@VM.UploadImage" multiple style="display:none"/>
+                        </div>
+                    }
+
                     @if (VM.HasError("photos"))
                     {
                         <span class="error-message">@VM.GetError("photos")</span>
                     }
                 </div>
 
-                @if (VM.nomPhotos?.Any() == true)
-                {
-                    <ul class="photos-list">
-                        @foreach (var nom in VM.nomPhotos)
-                        {
-                            <li>@nom</li>
-                        }
-                    </ul>
-                }
 
                 @* BOUTON IA CNN *@
                 <button type="button"
