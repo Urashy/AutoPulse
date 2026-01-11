@@ -239,7 +239,7 @@ public class AnnonceController(AnnonceManager _manager, IMapper _annonceMapper, 
         bool result = await _manager.DeleteAsync(entity);
 
         if (!result)
-            return BadRequest("La suppression est impossible en raison d'une commande effectué sur cette annonce");
+            return Ok("En raison d'une commande ou de paiement votre annonce a été archivée");
         
         await _journalService.LogSuppressionAnnonceAsync(
             entity.IdCompte,
