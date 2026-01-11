@@ -153,6 +153,8 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
+
+
         private async Task LoadPaymentData()
         {
             try

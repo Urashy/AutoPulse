@@ -13,5 +13,6 @@ namespace AutoPulse.Shared.DTO
         public string? CodeSecurite { get; set; }
         public string? NomCarte { get; set; }
         public int IdCompte { get; set; }
+        public string NomTitulaire { get; set; }
     }
 }
