@@ -105,7 +105,9 @@ public class ConversationViewModel : IDisposable
 
     public async Task SelectConversation(ConversationListDTO conv)
     {
+
         SelectedConversation = conv;
+        CommandeEnCours = null;
         await LoadMessages(conv.IdConversation);
         await LoadOffre(conv.IdConversation);
         await ABloquer(true);

@@ -994,16 +994,100 @@
         font-size: 16px;
     }
 }
+.separator-text {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin: 30px 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
 
-@media (max-width: 480px) {
-    .rating-stars {
-        font-size: 1.75rem;
+    .separator-text::before,
+    .separator-text::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #333;
+        margin: 0 15px;
     }
 
-    .check-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 2rem;
+/* Grille pour les petits boutons */
+.other-payments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+}
+
+/* Style des mini boutons */
+.payment-option-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: #ccc;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+    /* Effet au survol (si non désactivé) */
+    .payment-option-mini:hover:not(:disabled) {
+        border-color: #aaa;
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    /* Icônes dans les boutons */
+    .payment-option-mini .icon {
+        font-size: 28px;
+        margin-bottom: 10px;
+        filter: drop-shadow(0 0 5px rgba(255,255,255,0.1));
+        transition: transform 0.3s ease;
+    }
+
+    .payment-option-mini:hover:not(:disabled) .icon {
+        transform: scale(1.1);
+    }
+
+    /* État désactivé (ex: Espèces > 1000€) */
+    .payment-option-mini:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: rgba(0, 0, 0, 0.2);
+        border-color: #222;
+    }
+
+/* Badge spécifique pour la limite d'espèces */
+.badge-limit {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 68, 68, 0.2);
+    font-weight: 600;
+}
+
+/* Responsive : Sur mobile, on garde la grille lisible */
+@media (max-width: 480px) {
+    .other-payments-grid {
+        grid-template-columns: 1fr; /* Un seul par ligne sur très petit écran */
+    }
+
+    .separator-text {
+        font-size: 12px;
     }
 }
 
