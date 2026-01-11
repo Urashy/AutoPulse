@@ -852,5 +852,180 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         #endregion
+
+        #region Tests NotifPaiementMiseEnAvant
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantTest()
+        {
+            // Arrange
+            int idMiseEnAvant = 1;
+
+            _mockManager.Setup(m => m.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant);
+
+            // Assert
+            _mockManager.Verify(m => m.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantWithDifferentGradesTest()
+        {
+            // Arrange
+            int idMiseEnAvantBasic = 1;
+            int idMiseEnAvantPremium = 2;
+
+            _mockManager.Setup(m => m.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                It.IsAny<int>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvantBasic);
+
+            await _mockManager.Object.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvantPremium);
+
+            // Assert
+            _mockManager.Verify(m => m.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvantBasic), Times.Once);
+
+            _mockManager.Verify(m => m.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvantPremium), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantMultipleAnnoncesTest()
+        {
+            // Arrange
+            var annonce2 = new Annonce
+            {
+                IdAnnonce = 2,
+                Libelle = "Deuxième voiture",
+                Description = "Description 2",
+                Prix = 20000,
+                DatePublication = DateTime.Now,
+                IdCompte = _compteTest.IdCompte
+            };
+
+            int idMiseEnAvant = 1;
+
+            _mockManager.Setup(m => m.NotifPaiementMiseEnAvant(
+                It.IsAny<int>(),
+                _compteTest.IdCompte,
+                idMiseEnAvant))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _mockManager.Object.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant);
+
+            await _mockManager.Object.NotifPaiementMiseEnAvant(
+                annonce2.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant);
+
+            // Assert
+            _mockManager.Verify(m => m.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant), Times.Once);
+
+            _mockManager.Verify(m => m.NotifPaiementMiseEnAvant(
+                annonce2.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant), Times.Once);
+
+            _mockManager.Verify(m => m.NotifPaiementMiseEnAvant(
+                It.IsAny<int>(),
+                _compteTest.IdCompte,
+                idMiseEnAvant), Times.Exactly(2));
+        }
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantVerifyParametersTest()
+        {
+            // Arrange
+            int idAnnonce = _annonceTest.IdAnnonce;
+            int idCompte = _compteTest.IdCompte;
+            int idMiseEnAvant = 5;
+
+            bool correctParametersCalled = false;
+
+            _mockManager.Setup(m => m.NotifPaiementMiseEnAvant(
+                It.Is<int>(id => id == idAnnonce),
+                It.Is<int>(id => id == idCompte),
+                It.Is<int>(id => id == idMiseEnAvant)))
+                .Returns(Task.CompletedTask)
+                .Callback(() => correctParametersCalled = true);
+
+            // Act
+            await _mockManager.Object.NotifPaiementMiseEnAvant(idAnnonce, idCompte, idMiseEnAvant);
+
+            // Assert
+            Assert.IsTrue(correctParametersCalled);
+            _mockManager.Verify(m => m.NotifPaiementMiseEnAvant(idAnnonce, idCompte, idMiseEnAvant), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantMultipleCallsTest()
+        {
+            // Arrange
+            int idMiseEnAvant = 1;
+
+            _mockManager.Setup(m => m.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant))
+                .Returns(Task.CompletedTask);
+
+            // Act - Appel multiple pour simuler des renouvellements
+            await _mockManager.Object.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant);
+
+            await _mockManager.Object.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant);
+
+            await _mockManager.Object.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant);
+
+            // Assert
+            _mockManager.Verify(m => m.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                idMiseEnAvant), Times.Exactly(3));
+        }
+
+        #endregion
     }
 }

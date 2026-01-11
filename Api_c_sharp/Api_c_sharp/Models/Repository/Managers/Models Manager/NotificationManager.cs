@@ -173,7 +173,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
             string url = $"/annonce/{idannonce}";
             string titre = "Paiemement";
-            string message = $"Votre mise en avant de grade '{miseEnAvant.LibelleMiseEnAvant} à {miseEnAvant.PrixSemaine}€' pour l'annonce #{annonce.Libelle} à été renouvellé. \nLe changement de grade de la mise en avant se trouve sur la page de modificaiton d'annonce (changement prix en compte la semaine suivant).";
+            string message = $"Votre mise en avant de grade '{miseEnAvant.LibelleMiseEnAvant} à {miseEnAvant.PrixSemaine}€' pour l'annonce #{annonce.Libelle} à été renouvellé. \nLe changement de grade de la mise en avant se trouve sur la page de modification d'annonce (changement prix en compte la semaine suivant).";
             string type = "paiement";
             await NotifCreationAutoAsync(idcomptes, url, titre, message, idannonce, type);
         }

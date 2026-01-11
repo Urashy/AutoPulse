@@ -418,7 +418,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 DateOffre = _objetcommun.DateOffre,
                 IdMessage = 1,
                 IdAnnonce = 1,
-                EstAccepte = null
+                EstAccepte = null  // Reste null, donc pas de notification
             };
 
             var message = new Message
@@ -430,6 +430,14 @@ namespace Api_c_sharp.ControllersMock.Tests
                 DateEnvoiMessage = DateTime.Now
             };
 
+            var annonce = new Annonce
+            {
+                IdAnnonce = 1,
+                IdCompte = 2,
+                Libelle = "Test annonce",
+                Prix = 10000
+            };
+
             var updatedOffre = _mapper.Map<Offre>(updatedOffreDTO);
 
             _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdOffre))
@@ -438,9 +446,21 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockMessageManager.Setup(m => m.GetByIdAsync(1))
                                .ReturnsAsync(message);
 
+            _mockAnnonceManager.Setup(m => m.GetByIdAsync(1))
+                               .ReturnsAsync(annonce);
+
             _mockManager.Setup(m => m.UpdateAsync(existingOffre, updatedOffre))
                        .Returns(Task.CompletedTask)
                        .Verifiable();
+
+            // Setup pour la notification (ne sera pas appelée car EstAccepte = null)
+            _notificationService.Setup(n => n.NotifOfrreAccepterOuRejeter(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<decimal>(),
+                It.IsAny<bool>()))
+                .Returns(Task.CompletedTask);
 
             var mockClients = new Mock<IHubClients>();
             var mockClientProxy = new Mock<IClientProxy>();
@@ -453,6 +473,17 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Offre>(), It.IsAny<Offre>()), Times.Once);
+
+            // Vérifier que la commande n'est pas créée quand EstAccepte = null
+            _mockCommandeManager.Verify(m => m.AddAsync(It.IsAny<Commande>()), Times.Never);
+
+            // Vérifier que la notification n'est pas envoyée quand EstAccepte = null
+            _notificationService.Verify(n => n.NotifOfrreAccepterOuRejeter(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<decimal>(),
+                It.IsAny<bool>()), Times.Never);
         }
 
         [TestMethod]

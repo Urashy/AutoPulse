@@ -10,7 +10,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 {
     [TestClass()]
     [TestCategory("unit")]
-    public class IAControllerMockTests
+    public class IAControllerTests
     {
         private Mock<IIAService> _mockIAService;
         private IAController _controller;

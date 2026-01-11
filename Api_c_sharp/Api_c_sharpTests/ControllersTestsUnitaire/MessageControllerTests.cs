@@ -261,6 +261,223 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
+        public async Task Post_Conflict_WhenPendingOfferExistsInConversation()
+        {
+            // Arrange
+            // Créer une offre en attente (EstAccepte = null ou true, pas false)
+            var messageAvecOffre = new Message
+            {
+                IdMessage = 10,
+                ContenuMessage = "Message avec offre en attente",
+                DateEnvoiMessage = DateTime.UtcNow,
+                IdConversation = 1,
+                IdCompte = 2,
+                EstLu = false
+            };
+            await _context.Messages.AddAsync(messageAvecOffre);
+            await _context.SaveChangesAsync();
+
+            var offreEnAttente = new Offre
+            {
+                IdOffre = 1,
+                IdMessage = messageAvecOffre.IdMessage,
+                Valeur = 9000,
+                DateOffre = DateTime.UtcNow,
+                EstAccepte = null // Offre en attente
+            };
+            await _context.Offres.AddAsync(offreEnAttente);
+            await _context.SaveChangesAsync();
+
+            MessageCreateDTO nouveauMessageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Nouvelle offre"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(nouveauMessageDTO, withOffre: true);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(ConflictObjectResult));
+
+            var conflictResult = (ConflictObjectResult)actionResult.Result;
+            Assert.AreEqual("Une offre en attente existe déjà dans cette conversation.", conflictResult.Value);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_WhenNoPendingOfferInConversation()
+        {
+            // Arrange
+            // Créer une offre refusée (EstAccepte = false)
+            var messageAvecOffreRefusee = new Message
+            {
+                IdMessage = 11,
+                ContenuMessage = "Message avec offre refusée",
+                DateEnvoiMessage = DateTime.UtcNow.AddDays(-1),
+                IdConversation = 1,
+                IdCompte = 2,
+                EstLu = true
+            };
+            await _context.Messages.AddAsync(messageAvecOffreRefusee);
+            await _context.SaveChangesAsync();
+
+            var offreRefusee = new Offre
+            {
+                IdOffre = 2,
+                IdMessage = messageAvecOffreRefusee.IdMessage,
+                Valeur = 8500,
+                DateOffre = DateTime.UtcNow.AddDays(-1),
+                EstAccepte = false // Offre refusée, donc on peut en créer une nouvelle
+            };
+            await _context.Offres.AddAsync(offreRefusee);
+            await _context.SaveChangesAsync();
+
+            MessageCreateDTO nouveauMessageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Nouvelle offre après refus"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(nouveauMessageDTO, withOffre: true);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdMessage = (Message)created.Value;
+
+            Assert.AreEqual(nouveauMessageDTO.ContenuMessage, createdMessage.ContenuMessage);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_WithoutOffre_IgnoresPendingOfferCheck()
+        {
+            // Arrange
+            // Même s'il y a une offre en attente, on peut envoyer un message normal
+            var messageAvecOffre = new Message
+            {
+                IdMessage = 12,
+                ContenuMessage = "Message avec offre",
+                DateEnvoiMessage = DateTime.UtcNow,
+                IdConversation = 1,
+                IdCompte = 2,
+                EstLu = false
+            };
+            await _context.Messages.AddAsync(messageAvecOffre);
+            await _context.SaveChangesAsync();
+
+            var offreEnAttente = new Offre
+            {
+                IdOffre = 3,
+                IdMessage = messageAvecOffre.IdMessage,
+                Valeur = 9500,
+                DateOffre = DateTime.UtcNow,
+                EstAccepte = null // Offre en attente
+            };
+            await _context.Offres.AddAsync(offreEnAttente);
+            await _context.SaveChangesAsync();
+
+            MessageCreateDTO messageNormalDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Message normal sans offre"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(messageNormalDTO, withOffre: false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdMessage = (Message)created.Value;
+
+            Assert.AreEqual(messageNormalDTO.ContenuMessage, createdMessage.ContenuMessage);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_FirstOfferInConversation()
+        {
+            // Arrange
+            // Nouvelle conversation sans aucune offre
+            var nouvelleConversation = new Conversation
+            {
+                IdConversation = 5,
+                IdAnnonce = 1,
+                DateDernierMessage = DateTime.UtcNow
+            };
+            await _context.Conversations.AddAsync(nouvelleConversation);
+            await _context.SaveChangesAsync();
+
+            MessageCreateDTO premierMessageAvecOffreDTO = new MessageCreateDTO()
+            {
+                IdConversation = 5,
+                IdCompte = 1,
+                ContenuMessage = "Première offre dans cette conversation"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(premierMessageAvecOffreDTO, withOffre: true);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdMessage = (Message)created.Value;
+
+            Assert.AreEqual(premierMessageAvecOffreDTO.ContenuMessage, createdMessage.ContenuMessage);
+        }
+
+        [TestMethod]
+        public async Task Post_Conflict_WhenOfferIsAccepted()
+        {
+            // Arrange
+            // Créer une offre acceptée (EstAccepte = true)
+            var messageAvecOffreAcceptee = new Message
+            {
+                IdMessage = 13,
+                ContenuMessage = "Message avec offre acceptée",
+                DateEnvoiMessage = DateTime.UtcNow.AddHours(-2),
+                IdConversation = 1,
+                IdCompte = 2,
+                EstLu = true
+            };
+            await _context.Messages.AddAsync(messageAvecOffreAcceptee);
+            await _context.SaveChangesAsync();
+
+            var offreAcceptee = new Offre
+            {
+                IdOffre = 4,
+                IdMessage = messageAvecOffreAcceptee.IdMessage,
+                Valeur = 9800,
+                DateOffre = DateTime.UtcNow.AddHours(-2),
+                EstAccepte = true // Offre acceptée, donc en attente de finalisation
+            };
+            await _context.Offres.AddAsync(offreAcceptee);
+            await _context.SaveChangesAsync();
+
+            MessageCreateDTO nouveauMessageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Tentative de nouvelle offre"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(nouveauMessageDTO, withOffre: true);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(ConflictObjectResult));
+
+            var conflictResult = (ConflictObjectResult)actionResult.Result;
+            Assert.AreEqual("Une offre en attente existe déjà dans cette conversation.", conflictResult.Value);
+        }
+
+        [TestMethod]
         public async Task BadRequestPostMessageTest()
         {
             // Arrange

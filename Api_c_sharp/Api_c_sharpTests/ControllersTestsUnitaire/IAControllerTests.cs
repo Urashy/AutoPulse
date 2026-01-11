@@ -17,7 +17,7 @@ using System.Text.Json;
 namespace Api_c_sharp.ControllersUnitaires.Tests
 {
     [TestClass()]
-    public class IAIntegrationTests
+    public class IAControllerTests
     {
         private IAController _controller;
         private IAManager _manager;
@@ -1024,6 +1024,395 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var okResult = (OkObjectResult)result.Result;
             var benchmarks = (Dictionary<string, BenchmarkIADTO>)okResult.Value;
             Assert.AreEqual(0, benchmarks.Count);
+        }
+
+        #endregion
+
+        #region Benchmark Sync Integration Tests
+
+        [TestMethod]
+        public async Task BenchmarkSync_Success()
+        {
+            // Arrange
+            var mockBenchmarkData = new
+            {
+                cnn_benchmark = new
+                {
+                    benchmark_id = "sync_cnn_001",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    stats = new
+                    {
+                        total_iterations = 100,
+                        successful_predictions = 95,
+                        failed_predictions = 5,
+                        success_rate_percent = 95.0,
+                        avg_inference_time_ms = 45.5,
+                        min_inference_time_ms = 40.0,
+                        max_inference_time_ms = 50.0,
+                        std_inference_time_ms = 2.5,
+                        predictions_per_second = 22.0,
+                        total_time_seconds = 4.55
+                    },
+                    system_info = new
+                    {
+                        platform = "Linux",
+                        processor = "Intel Core i7",
+                        python_version = "3.9.0",
+                        cpu_count = 8,
+                        memory_total_gb = 16.0,
+                        memory_available_gb = 8.0
+                    }
+                },
+                price_benchmark = new
+                {
+                    benchmark_id = "sync_pred_001",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    stats = new
+                    {
+                        total_iterations = 50,
+                        successful_predictions = 48,
+                        failed_predictions = 2,
+                        success_rate_percent = 96.0,
+                        avg_inference_time_ms = 32.5,
+                        min_inference_time_ms = 30.0,
+                        max_inference_time_ms = 35.0,
+                        std_inference_time_ms = 1.5,
+                        predictions_per_second = 30.77,
+                        total_time_seconds = 1.625
+                    },
+                    system_info = new
+                    {
+                        platform = "Windows",
+                        processor = "Intel Core i5",
+                        python_version = "3.10.0",
+                        cpu_count = 4,
+                        memory_total_gb = 8.0,
+                        memory_available_gb = 4.0
+                    }
+                },
+                adjustment_benchmark = new
+                {
+                    benchmark_id = "sync_adj_001",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    stats = new
+                    {
+                        total_iterations = 75,
+                        successful_predictions = 72,
+                        failed_predictions = 3,
+                        success_rate_percent = 96.0,
+                        avg_inference_time_ms = 28.0,
+                        min_inference_time_ms = 25.0,
+                        max_inference_time_ms = 30.0,
+                        std_inference_time_ms = 1.0,
+                        predictions_per_second = 35.71,
+                        total_time_seconds = 2.1
+                    },
+                    system_info = new
+                    {
+                        platform = "macOS",
+                        processor = "Apple M1",
+                        python_version = "3.11.0",
+                        cpu_count = 8,
+                        memory_total_gb = 16.0,
+                        memory_available_gb = 10.0
+                    }
+                }
+            };
+
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(mockBenchmarkData))
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("/benchmark/all")
+                    ),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            var result = await _manager.SyncBenchmarksFromPythonAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(3, result.Count());
+
+            var resultList = result.ToList();
+            Assert.IsTrue(resultList.Any(b => b.ModelType == "cnn"));
+            Assert.IsTrue(resultList.Any(b => b.ModelType == "prediction"));
+            Assert.IsTrue(resultList.Any(b => b.ModelType == "ajustement"));
+
+            // Vérifier que les benchmarks ont bien été créés dans la base de données
+            var dbBenchmarks = await _context.BenchmarksIA.ToListAsync();
+            Assert.AreEqual(3, dbBenchmarks.Count);
+        }
+
+        [TestMethod]
+        public async Task BenchmarkSync_PartialData_Success()
+        {
+            // Arrange - Seulement 2 benchmarks sur 3
+            var mockBenchmarkData = new
+            {
+                cnn_benchmark = new
+                {
+                    benchmark_id = "partial_cnn_001",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    stats = new
+                    {
+                        total_iterations = 100,
+                        successful_predictions = 95,
+                        failed_predictions = 5,
+                        success_rate_percent = 95.0,
+                        avg_inference_time_ms = 45.5,
+                        min_inference_time_ms = 40.0,
+                        max_inference_time_ms = 50.0,
+                        std_inference_time_ms = 2.5,
+                        predictions_per_second = 22.0,
+                        total_time_seconds = 4.55
+                    },
+                    system_info = new
+                    {
+                        platform = "Linux",
+                        processor = "Intel Core i7",
+                        python_version = "3.9.0",
+                        cpu_count = 8,
+                        memory_total_gb = 16.0,
+                        memory_available_gb = 8.0
+                    }
+                },
+                price_benchmark = new
+                {
+                    benchmark_id = "partial_pred_001",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    stats = new
+                    {
+                        total_iterations = 50,
+                        successful_predictions = 48,
+                        failed_predictions = 2,
+                        success_rate_percent = 96.0,
+                        avg_inference_time_ms = 32.5,
+                        min_inference_time_ms = 30.0,
+                        max_inference_time_ms = 35.0,
+                        std_inference_time_ms = 1.5,
+                        predictions_per_second = 30.77,
+                        total_time_seconds = 1.625
+                    },
+                    system_info = new
+                    {
+                        platform = "Windows",
+                        processor = "Intel Core i5",
+                        python_version = "3.10.0",
+                        cpu_count = 4,
+                        memory_total_gb = 8.0,
+                        memory_available_gb = 4.0
+                    }
+                }
+                // adjustment_benchmark manquant
+            };
+
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(mockBenchmarkData))
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("/benchmark/all")
+                    ),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            var result = await _manager.SyncBenchmarksFromPythonAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Count());
+            Assert.IsFalse(result.Any(b => b.ModelType == "ajustement"));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(HttpRequestException))]
+        public async Task BenchmarkSync_ApiUnavailable()
+        {
+            // Arrange
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable)
+            {
+                Content = new StringContent("Service Unavailable")
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("/benchmark/all")
+                    ),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            await _manager.SyncBenchmarksFromPythonAsync();
+        }
+
+        [TestMethod]
+        public async Task BenchmarkSync_Controller_Success()
+        {
+            // Arrange
+            var mockBenchmarkData = new
+            {
+                cnn_benchmark = new
+                {
+                    benchmark_id = "ctrl_sync_cnn",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    stats = new
+                    {
+                        total_iterations = 100,
+                        successful_predictions = 95,
+                        failed_predictions = 5,
+                        success_rate_percent = 95.0,
+                        avg_inference_time_ms = 45.5,
+                        min_inference_time_ms = 40.0,
+                        max_inference_time_ms = 50.0,
+                        std_inference_time_ms = 2.5,
+                        predictions_per_second = 22.0,
+                        total_time_seconds = 4.55
+                    },
+                    system_info = new
+                    {
+                        platform = "Linux",
+                        processor = "Intel Core i7",
+                        python_version = "3.9.0",
+                        cpu_count = 8,
+                        memory_total_gb = 16.0,
+                        memory_available_gb = 8.0
+                    }
+                },
+                price_benchmark = new
+                {
+                    benchmark_id = "ctrl_sync_pred",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    stats = new
+                    {
+                        total_iterations = 50,
+                        successful_predictions = 48,
+                        failed_predictions = 2,
+                        success_rate_percent = 96.0,
+                        avg_inference_time_ms = 32.5,
+                        min_inference_time_ms = 30.0,
+                        max_inference_time_ms = 35.0,
+                        std_inference_time_ms = 1.5,
+                        predictions_per_second = 30.77,
+                        total_time_seconds = 1.625
+                    },
+                    system_info = new
+                    {
+                        platform = "Windows",
+                        processor = "Intel Core i5",
+                        python_version = "3.10.0",
+                        cpu_count = 4,
+                        memory_total_gb = 8.0,
+                        memory_available_gb = 4.0
+                    }
+                },
+                adjustment_benchmark = new
+                {
+                    benchmark_id = "ctrl_sync_adj",
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    stats = new
+                    {
+                        total_iterations = 75,
+                        successful_predictions = 72,
+                        failed_predictions = 3,
+                        success_rate_percent = 96.0,
+                        avg_inference_time_ms = 28.0,
+                        min_inference_time_ms = 25.0,
+                        max_inference_time_ms = 30.0,
+                        std_inference_time_ms = 1.0,
+                        predictions_per_second = 35.71,
+                        total_time_seconds = 2.1
+                    },
+                    system_info = new
+                    {
+                        platform = "macOS",
+                        processor = "Apple M1",
+                        python_version = "3.11.0",
+                        cpu_count = 8,
+                        memory_total_gb = 16.0,
+                        memory_available_gb = 10.0
+                    }
+                }
+            };
+
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(mockBenchmarkData))
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("/benchmark/all")
+                    ),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            var result = await _controller.BenchmarkSync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            var okResult = (OkObjectResult)result.Result;
+            Assert.IsNotNull(okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task BenchmarkSync_Controller_ApiError()
+        {
+            // Arrange
+            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError)
+            {
+                Content = new StringContent("Internal Server Error")
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("/benchmark/all")
+                    ),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(mockResponse);
+
+            // Act
+            var result = await _controller.BenchmarkSync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
+            var objectResult = (ObjectResult)result.Result;
+            Assert.AreEqual(503, objectResult.StatusCode);
         }
 
         #endregion

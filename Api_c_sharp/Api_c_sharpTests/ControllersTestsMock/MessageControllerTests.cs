@@ -426,6 +426,160 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
+        public async Task Post_Conflict_WhenPendingOfferExists()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Message avec offre mais offre en attente existe"
+            };
+
+            // Simuler qu'une offre en attente existe déjà
+            _mockOffreManager.Setup(m => m.PendingOfferExistsInConversation(messageDTO.IdConversation))
+                             .ReturnsAsync(true);
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO, withOffre: true);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(ConflictObjectResult));
+
+            var conflictResult = (ConflictObjectResult)actionResult.Result;
+            Assert.AreEqual("Une offre en attente existe déjà dans cette conversation.", conflictResult.Value);
+
+            // Vérifier que AddAsync n'a jamais été appelé
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Never);
+            _mockJournalService.Verify(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_WhenNoPendingOfferExists()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Message avec offre et aucune offre en attente"
+            };
+
+            var messageEntity = _mapper.Map<Message>(messageDTO);
+            messageEntity.IdMessage = 20;
+            messageEntity.DateEnvoiMessage = DateTime.UtcNow;
+            messageEntity.EstLu = false;
+            messageEntity.Offres = new List<Offre> { new Offre() };
+
+            // Aucune offre en attente n'existe
+            _mockOffreManager.Setup(m => m.PendingOfferExistsInConversation(messageDTO.IdConversation))
+                             .ReturnsAsync(false);
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                        .ReturnsAsync(messageEntity);
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO, withOffre: true);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdMessage = (Message)created.Value;
+
+            Assert.AreEqual(messageDTO.ContenuMessage, createdMessage.ContenuMessage);
+
+            // Vérifier que la méthode de vérification a bien été appelée
+            _mockOffreManager.Verify(m => m.PendingOfferExistsInConversation(messageDTO.IdConversation), Times.Once);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Post_OK_WithoutOffre_SkipsPendingOfferCheck()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Message sans offre"
+            };
+
+            var messageEntity = _mapper.Map<Message>(messageDTO);
+            messageEntity.IdMessage = 21;
+            messageEntity.DateEnvoiMessage = DateTime.UtcNow;
+            messageEntity.EstLu = false;
+            messageEntity.Offres = new List<Offre>();
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                        .ReturnsAsync(messageEntity);
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var actionResult = await _controller.Post(messageDTO, withOffre: false);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+
+            // Vérifier que la méthode de vérification n'a PAS été appelée
+            _mockOffreManager.Verify(m => m.PendingOfferExistsInConversation(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.AddAsync(It.IsAny<Message>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Post_Conflict_CheckExecutedBeforeJournalAndAdd()
+        {
+            // Arrange
+            MessageCreateDTO messageDTO = new MessageCreateDTO()
+            {
+                IdConversation = 1,
+                IdCompte = 1,
+                ContenuMessage = "Test ordre d'exécution"
+            };
+
+            var callOrder = new List<string>();
+
+            _mockOffreManager.Setup(m => m.PendingOfferExistsInConversation(messageDTO.IdConversation))
+                             .Callback(() => callOrder.Add("CheckPendingOffer"))
+                             .ReturnsAsync(true);
+
+            _mockJournalService.Setup(j => j.LogEnvoiMessageAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int?>()))
+                .Callback(() => callOrder.Add("Journal"));
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Message>()))
+                        .Callback(() => callOrder.Add("AddAsync"));
+
+            // Act
+            await _controller.Post(messageDTO, withOffre: true);
+
+            // Assert
+            Assert.AreEqual(1, callOrder.Count);
+            Assert.AreEqual("CheckPendingOffer", callOrder[0]);
+            // Journal et AddAsync ne doivent pas être appelés
+        }
+
+        [TestMethod]
         public async Task Post_BadRequest_InvalidModelState()
         {
             // Arrange

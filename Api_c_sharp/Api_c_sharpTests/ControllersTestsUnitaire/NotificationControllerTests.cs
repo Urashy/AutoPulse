@@ -830,5 +830,222 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         #endregion
+
+        // Ajoutez cette région à la fin de la classe NotificationControllerTests (fichier d'intégration)
+        // Juste avant la fermeture #endregion NotifAnnonce
+
+        #region NotifPaiementMiseEnAvant
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantTest()
+        {
+            // Arrange
+            var miseEnAvant = new MiseEnAvant
+            {
+                LibelleMiseEnAvant = "Premium",
+                PrixSemaine = (decimal)9.99,
+            };
+
+            _context.MisesEnAvant.Add(miseEnAvant);
+            await _context.SaveChangesAsync();
+
+            // Act
+            await _manager.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                miseEnAvant.IdMiseEnAvant
+            );
+
+            var notifications = await _context.Notifications
+                .Where(n => n.Type == "paiement" && n.IdAnnonce == _annonceTest.IdAnnonce)
+                .ToListAsync();
+
+            // Assert
+            Assert.AreEqual(1, notifications.Count);
+            var notification = notifications.First();
+            Assert.AreEqual("Paiemement", notification.Titre);
+            Assert.IsTrue(notification.Message.Contains(miseEnAvant.LibelleMiseEnAvant));
+            Assert.IsTrue(notification.Message.Contains(miseEnAvant.PrixSemaine.ToString()));
+            Assert.IsTrue(notification.Message.Contains(_annonceTest.Libelle));
+            Assert.AreEqual($"/annonce/{_annonceTest.IdAnnonce}", notification.UrlNavigation);
+            Assert.AreEqual(_compteTest.IdCompte, notification.IdCompte);
+            Assert.IsFalse(notification.EstLue);
+        }
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantWithDifferentGradesTest()
+        {
+            // Arrange
+            var miseEnAvantBasic = new MiseEnAvant
+            {
+                LibelleMiseEnAvant = "Basic",
+                PrixSemaine = (decimal)4.99,
+            };
+
+            var miseEnAvantPremium = new MiseEnAvant
+            {
+                LibelleMiseEnAvant = "Premium",
+                PrixSemaine = (decimal)9.99,
+            };
+
+            _context.MisesEnAvant.AddRange(miseEnAvantBasic, miseEnAvantPremium);
+            await _context.SaveChangesAsync();
+
+            // Act - Premier paiement avec Basic
+            await _manager.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                miseEnAvantBasic.IdMiseEnAvant
+            );
+
+            // Act - Second paiement avec Premium
+            await _manager.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                miseEnAvantPremium.IdMiseEnAvant
+            );
+
+            var notifications = await _context.Notifications
+                .Where(n => n.Type == "paiement" && n.IdAnnonce == _annonceTest.IdAnnonce)
+                .OrderBy(n => n.DateCreation)
+                .ToListAsync();
+
+            // Assert
+            Assert.AreEqual(2, notifications.Count);
+
+            Assert.IsTrue(notifications[0].Message.Contains("Basic"));
+            Assert.IsTrue(notifications[0].Message.Contains("4,99"));
+
+            Assert.IsTrue(notifications[1].Message.Contains("Premium"));
+            Assert.IsTrue(notifications[1].Message.Contains("9,99"));
+        }
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantMessageContentTest()
+        {
+            // Arrange
+            var miseEnAvant = new MiseEnAvant
+            {
+                LibelleMiseEnAvant = "Gold",
+                PrixSemaine = (decimal)14.99,
+            };
+
+            _context.MisesEnAvant.Add(miseEnAvant);
+            await _context.SaveChangesAsync();
+
+            // Act
+            await _manager.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                miseEnAvant.IdMiseEnAvant
+            );
+
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.Type == "paiement" && n.IdAnnonce == _annonceTest.IdAnnonce);
+
+            // Assert
+            Assert.IsNotNull(notification);
+            Assert.IsTrue(notification.Message.Contains("Votre mise en avant"));
+            Assert.IsTrue(notification.Message.Contains("renouvellé"));
+            Assert.IsTrue(notification.Message.Contains("changement de grade"));
+            Assert.IsTrue(notification.Message.Contains("modification d'annonce"));
+        }
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantMultipleAnnoncesTest()
+        {
+            // Arrange
+            var annonce2 = new Annonce
+            {
+                Libelle = "Deuxième voiture",
+                Description = "Description 2",
+                Prix = 20000,
+                DatePublication = DateTime.Now,
+                IdCompte = _compteTest.IdCompte
+            };
+
+            var miseEnAvant = new MiseEnAvant
+            {
+                LibelleMiseEnAvant = "Premium",
+                PrixSemaine = (decimal)9.99,
+            };
+
+            _context.Annonces.Add(annonce2);
+            _context.MisesEnAvant.Add(miseEnAvant);
+            await _context.SaveChangesAsync();
+
+            // Act - Paiement pour annonce 1
+            await _manager.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                miseEnAvant.IdMiseEnAvant
+            );
+
+            // Act - Paiement pour annonce 2
+            await _manager.NotifPaiementMiseEnAvant(
+                annonce2.IdAnnonce,
+                _compteTest.IdCompte,
+                miseEnAvant.IdMiseEnAvant
+            );
+
+            var notificationsAnnonce1 = await _context.Notifications
+                .Where(n => n.Type == "paiement" && n.IdAnnonce == _annonceTest.IdAnnonce)
+                .ToListAsync();
+
+            var notificationsAnnonce2 = await _context.Notifications
+                .Where(n => n.Type == "paiement" && n.IdAnnonce == annonce2.IdAnnonce)
+                .ToListAsync();
+
+            // Assert
+            Assert.AreEqual(1, notificationsAnnonce1.Count);
+            Assert.AreEqual(1, notificationsAnnonce2.Count);
+
+            Assert.IsTrue(notificationsAnnonce1[0].Message.Contains(_annonceTest.Libelle));
+            Assert.IsTrue(notificationsAnnonce2[0].Message.Contains(annonce2.Libelle));
+
+            Assert.AreEqual($"/annonce/{_annonceTest.IdAnnonce}", notificationsAnnonce1[0].UrlNavigation);
+            Assert.AreEqual($"/annonce/{annonce2.IdAnnonce}", notificationsAnnonce2[0].UrlNavigation);
+        }
+
+        [TestMethod]
+        public async Task NotifPaiementMiseEnAvantNotificationPropertiesTest()
+        {
+            // Arrange
+            var miseEnAvant = new MiseEnAvant
+            {
+                LibelleMiseEnAvant = "Standard",
+                PrixSemaine = (decimal)6.99,
+            };
+
+            _context.MisesEnAvant.Add(miseEnAvant);
+            await _context.SaveChangesAsync();
+
+            var beforeCreation = DateTime.UtcNow;
+
+            // Act
+            await _manager.NotifPaiementMiseEnAvant(
+                _annonceTest.IdAnnonce,
+                _compteTest.IdCompte,
+                miseEnAvant.IdMiseEnAvant
+            );
+
+            var afterCreation = DateTime.UtcNow;
+
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.Type == "paiement" && n.IdAnnonce == _annonceTest.IdAnnonce);
+
+            // Assert - Vérifier toutes les propriétés de la notification
+            Assert.IsNotNull(notification);
+            Assert.AreEqual(_compteTest.IdCompte, notification.IdCompte);
+            Assert.AreEqual(_annonceTest.IdAnnonce, notification.IdAnnonce);
+            Assert.AreEqual("paiement", notification.Type);
+            Assert.AreEqual("Paiemement", notification.Titre);
+            Assert.IsFalse(notification.EstLue);
+            Assert.IsTrue(notification.DateCreation >= beforeCreation && notification.DateCreation <= afterCreation);
+            Assert.IsNull(notification.AncienPrix);
+            Assert.IsNull(notification.NouveauPrix);
+        }
+
+        #endregion
     }
 }
