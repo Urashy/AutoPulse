@@ -612,10 +612,6 @@ namespace BlazorAutoPulse.ViewModel
 
                 if (priceResult != null && priceResult.Success)
                 {
-                    _notificationService.ShowSuccess(
-                        "Prédiction du prix",
-                        $"Prix estimé : {priceResult.PredictedPrice:N0} {priceResult.Currency}"
-                    );
                 }
                 else
                 {
