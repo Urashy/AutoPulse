@@ -55,10 +55,20 @@
                     </div>
 
                     <div class="form-group">
+                        <label>Nom de la carte</label>
+                        <input type="text"
+                               placeholder="Carte personnelle"
+                               @bind="NomCarte"
+                               class="info-input"
+                               disabled="@IsSaving"
+                               required>
+                    </div>
+
+                    <div class="form-group">
                         <label>Nom du titulaire</label>
                         <input type="text"
                                placeholder="John Doe"
-                               @bind="NomCarte"
+                               @bind="NomTitulaire"
                                class="info-input"
                                disabled="@IsSaving"
                                required>
@@ -109,6 +119,8 @@
     private string CodeSecurite { get; set; } = "";
     private string DateExpirationInput { get; set; } = "";
     private string NomCarte { get; set; } = "";
+    private string NomTitulaire{ get; set; } = "";
+
 
     private string ErrorMessage { get; set; } = "";
     private string SuccessMessage { get; set; } = "";
@@ -175,6 +187,12 @@
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(NomTitulaire))
+        {
+            ErrorMessage = "Le nom du titulaire de la carte est requis";
+            return;
+        }
+
         IsSaving = true;
         StateHasChanged();
 
@@ -188,7 +206,8 @@
                 CodeSecurite = CodeSecurite,
                 DateExpiration = DateExpirationInput,
                 IdCompte = compte.IdCompte,
-                NomCarte = NomCarte
+                NomCarte = NomCarte,
+                NomTitulaire = NomTitulaire
             };
 
             Console.WriteLine(nouvelleCarte.DateExpiration);
@@ -231,6 +250,7 @@
         CodeSecurite = "";
         DateExpirationInput = "";
         NomCarte = "";
+        NomTitulaire = "";
         ErrorMessage = "";
         SuccessMessage = "";
 
