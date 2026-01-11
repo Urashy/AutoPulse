@@ -48,7 +48,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return base.AddAsync(entity);
         }
 
-        public async Task<IEnumerable<CarteBancaire>> GetCarteBancaireByCompteId(int compteid)
+        public virtual async Task<IEnumerable<CarteBancaire>> GetCarteBancaireByCompteId(int compteid)
         {
             var cartes = await dbSet.Where(c => c.IdCompte == compteid).ToListAsync();
             foreach (var carte in cartes)

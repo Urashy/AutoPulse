@@ -65,7 +65,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 DateExpiration = DateTime.Now,
                 IdCompte = 1,
                 TypeCarte = "VISA",
-                NomCarte = "carte perso"
+                NomCarte = "carte perso",
+                NomTitulaire = "Jean Dupont"
             };
             _context.TypesCompte.Add(typeCompte);
             _context.Comptes.Add(compte);

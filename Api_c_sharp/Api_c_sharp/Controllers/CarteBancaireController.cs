@@ -158,7 +158,7 @@ namespace Api_c_sharp.Controllers
         {
             var list = await _manager.GetCarteBancaireByCompteId(idcompte);
 
-            if (!list.Any())
+            if (list is null || !list.Any())
                 return NotFound();
 
             return new ActionResult<IEnumerable<CarteBancaireDTO>>(_mapper.Map<IEnumerable<CarteBancaireDTO>>(list));

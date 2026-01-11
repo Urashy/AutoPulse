@@ -200,7 +200,14 @@ public class MapperProfile : Profile
                 )
             ));
 
-        CreateMap<CarteBancaireUpdateDTO, CarteBancaire>().ReverseMap();
+        CreateMap<CarteBancaireUpdateDTO, CarteBancaire>()
+            .ForMember(dest => dest.DateExpiration, opt => opt.MapFrom(src =>
+                new DateTime(
+                    2000 + int.Parse(src.DateExpiration.Substring(3, 2)),
+                    int.Parse(src.DateExpiration.Substring(0, 2)),
+                    2
+                )
+            ));
 
         //---------------------------------Categorie---------------------------------
 
