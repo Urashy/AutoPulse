@@ -32,7 +32,11 @@ namespace Api_c_sharp.Models.Entity
         public string TypeCarte { get; set; } = null!;
 
         [Column("cba_nomcarte")]
-        public string? NomCarte { get; set; } 
+        public string? NomCarte { get; set; }
+
+        [Column("cba_nomtitulaire")]
+        public string? NomTitulaire { get; set; }
+
 
         [ForeignKey(nameof(IdCompte))]
         [InverseProperty(nameof(Compte.CarteBancaires))]

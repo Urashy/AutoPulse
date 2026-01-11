@@ -714,7 +714,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
 
             var updatedSignalement = await _context.Signalements
                 .Include(s => s.TypeSignalementSignalementNav)
@@ -749,7 +749,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            Assert.AreEqual("En raison d'une commande ou de paiement votre annonce a été archivée", ((OkObjectResult)result).Value);
         }
 
         [TestMethod]

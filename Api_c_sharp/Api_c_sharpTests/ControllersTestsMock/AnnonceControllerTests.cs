@@ -891,7 +891,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
 
             // Vérifier que le signalement a été modifié même si la suppression échoue
             Assert.IsNull(signalement.IdAnnonceSignale);
@@ -925,7 +925,8 @@ namespace Api_c_sharp.ControllersMock.Tests
             var result = await _controller.Delete(_objetcommun.IdAnnonce);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            Assert.AreEqual("En raison d'une commande ou de paiement votre annonce a été archivée", ((OkObjectResult)result).Value);
         }
 
         [TestMethod]

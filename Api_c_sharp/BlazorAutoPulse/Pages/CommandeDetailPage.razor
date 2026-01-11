@@ -6,7 +6,18 @@
 
 <PageTitle>Commande #@IdCommande - AutoPulse</PageTitle>
 
-@if (VM.IsLoading)
+@* Integration de la Modale de Paiement *@
+@if (VM?.Commande != null)
+{
+    <PaiementModal IsVisible="@VM.ShowPaiementModal"
+                   IdCb="@((int value) => VM.SetIdCb(value))"
+                   Id="@VM.Commande.IdCommande"
+                   Type="commande"
+                   IsVisibleChanged="@((bool value) => VM.ShowPaiementModal = value)"
+                   OnPaymentSuccess="@VM.OnPaymentSuccess" />
+}
+
+@if (VM == null || VM.IsLoading)
 {
     <div class="loading-container">
         <div class="loader"></div>
@@ -83,7 +94,7 @@ else
                     </div>
                     <div class="info-item">
                         <span class="info-label">Moyen de paiement</span>
-                        <span class="info-value">@VM.Commande.MoyenPaiement</span>
+                        <span class="info-value">@(VM.Commande.MoyenPaiement ?? "Non défini")</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Prix final</span>
@@ -118,7 +129,7 @@ else
                 <div class="partie-card">
                     <h3>👤 Acheteur</h3>
                     <div class="partie-info">
-                        <p class="partie-name">@VM.Commande.PseudoAcheteur</p>
+                        <p class="partie-name">@(VM.Commande.PseudoAcheteur ?? "Inconnu")</p>
                         @if (VM.IsVendeur)
                         {
                             <button class="btn-contact-mini" @onclick="VM.ContacterAcheteur">
@@ -135,7 +146,7 @@ else
                 <div class="partie-card">
                     <h3>👤 Vendeur</h3>
                     <div class="partie-info">
-                        <p class="partie-name">@VM.Commande.PseudoVendeur</p>
+                        <p class="partie-name">@(VM.Commande.PseudoVendeur ?? "Inconnu")</p>
                         @if (VM.IsAcheteur)
                         {
                             <button class="btn-contact-mini" @onclick="VM.ContacterVendeur">
@@ -155,109 +166,41 @@ else
             {
                 <div class="action-section">
                     <h2>💳 Paiement</h2>
+                    <div class="payment-choice">
+                        <p class="payment-info">Choisissez votre mode de paiement pour finaliser l'achat :</p>
 
-                    @if (!VM.ShowPaymentForm)
-                    {
-                        <div class="payment-choice">
-                            <p class="payment-info">Choisissez votre mode de paiement pour finaliser l'achat :</p>
-
-                            <button class="payment-option-card" @onclick="VM.SelectPaymentCarte">
-                                <div class="payment-icon">💳</div>
+                        <button class="payment-option-card main-option" @onclick="VM.OpenPaiementModal">
+                            <div class="payment-icon">💳</div>
+                            <div class="payment-details">
                                 <div class="payment-label">Carte bancaire</div>
-                                <div class="payment-desc">Paiement en ligne sécurisé (validation immédiate)</div>
+                                <div class="payment-desc">Paiement sécurisé et validation immédiate</div>
+                            </div>
+                            <div class="payment-arrow">➔</div>
+                        </button>
+
+                        <div class="separator-text">Ou autres moyens (validation par le vendeur requise)</div>
+
+                        <div class="other-payments-grid">
+                            <button class="payment-option-mini" @onclick="() => VM.SelectAutrePaiement(2)" disabled="@VM.IsProcessingPayment">
+                                <span class="icon">🏦</span> Virement Bancaire
                             </button>
 
-                            <button class="payment-option-card" @onclick="VM.SelectPaymentAutre">
-                                <div class="payment-icon">💵</div>
-                                <div class="payment-label">Autre moyen</div>
-                                <div class="payment-desc">Espèces, chèque, virement... (nécessite confirmation du vendeur)</div>
+                            <button class="payment-option-mini"
+                                    @onclick="() => VM.SelectAutrePaiement(3)"
+                                    disabled="@(VM.IsProcessingPayment || !VM.CanPayCash)"
+                                    title="@(!VM.CanPayCash ? "Montant supérieur à 1000€" : "")">
+                                <span class="icon">💵</span> Espèces
+                                @if (!VM.CanPayCash)
+                                {
+                                    <span class="badge-limit">Non autorisé (>1000€)</span>
+                                }
+                            </button>
+
+                            <button class="payment-option-mini" @onclick="() => VM.SelectAutrePaiement(4)" disabled="@VM.IsProcessingPayment">
+                                <span class="icon">📝</span> Chèque de banque
                             </button>
                         </div>
-                    }
-                    else if (VM.SelectedPaymentType == "carte")
-                    {
-                        <div class="payment-form">
-                            <div class="form-group">
-                                <label>Sélectionnez une carte</label>
-                                @if (VM.MesCartes.Any())
-                                {
-                                    <select class="form-input" @bind="VM.SelectedCardId">
-                                        @foreach (var carte in VM.MesCartes)
-                                        {
-                                            <option value="@carte.IdCarteBancaire">
-                                                💳 **** **** **** @carte.NumeroCarte.Substring(Math.Max(0, carte.NumeroCarte.Length - 4))
-                                                (Exp: @carte.DateExpiration)
-                                            </option>
-                                        }
-                                    </select>
-                                }
-                                else
-                                {
-                                    <p class="no-data-msg">Aucune carte enregistrée.</p>
-                                }
-
-                                <button class="btn-link mt-2" style="margin-top:10px; text-decoration:underline; border:none; background:none; color:#007bff; cursor:pointer;" @onclick="VM.OpenAddCardModal">
-                                    ➕ Ajouter une nouvelle carte
-                                </button>
-                            </div>
-
-                            @if (!string.IsNullOrEmpty(VM.PaymentError))
-                            {
-                                <div class="error-message-box">
-                                    @VM.PaymentError
-                                </div>
-                            }
-
-                            <div class="action-buttons">
-                                <button class="btn-secondary" @onclick="VM.CancelPayment" disabled="@VM.IsProcessingPayment">
-                                    Annuler
-                                </button>
-
-                                <button class="btn-primary"
-                                        @onclick="VM.ValidateCardPayment"
-                                        disabled="@(VM.IsProcessingPayment || !VM.MesCartes.Any())">
-                                    @if (VM.IsProcessingPayment)
-                                    {
-                                        <span>⏳ Traitement...</span>
-                                    }
-                                    else
-                                    {
-                                        <span>💳 Payer @(VM.PrixFinal.ToString("N0")) €</span>
-                                    }
-                                </button>
-                            </div>
-                        </div>
-                    }
-                    else if (VM.SelectedPaymentType == "autre")
-                    {
-                        <div class="autre-payment-info">
-                            <div class="info-box">
-                                <p><strong>Instructions :</strong></p>
-                                <p>Vous avez choisi de régler par un autre moyen (espèces, chèque, virement...).</p>
-                                <p>
-                                    Une fois que vous aurez effectué le paiement auprès du vendeur,
-                                    cliquez sur le bouton ci-dessous pour l'en informer.
-                                    Le vendeur devra ensuite confirmer la réception du paiement.
-                                </p>
-                            </div>
-
-                            <div class="action-buttons">
-                                <button class="btn-secondary" @onclick="VM.CancelPayment" disabled="@VM.IsProcessingPayment">
-                                    Annuler
-                                </button>
-                                <button class="btn-primary" @onclick="VM.ConfirmAutrePayment" disabled="@VM.IsProcessingPayment">
-                                    @if (VM.IsProcessingPayment)
-                                    {
-                                        <span>⏳ Envoi...</span>
-                                    }
-                                    else
-                                    {
-                                        <span>✓ J'ai effectué le paiement</span>
-                                    }
-                                </button>
-                            </div>
-                        </div>
-                    }
+                    </div>
                 </div>
             }
 
@@ -267,10 +210,10 @@ else
                 <div class="action-section">
                     <h2>⏳ Confirmation du paiement</h2>
                     <div class="info-box">
-                        <p><strong>L'acheteur a indiqué avoir effectué le paiement.</strong></p>
+                        <p><strong>L'acheteur a indiqué avoir effectué un paiement par @(VM.Commande.MoyenPaiement ?? "un moyen non défini").</strong></p>
                         <p>
-                            Une fois que vous avez bien reçu l'argent (virement, espèces, chèque...),
-                            confirmez ci-dessous pour valider la transaction et passer à l'étape de livraison.
+                            Vérifiez que vous avez bien reçu les fonds (sur votre compte, en main propre, etc.).
+                            Confirmez ci-dessous uniquement lorsque vous êtes sûr.
                         </p>
                     </div>
 
@@ -283,8 +226,8 @@ else
             {
                 <div class="info-section waiting">
                     <h2>⏳ En attente</h2>
-                    <p>Vous avez confirmé avoir effectué le paiement.</p>
-                    <p>Le vendeur doit maintenant confirmer la réception pour poursuivre la transaction.</p>
+                    <p>Vous avez déclaré un paiement par <strong>@(VM.Commande.MoyenPaiement ?? "un moyen non défini")</strong>.</p>
+                    <p>Le vendeur doit confirmer la réception pour poursuivre la transaction.</p>
                 </div>
             }
 
@@ -422,10 +365,6 @@ else
             }
         </div>
     </div>
-
-    <CarteBancaireModal IsVisible="@VM.IsCardModalVisible"
-                        IsVisibleChanged="@((val) => VM.IsCardModalVisible = val)"
-                        OnCarteSaved="@VM.OnCardAdded" />
 }
 
 @code {
