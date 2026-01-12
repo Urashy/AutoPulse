@@ -168,6 +168,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         {
             return await dbSet.Include(a => a.VoitureAnnonceNav)
                 .ThenInclude(v => v.Images)
+                .Include(a => a.Conversations)
                 .Where(a => a.IdCompte == compteId && a.IdEtatAnnonce == 1)
                 .ToListAsync();
         }

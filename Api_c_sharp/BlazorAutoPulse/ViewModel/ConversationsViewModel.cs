@@ -22,6 +22,7 @@ public class ConversationViewModel : IDisposable
     private readonly IAnnonceService _annonceService;
     private readonly NotificationService _notificationService; 
     private readonly ICommandeService _commandeService;
+    private readonly IConversationService _conversationService;
 
     public List<MessageDTO> Messages { get; private set; } = new();
     public CommandeDTO? CommandeEnCours { get; private set; }
@@ -31,7 +32,7 @@ public class ConversationViewModel : IDisposable
     public string NewMessage 
     { 
         get => _newMessage;
-        set => _newMessage = value; // ✅ AUCUN NotifyStateChanged
+        set => _newMessage = value;
     }
     
     public bool IsTyping { get; private set; } = false;
@@ -48,12 +49,16 @@ public class ConversationViewModel : IDisposable
 
     public List<ConversationListDTO> Conversations => _conversationState.Conversations;
     public int CurrentUserId => _conversationState.CurrentUserId;
-    public bool IsLoading => _conversationState.IsLoading;
+    private bool _isLoading = false;
+    public bool IsLoading 
+    { 
+        get => _isLoading;
+        private set => _isLoading = value;
+    }
     public Dictionary<int, string> ImageSources => _conversationState.ImageSources;
     
     public bool EstBloquer { get; set; }
     public string BlocageType { get; set; }
-
 
     public bool ShowOffreMode { get; set; } = false;
     public decimal OffreAmount { get; set; } = 0;
@@ -66,6 +71,12 @@ public class ConversationViewModel : IDisposable
     
     public event Func<Task>? OnScrollRequested;
 
+    // ========== NOUVEAU : Filtrage par annonce ==========
+    public List<AnnonceDTO> MesAnnonces { get; private set; } = new();
+    public int SelectedAnnonceFilter { get; private set; } = 0;
+    public bool IsLoadingAnnonces { get; private set; } = false;
+    public List<ConversationListDTO> ConversationsFiltered { get; private set; } = new();
+
     public ConversationViewModel(
         ConversationStateService conversationState,
         ISignalRService signalR,
@@ -76,7 +87,8 @@ public class ConversationViewModel : IDisposable
         IOffreService offreService,
         IAnnonceService annonceService,
         NotificationService notificationService,
-        ICommandeService commandeService)
+        ICommandeService commandeService,
+        IConversationService conversationService)
     {
         _conversationState = conversationState;
         _signalR = signalR;
@@ -88,6 +100,7 @@ public class ConversationViewModel : IDisposable
         _annonceService = annonceService;
         _notificationService = notificationService;
         _commandeService = commandeService;
+        _conversationService = conversationService;
 
         _signalR.OnMessageReceived += HandleMessageReceived;
         _signalR.OnUserTyping += HandleUserTyping;
@@ -95,17 +108,118 @@ public class ConversationViewModel : IDisposable
         _conversationState.OnStateChanged += HandleGlobalStateChanged;
         _signalR.OnOffreStatusChanged += HandleOffreStatusChanged;
         _signalR.OnMessageWithOffreReceived += HandleMessageWithOffreReceived;
-        
     }
 
     public async Task InitializeAsync()
     {
         await _conversationState.InitializeAsync();
+        await LoadMesAnnonces();
+        await LoadConversations(0); // Charge toutes les conversations au départ
+    }
+
+    // ========== NOUVEAU : Chargement des conversations avec filtre ==========
+    private async Task LoadConversations(int idAnnonce)
+    {
+        IsLoading = true;
+        NotifyStateChanged();
+
+        try
+        {
+            var conversations = await _conversationService.GetConversationsByCompteID(CurrentUserId, idAnnonce);
+            ConversationsFiltered = conversations.ToList();
+            
+            // Rejoindre les conversations SignalR et charger les images
+            foreach (var conv in ConversationsFiltered)
+            {
+                if (!_conversationState.Conversations.Any(c => c.IdConversation == conv.IdConversation))
+                {
+                    await _signalR.JoinConversation(conv.IdConversation);
+                }
+                
+                if (!ImageSources.ContainsKey(conv.IdParticipant))
+                {
+                    await GetImageProfil(conv.IdParticipant);
+                }
+            }
+            
+            Console.WriteLine($"✅ {ConversationsFiltered.Count} conversations chargées (filtre annonce: {idAnnonce})");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur chargement conversations: {ex.Message}");
+            ConversationsFiltered = new List<ConversationListDTO>();
+        }
+        finally
+        {
+            IsLoading = false;
+            NotifyStateChanged();
+        }
+    }
+
+    private async Task GetImageProfil(int idCompte)
+    {
+        if (ImageSources.ContainsKey(idCompte))
+            return;
+
+        try
+        {
+            var img = await _conversationState.GetImageProfilAsync(idCompte);
+            if (!string.IsNullOrEmpty(img))
+            {
+                ImageSources[idCompte] = img;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur chargement image {idCompte}: {ex.Message}");
+        }
+    }
+
+    // ========== NOUVEAU : Chargement des annonces de l'utilisateur ==========
+    private async Task LoadMesAnnonces()
+    {
+        IsLoadingAnnonces = true;
+        NotifyStateChanged();
+
+        try
+        {
+            var annonces = await _annonceService.GetByCompteID(CurrentUserId);
+            MesAnnonces = annonces.ToList();
+            Console.WriteLine($"✅ {MesAnnonces.Count} annonces chargées pour filtrage");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur chargement annonces: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingAnnonces = false;
+            NotifyStateChanged();
+        }
+    }
+
+    // ========== NOUVEAU : Sélection du filtre annonce ==========
+    public async Task SelectAnnonceFilter(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out int idAnnonce))
+        {
+            idAnnonce = 0;
+        }
+        
+        if (SelectedAnnonceFilter == idAnnonce)
+            return; // Pas de changement
+        
+        SelectedAnnonceFilter = idAnnonce;
+        SelectedConversation = null;
+        Messages.Clear();
+        
+        Console.WriteLine($"🔍 Filtrage par annonce: {(idAnnonce == 0 ? "Toutes" : idAnnonce.ToString())}");
+        
+        await LoadConversations(idAnnonce);
     }
 
     public async Task SelectConversation(ConversationListDTO conv)
     {
-
         SelectedConversation = conv;
         CommandeEnCours = null;
         await LoadMessages(conv.IdConversation);
@@ -136,7 +250,6 @@ public class ConversationViewModel : IDisposable
     {
         if (SelectedConversation == null) return;
 
-        // Trouver le message contenant cette offre
         var message = Messages.FirstOrDefault(m =>
             m.Offres != null && m.Offres.Any(o => o.IdOffre == idOffre));
 
@@ -159,11 +272,20 @@ public class ConversationViewModel : IDisposable
 
         try
         {
-            var conv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
+            // Chercher dans ConversationsFiltered au lieu de Conversations
+            var conv = ConversationsFiltered.FirstOrDefault(c => c.IdConversation == conversationId);
             if (conv != null && conv.NombreNonLu > 0)
             {
                 Console.WriteLine($"📭 Marquage de {conv.NombreNonLu} messages comme lus");
                 conv.NombreNonLu = 0;
+                
+                // Mettre à jour aussi dans Conversations global si présent
+                var globalConv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
+                if (globalConv != null)
+                {
+                    globalConv.NombreNonLu = 0;
+                }
+                
                 _conversationState.NotifyMessagesRead();
             }
 
@@ -394,9 +516,6 @@ public class ConversationViewModel : IDisposable
         _typingTimer?.Dispose();
     }
 
-
-    //OFFRES
-
     public async Task ToggleOffreMode()
     {
         ShowOffreMode = !ShowOffreMode;
@@ -421,7 +540,7 @@ public class ConversationViewModel : IDisposable
         {
             OffreAmount = 0;
             OffreError = "";
-            OffreInfoMessage = ""; // Reset du message
+            OffreInfoMessage = "";
         }
 
         NotifyStateChanged();
@@ -441,9 +560,8 @@ public class ConversationViewModel : IDisposable
 
                 if (diff > 0)
                 {
-                    // Prix inférieur à l'annonce (Réduction)
                     OffreInfoMessage = $"Réduction de {diff:N0} € (-{percentage:F1}%)";
-                    OffreInfoClass = "offre-reduction"; // Classe CSS pour vert/positif
+                    OffreInfoClass = "offre-reduction";
                 }
                 else if (diff < 0)
                 {
@@ -517,9 +635,9 @@ public class ConversationViewModel : IDisposable
             {
                 Console.WriteLine($"❌ Erreur API : {result.ErrorMessage}");
                 _newMessage = messageText;
-                _notificationService.ShowError("Erreur lors de l'envoie du message",result.ErrorMessage);
+                _notificationService.ShowError("Erreur lors de l'envoie du message", result.ErrorMessage);
                 NotifyStateChanged();
-                return; 
+                return;
             }
 
             var createdMessage = result.Data;
@@ -614,7 +732,7 @@ public class ConversationViewModel : IDisposable
         }
     }
 
-    public async Task  AccepterOffre(int idOffre)
+    public async Task AccepterOffre(int idOffre)
     {
         try
         {
@@ -642,7 +760,6 @@ public class ConversationViewModel : IDisposable
             if (success)
             {
                 Console.WriteLine($"✅ Offre {idOffre} refusée");
-                // Recharger les messages
                 if (SelectedConversation != null)
                 {
                     await LoadMessages(SelectedConversation.IdConversation);

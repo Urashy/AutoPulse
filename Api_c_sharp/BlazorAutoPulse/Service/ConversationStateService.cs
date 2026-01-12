@@ -114,7 +114,7 @@ public class ConversationStateService : IDisposable
     {
         try
         {
-            Conversations = (await _conversationService.GetConversationsByCompteID(CurrentUserId)).ToList();
+            Conversations = (await _conversationService.GetConversationsByCompteID(CurrentUserId, 0)).ToList();
         }
         catch
         {
@@ -219,7 +219,7 @@ public class ConversationStateService : IDisposable
     
         try
         {
-            var freshConversations = await _conversationService.GetConversationsByCompteID(CurrentUserId);
+            var freshConversations = await _conversationService.GetConversationsByCompteID(CurrentUserId, 0);
             
             foreach (var conv in freshConversations)
             {
@@ -237,6 +237,39 @@ public class ConversationStateService : IDisposable
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Erreur lors du rechargement des conversations: {ex.Message}");
+        }
+    }
+    
+    public async Task<string> GetImageProfilAsync(int idCompte)
+    {
+        if (ImageSources.ContainsKey(idCompte))
+            return ImageSources[idCompte];
+
+        try
+        {
+            ImageDTO? img = await _imageService.GetImageProfil(idCompte);
+            string imageSource;
+
+            if (img != null && img.Fichier != null && img.Fichier.Length > 0)
+            {
+                var base64 = Convert.ToBase64String(img.Fichier);
+                imageSource = $"data:image/jpeg;base64,{base64}";
+            }
+            else
+            {
+                imageSource = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
+            }
+
+            ImageSources[idCompte] = imageSource;
+            NotifyStateChanged();
+            return imageSource;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur chargement image {idCompte}: {ex.Message}");
+            var defaultImage = "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg";
+            ImageSources[idCompte] = defaultImage;
+            return defaultImage;
         }
     }
 
