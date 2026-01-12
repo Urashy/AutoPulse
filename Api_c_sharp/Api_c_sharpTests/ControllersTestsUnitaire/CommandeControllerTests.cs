@@ -43,7 +43,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _journalService = new JournalManager(_context, NullLogger<JournalManager>.Instance);
             _manager = new CommandeManager(_context);
             _annnonceManager = new AnnonceManager(_context);
-            _controller = new CommandeController(_manager, _mapper, _journalService,_annnonceManager);
+            _controller = new CommandeController(_manager, _mapper, _journalService, _annnonceManager);
 
             // Reset DB
             _context.Commandes.RemoveRange(_context.Commandes);
@@ -51,7 +51,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // ----- ENTITÉS -----
 
-            // 1. TypeCompte (must be saved first)
+            // 1. TypeCompte
             var typeCompte = new TypeCompte()
             {
                 IdTypeCompte = 1,
@@ -59,7 +59,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Cherchable = true
             };
             await _context.TypesCompte.AddAsync(typeCompte);
-            await _context.SaveChangesAsync(); // Save before creating Comptes
+            await _context.SaveChangesAsync();
 
             // 2. EtatCompte
             var etatCompte = new EtatCompte()
@@ -70,7 +70,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.EtatComptes.AddAsync(etatCompte);
             await _context.SaveChangesAsync();
 
-            // 3. Comptes (Fixed: acheteur = 1, vendeur = 2)
+            // 3. Comptes
             var acheteur = new Compte
             {
                 IdCompte = 1,
@@ -104,7 +104,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.Comptes.AddAsync(vendeur);
             await _context.SaveChangesAsync();
 
-            // 4. Pays (needed for Adresse)
+            // 4. Pays
             var pays = new Pays()
             {
                 IdPays = 1,
@@ -122,7 +122,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Rue = "Rue de la Paix",
                 LibelleVille = "Paris",
                 CodePostal = "75001",
-                IdCompte = 2, // Vendeur's address
+                IdCompte = 2,
                 IdPays = 1
             };
             await _context.Adresses.AddAsync(adresse);
@@ -199,13 +199,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.Voitures.AddAsync(voiture);
             await _context.SaveChangesAsync();
 
-            // 8. EtatAnnonce
-            var etatAnnonce = new EtatAnnonce()
+            // 8. EtatAnnonce (ajout de l'état 2 pour le test)
+            var etatAnnonce1 = new EtatAnnonce()
             {
                 IdEtatAnnonce = 1,
                 LibelleEtatAnnonce = "Publiée"
             };
-            await _context.EtatAnnonces.AddAsync(etatAnnonce);
+            var etatAnnonce2 = new EtatAnnonce()
+            {
+                IdEtatAnnonce = 2,
+                LibelleEtatAnnonce = "Vendue"
+            };
+            await _context.EtatAnnonces.AddAsync(etatAnnonce1);
+            await _context.EtatAnnonces.AddAsync(etatAnnonce2);
 
             // 9. MiseEnAvant
             var miseEnAvant = new MiseEnAvant()
@@ -222,7 +228,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             {
                 IdAnnonce = 1,
                 Libelle = "Super produit",
-                IdCompte = 2, // Vendeur
+                IdCompte = 2,
                 IdEtatAnnonce = 1,
                 IdAdresse = 1,
                 IdVoiture = 1,
@@ -241,16 +247,28 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             };
             await _context.MoyensPaiements.AddAsync(moyenPaiement);
 
-            // 12. EtatCommande
-            var etatCommande = new EtatCommande()
+            // 12. EtatCommande (ajout de tous les états nécessaires)
+            var etatCommande1 = new EtatCommande()
             {
                 IdEtatCommande = 1,
                 Libelle = "En cours"
             };
-            await _context.EtatCommandes.AddAsync(etatCommande);
+            var etatCommande4 = new EtatCommande()
+            {
+                IdEtatCommande = 4,
+                Libelle = "Confirmée"
+            };
+            var etatCommande5 = new EtatCommande()
+            {
+                IdEtatCommande = 5,
+                Libelle = "Terminée"
+            };
+            await _context.EtatCommandes.AddAsync(etatCommande1);
+            await _context.EtatCommandes.AddAsync(etatCommande4);
+            await _context.EtatCommandes.AddAsync(etatCommande5);
             await _context.SaveChangesAsync();
 
-            // 13. Conversation (needed for Message)
+            // 13. Conversation
             var conversation = new Conversation()
             {
                 IdConversation = 1,
@@ -260,20 +278,20 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.Conversations.AddAsync(conversation);
             await _context.SaveChangesAsync();
 
-            // 14. Message (needed for Offre)
+            // 14. Message
             var message = new Message()
             {
                 IdMessage = 1,
                 ContenuMessage = "Je suis intéressé",
                 DateEnvoiMessage = DateTime.UtcNow,
                 IdConversation = 1,
-                IdCompte = 1, // Acheteur
+                IdCompte = 1,
                 EstLu = false
             };
             await _context.Messages.AddAsync(message);
             await _context.SaveChangesAsync();
 
-            // 15. Offre (CRITICAL - was missing!)
+            // 15. Offre
             var offre = new Offre()
             {
                 IdOffre = 1,
@@ -286,13 +304,13 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             await _context.Offres.AddAsync(offre);
             await _context.SaveChangesAsync();
 
-            // 16. Finally, create the Commande
+            // 16. Commande
             _commandeCommun = new Commande()
             {
                 IdCommande = 1,
                 IdAnnonce = 1,
-                IdAcheteur = 1, // john
-                IdVendeur = 2,  // johny
+                IdAcheteur = 1,
+                IdVendeur = 2,
                 IdOffre = 1,
                 IdMoyenPaiement = 1,
                 IdEtatCommande = 1,
@@ -304,7 +322,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         #region GET
-            #region GetById
+        #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -334,7 +352,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-            #region GetAll
+        #region GetAll
         [TestMethod]
         public async Task GetAllTest()
         {
@@ -347,16 +365,16 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-            #region GetCommandeByCompteID
+        #region GetCommandeByCompteID
         [TestMethod]
-         public async Task GetCommandeByCompteIDTest()
-         {
+        public async Task GetCommandeByCompteIDTest()
+        {
             // Act
             var result = await _controller.GetCommandeByCompteID(_commandeCommun.IdAcheteur);
             // Assert
             Assert.IsNotNull(result.Value);
             Assert.IsTrue(result.Value.Any());
-         }
+        }
 
         [TestMethod]
         public async Task GetCommandeByCompteIDNotFoundTest()
@@ -370,29 +388,29 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-            #region GetByConversationID
-            [TestMethod]
-            public async Task GetCommandeByConversationIDTest()
-            {
-                // Act
-                var result = await _controller.GetCommandeByConversationID(1);
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.IsNotNull(result.Value);
-                Assert.IsInstanceOfType(result.Value, typeof(CommandeDTO));
-                Assert.AreEqual(result.Value.IdCommande, _commandeCommun.IdCommande );
-            }
+        #region GetByConversationID
+        [TestMethod]
+        public async Task GetCommandeByConversationIDTest()
+        {
+            // Act
+            var result = await _controller.GetCommandeByConversationID(1);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(CommandeDTO));
+            Assert.AreEqual(result.Value.IdCommande, _commandeCommun.IdCommande);
+        }
 
-            [TestMethod]
-            public async Task NotFoundGetCommandeByConversationIDTest()
-            {
-                // Act
-                var result = await _controller.GetCommandeByConversationID(0);
-                // Assert
-                Assert.IsNotNull(result);
-                Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
-            }
-            #endregion
+        [TestMethod]
+        public async Task NotFoundGetCommandeByConversationIDTest()
+        {
+            // Act
+            var result = await _controller.GetCommandeByConversationID(0);
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+        #endregion
         #endregion
 
         #region POST
@@ -454,9 +472,15 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            Assert.AreEqual(1, _commandeCommun.CommandeAnnonceNav.IdEtatAnnonce);
-        }
 
+            // Vérifier que l'état de la commande a bien été mis à jour
+            var updatedCommande = await _manager.GetByIdAsync(_commandeCommun.IdCommande);
+            Assert.AreEqual(4, updatedCommande.IdEtatCommande);
+
+            // Vérifier que l'état de l'annonce n'a PAS changé (car IdEtatCommande != 5)
+            var annonce = await _annnonceManager.GetByIdAsync(dto.IdAnnonce);
+            Assert.AreEqual(1, annonce.IdEtatAnnonce);
+        }
 
         [TestMethod]
         public async Task PutCommandeModifEtatAnnonceTest()
@@ -478,7 +502,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            Assert.AreEqual(2, _commandeCommun.CommandeAnnonceNav.IdEtatAnnonce);
+
+            // Vérifier que l'état de la commande a bien été mis à jour
+            var updatedCommande = await _manager.GetByIdAsync(_commandeCommun.IdCommande);
+            Assert.AreEqual(5, updatedCommande.IdEtatCommande);
+
+            // Vérifier que l'état de l'annonce a été changé à 2 (vendue)
+            var annonce = await _annnonceManager.GetByIdAsync(dto.IdAnnonce);
+            Assert.AreEqual(2, annonce.IdEtatAnnonce);
         }
 
         [TestMethod]
@@ -495,7 +526,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
-
 
         [TestMethod]
         public async Task PutNotFoundTest()
@@ -539,6 +569,5 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         #endregion
-        
     }
 }

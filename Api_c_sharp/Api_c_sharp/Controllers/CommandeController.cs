@@ -113,11 +113,6 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
 
         // ✅ LOGS DE DEBUG
         var oldStateId = toUpdate.IdEtatCommande;
-        Console.WriteLine($"🔍 [Controller] Commande {id}");
-        Console.WriteLine($"   - Ancien état: {oldStateId}");
-        Console.WriteLine($"   - Nouvel état: {dto.IdEtatCommande}");
-        Console.WriteLine($"   - HubContext null?: {_hubContext == null}");
-        Console.WriteLine($"   - État changé?: {dto.IdEtatCommande != oldStateId}");
 
         // Logique métier pour l'annonce
         if (dto.IdEtatCommande == 5)
@@ -137,13 +132,6 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
             var commandeUpdated = await _manager.GetByIdAsync(id);
             string newStateName = commandeUpdated?.EtatCommandeCommandeNav?.Libelle ?? "État inconnu";
 
-            Console.WriteLine($"🔔 [Controller] Envoi notification SignalR:");
-            Console.WriteLine($"   - IdCommande: {dto.IdCommande}");
-            Console.WriteLine($"   - NewState: {dto.IdEtatCommande}");
-            Console.WriteLine($"   - StateName: {newStateName}");
-            Console.WriteLine($"   - IdAcheteur: {dto.IdAcheteur}");
-            Console.WriteLine($"   - IdVendeur: {dto.IdVendeur}");
-
             await MessageHub.NotifyCommandeStateChanged(
                 _hubContext,
                 dto.IdCommande,
@@ -153,13 +141,6 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
                 dto.IdVendeur
             );
 
-            Console.WriteLine($"✅ [Controller] Notification envoyée");
-        }
-        else
-        {
-            Console.WriteLine($"❌ [Controller] Notification NON envoyée");
-            if (_hubContext == null) Console.WriteLine("   Raison: HubContext null");
-            if (dto.IdEtatCommande == oldStateId) Console.WriteLine("   Raison: État inchangé");
         }
 
         return NoContent();
@@ -227,8 +208,4 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
 
         return new ActionResult<CommandeDTO>(_mapper.Map<CommandeDTO>(result));
     }
-
-
-    
-
 }

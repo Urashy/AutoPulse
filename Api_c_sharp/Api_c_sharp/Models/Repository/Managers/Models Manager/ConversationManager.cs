@@ -20,6 +20,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Include(c => c.ApourConversations)
                     .ThenInclude(apc => apc.APourConversationCompteNav)
                 .Include(c => c.Messages)
+                    .ThenInclude(m => m.Offres)
                 .Include(c => c.AnnonceConversationNav)
                 .Where(c => c.ApourConversations.Any(ac => ac.IdCompte == compteId));
 

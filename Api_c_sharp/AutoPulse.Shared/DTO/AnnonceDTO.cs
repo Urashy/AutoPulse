@@ -8,7 +8,6 @@ public class AnnonceDTO
     public string? LibelleEtatAnnonce { get; set; }
     public DateTime DatePublication { get; set; }
     
-    // Informations voiture essentielles
     public string? Marque { get; set; }
     public string? Modele { get; set; }
     public int IdVoiture { get; set; }
@@ -17,12 +16,9 @@ public class AnnonceDTO
     public string? Carburant { get; set; }
     public decimal? Prix { get; set; }
 
-    
-    // Localisation
     public string? Ville { get; set; }
     public string? CodePostal { get; set; }
-    
-    // Mise en avant
+
     public int IdMiseEnAvant { get; set; }
     public int NbConversations { get; set; }
 }

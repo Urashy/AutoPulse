@@ -509,11 +509,234 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-        
+        #region GetConversationsByCompteID
 
+        [TestMethod]
+        public async Task GetConversationsByCompteID_WithAnnonceId_ReturnsOnlyConversationsForThatAnnonce()
+        {
+            // Arrange
+            var annonce2 = new Annonce
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test 2",
+                Description = "Description 2",
+                Prix = 15000,
+                DatePublication = DateTime.Now,
+                IdCompte = 1,
+                IdVoiture = 1
+            };
 
-        
+            var conversation2 = new Conversation
+            {
+                IdConversation = 2,
+                DateDernierMessage = DateTime.Now.AddHours(-1),
+                IdAnnonce = annonce2.IdAnnonce
+            };
 
-        
+            var aPourConversation2 = new APourConversation
+            {
+                IdCompte = 1,
+                IdConversation = conversation2.IdConversation
+            };
+
+            await _context.Annonces.AddAsync(annonce2);
+            await _context.Conversations.AddAsync(conversation2);
+            await _context.APourConversations.AddAsync(aPourConversation2);
+            await _context.SaveChangesAsync();
+
+            // Act - Filtrer par annonce 1
+            var result = await _controller.GetConversationsByCompteID(1, 1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<ConversationListDTO>));
+
+            var conversations = result.Value.ToList();
+            Assert.AreEqual(1, conversations.Count);
+            Assert.IsTrue(conversations.All(c => c.IdAnnonce == 1));
+            Assert.IsTrue(conversations.Any(c => c.IdConversation == _objetcommun.IdConversation));
+        }
+
+        [TestMethod]
+        public async Task GetConversationsByCompteID_WithZeroAnnonceId_ReturnsAllUserConversations()
+        {
+            // Arrange
+            var annonce2 = new Annonce
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test 2",
+                Description = "Description 2",
+                Prix = 15000,
+                DatePublication = DateTime.Now,
+                IdCompte = 1,
+                IdVoiture = 1
+            };
+
+            var conversation2 = new Conversation
+            {
+                IdConversation = 2,
+                DateDernierMessage = DateTime.Now.AddHours(-1),
+                IdAnnonce = annonce2.IdAnnonce
+            };
+
+            var aPourConversation2 = new APourConversation
+            {
+                IdCompte = 1,
+                IdConversation = conversation2.IdConversation
+            };
+
+            await _context.Annonces.AddAsync(annonce2);
+            await _context.Conversations.AddAsync(conversation2);
+            await _context.APourConversations.AddAsync(aPourConversation2);
+            await _context.SaveChangesAsync();
+
+            // Act - Pas de filtre d'annonce (annonceId = 0)
+            var result = await _controller.GetConversationsByCompteID(1, 0);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+
+            var conversations = result.Value.ToList();
+            Assert.AreEqual(2, conversations.Count);
+            Assert.IsTrue(conversations.Any(c => c.IdAnnonce == 1));
+            Assert.IsTrue(conversations.Any(c => c.IdAnnonce == 2));
+        }
+
+        [TestMethod]
+        public async Task GetConversationsByCompteID_WithAnnonceId_OrdersByDateDescending()
+        {
+            // Arrange
+            var conversation2 = new Conversation
+            {
+                IdConversation = 2,
+                DateDernierMessage = DateTime.Now.AddHours(-2),
+                IdAnnonce = 1 // Même annonce
+            };
+
+            var conversation3 = new Conversation
+            {
+                IdConversation = 3,
+                DateDernierMessage = DateTime.Now.AddHours(-1),
+                IdAnnonce = 1 // Même annonce
+            };
+
+            var aPourConversation2 = new APourConversation
+            {
+                IdCompte = 1,
+                IdConversation = conversation2.IdConversation
+            };
+
+            var aPourConversation3 = new APourConversation
+            {
+                IdCompte = 1,
+                IdConversation = conversation3.IdConversation
+            };
+
+            await _context.Conversations.AddAsync(conversation2);
+            await _context.Conversations.AddAsync(conversation3);
+            await _context.APourConversations.AddAsync(aPourConversation2);
+            await _context.APourConversations.AddAsync(aPourConversation3);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetConversationsByCompteID(1, 1);
+
+            // Assert
+            Assert.IsNotNull(result);
+            var conversations = result.Value.ToList();
+
+            Assert.AreEqual(3, conversations.Count);
+
+            // Vérifier l'ordre décroissant par date
+            for (int i = 0; i < conversations.Count - 1; i++)
+            {
+                Assert.IsTrue(conversations[i].DateDernierMessage >= conversations[i + 1].DateDernierMessage,
+                    "Les conversations devraient être triées par date décroissante");
+            }
+        }
+
+        [TestMethod]
+        public async Task GetConversationsByCompteID_WithNonExistingAnnonceId_ReturnsNotFound()
+        {
+            // Act
+            var result = await _controller.GetConversationsByCompteID(1, 999);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetConversationsByCompteID_MultipleAnnonces_FiltersCorrectly()
+        {
+            // Arrange
+            var annonce2 = new Annonce
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test 2",
+                Description = "Description 2",
+                Prix = 15000,
+                DatePublication = DateTime.Now,
+                IdCompte = 1,
+                IdVoiture = 1
+            };
+
+            var annonce3 = new Annonce
+            {
+                IdAnnonce = 3,
+                Libelle = "Annonce Test 3",
+                Description = "Description 3",
+                Prix = 20000,
+                DatePublication = DateTime.Now,
+                IdCompte = 1,
+                IdVoiture = 1
+            };
+
+            var conversation2 = new Conversation
+            {
+                IdConversation = 2,
+                DateDernierMessage = DateTime.Now.AddHours(-1),
+                IdAnnonce = 2
+            };
+
+            var conversation3 = new Conversation
+            {
+                IdConversation = 3,
+                DateDernierMessage = DateTime.Now.AddHours(-2),
+                IdAnnonce = 3
+            };
+
+            var aPourConversation2 = new APourConversation
+            {
+                IdCompte = 1,
+                IdConversation = conversation2.IdConversation
+            };
+
+            var aPourConversation3 = new APourConversation
+            {
+                IdCompte = 1,
+                IdConversation = conversation3.IdConversation
+            };
+
+            await _context.Annonces.AddRangeAsync(annonce2, annonce3);
+            await _context.Conversations.AddRangeAsync(conversation2, conversation3);
+            await _context.APourConversations.AddRangeAsync(aPourConversation2, aPourConversation3);
+            await _context.SaveChangesAsync();
+
+            // Act - Filtrer par annonce 2
+            var result = await _controller.GetConversationsByCompteID(1, 2);
+
+            // Assert
+            Assert.IsNotNull(result);
+            var conversations = result.Value.ToList();
+
+            Assert.AreEqual(1, conversations.Count);
+            Assert.AreEqual(2, conversations[0].IdAnnonce);
+            Assert.AreEqual(2, conversations[0].IdConversation);
+        }
+
+        #endregion
     }
 }

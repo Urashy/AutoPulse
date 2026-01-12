@@ -663,5 +663,198 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.AreEqual(existingConversation.IdConversation, returnedConversation.IdConversation);
         }
         #endregion
+
+        #region GetConversationsByCompteID - Tests avec filtrage par annonce
+
+        [TestMethod]
+        public async Task GetConversationsByCompteID_WithAnnonceId_ReturnsFilteredConversations()
+        {
+            // Arrange
+            int compteId = 1;
+            int annonceId = 1;
+
+            var conversation1 = new Conversation
+            {
+                IdConversation = 1,
+                DateDernierMessage = DateTime.Now,
+                IdAnnonce = 1
+            };
+
+            var conversation2 = new Conversation
+            {
+                IdConversation = 2,
+                DateDernierMessage = DateTime.Now.AddDays(-1),
+                IdAnnonce = 2 // Annonce différente
+            };
+
+            var conversationsList = new List<Conversation> { conversation1 };
+
+            var conversationListDTOs = new List<ConversationListDTO>
+    {
+        new ConversationListDTO
+        {
+            IdConversation = conversation1.IdConversation,
+            DateDernierMessage = conversation1.DateDernierMessage,
+            IdAnnonce = conversation1.IdAnnonce
+        }
+    };
+
+            _mockManager.Setup(m => m.GetConversationsByCompteID(compteId, annonceId))
+                       .ReturnsAsync(conversationsList);
+
+            _mockEnrichmentService.Setup(s => s.EnrichConversationsAsync(conversationsList, compteId))
+                                 .ReturnsAsync(conversationListDTOs);
+
+            // Act
+            var result = await _controller.GetConversationsByCompteID(compteId, annonceId);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.IsInstanceOfType(result.Value, typeof(IEnumerable<ConversationListDTO>));
+            Assert.AreEqual(1, result.Value.Count());
+            Assert.IsTrue(result.Value.All(c => c.IdAnnonce == annonceId));
+            Assert.IsTrue(result.Value.Any(c => c.IdConversation == conversation1.IdConversation));
+        }
+
+        [TestMethod]
+        public async Task GetConversationsByCompteID_WithAnnonceIdZero_ReturnsAllConversations()
+        {
+            // Arrange
+            int compteId = 1;
+            int annonceId = 0; // 0 signifie "toutes les annonces"
+
+            var conversationsList = new List<Conversation>
+    {
+        new Conversation
+        {
+            IdConversation = 1,
+            DateDernierMessage = DateTime.Now,
+            IdAnnonce = 1
+        },
+        new Conversation
+        {
+            IdConversation = 2,
+            DateDernierMessage = DateTime.Now.AddDays(-1),
+            IdAnnonce = 2
+        },
+        new Conversation
+        {
+            IdConversation = 3,
+            DateDernierMessage = DateTime.Now.AddDays(-2),
+            IdAnnonce = 3
+        }
+    };
+
+            var conversationListDTOs = new List<ConversationListDTO>
+    {
+        new ConversationListDTO
+        {
+            IdConversation = 1,
+            DateDernierMessage = DateTime.Now,
+            IdAnnonce = 1
+        },
+        new ConversationListDTO
+        {
+            IdConversation = 2,
+            DateDernierMessage = DateTime.Now.AddDays(-1),
+            IdAnnonce = 2
+        },
+        new ConversationListDTO
+        {
+            IdConversation = 3,
+            DateDernierMessage = DateTime.Now.AddDays(-2),
+            IdAnnonce = 3
+        }
+    };
+
+            _mockManager.Setup(m => m.GetConversationsByCompteID(compteId, annonceId))
+                       .ReturnsAsync(conversationsList);
+
+            _mockEnrichmentService.Setup(s => s.EnrichConversationsAsync(conversationsList, compteId))
+                                 .ReturnsAsync(conversationListDTOs);
+
+            // Act
+            var result = await _controller.GetConversationsByCompteID(compteId, annonceId);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.AreEqual(3, result.Value.Count());
+        }
+
+        [TestMethod]
+        public async Task GetConversationsByCompteID_WithInvalidAnnonceId_ReturnsNotFound()
+        {
+            // Arrange
+            int compteId = 1;
+            int annonceId = 999; // Annonce inexistante
+
+            _mockManager.Setup(m => m.GetConversationsByCompteID(compteId, annonceId))
+                       .ReturnsAsync(new List<Conversation>());
+
+            // Act
+            var result = await _controller.GetConversationsByCompteID(compteId, annonceId);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetConversationsByCompteID_WithAnnonceId_VerifiesOrderByAnnonceThenDate()
+        {
+            // Arrange
+            int compteId = 1;
+            int annonceId = 1;
+
+            var conversationsList = new List<Conversation>
+    {
+        new Conversation
+        {
+            IdConversation = 1,
+            DateDernierMessage = DateTime.Now.AddDays(-2),
+            IdAnnonce = 1
+        },
+        new Conversation
+        {
+            IdConversation = 2,
+            DateDernierMessage = DateTime.Now,
+            IdAnnonce = 1
+        },
+        new Conversation
+        {
+            IdConversation = 3,
+            DateDernierMessage = DateTime.Now.AddDays(-1),
+            IdAnnonce = 1
+        }
+    };
+
+            var conversationListDTOs = conversationsList.Select(c => new ConversationListDTO
+            {
+                IdConversation = c.IdConversation,
+                DateDernierMessage = c.DateDernierMessage,
+                IdAnnonce = c.IdAnnonce
+            }).ToList();
+
+            _mockManager.Setup(m => m.GetConversationsByCompteID(compteId, annonceId))
+                       .ReturnsAsync(conversationsList);
+
+            _mockEnrichmentService.Setup(s => s.EnrichConversationsAsync(conversationsList, compteId))
+                                 .ReturnsAsync(conversationListDTOs);
+
+            // Act
+            var result = await _controller.GetConversationsByCompteID(compteId, annonceId);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Value);
+            Assert.AreEqual(3, result.Value.Count());
+
+            // Vérifier que le manager a été appelé avec les bons paramètres
+            _mockManager.Verify(m => m.GetConversationsByCompteID(compteId, annonceId), Times.Once);
+        }
+
+        #endregion
     }
 }

@@ -38,7 +38,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             });
 
             _mapper = config.CreateMapper();
-            _controller = new CommandeController(_mockManager.Object, _mapper, _mockJournal.Object,_mockManagerannonce.Object);
+            _controller = new CommandeController(_mockManager.Object, _mapper, _mockJournal.Object, _mockManagerannonce.Object);
         }
 
         #region GET
@@ -137,8 +137,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
             _mockManager.Verify(m => m.GetCommandeByConversation(999), Times.Once);
         }
-
-
         #endregion
         #endregion
 
@@ -180,23 +178,107 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task Put_ReturnsNoContent_WhenOk()
         {
             // Arrange
-            var entity = new Commande { IdCommande = 1 };
-            var dto = new CommandeUpdateDTO { IdCommande = 1 };
+            var entity = new Commande
+            {
+                IdCommande = 1,
+                IdEtatCommande = 1,
+                IdAnnonce = 1
+            };
+            var dto = new CommandeUpdateDTO
+            {
+                IdCommande = 1,
+                IdEtatCommande = 2,
+                IdAnnonce = 1,
+                IdAcheteur = 1,
+                IdVendeur = 2
+            };
 
             _mockManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(entity);
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()))
+                       .Returns(Task.CompletedTask);
 
             // Act
             var result = await _controller.Put(1, dto);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Put_UpdatesAnnonce_WhenEtatCommandeIs5()
+        {
+            // Arrange
+            var annonce = new Annonce { IdAnnonce = 1, IdEtatAnnonce = 1 };
+            var entity = new Commande
+            {
+                IdCommande = 1,
+                IdEtatCommande = 1,
+                IdAnnonce = 1
+            };
+            var dto = new CommandeUpdateDTO
+            {
+                IdCommande = 1,
+                IdEtatCommande = 5,
+                IdAnnonce = 1,
+                IdAcheteur = 1,
+                IdVendeur = 2
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(entity);
+            _mockManagerannonce.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(annonce);
+            _mockManagerannonce.Setup(m => m.UpdateAsync(It.IsAny<Annonce>(), It.Is<Annonce>(a => a.IdEtatAnnonce == 2)))
+                              .Returns(Task.CompletedTask)
+                              .Verifiable();
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Put(1, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManagerannonce.Verify(m => m.GetByIdAsync(1), Times.Once);
+            _mockManagerannonce.Verify(m => m.UpdateAsync(It.IsAny<Annonce>(), It.Is<Annonce>(a => a.IdEtatAnnonce == 2)), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Put_DoesNotUpdateAnnonce_WhenEtatCommandeIsNot5()
+        {
+            // Arrange
+            var entity = new Commande
+            {
+                IdCommande = 1,
+                IdEtatCommande = 1,
+                IdAnnonce = 1
+            };
+            var dto = new CommandeUpdateDTO
+            {
+                IdCommande = 1,
+                IdEtatCommande = 3,
+                IdAnnonce = 1,
+                IdAcheteur = 1,
+                IdVendeur = 2
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(entity);
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Put(1, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            _mockManagerannonce.Verify(m => m.GetByIdAsync(It.IsAny<int>()), Times.Never);
+            _mockManagerannonce.Verify(m => m.UpdateAsync(It.IsAny<Annonce>(), It.IsAny<Annonce>()), Times.Never);
         }
 
         [TestMethod]
         public async Task Put_ReturnsBadRequest_WhenModelInvalid()
         {
             // Arrange
-            _controller.ModelState.AddModelError("x", "invalid");
+            _controller.ModelState.AddModelError("Test", "Invalid Model");
             var dto = new CommandeUpdateDTO { IdCommande = 1 };
 
             // Act
@@ -220,6 +302,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()), Times.Never);
         }
         #endregion
 

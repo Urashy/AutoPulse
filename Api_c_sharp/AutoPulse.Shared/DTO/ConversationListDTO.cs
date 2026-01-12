@@ -11,4 +11,5 @@ public class ConversationListDTO
     public int IdParticipant { get; set; }
     
     public int NombreNonLu { get; set; }
+    public bool AOffre { get; set; }
 }

@@ -328,7 +328,10 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.DateDernierMessage,
                 opt => opt.MapFrom(src => src.Messages.OrderByDescending(m => m.DateEnvoiMessage).FirstOrDefault().DateEnvoiMessage))
             .ForMember(dest => dest.ParticipantPseudo,
-                opt => opt.MapFrom(src => src.ApourConversations.Select(a => a.APourConversationCompteNav.Pseudo).ToList())).ReverseMap();
+                opt => opt.MapFrom(src => src.ApourConversations.Select(a => a.APourConversationCompteNav.Pseudo).ToList()))
+            .ForMember(dest => dest.AOffre,
+                opt => opt.MapFrom(src => src.Messages.Any(mess => mess.Offres.Any())))
+            .ReverseMap();
 
         CreateMap<Conversation, ConversationDetailDTO>()
             .ForMember(dest => dest.LibelleAnnonce,
