@@ -13,31 +13,58 @@ namespace BlazorAutoPulse.Service.WebService
         {
             _js = js;
         }
+
         protected override string ApiEndpoint => "Facture";
 
-        
-        
         public async Task<Stream?> GetFactureStreamAsync(int commandeId)
         {
             try
             {
-                // On appelle l'API sans forcer le téléchargement côté serveur (download=false)
-                // pour récupérer le flux brut.
-                var response = await _httpClient.GetAsync($"GetFacturePdf/{commandeId}?download=false");
+                Console.WriteLine($"[FactureWebService] Tentative de récupération facture {commandeId}");
 
+                var request = new HttpRequestMessage(
+                    HttpMethod.Get,
+                    BuildUrl($"GetFacturePdf/{commandeId}?download=false")
+                );
 
-                if (response.IsSuccessStatusCode)
+                var response = await SendWithCredentialsAsync(request);
+
+                Console.WriteLine($"[FactureWebService] Status: {response.StatusCode}");
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadAsStreamAsync();
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"[FactureWebService] Erreur HTTP {response.StatusCode}: {errorContent}");
+                    return null;
                 }
+
+                // ✅ CORRECTION 3 : Vérifier le Content-Type
+                var contentType = response.Content.Headers.ContentType?.MediaType;
+                Console.WriteLine($"[FactureWebService] Content-Type: {contentType}");
+
+                if (contentType != "application/pdf")
+                {
+                    Console.WriteLine($"[FactureWebService] ⚠️ Type de contenu inattendu: {contentType}");
+                }
+
+                var stream = await response.Content.ReadAsStreamAsync();
+
+                Console.WriteLine($"[FactureWebService] ✅ Stream récupéré, longueur: {stream.Length} bytes");
+
+                return stream;
+            }
+            catch (HttpRequestException httpEx)
+            {
+                Console.WriteLine($"[FactureWebService] ❌ Erreur HTTP: {httpEx.StatusCode} - {httpEx.Message}");
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur GetFactureStreamAsync : {ex.Message}");
+                Console.WriteLine($"[FactureWebService] ❌ Erreur inattendue: {ex.GetType().Name}");
+                Console.WriteLine($"[FactureWebService] Message: {ex.Message}");
+                Console.WriteLine($"[FactureWebService] StackTrace: {ex.StackTrace}");
                 return null;
             }
         }
-
     }
 }
