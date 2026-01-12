@@ -54,7 +54,26 @@ namespace BlazorAutoPulse.Service.WebService
                 return false;
             }
         }
+        public async Task<Stream?> GetFactureStreamAsync(int commandeId)
+        {
+            try
+            {
+                // On appelle l'API sans forcer le téléchargement côté serveur (download=false)
+                // pour récupérer le flux brut.
+                var response = await _httpClient.GetAsync($"api/Facture/ByCommande/{commandeId}?download=false");
 
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStreamAsync();
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur GetFactureStreamAsync : {ex.Message}");
+                return null;
+            }
+        }
 
     }
 }
