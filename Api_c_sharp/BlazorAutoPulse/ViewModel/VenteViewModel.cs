@@ -367,8 +367,15 @@ namespace BlazorAutoPulse.ViewModel
                 await _vmAll.FiltrerModeleParMarquePublic(marque.IdMarque);
                 
                 // Rechercher le modèle dans les modèles filtrés
-                var modele = _vmAll.filteredModeles?.FirstOrDefault(m => 
-                    m.LibelleModele.Equals(cnnResult.Model, StringComparison.OrdinalIgnoreCase));
+                
+                var pattern = $@".*{Regex.Escape(cnnResult.Model)}$";
+
+                var modele = _vmAll.filteredModeles?
+                    .FirstOrDefault(m => Regex.IsMatch(
+                        m.LibelleModele,
+                        pattern,
+                        RegexOptions.IgnoreCase
+                    ));
                 
                 if (modele != null)
                 {
