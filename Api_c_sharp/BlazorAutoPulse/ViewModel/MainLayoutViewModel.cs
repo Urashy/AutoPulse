@@ -113,6 +113,8 @@ namespace BlazorAutoPulse.ViewModel
                         
                         _signalRService.OnPriceDropReceived += HandlePriceDropNotification;
                         notificationsCount = await _notificationService.GetUnreadCountAsync(compte.IdCompte);
+                        
+                        _signalRService.OnOffreReceived += HandleOffreNotification;
                     }
                     else
                     {
@@ -369,6 +371,21 @@ namespace BlazorAutoPulse.ViewModel
                 _nav?.NavigateTo("/connexion", forceLoad: true);
             }
         }
+        
+        private void HandleOffreNotification(OffreNotification notif)
+        {
+            Console.WriteLine($"💰 Nouvelle offre reçue: {notif.Valeur}€ pour {notif.AnnonceLibelle}");
+    
+            notificationsCount++;
+            
+            _notificationToastService.ShowInfo(
+                "💰 Nouvelle offre reçue !",
+                $"Une offre de {notif.Valeur}€ a été faite sur votre annonce : {notif.AnnonceLibelle}",
+                "/notifications"
+            );
+    
+            _refreshUI?.Invoke();
+        }
 
         public void Dispose()
         {
@@ -380,6 +397,7 @@ namespace BlazorAutoPulse.ViewModel
             if (_signalRService != null)
             {
                 _signalRService.OnPriceDropReceived -= HandlePriceDropNotification;
+                _signalRService.OnOffreReceived -= HandleOffreNotification;
             }
 
             if (_favorisStateService != null)

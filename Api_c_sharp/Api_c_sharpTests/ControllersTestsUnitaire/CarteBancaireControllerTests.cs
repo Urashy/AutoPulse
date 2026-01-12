@@ -1,12 +1,14 @@
 ﻿using Api_c_sharp.Controllers;
-using AutoPulse.Shared.DTO;
 using Api_c_sharp.Mapper;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Api_c_sharp.Models.Entity;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests
 {
@@ -145,45 +147,45 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #endregion
 
-      /*  #region POST
+        #region POST
         [TestMethod]
         public async Task PostCarteBancaireTest_Entity()
         {
             // Arrange
             CarteBancaireCreateDTO carteBancaire = new CarteBancaireCreateDTO()
             {
-                NumeroCarte = "c4sn80fEeFLXETmUBD0XeIsm5Jt57CxBs8kZY718bRM=",
-                CodeSecurite = "aUjuu/kOAi3zIU2NIANtgw==",
-                DateExpiration = DateTime.Now,
+                NumeroCarte = "1234 1234 1234 1234",
+                CodeSecurite = "123",
+                DateExpiration = "11/25",
                 IdCompte = 1,
                 NomCarte = "carte perso"
             }
             ;
 
             // Act
-            var actionResult = await _controller.Post(adresse);
+            var actionResult = await _controller.Post(carteBancaire);
 
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
             var created = (CreatedAtActionResult)actionResult.Result;
 
-            var createdAdresse = (Adresse)created.Value;
-            Assert.AreEqual(adresse.Rue, createdAdresse.Rue);
+            var createdCarteBancaire = (CarteBancaire)created.Value;
+            Assert.AreEqual("8yAA6RWP19e4TstU7XTMxaZjclPH26oQmaWWX0+wc0c=", createdCarteBancaire.NumeroCarte);
         }
 
         [TestMethod]
-        public async Task BadRequestPostAdresseTest()
+        public async Task BadRequestPostCarteBancaireTest()
         {
             // Arrange
-            AdresseCreateDTO adresse = new AdresseCreateDTO
+            CarteBancaireCreateDTO carteBancaire = new CarteBancaireCreateDTO
             {
-                Nom = null,
+                NomTitulaire = null,
             };
 
-            _controller.ModelState.AddModelError("Nom", "Required");
+            _controller.ModelState.AddModelError("NomTitulaire", "Required");
 
             // Act
-            var actionResult = await _controller.Post(adresse);
+            var actionResult = await _controller.Post(carteBancaire);
 
             // Assert
             Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
@@ -192,19 +194,19 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #region DELETE
         [TestMethod]
-        public async Task DeleteAdresseTest()
+        public async Task DeleteCarteBancaireTest()
         {
             // Act
-            var result = await _controller.Delete(_objetcommun.IdAdresse);
+            var result = await _controller.Delete(_objetcommun.IdCarteBancaire);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
-            var deletedAdresse = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
-            Assert.IsNull(deletedAdresse);
+            var deletedCarteBancaire = await _manager.GetByIdAsync(_objetcommun.IdCarteBancaire);
+            Assert.IsNull(deletedCarteBancaire);
         }
 
         [TestMethod]
-        public async Task NotFoundDeleteAdresseTest()
+        public async Task NotFoundDeleteCarteBancaireTest()
         {
             // Act
             var result = await _controller.Delete(0);
@@ -216,76 +218,338 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #region PUT
         [TestMethod]
-        public async Task PutAdresseTest()
+        public async Task PutCarteBancaireTest()
         {
             // Arrange
-            AdresseUpdateDTO adresse = new AdresseUpdateDTO()
+            CarteBancaireUpdateDTO carteBancaire = new CarteBancaireUpdateDTO()
             {
-                IdAdresse = _objetcommun.IdAdresse,
-                Nom = "Domicile",
-                LibelleVille = "Chavanod",
-                CodePostal = "74000",
-                Rue = "Route de test",
-                Numero = 12,
-                IdPays = 1,
+                IdCarteBancaire = 1,
+                NumeroCarte = "c4sn80fEeFLXETmUBD0XeIsm5Jt57CxBs8kZY718bRM=",
+                CodeSecurite = "aUjuu/kOAi3zIU2NIANtgw==",
+                DateExpiration = "11/25",
                 IdCompte = 1,
+                NomCarte = "carte perso",
+                NomTitulaire = "Jean Dupont"
             };
 
             // Act
-            var result = await _controller.Put(_objetcommun.IdAdresse, adresse);
+            var result = await _controller.Put(_objetcommun.IdCarteBancaire, carteBancaire);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));
 
-            var adresseput = await _manager.GetByIdAsync(_objetcommun.IdAdresse);
-            Assert.AreEqual(adresse.Nom, adresseput.Nom);
+            var carteBancaireput = await _manager.GetByIdAsync(_objetcommun.IdCarteBancaire);
+            Assert.AreEqual(carteBancaire.NomTitulaire, carteBancaireput.NomTitulaire);
         }
 
         [TestMethod]
-        public async Task NotFoundPutAdresseTest()
+        public async Task NotFoundPutCarteBancaireTest()
         {
             // Arrange
-            AdresseUpdateDTO adresse = new AdresseUpdateDTO()
+            CarteBancaireUpdateDTO carteBancaire = new CarteBancaireUpdateDTO()
             {
-                IdAdresse = _objetcommun.IdAdresse,
-                Nom = "Domicile",
-                LibelleVille = "Annecy",
-                CodePostal = "74000",
-                Rue = "Route de test",
-                Numero = 12,
-                IdPays = 1,
+                IdCarteBancaire = 1,
+                NumeroCarte = "c4sn80fEeFLXETmUBD0XeIsm5Jt57CxBs8kZY718bRM=",
+                CodeSecurite = "aUjuu/kOAi3zIU2NIANtgw==",
+                DateExpiration = "11/25",
                 IdCompte = 1,
+                NomCarte = "carte perso",
+                NomTitulaire = "Jean Dupont"
             };
 
             // Act
-            var result = await _controller.Put(0, adresse);
+            var result = await _controller.Put(0, carteBancaire);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         [TestMethod]
-        public async Task BadRequestPutAdresseTest()
+        public async Task BadRequestPutCarteBancaireTest()
         {
             // Arrange
-            AdresseUpdateDTO adresse = new AdresseUpdateDTO()
+            CarteBancaireUpdateDTO carteBancaire = new CarteBancaireUpdateDTO()
             {
-                IdAdresse = _objetcommun.IdAdresse,
-                Nom = "Domicile",
-                LibelleVille = "Annecy",
-                CodePostal = "74000",
-                Rue = "Route de test",
-                Numero = -12,
-                IdPays = 1,
+                IdCarteBancaire = 1,
+                NumeroCarte = "c4sn80fEeFLXETmUBD0XeIsm5Jt57CxBs8kZY718bRM=",
+                CodeSecurite = "aUjuu/kOAi3zIU2NIANtgw==",
+                DateExpiration = "11/25",
                 IdCompte = 1,
+                NomCarte = "carte perso",
+                NomTitulaire = null
             };
-            _controller.ModelState.AddModelError("Numero", "Le Numero doit être supérieur à 0");
+            _controller.ModelState.AddModelError("NomTitulaire", "Required");
 
             // Act
-            var result = await _controller.Put(_objetcommun.IdAdresse, adresse);
+            var result = await _controller.Put(_objetcommun.IdCarteBancaire, carteBancaire);
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
-        #endregion   */
+        #endregion
+
+        // Ajoutez ces tests dans votre classe CarteBancaireControllerTests
+
+        #region Tests Types de Cartes
+
+        [TestMethod]
+        public async Task PostCarteBancaire_VisaTest()
+        {
+            // Arrange
+            CarteBancaireCreateDTO carteBancaire = new CarteBancaireCreateDTO()
+            {
+                NumeroCarte = "4111111111111111", // Commence par 4 = Visa
+                CodeSecurite = "123",
+                DateExpiration = "11/25",
+                IdCompte = 1,
+                NomCarte = "carte Visa",
+                NomTitulaire = "Jean Dupont"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(carteBancaire);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdCarteBancaire = (CarteBancaire)created.Value;
+            Assert.AreEqual("Visa", createdCarteBancaire.TypeCarte);
+        }
+
+        [TestMethod]
+        public async Task PostCarteBancaire_MasterCardTest()
+        {
+            // Arrange
+            CarteBancaireCreateDTO carteBancaire = new CarteBancaireCreateDTO()
+            {
+                NumeroCarte = "5555555555554444", // Commence par 51-55 = MasterCard
+                CodeSecurite = "123",
+                DateExpiration = "11/25",
+                IdCompte = 1,
+                NomCarte = "carte MasterCard",
+                NomTitulaire = "Jean Dupont"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(carteBancaire);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdCarteBancaire = (CarteBancaire)created.Value;
+            Assert.AreEqual("MasterCard", createdCarteBancaire.TypeCarte);
+        }
+
+        [TestMethod]
+        public async Task PostCarteBancaire_AmericanExpressTest()
+        {
+            // Arrange
+            CarteBancaireCreateDTO carteBancaire = new CarteBancaireCreateDTO()
+            {
+                NumeroCarte = "378282246310005", // Commence par 34 ou 37 = American Express
+                CodeSecurite = "1234",
+                DateExpiration = "11/25",
+                IdCompte = 1,
+                NomCarte = "carte Amex",
+                NomTitulaire = "Jean Dupont"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(carteBancaire);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdCarteBancaire = (CarteBancaire)created.Value;
+            Assert.AreEqual("American Express", createdCarteBancaire.TypeCarte);
+        }
+
+        [TestMethod]
+        public async Task PostCarteBancaire_DiscoverTest()
+        {
+            // Arrange
+            CarteBancaireCreateDTO carteBancaire = new CarteBancaireCreateDTO()
+            {
+                NumeroCarte = "6011111111111117", // Commence par 6011 ou 65 = Discover
+                CodeSecurite = "123",
+                DateExpiration = "11/25",
+                IdCompte = 1,
+                NomCarte = "carte Discover",
+                NomTitulaire = "Jean Dupont"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(carteBancaire);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdCarteBancaire = (CarteBancaire)created.Value;
+            Assert.AreEqual("Discover", createdCarteBancaire.TypeCarte);
+        }
+
+        [TestMethod]
+        public async Task PostCarteBancaire_ClassiqueTest()
+        {
+            // Arrange
+            CarteBancaireCreateDTO carteBancaire = new CarteBancaireCreateDTO()
+            {
+                NumeroCarte = "9999999999999999", // Ne correspond à aucun type = Classique
+                CodeSecurite = "123",
+                DateExpiration = "11/25",
+                IdCompte = 1,
+                NomCarte = "carte Classique",
+                NomTitulaire = "Jean Dupont"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(carteBancaire);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdCarteBancaire = (CarteBancaire)created.Value;
+            Assert.AreEqual("Classique", createdCarteBancaire.TypeCarte);
+        }
+
+        [TestMethod]
+        public async Task PostCarteBancaire_EmptyCardNumberTest()
+        {
+            // Arrange
+            CarteBancaireCreateDTO carteBancaire = new CarteBancaireCreateDTO()
+            {
+                NumeroCarte = "", // Vide = Classique
+                CodeSecurite = "123",
+                DateExpiration = "11/25",
+                IdCompte = 1,
+                NomCarte = "carte vide",
+                NomTitulaire = "Jean Dupont"
+            };
+
+            // Act
+            var actionResult = await _controller.Post(carteBancaire);
+
+            // Assert
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdCarteBancaire = (CarteBancaire)created.Value;
+            Assert.AreEqual("Classique", createdCarteBancaire.TypeCarte);
+        }
+
+        #endregion
+
+        #region Tests MaskLast4Digits Error
+
+        [TestMethod]
+        public async Task GetById_ShortCardNumber_ThrowsException()
+        {
+            // Arrange - Créer une carte avec un numéro trop court (moins de 4 caractères)
+            var shortCardEntity = new CarteBancaire
+            {
+                IdCarteBancaire = 999,
+                NumeroCarte = "123", // Seulement 3 caractères
+                CodeSecurite = "123",
+                DateExpiration = DateTime.Now.AddYears(1),
+                IdCompte = 1,
+                TypeCarte = "VISA",
+                NomCarte = "carte invalide",
+                NomTitulaire = "Test User"
+            };
+
+            // Crypter le numéro court
+            using var aes = Aes.Create();
+            var key = Encoding.UTF8.GetBytes("CLE_SUPER_SECRETE_32_OCTETS!!!!!");
+            var iv = Encoding.UTF8.GetBytes("INIT_VECTOR_16!!");
+            aes.Key = key;
+            aes.IV = iv;
+            var encryptor = aes.CreateEncryptor();
+            var bytes = Encoding.UTF8.GetBytes(shortCardEntity.NumeroCarte);
+            var encrypted = encryptor.TransformFinalBlock(bytes, 0, bytes.Length);
+            shortCardEntity.NumeroCarte = Convert.ToBase64String(encrypted);
+
+            _context.CarteBancaires.Add(shortCardEntity);
+            await _context.SaveChangesAsync();
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+            {
+                await _controller.GetByID(999);
+            });
+        }
+
+        [TestMethod]
+        public async Task GetAll_WithShortCardNumber_ThrowsException()
+        {
+            // Arrange
+            var shortCardEntity = new CarteBancaire
+            {
+                IdCarteBancaire = 998,
+                NumeroCarte = "12", // Seulement 2 caractères
+                CodeSecurite = "123",
+                DateExpiration = DateTime.Now.AddYears(1),
+                IdCompte = 1,
+                TypeCarte = "VISA",
+                NomCarte = "carte invalide 2",
+                NomTitulaire = "Test User"
+            };
+
+            // Crypter le numéro court
+            using var aes = Aes.Create();
+            var key = Encoding.UTF8.GetBytes("CLE_SUPER_SECRETE_32_OCTETS!!!!!");
+            var iv = Encoding.UTF8.GetBytes("INIT_VECTOR_16!!");
+            aes.Key = key;
+            aes.IV = iv;
+            var encryptor = aes.CreateEncryptor();
+            var bytes = Encoding.UTF8.GetBytes(shortCardEntity.NumeroCarte);
+            var encrypted = encryptor.TransformFinalBlock(bytes, 0, bytes.Length);
+            shortCardEntity.NumeroCarte = Convert.ToBase64String(encrypted);
+
+            _context.CarteBancaires.Add(shortCardEntity);
+            await _context.SaveChangesAsync();
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+            {
+                await _controller.GetAll();
+            });
+        }
+
+        [TestMethod]
+        public async Task GetCarteBancaireByCompteID_WithShortCardNumber_ThrowsException()
+        {
+            // Arrange
+            var shortCardEntity = new CarteBancaire
+            {
+                IdCarteBancaire = 997,
+                NumeroCarte = "1", // Seulement 1 caractère
+                CodeSecurite = "123",
+                DateExpiration = DateTime.Now.AddYears(1),
+                IdCompte = 1,
+                TypeCarte = "VISA",
+                NomCarte = "carte invalide 3",
+                NomTitulaire = "Test User"
+            };
+
+            // Crypter le numéro court
+            using var aes = Aes.Create();
+            var key = Encoding.UTF8.GetBytes("CLE_SUPER_SECRETE_32_OCTETS!!!!!");
+            var iv = Encoding.UTF8.GetBytes("INIT_VECTOR_16!!");
+            aes.Key = key;
+            aes.IV = iv;
+            var encryptor = aes.CreateEncryptor();
+            var bytes = Encoding.UTF8.GetBytes(shortCardEntity.NumeroCarte);
+            var encrypted = encryptor.TransformFinalBlock(bytes, 0, bytes.Length);
+            shortCardEntity.NumeroCarte = Convert.ToBase64String(encrypted);
+
+            _context.CarteBancaires.Add(shortCardEntity);
+            await _context.SaveChangesAsync();
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+            {
+                await _controller.GetCarteBancaireByCompteID(1);
+            });
+        }
+
+        #endregion
     }
 }

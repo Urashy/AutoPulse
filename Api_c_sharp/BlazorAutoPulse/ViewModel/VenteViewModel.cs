@@ -307,17 +307,22 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                var firstImage = imageUpload.First();
-                using var memoryStream = new MemoryStream();
-                await firstImage.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(memoryStream);
-                var imageBytes = memoryStream.ToArray();
-                var base64Image = Convert.ToBase64String(imageBytes);
+                if (!_imageCache.ContainsKey(0))
+                {
+                    errors.Add("cnn", "L'image n'est pas encore chargée. Veuillez réessayer.");
+                    showCnnLoadingPopup = false;
+                    _refreshUI?.Invoke();
+                    return;
+                }
+
+                var cachedImage = _imageCache[0];
+                var base64Image = cachedImage.Split(',')[1];
 
                 var dataCnn = new DataCNN
                 {
-                    ImageBase64 = base64Image
+                    ImageBase64 = base64Image,
                 };
-
+        
                 var result = await _iaService.PredictAIAsync(dataCnn);
 
                 if (result is ResultatCNN prediction)
@@ -326,7 +331,7 @@ namespace BlazorAutoPulse.ViewModel
                 }
 
                 showCnnLoadingPopup = false;
-        
+
                 if (cnnResult != null && cnnResult.Success)
                 {
                     showCnnResultPopup = true;
@@ -611,61 +616,47 @@ namespace BlazorAutoPulse.ViewModel
         {
             var startIndex = imageUpload.Count;
             var files = e.GetMultipleFiles(10);
-            
+
             try
             {
                 foreach (var file in files)
                 {
                     nomPhotos.Add(file.Name);
-                    
-                    ImageUpload image = new ImageUpload();
-                    image.File = file;
-                    imageUpload.Add(image);
-                    
+
                     try
                     {
                         const long maxFileSize = 10 * 1024 * 1024;
-                        
+
                         using var memoryStream = new MemoryStream();
                         using var stream = file.OpenReadStream(maxFileSize);
                         await stream.CopyToAsync(memoryStream);
-                        
+
                         var imageBytes = memoryStream.ToArray();
                         var base64 = Convert.ToBase64String(imageBytes);
-                        
+
+                        ImageUpload image = new ImageUpload
+                        {
+                            File = file,
+                            ImageBytes = imageBytes
+                        };
+                        imageUpload.Add(image);
+
                         var imageIndex = imageUpload.Count - 1;
                         _imageCache[imageIndex] = $"data:{file.ContentType};base64,{base64}";
-                        
+
                         Console.WriteLine($"✅ Image {imageIndex} chargée : {file.Name} ({imageBytes.Length} bytes)");
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"❌ Erreur lors du chargement de {file.Name}: {ex.Message}");
-
-                        imageUpload.RemoveAt(imageUpload.Count - 1);
-                        nomPhotos.RemoveAt(nomPhotos.Count - 1);
                     }
-                    
+
                     _refreshUI?.Invoke();
                 }
-                
-                if (startIndex == 0 && imageUpload.Any())
-                {
-                    CurrentImageIndex = 0;
-                }
-                
-                if (errors.ContainsKey("photos"))
-                    errors.Remove("photos");
-
-                Console.WriteLine($"📊 Upload terminé : {imageUpload.Count} images, cache : {_imageCache.Count} entrées");
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"❌ Erreur générale lors de l'upload : {ex.Message}");
-                errors.Add("photos", $"Erreur lors de l'upload : {ex.Message}");
             }
-            
-            _refreshUI?.Invoke();
         }
 
         public void OnMarqueChanged(int marqueId)

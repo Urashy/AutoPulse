@@ -1,3 +1,4 @@
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -15,6 +16,7 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
     public event Action<PriceDropNotification>? OnPriceDropReceived;
     public event Action<int, bool?>? OnOffreStatusChanged;
     public event Action<int, int, string, DateTime, int,int, decimal, int>? OnMessageWithOffreReceived;
+    public event Action<OffreNotification>? OnOffreReceived;
 
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
@@ -114,6 +116,26 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
         {
             Console.WriteLine($"[SignalR] Price drop received for annonce {notification.IdAnnonce}");
             OnPriceDropReceived?.Invoke(notification);
+        });
+        
+        _hubConnection.On<object>("NewOffreReceived", (data) =>
+        {
+            try
+            {
+                var json = System.Text.Json.JsonSerializer.Serialize(data);
+                Console.WriteLine($"[SignalR] NewOffre received: {json}");
+                var notification = System.Text.Json.JsonSerializer.Deserialize<OffreNotification>(json);
+                Console.WriteLine($"[SignalR] NewOffre received: {notification.IdOffre}");
+        
+                if (notification != null)
+                {
+                    OnOffreReceived?.Invoke(notification);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur désérialisation offre: {ex.Message}");
+            }
         });
 
         Console.WriteLine("[SignalR] Starting connection...");
