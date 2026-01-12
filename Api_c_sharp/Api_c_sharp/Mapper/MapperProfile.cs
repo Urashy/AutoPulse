@@ -253,7 +253,6 @@ public class MapperProfile : Profile
             .ReverseMap();
 
         CreateMap<CommandeCreateDTO, Commande>()
-            .ForMember(dest => dest.Date, opt => opt.Ignore()) 
             .ReverseMap();
         CreateMap<CommandeUpdateDTO, Commande>().ReverseMap();
 
