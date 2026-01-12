@@ -223,5 +223,116 @@ namespace Api_c_sharp.Hubs
                 Console.WriteLine($"💰 Notification d'offre envoyée à l'utilisateur {userId} (valeur: {offreValeur}€)");
             }
         }
+
+        // COMMANDES
+
+
+        // Rejoindre le groupe d'une commande spécifique
+        public async Task JoinCommande(int idCommande)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"commande_{idCommande}");
+            Console.WriteLine($"Connection {Context.ConnectionId} joined commande {idCommande}");
+        }
+
+        // Quitter le groupe d'une commande
+        public async Task LeaveCommande(int idCommande)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"commande_{idCommande}");
+            Console.WriteLine($"Connection {Context.ConnectionId} left commande {idCommande}");
+        }
+
+        // Méthode statique pour notifier un changement d'état de commande
+        public static async Task NotifyCommandeStateChanged(
+    IHubContext<MessageHub> hubContext,
+    int idCommande,
+    int newState,
+    string stateName,
+    int? idAcheteur,
+    int? idVendeur)
+        {
+            var groupName = $"commande_{idCommande}";
+
+            Console.WriteLine($"📦 [Hub] NotifyCommandeStateChanged appelé:");
+            Console.WriteLine($"   - Groupe: {groupName}");
+            Console.WriteLine($"   - NewState: {newState}");
+            Console.WriteLine($"   - StateName: {stateName}");
+
+            var payload = new
+            {
+                IdCommande = idCommande,
+                NewState = newState,
+                StateName = stateName,
+                Timestamp = DateTime.UtcNow
+            };
+
+            Console.WriteLine($"   - Payload JSON: {System.Text.Json.JsonSerializer.Serialize(payload)}");
+
+            await hubContext.Clients.Group(groupName)
+                .SendAsync("CommandeStateChanged", payload);
+
+            Console.WriteLine($"   ✅ SendAsync 'CommandeStateChanged' exécuté pour groupe {groupName}");
+
+            // Notification personnalisée pour l'acheteur
+            if (idAcheteur.HasValue && UserConnections.TryGetValue(idAcheteur.Value, out var acheteurConnections))
+            {
+                Console.WriteLine($"   📨 Envoi notification à acheteur {idAcheteur.Value} ({acheteurConnections.Count} connexions)");
+                foreach (var connectionId in acheteurConnections)
+                {
+                    await hubContext.Clients.Client(connectionId)
+                        .SendAsync("CommandeNotification", new
+                        {
+                            IdCommande = idCommande,
+                            Message = GetNotificationMessageForBuyer(newState),
+                            NewState = newState,
+                            Type = "commande_update"
+                        });
+                }
+            }
+
+            // Notification personnalisée pour le vendeur
+            if (idVendeur.HasValue && UserConnections.TryGetValue(idVendeur.Value, out var vendeurConnections))
+            {
+                Console.WriteLine($"   📨 Envoi notification à vendeur {idVendeur.Value} ({vendeurConnections.Count} connexions)");
+                foreach (var connectionId in vendeurConnections)
+                {
+                    await hubContext.Clients.Client(connectionId)
+                        .SendAsync("CommandeNotification", new
+                        {
+                            IdCommande = idCommande,
+                            Message = GetNotificationMessageForSeller(newState),
+                            NewState = newState,
+                            Type = "commande_update"
+                        });
+                }
+            }
+
+            Console.WriteLine($"📦 [Hub] Notifications envoyées pour commande {idCommande}");
+        }
+
+        // Messages pour l'acheteur
+        private static string GetNotificationMessageForBuyer(int state)
+        {
+            return state switch
+            {
+                2 => "Le vendeur a été notifié de votre paiement",
+                3 => "Le vendeur a confirmé la réception de votre paiement",
+                4 => "Le vendeur a émis la livraison du véhicule",
+                5 => "Transaction terminée ! Profitez de votre véhicule",
+                _ => "Statut de la commande mis à jour"
+            };
+        }
+
+        // Messages pour le vendeur
+        private static string GetNotificationMessageForSeller(int state)
+        {
+            return state switch
+            {
+                2 => "L'acheteur a déclaré un paiement",
+                3 => "Vous avez confirmé la réception du paiement",
+                4 => "Vous avez émis la livraison",
+                5 => "L'acheteur a confirmé la réception du véhicule",
+                _ => "Statut de la commande mis à jour"
+            };
+        }
     }
 }

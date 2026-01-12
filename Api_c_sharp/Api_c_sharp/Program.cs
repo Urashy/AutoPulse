@@ -173,10 +173,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowBlazor");
+
 app.MapHub<MessageHub>("/messagehub");
 
 app.UseRouting();
-app.UseCors("AllowBlazor");
 app.UseAuthentication();
 app.UseAuthorization();
 
