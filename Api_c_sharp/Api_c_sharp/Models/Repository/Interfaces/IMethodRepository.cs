@@ -102,7 +102,7 @@ namespace Api_c_sharp.Models.Repository.Interfaces
 
     public interface IConversationRepository
     {
-        Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId);
+        Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId, int annonceId = 0);
 
         Task<Conversation> PostComplet(Conversation conversation,string contenumessage, int idcompte, int idcompte2);
     }
@@ -166,5 +166,9 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     public interface IPaiementRepository
     {
         Task<IEnumerable<Paiement>> VerifPaiementAutoMiseEnAvant();
+    }
+    public interface IFactureRepository
+    {
+        byte[] GenererPdfFacture(int Commandeid);
     }
 }

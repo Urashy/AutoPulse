@@ -198,5 +198,30 @@ namespace Api_c_sharp.Hubs
                     offreValeur,
                     idAnnonce);
         }
+        
+        public static async Task SendOffreNotification(
+            IHubContext<MessageHub> hubContext,
+            int userId,
+            int idOffre,
+            decimal offreValeur,
+            string annonceLibelle)
+        {
+            if (UserConnections.TryGetValue(userId, out var connections))
+            {
+                foreach (var connectionId in connections)
+                {
+                    await hubContext.Clients.Client(connectionId)
+                        .SendAsync("NewOffreReceived", new
+                        {
+                            IdOffre = idOffre,
+                            Valeur = offreValeur,
+                            AnnonceLibelle = annonceLibelle,
+                            ReceivedAt = DateTime.UtcNow
+                        });
+                }
+        
+                Console.WriteLine($"💰 Notification d'offre envoyée à l'utilisateur {userId} (valeur: {offreValeur}€)");
+            }
+        }
     }
 }

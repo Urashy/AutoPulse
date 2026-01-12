@@ -17,6 +17,7 @@ namespace Api_c_sharp.ControllersMock.Tests
     public class FactureControllerTests
     {
         private Mock<FactureManager> _mockManager;
+        private Mock<CommandeManager> _mockCommandeManager;
         private IMapper _mapper;
         private Mock<IJournalService> _mockJournal;
         private FactureController _controller;
@@ -25,6 +26,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public void Setup()
         {
             _mockManager = new Mock<FactureManager>(null);
+            _mockCommandeManager = new Mock<CommandeManager>(null);
             _mockJournal = new Mock<IJournalService>();
 
             var config = new MapperConfiguration(cfg =>
@@ -33,7 +35,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             });
 
             _mapper = config.CreateMapper();
-            _controller = new FactureController(_mockManager.Object, _mapper);
+            _controller = new FactureController(_mockManager.Object, _mapper,_mockCommandeManager.Object);
         }
 
         #region GET
@@ -197,6 +199,115 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
+        #endregion
+
+        // Ajoutez ces tests à la fin de votre classe FactureControllerTests (fichier avec mocks)
+        // Juste avant la dernière accolade fermante de la classe
+
+        #region GetFacturePdf
+
+        [TestMethod]
+        public async Task GetFacturePdf_ReturnsFileResult_WhenCommandeExists()
+        {
+            // Arrange
+            var commande = new Commande { IdCommande = 1 };
+            var fakePdfBytes = new byte[] { 0x25, 0x50, 0x44, 0x46 }; // %PDF en ASCII
+
+            _mockCommandeManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(commande);
+            _mockManager.Setup(m => m.GenererPdfFactureParCommande(1)).Returns(fakePdfBytes);
+
+            // Act
+            var result = await _controller.GetFacturePdf(1, download: true);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(FileContentResult));
+
+            var fileResult = result as FileContentResult;
+            Assert.AreEqual("application/pdf", fileResult.ContentType);
+            Assert.AreEqual("Facture_Commande_1.pdf", fileResult.FileDownloadName);
+            Assert.AreEqual(fakePdfBytes.Length, fileResult.FileContents.Length);
+        }
+
+        [TestMethod]
+        public async Task GetFacturePdf_ReturnsFileResult_WithoutDownload()
+        {
+            // Arrange
+            var commande = new Commande { IdCommande = 1 };
+            var fakePdfBytes = new byte[] { 0x25, 0x50, 0x44, 0x46 };
+
+            _mockCommandeManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(commande);
+            _mockManager.Setup(m => m.GenererPdfFactureParCommande(1)).Returns(fakePdfBytes);
+
+            // Act
+            var result = await _controller.GetFacturePdf(1, download: false);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(FileContentResult));
+
+            var fileResult = result as FileContentResult;
+            Assert.AreEqual("application/pdf", fileResult.ContentType);
+            Assert.AreEqual(fileResult.FileDownloadName,"");
+        }
+
+        [TestMethod]
+        public async Task GetFacturePdf_ReturnsNotFound_WhenCommandeDoesNotExist()
+        {
+            // Arrange
+            _mockCommandeManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync((Commande)null);
+
+            // Act
+            var result = await _controller.GetFacturePdf(1, download: true);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+
+            var notFoundResult = result as NotFoundObjectResult;
+            Assert.AreEqual("Commande introuvable", notFoundResult.Value);
+
+            _mockManager.Verify(m => m.GenererPdfFactureParCommande(It.IsAny<int>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task GetFacturePdf_ReturnsNotFound_WhenPdfGenerationFails()
+        {
+            // Arrange
+            var commande = new Commande { IdCommande = 1 };
+
+            _mockCommandeManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(commande);
+            _mockManager.Setup(m => m.GenererPdfFactureParCommande(1)).Returns((byte[])null);
+
+            // Act
+            var result = await _controller.GetFacturePdf(1, download: true);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+
+            var notFoundResult = result as NotFoundObjectResult;
+            Assert.AreEqual("Impossible de générer la facture", notFoundResult.Value);
+        }
+
+        [TestMethod]
+        public async Task GetFacturePdf_CallsCorrectMethods()
+        {
+            // Arrange
+            var commande = new Commande { IdCommande = 42 };
+            var fakePdfBytes = new byte[] { 0x25, 0x50, 0x44, 0x46 };
+
+            _mockCommandeManager.Setup(m => m.GetByIdAsync(42)).ReturnsAsync(commande);
+            _mockManager.Setup(m => m.GenererPdfFactureParCommande(42)).Returns(fakePdfBytes);
+
+            // Act
+            await _controller.GetFacturePdf(42, download: true);
+
+            // Assert
+            _mockCommandeManager.Verify(m => m.GetByIdAsync(42), Times.Once);
+            _mockManager.Verify(m => m.GenererPdfFactureParCommande(42), Times.Once);
+        }
+
         #endregion
     }
 }

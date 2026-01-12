@@ -152,6 +152,7 @@ public class ConversationController(
     /// Les données sont enrichies (participants, messages non lus).
     /// </summary>
     /// <param name="idcompte">Identifiant unique du compte.</param>
+    /// <param name="idcompte">Identifiant unique d'une annonce.</param>
     /// <returns>
     /// <list type="bullet">
     /// <item><description>Une collection de <see cref="ConversationListDTO"/> si des conversations existent (200).</description></item>
@@ -159,12 +160,12 @@ public class ConversationController(
     /// </list>
     /// </returns>
     [ActionName("GetConversationsByCompteID")]
-    [HttpGet("{idcompte}")]
+    [HttpGet("{idcompte}/{idannonce}")]
     [ProducesResponseType(typeof(IEnumerable<ConversationListDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetConversationsByCompteID(int idcompte)
+    public async Task<ActionResult<IEnumerable<ConversationListDTO>>> GetConversationsByCompteID(int idcompte,int idannonce = 0)
     {
-        var conversations = await _manager.GetConversationsByCompteID(idcompte);
+        var conversations = await _manager.GetConversationsByCompteID(idcompte, idannonce);
 
         if (conversations is null || !conversations.Any())
             return NotFound();

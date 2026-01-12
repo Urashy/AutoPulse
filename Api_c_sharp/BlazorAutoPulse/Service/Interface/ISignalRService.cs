@@ -1,3 +1,4 @@
+using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using Microsoft.AspNetCore.SignalR.Client;
 
@@ -23,7 +24,7 @@ public interface ISignalRService
     public event Action<PriceDropNotification>? OnPriceDropReceived;
     public event Action<int, bool?>? OnOffreStatusChanged;
     event Action<int, int, string, DateTime, int, int, decimal, int>? OnMessageWithOffreReceived;
-
+    public event Action<OffreNotification>? OnOffreReceived;
 
     bool IsConnected { get; }
 }

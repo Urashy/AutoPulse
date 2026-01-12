@@ -14,16 +14,28 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.OrderBy(s => s.DateDernierMessage).ToListAsync();
         }
 
-        public virtual async Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId)
+        public virtual async Task<IEnumerable<Conversation>> GetConversationsByCompteID(int compteId, int annonceId= 0)
         {
-            return await dbSet
+            var query = dbSet
                 .Include(c => c.ApourConversations)
-                .ThenInclude(apc => apc.APourConversationCompteNav)
+                    .ThenInclude(apc => apc.APourConversationCompteNav)
                 .Include(c => c.Messages)
                 .Include(c => c.AnnonceConversationNav)
-                .Where(c => c.ApourConversations.Any(ac => ac.IdCompte == compteId))
-                .OrderByDescending(c => c.DateDernierMessage)
-                .ToListAsync();
+                .Where(c => c.ApourConversations.Any(ac => ac.IdCompte == compteId));
+
+            if (annonceId != 0)
+            {
+                query = query
+                    .Where(c => c.IdAnnonce == annonceId)
+                    .OrderBy(c => c.IdAnnonce)
+                    .ThenByDescending(c => c.DateDernierMessage);
+            }
+            else
+            {
+                query = query.OrderByDescending(c => c.DateDernierMessage);
+            }
+
+            return await query.ToListAsync();
         }
 
         public virtual async Task<Conversation> PostComplet(Conversation conversation, string contenumessage, int idcompteenvoi, int idcompterecoi)

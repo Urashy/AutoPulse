@@ -19,7 +19,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class OffreController(OffreManager _manager, IMapper _offremapper, MessageManager _managermessage,CommandeManager _managercommande,AnnonceManager _managerannonce, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
+    public class OffreController(OffreManager _manager, IMapper _offremapper, MessageManager _managermessage,CommandeManager _managercommande,FactureManager _managerfacture,AnnonceManager _managerannonce, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
     {
         /// <summary>
         /// Crée une nouvelle offre.
@@ -69,20 +69,28 @@ namespace Api_c_sharp.Controllers
             }
 
             await _notifService.NotifOffreAnnonce(entity.IdAnnonce, idAcheteur, entity.Valeur);
-            
+            int idDestinataire = annonce.IdCompte;
             var messageAssocie = await _managermessage.GetByIdAsync(entity.IdMessage);
 
-            if (messageAssocie != null && _hubContext != null)
+            if (_hubContext != null)
             {
+                await MessageHub.SendOffreNotification(
+                    _hubContext,
+                    idDestinataire,
+                    entity.IdOffre,
+                    entity.Valeur,
+                    annonce.Libelle
+                );
+                
                 await _hubContext.Clients.Group($"conversation_{messageAssocie.IdConversation}")
                     .SendAsync("ReceiveMessageWithOffre",
                         messageAssocie.IdConversation,
-                        messageAssocie.IdCompte, // L'ID de l'expéditeur
-                        messageAssocie.ContenuMessage,  // Le texte du message
+                        messageAssocie.IdCompte,
+                        messageAssocie.ContenuMessage,
                         messageAssocie.DateEnvoiMessage,
                         messageAssocie.IdMessage,
                         entity.IdOffre,
-                        entity.Valeur,             // La valeur de l'offre (vérifie le nom de la prop : Prix, Montant ou Valeur)
+                        entity.Valeur,
                         entity.IdAnnonce);
             }
 
@@ -153,6 +161,12 @@ namespace Api_c_sharp.Controllers
                 commandeEntity = _offremapper.Map<Commande>(com);
 
                 await _managercommande.AddAsync(commandeEntity);
+
+                Facture factureEntity = new Facture
+                {
+                    IdCommande = commandeEntity.IdCommande
+                };
+                await _managerfacture.AddAsync(factureEntity);
             }
 
             if (updated.EstAccepte != null)

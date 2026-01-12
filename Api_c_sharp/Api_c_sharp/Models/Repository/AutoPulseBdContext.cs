@@ -321,7 +321,7 @@ namespace Api_c_sharp.Models.Repository
             modelBuilder.Entity<Facture>()
                 .HasOne(f => f.CommandeFactureNav)
                 .WithMany(c => c.Factures)
-                .HasForeignKey(f => f.IdFacture);
+                .HasForeignKey(f => f.IdCommande);
 
             //-----------------------------Favori-----------------------------
             modelBuilder.Entity<Favori>()
