@@ -179,6 +179,10 @@ public class ConversationViewModel : IDisposable
             IsLoadingMessages = false;
             NotifyStateChanged();
         }
+        if (OnScrollRequested != null)
+        {
+            await OnScrollRequested.Invoke();
+        }
     }
 
     public void OnFilesSelected(List<IBrowserFile> files)
@@ -556,7 +560,6 @@ public class ConversationViewModel : IDisposable
                         
                         if (OnScrollRequested != null)
                         {
-                            await Task.Delay(300);
                             await OnScrollRequested.Invoke();
                         }
                     }
@@ -580,7 +583,7 @@ public class ConversationViewModel : IDisposable
                 try
                 {
                     Console.WriteLine($"📤 Upload de {filesToUpload.Count} fichier(s)...");
-        
+
                     var uploadedFiles = await _pieceJointeService.UploadFilesAsync(
                         createdMessage.IdMessage,
                         filesToUpload);
@@ -588,17 +591,18 @@ public class ConversationViewModel : IDisposable
                     Console.WriteLine($"✅ {uploadedFiles.Count} fichier(s) uploadé(s)");
 
                     await LoadMessages(SelectedConversation.IdConversation);
+                    
+                    if (OnScrollRequested != null)
+                    {
+                        await Task.Delay(300);
+                        await OnScrollRequested.Invoke();
+                    }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"❌ Erreur upload: {ex.Message}");
                     _notificationService.ShowError("Erreur upload", "Impossible d'envoyer les fichiers");
                 }
-            }
-
-            if (OnScrollRequested != null)
-            {
-                await OnScrollRequested.Invoke();
             }
         }
         catch (Exception ex)
