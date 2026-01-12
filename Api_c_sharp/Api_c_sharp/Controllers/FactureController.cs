@@ -18,7 +18,7 @@ namespace Api_c_sharp.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class FactureController(FactureManager _manager, IMapper _mapper) : ControllerBase
+public class FactureController(FactureManager _manager, IMapper _mapper,CommandeManager _managercommande) : ControllerBase
 {
     /// <summary>
     /// Récupère une facture à partir de son identifiant.
@@ -142,5 +142,27 @@ public class FactureController(FactureManager _manager, IMapper _mapper) : Contr
         return NoContent();
     }
 
+    /// <summary>
+    /// Génère et télécharge la facture d'une commande au format PDF
+    /// </summary>
+    [ActionName("GetFacturePdf")]
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetFacturePdf(int id)
+    {
+        // Vérifie que la commande existe
+        var commande = await _managercommande.GetByIdAsync(id);
+
+        if (commande == null)
+            return NotFound("Commande introuvable");
+
+        var pdfBytes = _manager.GenererPdfFactureParCommande(commande.IdCommande);
+
+        if (pdfBytes == null)
+            return NotFound("Impossible de générer la facture");
+
+        return File(pdfBytes, "application/pdf", $"facture-commande-{id}.pdf");
+    }
 
 }

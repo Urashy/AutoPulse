@@ -33,6 +33,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                     .ThenInclude(a => a.VoitureAnnonceNav)
                         .ThenInclude(v => v.MarqueVoitureNavigation)
                 .Include(c => c.CommandeAnnonceNav)
+                    .ThenInclude(a => a.CompteAnnonceNav)
+                        .ThenInclude(u => u.TypeCompteCompteNav)
+                .Include(c => c.CommandeAnnonceNav)
                     .ThenInclude(a => a.VoitureAnnonceNav)
                         .ThenInclude(v => v.ModeleVoitureNavigation)
                 .Include(c => c.CommandeAnnonceNav)
@@ -192,31 +195,70 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                         });
 
                         // Totaux
+                        // Totaux
                         column.Item().PaddingTop(15).AlignRight().Column(col =>
                         {
-                            var montant = commande.Offrecommande?.Valeur ?? commande.CommandeAnnonceNav?.Prix ?? 0;
+                            // 1. Récupération du montant (Prix final de la transaction)
+                            var montantTotal = commande.Offrecommande?.Valeur ?? commande.CommandeAnnonceNav?.Prix ?? 0;
 
-                            col.Item().Row(row =>
+                            // 2. Vérification si le vendeur est PRO
+                            // Note : Assurez-vous d'avoir inclus "TypeCompteCompteNav" dans votre requête Entity Framework
+                            var typeCompte = commande.VendeurCommande?.TypeCompteCompteNav?.Libelle;
+                            bool estVendeurPro = typeCompte != null &&
+                                                 (typeCompte.Equals("Pro", StringComparison.OrdinalIgnoreCase) ||
+                                                  typeCompte.Equals("Professionnel", StringComparison.OrdinalIgnoreCase));
+
+                            if (estVendeurPro)
                             {
-                                row.RelativeItem().Text("Sous-total :").Bold();
-                                row.ConstantItem(120).AlignRight().Text($"{montant:N2} €");
-                            });
+                                // --- CAS VENDEUR PRO (TVA INCLUSE) ---
 
-                            col.Item().PaddingTop(5).Row(row =>
+                                // Calcul : HT = TTC / 1.20
+                                decimal montantHT = montantTotal / 1.20m;
+                                decimal montantTva = montantTotal - montantHT;
+
+                                // Ligne Montant HT
+                                col.Item().Row(row =>
+                                {
+                                    row.RelativeItem().Text("Montant HT :").AlignRight();
+                                    row.ConstantItem(120).AlignRight().Text($"{montantHT:N2} €");
+                                });
+
+                                // Ligne TVA
+                                col.Item().PaddingTop(5).Row(row =>
+                                {
+                                    row.RelativeItem().Text("TVA (20%) :").AlignRight();
+                                    row.ConstantItem(120).AlignRight().Text($"{montantTva:N2} €");
+                                });
+
+                                // Barre de séparation
+                                col.Item().PaddingTop(8).LineHorizontal(2).LineColor(Colors.Blue.Darken2);
+
+                                // Ligne Total TTC
+                                col.Item().PaddingTop(8).Row(row =>
+                                {
+                                    row.RelativeItem().Text("TOTAL TTC :").Bold().FontSize(14)
+                                        .FontColor(Colors.Blue.Darken2).AlignRight();
+                                    row.ConstantItem(120).AlignRight().Text($"{montantTotal:N2} €")
+                                        .Bold().FontSize(14).FontColor(Colors.Blue.Darken2);
+                                });
+                            }
+                            else
                             {
-                                row.RelativeItem().Text("TVA (20%) :").Bold();
-                                row.ConstantItem(120).AlignRight().Text($"{montant * 0.20m:N2} €");
-                            });
+                                // --- CAS VENDEUR PARTICULIER (PAS DE TVA) ---
 
-                            col.Item().PaddingTop(8).LineHorizontal(2).LineColor(Colors.Blue.Darken2);
+                                col.Item().PaddingTop(8).LineHorizontal(2).LineColor(Colors.Blue.Darken2);
 
-                            col.Item().PaddingTop(8).Row(row =>
-                            {
-                                row.RelativeItem().Text("TOTAL TTC :").Bold().FontSize(14)
-                                    .FontColor(Colors.Blue.Darken2);
-                                row.ConstantItem(120).AlignRight().Text($"{montant * 1.20m:N2} €")
-                                    .Bold().FontSize(14).FontColor(Colors.Blue.Darken2);
-                            });
+                                col.Item().PaddingTop(8).Row(row =>
+                                {
+                                    row.RelativeItem().Text("TOTAL À PAYER :").Bold().FontSize(14)
+                                        .FontColor(Colors.Blue.Darken2).AlignRight();
+                                    row.ConstantItem(120).AlignRight().Text($"{montantTotal:N2} €")
+                                        .Bold().FontSize(14).FontColor(Colors.Blue.Darken2);
+                                });
+
+                                // Mention facultative pour clarifier
+                                col.Item().PaddingTop(2).Text("TVA non applicable").FontSize(9).Italic().FontColor(Colors.Grey.Darken1).AlignRight();
+                            }
                         });
 
                         // Informations de paiement

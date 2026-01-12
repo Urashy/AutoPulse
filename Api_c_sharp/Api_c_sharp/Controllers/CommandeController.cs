@@ -190,27 +190,6 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     }
 
 
-    /// <summary>
-    /// Génère et télécharge la facture d'une commande au format PDF
-    /// </summary>
-    [ActionName("GetFacturePdf")]
-    [HttpGet("{id}")]
-    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetFacturePdf(int id)
-    {
-        // Vérifie que la commande existe
-        var commande = await _manager.GetByIdAsync(id);
-
-        if (commande == null)
-            return NotFound("Commande introuvable");
-
-        var pdfBytes = _managerfacture.GenererPdfFactureParCommande(commande.IdCommande);
-
-        if (pdfBytes == null)
-            return NotFound("Impossible de générer la facture");
-
-        return File(pdfBytes, "application/pdf", $"facture-commande-{id}.pdf");
-    }
+    
 
 }

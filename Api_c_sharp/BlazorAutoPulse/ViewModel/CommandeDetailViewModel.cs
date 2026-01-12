@@ -16,6 +16,7 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IAvisService _avisService;
         private readonly IMoyenPaiementService _moyenPaiementService;
         private readonly ICarteBancaireService _carteBancaireService;
+        public readonly IFactureService _factureService;
 
         public CommandeDetailDTO? Commande { get; private set; }
         public bool IsLoading { get; private set; } = true;
@@ -67,7 +68,8 @@ namespace BlazorAutoPulse.ViewModel
             IConversationService conversationService,
             IAvisService avisService,
             IMoyenPaiementService moyenPaiementService,
-            ICarteBancaireService carteBancaireService)
+            ICarteBancaireService carteBancaireService,
+            IFactureService factureService)
         {
             _commandeService = commandeService;
             _compteService = compteService;
@@ -78,6 +80,7 @@ namespace BlazorAutoPulse.ViewModel
             _avisService = avisService;
             _moyenPaiementService = moyenPaiementService;
             _carteBancaireService = carteBancaireService;
+            _factureService = factureService;
         }
 
         public async Task InitializeAsync(int idCommande, Action refreshUI, NavigationManager nav)
@@ -557,7 +560,7 @@ namespace BlazorAutoPulse.ViewModel
 
                 Console.WriteLine($"[VM] Génération facture pour commande {Commande.IdCommande}");
 
-                var success = await _commandeService.TelechargerFacturePdf(Commande.IdCommande);
+                var success = await _factureService.TelechargerFacturePdf(Commande.IdCommande);
 
                 if (!success)
                 {

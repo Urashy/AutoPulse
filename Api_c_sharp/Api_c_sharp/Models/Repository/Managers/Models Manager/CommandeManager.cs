@@ -1,5 +1,6 @@
 ﻿using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
+using BlazorAutoPulse.Service;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
@@ -116,6 +117,13 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Include(ann => ann.CommandeAnnonceNav)
                     .ThenInclude(an => an.CompteAnnonceNav)
                     .FirstOrDefaultAsync(c => c.Offrecommande.OffreMessageNav.IdConversation == id);
+        }
+
+        public override async Task<Commande> AddAsync(Commande entity)
+        {
+            entity.Date = DateTime.UtcNow;
+
+            return await base.AddAsync(entity);
         }
 
     }
