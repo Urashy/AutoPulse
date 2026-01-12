@@ -13,7 +13,7 @@ public class ConversationWebService: BaseWebService<ConversationListDTO>, IConve
     protected override string ApiEndpoint => "Conversation";
     public async Task<IEnumerable<ConversationListDTO>> GetConversationsByCompteID(int compteId)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetConversationsByCompteID/{compteId}"));
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetConversationsByCompteID/{compteId}/0"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<IEnumerable<ConversationListDTO>>();

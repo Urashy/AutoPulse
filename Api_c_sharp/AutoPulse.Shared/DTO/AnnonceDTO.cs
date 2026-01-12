@@ -24,4 +24,5 @@ public class AnnonceDTO
     
     // Mise en avant
     public int IdMiseEnAvant { get; set; }
+    public int NbConversations { get; set; }
 }

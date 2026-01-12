@@ -45,7 +45,10 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.CodePostal,
                 opt => opt.MapFrom(src => src.AdresseAnnonceNav.CodePostal))
             .ForMember(dest => dest.IdMiseEnAvant,
-                opt => opt.MapFrom(src => src.IdMiseEnAvant)).ReverseMap();
+                opt => opt.MapFrom(src => src.IdMiseEnAvant))
+            .ForMember(dest => dest.NbConversations,
+                opt => opt.MapFrom(src => src.Conversations.Count()))
+            .ReverseMap();
 
         CreateMap<Annonce, AnnonceDetailDTO>()
             .ForMember(dest => dest.LibelleEtatAnnonce,

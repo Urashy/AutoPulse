@@ -359,7 +359,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 }
             };
 
-            _mockManager.Setup(m => m.GetConversationsByCompteID(1))
+            _mockManager.Setup(m => m.GetConversationsByCompteID(1,0))
                        .ReturnsAsync(conversationsList);
             _mockEnrichmentService.Setup(s => s.EnrichConversationsAsync(conversationsList, 1))
                                  .ReturnsAsync(conversationListDTOs);
@@ -380,7 +380,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task NotFoundGetConversationByCompteIDTest()
         {
             // Arrange
-            _mockManager.Setup(m => m.GetConversationsByCompteID(0))
+            _mockManager.Setup(m => m.GetConversationsByCompteID(0,0))
                        .ReturnsAsync((IEnumerable<Conversation>)null);
 
             // Act
