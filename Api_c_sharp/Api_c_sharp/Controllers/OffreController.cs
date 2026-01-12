@@ -69,20 +69,28 @@ namespace Api_c_sharp.Controllers
             }
 
             await _notifService.NotifOffreAnnonce(entity.IdAnnonce, idAcheteur, entity.Valeur);
-            
+            int idDestinataire = annonce.IdCompte;
             var messageAssocie = await _managermessage.GetByIdAsync(entity.IdMessage);
 
-            if (messageAssocie != null && _hubContext != null)
+            if (_hubContext != null)
             {
+                await MessageHub.SendOffreNotification(
+                    _hubContext,
+                    idDestinataire,
+                    entity.IdOffre,
+                    entity.Valeur,
+                    annonce.Libelle
+                );
+                
                 await _hubContext.Clients.Group($"conversation_{messageAssocie.IdConversation}")
                     .SendAsync("ReceiveMessageWithOffre",
                         messageAssocie.IdConversation,
-                        messageAssocie.IdCompte, // L'ID de l'expéditeur
-                        messageAssocie.ContenuMessage,  // Le texte du message
+                        messageAssocie.IdCompte,
+                        messageAssocie.ContenuMessage,
                         messageAssocie.DateEnvoiMessage,
                         messageAssocie.IdMessage,
                         entity.IdOffre,
-                        entity.Valeur,             // La valeur de l'offre (vérifie le nom de la prop : Prix, Montant ou Valeur)
+                        entity.Valeur,
                         entity.IdAnnonce);
             }
 
