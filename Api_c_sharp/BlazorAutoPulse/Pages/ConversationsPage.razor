@@ -7,27 +7,70 @@
 
 <div class="conversations-container">
     <div class="conversations-sidebar">
-        <h2>💬 Conversations</h2>
+        <div class="sidebar-header">
+            <h2>💬 Conversations</h2>
+
+            <!-- NOUVEAU : Filtre par annonce -->
+            <div class="annonce-filter">
+                @if (VM.IsLoadingAnnonces)
+                {
+                    <div class="loading-filter">⏳ Chargement...</div>
+                }
+                else if (VM.MesAnnonces.Any())
+                {
+                    <div class="annonce-filter-select-wrapper">
+                        <select class="select-annonce-conversation" @onchange="@VM.SelectAnnonceFilter">
+                            <option value="0" selected="@(VM.SelectedAnnonceFilter == 0)">
+                                📋 Toutes les annonces (@VM.Conversations.Count)
+                            </option>
+                            @foreach (var annonce in VM.MesAnnonces)
+                            {
+                                var convCount = VM.Conversations.Count(c => c.IdAnnonce == annonce.IdAnnonce);
+                                if (convCount > 0)
+                                {
+                                    <option value="@annonce.IdAnnonce"
+                                            selected="@(VM.SelectedAnnonceFilter == annonce.IdAnnonce)">
+                                        🚗 @(annonce.Libelle?.Length > 30 ? annonce.Libelle.Substring(0, 30) + "..." : annonce.Libelle) (@convCount)
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <span class="select-arrow">▼</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="no-annonces-filter">Aucune annonce avec conversations</div>
+                }
+            </div>
+        </div>
 
         @if (VM.IsLoading)
         {
             <div class="loading">Chargement...</div>
         }
-        else if (!VM.Conversations.Any())
+        else if (!VM.ConversationsFiltered.Any())
         {
             <div class="empty-state">
-                <p>Aucune conversation</p>
+                @if (VM.SelectedAnnonceFilter > 0)
+                {
+                    <p>Aucune conversation pour cette annonce</p>
+                }
+                else
+                {
+                    <p>Aucune conversation</p>
+                }
             </div>
         }
         else
         {
-            @foreach (var conv in VM.Conversations)
+            @foreach (var conv in VM.ConversationsFiltered)
             {
                 <div class="conversation-item @(VM.SelectedConversation?.IdConversation == conv.IdConversation ? "active" : "")"
                      @onclick="() => VM.SelectConversation(conv)">
                     <div class="conversation-avatar">
                         @if (VM.ImageSources.ContainsKey(conv.IdParticipant) &&
-                                        !string.IsNullOrEmpty(VM.ImageSources[conv.IdParticipant]))
+                             !string.IsNullOrEmpty(VM.ImageSources[conv.IdParticipant]))
                         {
                             <img src="@VM.ImageSources[conv.IdParticipant]"
                                  alt="Profile"
@@ -37,15 +80,15 @@
                         {
                             <span>👤</span>
                         }
-                </div>
-                <div class="conversation-info">
-                    <h4>@conv.LibelleAnnonce</h4>
-                    <p class="last-message">
-                        @(string.IsNullOrEmpty(conv.DernierMessage) ? "Aucun message" :
-                                            conv.DernierMessage.Length > 40 ? conv.DernierMessage.Substring(0, 40) + "..." : conv.DernierMessage)
-                </p>
-            </div>
-            @if (conv.NombreNonLu > 0)
+                    </div>
+                    <div class="conversation-info">
+                        <h4>@conv.LibelleAnnonce</h4>
+                        <p class="last-message">
+                            @(string.IsNullOrEmpty(conv.DernierMessage) ? "Aucun message" :
+                            conv.DernierMessage.Length > 40 ? conv.DernierMessage.Substring(0, 40) + "..." : conv.DernierMessage)
+                        </p>
+                    </div>
+                    @if (conv.NombreNonLu > 0)
                     {
                         <span class="unread-badge">@conv.NombreNonLu</span>
                     }
@@ -67,7 +110,7 @@
             <div class="conversation-header">
                 <div class="conversation-avatar">
                     @if (VM.ImageSources.ContainsKey(VM.SelectedConversation.IdParticipant) &&
-                                    !string.IsNullOrEmpty(VM.ImageSources[VM.SelectedConversation.IdParticipant]))
+                         !string.IsNullOrEmpty(VM.ImageSources[VM.SelectedConversation.IdParticipant]))
                     {
                         <img src="@VM.ImageSources[VM.SelectedConversation.IdParticipant]"
                              alt="Profile"
@@ -110,9 +153,7 @@
                               OnOffreAccept="@VM.AccepterOffre"
                               OnOffreRefuse="@VM.RefuserOffre" />
 
-
             <div class="message-input-area">
-                <!-- Bouton pour activer le mode offre -->
                 <div class="input-toolbar">
                     <button class="toolbar-btn @(VM.ShowOffreMode ? "active" : "")"
                             @onclick="VM.ToggleOffreMode"
@@ -124,14 +165,12 @@
                     <FileUploadComponent OnFilesSelected="@VM.OnFilesSelected" />
                 </div>
 
-                <!-- Zone offre si activée -->
                 @if (VM.ShowOffreMode)
                 {
                     <div class="offre-input-zone">
                         <div class="offre-input-header">
                             <span class="offre-label">
-                                💰
-                                Montant de l'offre
+                                💰 Montant de l'offre
                             </span>
                             @if (VM.AnnoncePrixMax.HasValue)
                             {
@@ -186,7 +225,7 @@
                            class="message-input"
                            disabled="@((VM.IsUploadingFiles || VM.EstBloquer) ? true : (bool?)null)" />
 
-                    <button @onclick="@(VM.ShowOffreMode? VM.SendMessageWithOffre: VM.SendMessageWithOffre)"
+                    <button @onclick="@(VM.ShowOffreMode ? VM.SendMessageWithOffre : VM.SendMessageWithOffre)"
                             class="send-btn @(VM.ShowOffreMode ? "offre-mode" : "")"
                             disabled="@((string.IsNullOrWhiteSpace(VM.NewMessage) && !VM.SelectedFiles.Any() && (!VM.ShowOffreMode || VM.OffreAmount <= 0)) || VM.IsUploadingFiles)">
                         @if (VM.IsUploadingFiles)
@@ -207,8 +246,6 @@
         }
     </div>
 </div>
-
-
 
 @code {
     protected override async Task OnInitializedAsync()

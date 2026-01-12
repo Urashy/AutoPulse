@@ -11,9 +11,9 @@ public class ConversationWebService: BaseWebService<ConversationListDTO>, IConve
     }
 
     protected override string ApiEndpoint => "Conversation";
-    public async Task<IEnumerable<ConversationListDTO>> GetConversationsByCompteID(int compteId)
+    public async Task<IEnumerable<ConversationListDTO>> GetConversationsByCompteID(int compteId, int idAnnonce)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetConversationsByCompteID/{compteId}/0"));
+        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetConversationsByCompteID/{compteId}/{idAnnonce}"));
         var response = await SendWithCredentialsAsync(request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<IEnumerable<ConversationListDTO>>();

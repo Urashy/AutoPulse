@@ -487,7 +487,7 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                var conversations = await _conversationService.GetConversationsByCompteID(CurrentUserId ?? 0);
+                var conversations = await _conversationService.GetConversationsByCompteID(CurrentUserId ?? 0, 0);
 
                 var existingConv = conversations.FirstOrDefault(c =>
                     c.IdAnnonce == Commande.Annonce?.IdAnnonce &&
@@ -519,7 +519,7 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                var conversations = await _conversationService.GetConversationsByCompteID(CurrentUserId ?? 0);
+                var conversations = await _conversationService.GetConversationsByCompteID(CurrentUserId ?? 0, 0);
 
                 var existingConv = conversations.FirstOrDefault(c =>
                     c.IdAnnonce == Commande.Annonce?.IdAnnonce &&
