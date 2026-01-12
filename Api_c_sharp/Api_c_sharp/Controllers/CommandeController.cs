@@ -18,7 +18,7 @@ namespace Api_c_sharp.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CommandeController(CommandeManager _manager, IMapper _mapper, IJournalService _journalService,AnnonceManager _managerannonce,FactureManager _managerfacture) : ControllerBase
+public class CommandeController(CommandeManager _manager, IMapper _mapper, IJournalService _journalService,AnnonceManager _managerannonce) : ControllerBase
 {
     /// <summary>
     /// Récupère une commande à partir de son identifiant.

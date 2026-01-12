@@ -23,7 +23,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return await dbSet.FindAsync(id);
         }
 
-        public byte[]? GenererPdfFactureParCommande(int commandeId)
+        public virtual byte[]? GenererPdfFactureParCommande(int commandeId)
         {
             // ✅ CORRECTION : Utiliser _context au lieu de dbSet
             var commande = _context.Commandes

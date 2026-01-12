@@ -17,8 +17,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         private FactureController _controller;
         private AutoPulseBdContext _context;
         private FactureManager _manager;
+        private CommandeManager _commandeManager;
         private IMapper _mapper;
         private Facture _objetcommun;
+
 
         [TestInitialize]
         public async Task Initialize()
@@ -36,8 +38,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _mapper = config.CreateMapper();
 
             _manager = new FactureManager(_context);
-            _controller = new FactureController(_manager, _mapper);
+            _commandeManager = new CommandeManager(_context);
+            _controller = new FactureController(_manager, _mapper, _commandeManager);
 
+            // Entités de base
             _context.Marques.Add(new Marque { IdMarque = 1, LibelleMarque = "TestMarque" });
             _context.Motricites.Add(new Motricite { IdMotricite = 1, LibelleMotricite = "4x4" });
             _context.Carburants.Add(new Carburant { IdCarburant = 1, LibelleCarburant = "Essence" });
@@ -53,9 +57,18 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             TypeCompte typeCompte = new TypeCompte
             {
-                IdTypeCompte= 1,
+                IdTypeCompte = 1,
                 Libelle = "Acheteur"
             };
+
+            // AJOUT: Pays et Adresse AVANT les comptes
+            var pays = new Pays()
+            {
+                IdPays = 1,
+                Libelle = "France"
+            };
+            await _context.Pays.AddAsync(pays);
+            await _context.SaveChangesAsync();
 
             Compte acheteur = new Compte
             {
@@ -68,7 +81,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 DateCreation = DateTime.Now,
                 DateNaissance = new DateTime(1990, 1, 1),
                 DateDerniereConnexion = DateTime.Now,
-                IdTypeCompte =typeCompte.IdTypeCompte
+                IdTypeCompte = typeCompte.IdTypeCompte
             };
 
             Compte vendeur = new Compte
@@ -82,8 +95,31 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 DateCreation = DateTime.Now,
                 DateNaissance = new DateTime(1990, 1, 1),
                 DateDerniereConnexion = DateTime.Now,
-                IdTypeCompte = typeCompte.IdTypeCompte
+                IdTypeCompte = typeCompte.IdTypeCompte,
+                // AJOUT: Optionnel pour vendeur pro
+                NumeroSiret = "12345678901234",
+                RaisonSociale = "Test SARL"
             };
+
+            await _context.TypesCompte.AddAsync(typeCompte);
+            await _context.Comptes.AddAsync(acheteur);
+            await _context.Comptes.AddAsync(vendeur);
+            await _context.SaveChangesAsync();
+
+            // AJOUT: Adresse associée au vendeur
+            var adresse = new Adresse()
+            {
+                IdAdresse = 1,
+                Nom = "Domicile",
+                Numero = 10,
+                Rue = "Rue de la Paix",
+                LibelleVille = "Paris",
+                CodePostal = "75001",
+                IdCompte = vendeur.IdCompte, // Important: liée au vendeur
+                IdPays = pays.IdPays
+            };
+            await _context.Adresses.AddAsync(adresse);
+            await _context.SaveChangesAsync();
 
             Voiture voiture = new Voiture
             {
@@ -99,8 +135,18 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Puissance = 150,
                 MiseEnCirculation = new DateTime(2021, 6, 15)
             };
+            await _context.Voitures.AddAsync(voiture);
+            await _context.SaveChangesAsync();
 
-            Annonce annnonce = new Annonce
+            EtatAnnonce etatAnnonce = new EtatAnnonce
+            {
+                IdEtatAnnonce = 1,
+                LibelleEtatAnnonce = "Active"
+            };
+            await _context.EtatAnnonces.AddAsync(etatAnnonce);
+            await _context.SaveChangesAsync();
+
+            Annonce annonce = new Annonce
             {
                 IdAnnonce = 1,
                 Libelle = "Annonce Test",
@@ -108,31 +154,84 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Prix = 10000,
                 DatePublication = DateTime.Now,
                 IdCompte = vendeur.IdCompte,
-                IdVoiture = 1,
+                IdVoiture = voiture.IdVoiture,
+                IdEtatAnnonce = etatAnnonce.IdEtatAnnonce,
+                IdAdresse = adresse.IdAdresse // IMPORTANT: Lier l'adresse à l'annonce
             };
+            await _context.Annonces.AddAsync(annonce);
+            await _context.SaveChangesAsync();
+
+            Conversation conversation = new Conversation()
+            {
+                IdConversation = 1,
+                IdAnnonce = annonce.IdAnnonce,
+                DateDernierMessage = DateTime.Now
+            };
+            await _context.Conversations.AddAsync(conversation);
+            await _context.SaveChangesAsync();
+
+            Message message1 = new Message()
+            {
+                IdMessage = 1,
+                ContenuMessage = "Bonjour, je suis intéressé par votre annonce.",
+                DateEnvoiMessage = DateTime.Now,
+                IdConversation = conversation.IdConversation,
+                IdCompte = acheteur.IdCompte,
+                EstLu = false,
+            };
+
+            Message message2 = new Message()
+            {
+                IdMessage = 2,
+                ContenuMessage = "Bonjour, message 2",
+                DateEnvoiMessage = DateTime.Now,
+                IdConversation = conversation.IdConversation,
+                IdCompte = vendeur.IdCompte,
+                EstLu = false,
+            };
+            await _context.Messages.AddRangeAsync(message1, message2);
+            await _context.SaveChangesAsync();
+
+            var etatCommande = new EtatCommande()
+            {
+                IdEtatCommande = 1,
+                Libelle = "En cours"
+            };
+            await _context.EtatCommandes.AddAsync(etatCommande);
+            await _context.SaveChangesAsync();
+
+            Offre offre = new Offre()
+            {
+                IdOffre = 1,
+                Valeur = 9500,
+                DateOffre = DateTime.Now,
+                IdMessage = message1.IdMessage,
+                IdAnnonce = annonce.IdAnnonce,
+                EstAccepte = true // IMPORTANT: Acceptée pour la commande
+            };
+            await _context.Offres.AddAsync(offre);
+            await _context.MoyensPaiements.AddAsync(moyenPaiement);
+            await _context.SaveChangesAsync();
 
             Commande commande = new Commande
             {
                 IdCommande = 1,
                 Date = DateTime.Now,
                 IdAcheteur = acheteur.IdCompte,
-                IdAnnonce = annnonce.IdAnnonce,
+                IdAnnonce = annonce.IdAnnonce,
                 IdMoyenPaiement = moyenPaiement.IdMoyenPaiement,
-                IdVendeur = vendeur.IdCompte
+                IdVendeur = vendeur.IdCompte,
+                IdEtatCommande = etatCommande.IdEtatCommande,
+                IdOffre = offre.IdOffre
             };
+            await _context.Commandes.AddAsync(commande);
+            await _context.SaveChangesAsync();
 
             Facture objet = new Facture()
             {
                 IdFacture = 1,
                 IdCommande = commande.IdCommande,
             };
-            await _context.TypesCompte.AddAsync(typeCompte);
-            await _context.MoyensPaiements.AddAsync(moyenPaiement);
-            await _context.Comptes.AddAsync(acheteur);
-            await _context.Comptes.AddAsync(vendeur);
-            await _context.Voitures.AddAsync(voiture);
-            await _context.Annonces.AddAsync(annnonce);
-            await _context.Commandes.AddAsync(commande);
             await _context.Factures.AddAsync(objet);
             await _context.SaveChangesAsync();
 
@@ -141,7 +240,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
         #region GET
 
-            #region GetById
+        #region GetById
         [TestMethod]
         public async Task GetByIdTest()
         {
@@ -308,7 +407,75 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
         #endregion
 
-        
+        // Ajoutez ces tests à la fin de votre classe FactureControllerTests (fichier non-mock)
+        // Juste avant la dernière accolade fermante de la classe
+
+        #region GetFacturePdf
+
+        [TestMethod]
+        public async Task GetFacturePdf_ReturnsFileResult_WhenCommandeExists()
+        {
+            // Act
+            var result = await _controller.GetFacturePdf(_objetcommun.IdCommande, download: true);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(FileContentResult));
+
+            var fileResult = result as FileContentResult;
+            Assert.AreEqual("application/pdf", fileResult.ContentType);
+            Assert.AreEqual($"Facture_Commande_{_objetcommun.IdCommande}.pdf", fileResult.FileDownloadName);
+            Assert.IsTrue(fileResult.FileContents.Length > 0);
+        }
+
+        [TestMethod]
+        public async Task GetFacturePdf_ReturnsFileResult_WithoutDownload()
+        {
+            // Act
+            var result = await _controller.GetFacturePdf(_objetcommun.IdCommande, download: false);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(FileContentResult));
+
+            var fileResult = result as FileContentResult;
+            Assert.AreEqual("application/pdf", fileResult.ContentType);
+            Assert.AreEqual(fileResult.FileDownloadName, ""); // Pas de nom de fichier en mode preview
+            Assert.IsTrue(fileResult.FileContents.Length > 0);
+        }
+
+        [TestMethod]
+        public async Task GetFacturePdf_ReturnsNotFound_WhenCommandeDoesNotExist()
+        {
+            // Act
+            var result = await _controller.GetFacturePdf(9999, download: true);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+
+            var notFoundResult = result as NotFoundObjectResult;
+            Assert.AreEqual("Commande introuvable", notFoundResult.Value);
+        }
+
+        [TestMethod]
+        public async Task GetFacturePdf_ValidatesPdfContent()
+        {
+            // Act
+            var result = await _controller.GetFacturePdf(_objetcommun.IdCommande, download: true);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(FileContentResult));
+
+            var fileResult = result as FileContentResult;
+            var pdfContent = fileResult.FileContents;
+
+            // Vérifier que c'est bien un PDF (commence par %PDF)
+            var pdfHeader = System.Text.Encoding.ASCII.GetString(pdfContent.Take(4).ToArray());
+            Assert.AreEqual("%PDF", pdfHeader);
+        }
+
+        #endregion
 
     }
 }
