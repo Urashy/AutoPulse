@@ -11,7 +11,6 @@ using BlazorAutoPulse.ViewModel;
 using BlazorAutoPulse.ViewModel.Administration;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using VoitureDetailDTO = AutoPulse.Shared.DTO.VoitureDetailDTO;
 
 namespace BlazorAutoPulse
 {
@@ -75,6 +74,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IReinitialiseMdp, ReinitialisationMdpWebService>();
             builder.Services.AddScoped<ICouleurService, CouleurWebService>();
             builder.Services.AddScoped<ISignalRService, SignalRWebService>();
+            builder.Services.AddScoped<CommandeSignalRWebService>();
             builder.Services.AddScoped<IConversationService, ConversationWebService>();
             builder.Services.AddScoped<ITypeCompteService, TypeCompteWebService>();
             builder.Services.AddScoped<IAdresseService, AdresseWebService>();

@@ -3,6 +3,7 @@ using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using BlazorAutoPulse.Service.WebService;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -18,7 +19,9 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IMoyenPaiementService _moyenPaiementService;
         private readonly ICarteBancaireService _carteBancaireService;
         private readonly IFactureService _factureService;
-        private readonly IJSRuntime _jsRuntime; // <--- AJOUT
+        private readonly IJSRuntime _jsRuntime;
+        private readonly CommandeSignalRWebService _signalRService;
+
 
         public CommandeDetailDTO? Commande { get; private set; }
         public bool IsLoading { get; private set; } = true;
@@ -73,7 +76,8 @@ namespace BlazorAutoPulse.ViewModel
             IMoyenPaiementService moyenPaiementService,
             ICarteBancaireService carteBancaireService,
             IFactureService factureService,
-            IJSRuntime jsRuntime) // <--- INJECTION
+            IJSRuntime jsRuntime,
+            CommandeSignalRWebService signalRService) 
         {
             _commandeService = commandeService;
             _compteService = compteService;
@@ -86,6 +90,7 @@ namespace BlazorAutoPulse.ViewModel
             _carteBancaireService = carteBancaireService;
             _factureService = factureService;
             _jsRuntime = jsRuntime;
+            _signalRService = signalRService;
         }
 
         public async Task InitializeAsync(int idCommande, Action refreshUI, NavigationManager nav)
@@ -149,6 +154,8 @@ namespace BlazorAutoPulse.ViewModel
                 }
 
                 await LoadPaymentData();
+                await InitializeSignalR(idCommande);
+
             }
             catch (Exception ex)
             {
@@ -645,5 +652,76 @@ namespace BlazorAutoPulse.ViewModel
                 _refreshUI?.Invoke();
             }
         }
+
+        //SIGNAL R
+
+        private async Task InitializeSignalR(int idCommande)
+        {
+            try
+            {
+                _signalRService.OnCommandeStateChanged += HandleCommandeStateChanged;
+                _signalRService.OnCommandeNotification += HandleCommandeNotification;
+
+                // Initialiser la connexion
+                await _signalRService.InitializeAsync();
+
+                // Rejoindre le groupe de cette commande
+                await _signalRService.JoinCommandeGroup(idCommande);
+
+                Console.WriteLine($"[VM] SignalR initialisé pour commande {idCommande}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VM] Erreur init SignalR: {ex.Message}");
+            }
+        }
+
+        private void HandleCommandeStateChanged(int idCommande, int newState, string stateName)
+        {
+            if (Commande != null && Commande.IdCommande == idCommande)
+            {
+                Console.WriteLine($"[VM] État commande mis à jour: {newState}");
+
+                // Mettre à jour l'état local
+                Commande.IdEtatCommande = newState;
+
+                // Rafraîchir l'UI
+                _refreshUI?.Invoke();
+
+                // Notification visuelle
+                _notificationService.ShowInfo(
+                    "Commande mise à jour",
+                    $"La commande est maintenant : {stateName}"
+                );
+            }
+        }
+
+        // Gérer les notifications
+        private void HandleCommandeNotification(string message)
+        {
+            Console.WriteLine($"[VM] Notification reçue: {message}");
+        }
+
+        public async Task CleanupAsync()
+        {
+            try
+            {
+                if (Commande != null)
+                {
+                    await _signalRService.LeaveCommandeGroup(Commande.IdCommande);
+                }
+
+                // Se désabonner des événements
+                _signalRService.OnCommandeStateChanged -= HandleCommandeStateChanged;
+                _signalRService.OnCommandeNotification -= HandleCommandeNotification;
+
+                Console.WriteLine("[VM] SignalR cleanup effectué");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[VM] Erreur cleanup SignalR: {ex.Message}");
+            }
+        }
+
     }
 }

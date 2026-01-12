@@ -223,5 +223,103 @@ namespace Api_c_sharp.Hubs
                 Console.WriteLine($"💰 Notification d'offre envoyée à l'utilisateur {userId} (valeur: {offreValeur}€)");
             }
         }
+
+        // COMMANDES
+
+
+        // Rejoindre le groupe d'une commande spécifique
+        public async Task JoinCommande(int idCommande)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"commande_{idCommande}");
+            Console.WriteLine($"Connection {Context.ConnectionId} joined commande {idCommande}");
+        }
+
+        // Quitter le groupe d'une commande
+        public async Task LeaveCommande(int idCommande)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"commande_{idCommande}");
+            Console.WriteLine($"Connection {Context.ConnectionId} left commande {idCommande}");
+        }
+
+        // Méthode statique pour notifier un changement d'état de commande
+        public static async Task NotifyCommandeStateChanged(
+            IHubContext<MessageHub> hubContext,
+            int idCommande,
+            int newState,
+            string stateName,
+            int? idAcheteur,
+            int? idVendeur)
+        {
+            var groupName = $"commande_{idCommande}";
+
+            await hubContext.Clients.Group(groupName)
+                .SendAsync("CommandeStateChanged", new
+                {
+                    IdCommande = idCommande,
+                    NewState = newState,
+                    StateName = stateName,
+                    Timestamp = DateTime.UtcNow
+                });
+
+            // Notification personnalisée pour l'acheteur
+            if (idAcheteur.HasValue && UserConnections.TryGetValue(idAcheteur.Value, out var acheteurConnections))
+            {
+                foreach (var connectionId in acheteurConnections)
+                {
+                    await hubContext.Clients.Client(connectionId)
+                        .SendAsync("CommandeNotification", new
+                        {
+                            IdCommande = idCommande,
+                            Message = GetNotificationMessageForBuyer(newState),
+                            NewState = newState,
+                            Type = "commande_update"
+                        });
+                }
+            }
+
+            // Notification personnalisée pour le vendeur
+            if (idVendeur.HasValue && UserConnections.TryGetValue(idVendeur.Value, out var vendeurConnections))
+            {
+                foreach (var connectionId in vendeurConnections)
+                {
+                    await hubContext.Clients.Client(connectionId)
+                        .SendAsync("CommandeNotification", new
+                        {
+                            IdCommande = idCommande,
+                            Message = GetNotificationMessageForSeller(newState),
+                            NewState = newState,
+                            Type = "commande_update"
+                        });
+                }
+            }
+
+            Console.WriteLine($"📦 Commande {idCommande} state changed to {newState} ({stateName})");
+        }
+
+        // Messages pour l'acheteur
+        private static string GetNotificationMessageForBuyer(int state)
+        {
+            return state switch
+            {
+                2 => "Le vendeur a été notifié de votre paiement",
+                3 => "Le vendeur a confirmé la réception de votre paiement",
+                4 => "Le vendeur a émis la livraison du véhicule",
+                5 => "Transaction terminée ! Profitez de votre véhicule",
+                _ => "Statut de la commande mis à jour"
+            };
+        }
+
+        // Messages pour le vendeur
+        private static string GetNotificationMessageForSeller(int state)
+        {
+            return state switch
+            {
+                2 => "L'acheteur a déclaré un paiement",
+                3 => "Vous avez confirmé la réception du paiement",
+                4 => "Vous avez émis la livraison",
+                5 => "L'acheteur a confirmé la réception du véhicule",
+                _ => "Statut de la commande mis à jour"
+            };
+        }
     }
 }

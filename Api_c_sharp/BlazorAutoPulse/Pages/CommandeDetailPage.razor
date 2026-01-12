@@ -408,4 +408,16 @@ else
     {
         await VM.InitializeAsync(IdCommande, StateHasChanged, Navigation);
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await VM.CleanupAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur dispose: {ex.Message}");
+        }
+    }
 }

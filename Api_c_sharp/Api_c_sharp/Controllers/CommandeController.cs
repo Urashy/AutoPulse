@@ -1,12 +1,14 @@
-﻿using AutoPulse.Shared.DTO;
+﻿using Api_c_sharp.Hubs;
 using Api_c_sharp.Mapper;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Generic;
-using Api_c_sharp.Models.Entity;
 
 namespace Api_c_sharp.Controllers;
 
@@ -18,7 +20,7 @@ namespace Api_c_sharp.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CommandeController(CommandeManager _manager, IMapper _mapper, IJournalService _journalService,AnnonceManager _managerannonce) : ControllerBase
+public class CommandeController(CommandeManager _manager, IMapper _mapper, IJournalService _journalService,AnnonceManager _managerannonce, IHubContext<MessageHub> _hubContext = null) : ControllerBase
 {
     /// <summary>
     /// Récupère une commande à partir de son identifiant.
@@ -112,7 +114,12 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
         if (toUpdate == null)
             return NotFound();
 
-        if(dto.IdEtatCommande == 5)
+        string state = toUpdate.EtatCommandeCommandeNav.Libelle;
+
+        // Mémoriser l'ancien état
+        var oldState = toUpdate.IdEtatCommande;
+
+        if (dto.IdEtatCommande == 5)
         {
             Annonce e = await _managerannonce.GetByIdAsync(dto.IdAnnonce);
             Annonce updated = e;
@@ -123,9 +130,23 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
         var updatedEntity = _mapper.Map<Commande>(dto);
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
+        // 🔔 Notifier via SignalR si l'état a changé
+        if (_hubContext != null && dto.IdEtatCommande != oldState)
+        {
+
+            await MessageHub.NotifyCommandeStateChanged(
+                _hubContext,
+                dto.IdCommande,
+                dto.IdEtatCommande,
+                state,
+                dto.IdAcheteur,
+                dto.IdVendeur
+            );
+        }
+
         return NoContent();
     }
-
+        
     /// <summary>
     /// Supprime une commande existante.
     /// </summary>
