@@ -587,6 +587,8 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
+
+
         public async Task EnvoyerAvis()
         {
             if (Commande == null || !CurrentUserId.HasValue) return;

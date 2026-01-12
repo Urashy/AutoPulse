@@ -1,12 +1,13 @@
-﻿using AutoPulse.Shared.DTO;
-using Api_c_sharp.Mapper;
+﻿using Api_c_sharp.Mapper;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
+using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using Api_c_sharp.Models.Entity;
+using System.ComponentModel.Design;
 
 namespace Api_c_sharp.Controllers;
 
@@ -149,7 +150,7 @@ public class FactureController(FactureManager _manager, IMapper _mapper,Commande
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetFacturePdf(int id)
+    public async Task<IActionResult> GetFacturePdf(int id, [FromQuery] bool download = true)
     {
         // Vérifie que la commande existe
         var commande = await _managercommande.GetByIdAsync(id);
@@ -162,7 +163,14 @@ public class FactureController(FactureManager _manager, IMapper _mapper,Commande
         if (pdfBytes == null)
             return NotFound("Impossible de générer la facture");
 
-        return File(pdfBytes, "application/pdf", $"facture-commande-{id}.pdf");
+        if (download)
+        {
+            return File(pdfBytes, "application/pdf", $"Facture_Commande_{commande.IdCommande}.pdf");
+        }
+        else
+        {
+            return File(pdfBytes, "application/pdf");
+        }
     }
 
 }
