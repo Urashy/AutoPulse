@@ -152,7 +152,7 @@ public class ConversationViewModel : IDisposable
         }
     }
 
-    private async Task LoadMessages(int conversationId)
+    private async Task LoadMessages(int conversationId, bool doScroll = false)
     {
         IsLoadingMessages = true;
         NotifyStateChanged();
@@ -167,8 +167,15 @@ public class ConversationViewModel : IDisposable
                 _conversationState.NotifyMessagesRead();
             }
 
-            Messages = (await _messageService.GetMessagesByConversationAndMarkAsRead(conversationId, CurrentUserId)).ToList();
+            Messages = (await _messageService.GetMessagesByConversationAndMarkAsRead(conversationId, CurrentUserId))
+                .ToList();
             Console.WriteLine($"✅ {Messages.Count} messages chargés pour conversation {conversationId}");
+            
+            if (doScroll && OnScrollRequested != null)
+            {
+                await Task.Delay(100);
+                await OnScrollRequested.Invoke();
+            }
         }
         catch (Exception ex)
         {
@@ -178,10 +185,6 @@ public class ConversationViewModel : IDisposable
         {
             IsLoadingMessages = false;
             NotifyStateChanged();
-        }
-        if (OnScrollRequested != null)
-        {
-            await OnScrollRequested.Invoke();
         }
     }
 
@@ -590,13 +593,7 @@ public class ConversationViewModel : IDisposable
 
                     Console.WriteLine($"✅ {uploadedFiles.Count} fichier(s) uploadé(s)");
 
-                    await LoadMessages(SelectedConversation.IdConversation);
-                    
-                    if (OnScrollRequested != null)
-                    {
-                        await Task.Delay(300);
-                        await OnScrollRequested.Invoke();
-                    }
+                    await LoadMessages(SelectedConversation.IdConversation, doScroll: true);
                 }
                 catch (Exception ex)
                 {
