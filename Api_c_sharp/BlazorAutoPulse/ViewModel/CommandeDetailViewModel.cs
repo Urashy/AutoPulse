@@ -562,7 +562,6 @@ namespace BlazorAutoPulse.ViewModel
                 FactureErrorMessage = null;
                 _refreshUI?.Invoke();
 
-                // Appel au Service Facture (qui utilise le HttpClient injecté)
                 var fileStream = await _factureService.GetFactureStreamAsync(Commande.IdCommande);
 
                 if (fileStream != null)
