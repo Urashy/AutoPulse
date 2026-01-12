@@ -8,5 +8,6 @@ namespace BlazorAutoPulse.Service.Interface
         Task<CommandeDetailDTO> GetCommandeDetailById(int id);
         Task UpdateCommandeAsync(int id, CommandeUpdateDTO entity);
         Task<CommandeDTO> GetCommandeByIdConv(int id);
+        Task<bool> TelechargerFacturePdf(int idCommande);
     }
 }

@@ -33,5 +33,18 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="js/car3DViewer.js"></script>
     <script src="js/scroll.js"></script>
+    <script>
+        window.downloadFile = (fileName, contentType, content) => {
+            const blob = new Blob([new Uint8Array(content)], { type: contentType });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        };
+    </script>
 </body>
 </html>

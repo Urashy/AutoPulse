@@ -314,11 +314,30 @@ else
                     <h3>Documents et Avis</h3>
 
                     <div class="actions-grid">
+
                         <div class="action-card">
                             <h4>📄 Facture</h4>
                             <p>Téléchargez la facture de votre transaction.</p>
-                            <button class="btn-secondary" @onclick="VM.GenererFacture">
-                                ⬇️ Générer la facture
+
+                            @if (!string.IsNullOrEmpty(VM.FactureErrorMessage))
+                            {
+                                <div class="alert alert-danger mb-3">
+                                    @VM.FactureErrorMessage
+                                </div>
+                            }
+
+                            <button class="btn-secondary"
+                                    @onclick="VM.GenererFacture"
+                                    disabled="@VM.IsDownloadingFacture">
+                                @if (VM.IsDownloadingFacture)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <span>Téléchargement...</span>
+                                }
+                                else
+                                {
+                                    <span>⬇️ Générer la facture</span>
+                                }
                             </button>
                         </div>
 

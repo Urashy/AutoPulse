@@ -52,6 +52,9 @@ namespace BlazorAutoPulse.ViewModel
         public bool AvisEnvoye { get; private set; } = false;
         public bool IsSendingAvis { get; private set; } = false;
 
+        public bool IsDownloadingFacture { get; set; } = false;
+        public string? FactureErrorMessage { get; set; }
+
         private Action? _refreshUI;
         private NavigationManager? _nav;
 
@@ -538,9 +541,47 @@ namespace BlazorAutoPulse.ViewModel
         // ACTIONS DE FIN - Facture et Avis
         // ============================================================================
 
-        public void GenererFacture()
+        public async Task GenererFacture()
         {
-            _notificationService.ShowInfo("Facture", "La fonctionnalité de téléchargement de facture sera bientôt disponible.");
+            if (Commande == null)
+            {
+                _notificationService.ShowError("Erreur", "Aucune commande sélectionnée");
+                return;
+            }
+
+            try
+            {
+                IsDownloadingFacture = true;
+                FactureErrorMessage = null;
+                _refreshUI?.Invoke();
+
+                Console.WriteLine($"[VM] Génération facture pour commande {Commande.IdCommande}");
+
+                var success = await _commandeService.TelechargerFacturePdf(Commande.IdCommande);
+
+                if (!success)
+                {
+                    FactureErrorMessage = "Impossible de télécharger la facture. Veuillez réessayer.";
+                    _notificationService.ShowError("Erreur", "Impossible de télécharger la facture");
+                    Console.WriteLine("[VM] Échec du téléchargement de la facture");
+                }
+                else
+                {
+                    _notificationService.ShowSuccess("Facture téléchargée", "La facture a été téléchargée avec succès");
+                    Console.WriteLine("[VM] Facture téléchargée avec succès");
+                }
+            }
+            catch (Exception ex)
+            {
+                FactureErrorMessage = $"Erreur lors du téléchargement : {ex.Message}";
+                _notificationService.ShowError("Erreur", "Une erreur est survenue lors du téléchargement");
+                Console.WriteLine($"[VM] Exception GenererFacture: {ex.Message}");
+            }
+            finally
+            {
+                IsDownloadingFacture = false;
+                _refreshUI?.Invoke();
+            }
         }
 
         public async Task EnvoyerAvis()

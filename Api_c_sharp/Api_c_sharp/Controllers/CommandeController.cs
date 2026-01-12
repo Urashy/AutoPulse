@@ -18,7 +18,7 @@ namespace Api_c_sharp.Controllers;
 /// </summary>
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class CommandeController(CommandeManager _manager, IMapper _mapper, IJournalService _journalService,AnnonceManager _managerannonce) : ControllerBase
+public class CommandeController(CommandeManager _manager, IMapper _mapper, IJournalService _journalService,AnnonceManager _managerannonce,FactureManager _managerfacture) : ControllerBase
 {
     /// <summary>
     /// Récupère une commande à partir de son identifiant.
@@ -189,5 +189,28 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
         return new ActionResult<CommandeDTO>(_mapper.Map<CommandeDTO>(result));
     }
 
+
+    /// <summary>
+    /// Génère et télécharge la facture d'une commande au format PDF
+    /// </summary>
+    [ActionName("GetFacturePdf")]
+    [HttpGet("{id}/facture/pdf")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetFacturePdf(int id)
+    {
+        // Vérifie que la commande existe
+        var commande = await _manager.GetByIdAsync(id);
+
+        if (commande == null)
+            return NotFound("Commande introuvable");
+
+        var pdfBytes = _managerfacture.GenererPdfFactureParCommande(id);
+
+        if (pdfBytes == null)
+            return NotFound("Impossible de générer la facture");
+
+        return File(pdfBytes, "application/pdf", $"facture-commande-{id}.pdf");
+    }
 
 }
