@@ -744,11 +744,15 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("fac_id");
 
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdFacture"));
+
                     b.Property<int>("IdCommande")
                         .HasColumnType("integer")
                         .HasColumnName("cmd_id");
 
                     b.HasKey("IdFacture");
+
+                    b.HasIndex("IdCommande");
 
                     b.ToTable("t_e_facture_fac", "public");
                 });
@@ -1852,7 +1856,7 @@ namespace Api_c_sharp.Migrations
                 {
                     b.HasOne("Api_c_sharp.Models.Entity.Commande", "CommandeFactureNav")
                         .WithMany("Factures")
-                        .HasForeignKey("IdFacture")
+                        .HasForeignKey("IdCommande")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

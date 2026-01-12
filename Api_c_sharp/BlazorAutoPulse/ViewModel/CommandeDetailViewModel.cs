@@ -2,6 +2,7 @@
 using BlazorAutoPulse.Service.Interface;
 using BlazorAutoPulse.Service;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -16,6 +17,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IAvisService _avisService;
         private readonly IMoyenPaiementService _moyenPaiementService;
         private readonly ICarteBancaireService _carteBancaireService;
+        private readonly IFactureService _factureService;
+        private readonly IJSRuntime _jsRuntime; // <--- AJOUT
 
         public CommandeDetailDTO? Commande { get; private set; }
         public bool IsLoading { get; private set; } = true;
@@ -52,6 +55,10 @@ namespace BlazorAutoPulse.ViewModel
         public bool AvisEnvoye { get; private set; } = false;
         public bool IsSendingAvis { get; private set; } = false;
 
+        // Données Facture
+        public bool IsDownloadingFacture { get; set; } = false;
+        public string? FactureErrorMessage { get; set; }
+
         private Action? _refreshUI;
         private NavigationManager? _nav;
 
@@ -64,7 +71,9 @@ namespace BlazorAutoPulse.ViewModel
             IConversationService conversationService,
             IAvisService avisService,
             IMoyenPaiementService moyenPaiementService,
-            ICarteBancaireService carteBancaireService)
+            ICarteBancaireService carteBancaireService,
+            IFactureService factureService,
+            IJSRuntime jsRuntime) // <--- INJECTION
         {
             _commandeService = commandeService;
             _compteService = compteService;
@@ -75,6 +84,8 @@ namespace BlazorAutoPulse.ViewModel
             _avisService = avisService;
             _moyenPaiementService = moyenPaiementService;
             _carteBancaireService = carteBancaireService;
+            _factureService = factureService;
+            _jsRuntime = jsRuntime;
         }
 
         public async Task InitializeAsync(int idCommande, Action refreshUI, NavigationManager nav)
@@ -234,10 +245,8 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // ID 1 pour Carte Bancaire (selon convention du projet)
-                int idCb = 1;
+                int idCb = 1; // ID 1 pour Carte Bancaire
 
-                // Mise à jour : État 3 (Validé directement)
                 Commande.IdEtatCommande = 3;
                 Commande.MoyenPaiement = "Carte bancaire";
 
@@ -279,7 +288,6 @@ namespace BlazorAutoPulse.ViewModel
         {
             if (Commande == null) return;
 
-            // Vérification Espèces (ID 3)
             if (idMoyenPaiement == 3 && !CanPayCash)
             {
                 _notificationService.ShowError("Non autorisé", "Le paiement en espèces est limité à 1000€.");
@@ -291,10 +299,7 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                // Mise à jour : État 2 (Paiement émis / En attente validation vendeur)
                 Commande.IdEtatCommande = 2;
-
-                // Mise à jour visuelle du libellé (optionnel, pour l'UI immédiate)
                 Commande.MoyenPaiement = MoyensPaiement.FirstOrDefault(m => m.IdMoyenPaiement == idMoyenPaiement)?.TypePaiement ?? "Autre";
 
                 CommandeUpdateDTO Commandeup = new CommandeUpdateDTO
@@ -337,9 +342,8 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                Commande.IdEtatCommande = 3; // Paiement validé
+                Commande.IdEtatCommande = 3;
 
-                // On récupère l'ID moyen paiement actuel pour ne pas l'écraser par défaut
                 int currentMoyenPaiementId = 1;
                 var mp = MoyensPaiement.FirstOrDefault(m => m.TypePaiement == Commande.MoyenPaiement);
                 if (mp != null) currentMoyenPaiementId = mp.IdMoyenPaiement;
@@ -384,7 +388,7 @@ namespace BlazorAutoPulse.ViewModel
 
             try
             {
-                Commande.IdEtatCommande = 4; // Livraison émise
+                Commande.IdEtatCommande = 4;
 
                 int currentMoyenPaiementId = 1;
                 var mp = MoyensPaiement.FirstOrDefault(m => m.TypePaiement == Commande.MoyenPaiement);
@@ -538,9 +542,60 @@ namespace BlazorAutoPulse.ViewModel
         // ACTIONS DE FIN - Facture et Avis
         // ============================================================================
 
-        public void GenererFacture()
+        public async Task VoirFacture()
         {
-            _notificationService.ShowInfo("Facture", "La fonctionnalité de téléchargement de facture sera bientôt disponible.");
+            await GererFacture(download: false);
+        }
+
+        public async Task TelechargerFacture()
+        {
+            await GererFacture(download: true);
+        }
+
+        private async Task GererFacture(bool download)
+        {
+            if (Commande == null) return;
+
+            try
+            {
+                IsDownloadingFacture = true;
+                FactureErrorMessage = null;
+                _refreshUI?.Invoke();
+
+                var fileStream = await _factureService.GetFactureStreamAsync(Commande.IdCommande);
+
+                if (fileStream != null)
+                {
+                    using var streamRef = new DotNetStreamReference(fileStream);
+
+                    if (download)
+                    {
+                        var fileName = $"Facture_Commande_{Commande.IdCommande}.pdf";
+                        await _jsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+                        _notificationService.ShowSuccess("Succès", "Facture téléchargée.");
+                    }
+                    else
+                    {
+                        await _jsRuntime.InvokeVoidAsync("openPdfInNewTab", streamRef);
+                    }
+                }
+                else
+                {
+                    FactureErrorMessage = "Impossible de récupérer la facture.";
+                    _notificationService.ShowError("Erreur", "Facture introuvable.");
+                }
+            }
+            catch (Exception ex)
+            {
+                FactureErrorMessage = $"Erreur technique : {ex.Message}";
+                _notificationService.ShowError("Erreur", "Une erreur est survenue.");
+                Console.WriteLine($"[VM] Exception Facture: {ex.Message}");
+            }
+            finally
+            {
+                IsDownloadingFacture = false;
+                _refreshUI?.Invoke();
+            }
         }
 
         public async Task EnvoyerAvis()

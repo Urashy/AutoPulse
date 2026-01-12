@@ -1,13 +1,17 @@
 ﻿using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Service.Interface;
+using Microsoft.JSInterop;
 using System.Net.Http.Json;
 
 namespace BlazorAutoPulse.Service.WebService
 {
     public class CommandeWebService : BaseWebService<CommandeDTO>, ICommandeService
     {
-        public CommandeWebService(IHttpClientFactory factory) : base(factory)
+        private readonly IJSRuntime _js;
+
+        public CommandeWebService(IHttpClientFactory factory, IJSRuntime js) : base(factory)
         {
+            _js = js;
         }
         protected override string ApiEndpoint => "Commande";
 
@@ -43,5 +47,6 @@ namespace BlazorAutoPulse.Service.WebService
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<CommandeDTO>();
         }
+
     }
 }

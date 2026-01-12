@@ -19,7 +19,7 @@ namespace Api_c_sharp.Controllers
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class OffreController(OffreManager _manager, IMapper _offremapper, MessageManager _managermessage,CommandeManager _managercommande,AnnonceManager _managerannonce, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
+    public class OffreController(OffreManager _manager, IMapper _offremapper, MessageManager _managermessage,CommandeManager _managercommande,FactureManager _managerfacture,AnnonceManager _managerannonce, INotificationService _notifService, IHubContext<MessageHub> _hubContext = null) : ControllerBase
     {
         /// <summary>
         /// Crée une nouvelle offre.
@@ -153,6 +153,12 @@ namespace Api_c_sharp.Controllers
                 commandeEntity = _offremapper.Map<Commande>(com);
 
                 await _managercommande.AddAsync(commandeEntity);
+
+                Facture factureEntity = new Facture
+                {
+                    IdCommande = commandeEntity.IdCommande
+                };
+                await _managerfacture.AddAsync(factureEntity);
             }
 
             if (updated.EstAccepte != null)

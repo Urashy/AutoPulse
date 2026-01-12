@@ -167,4 +167,8 @@ namespace Api_c_sharp.Models.Repository.Interfaces
     {
         Task<IEnumerable<Paiement>> VerifPaiementAutoMiseEnAvant();
     }
+    public interface IFactureRepository
+    {
+        byte[] GenererPdfFacture(int Commandeid);
+    }
 }

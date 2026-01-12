@@ -23,6 +23,7 @@ namespace Api_c_sharp.ControllersMock.Tests
     {
         private Mock<OffreManager> _mockManager;
         private Mock<CommandeManager> _mockCommandeManager;
+        private Mock<FactureManager> _mockFactureManager;
         private Mock<MessageManager> _mockMessageManager;
         private Mock<AnnonceManager> _mockAnnonceManager;
         private Mock<INotificationService> _notificationService;
@@ -37,6 +38,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Création du mock du manager avec un paramètre null pour le context
             _mockManager = new Mock<OffreManager>(null);
             _mockCommandeManager = new Mock<CommandeManager>(null);
+            _mockFactureManager = new Mock<FactureManager>(null);
             _mockAnnonceManager = new Mock<AnnonceManager>(null);
             _mockMessageManager = new Mock<MessageManager>(null);
             _notificationService = new Mock<INotificationService>();
@@ -66,6 +68,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 _mapper,
                 _mockMessageManager.Object,
                 _mockCommandeManager.Object,
+                _mockFactureManager.Object,
                 _mockAnnonceManager.Object,
                 _notificationService.Object,
                 _mockHubContext.Object
