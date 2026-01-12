@@ -46,10 +46,9 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public virtual async Task MarkAsReadAsync(int idNotification)
         {
             var notification = await dbSet.FindAsync(idNotification);
-            if (notification == null)
-                return;
+            if (notification != null)
+                notification.EstLue = true;
 
-            notification.EstLue = true;
             await context.SaveChangesAsync();
         }
 
