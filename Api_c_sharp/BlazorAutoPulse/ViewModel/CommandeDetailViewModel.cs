@@ -659,20 +659,23 @@ namespace BlazorAutoPulse.ViewModel
         {
             try
             {
+                Console.WriteLine($"[VM] Début InitializeSignalR pour commande {idCommande}");
+
                 _signalRService.OnCommandeStateChanged += HandleCommandeStateChanged;
                 _signalRService.OnCommandeNotification += HandleCommandeNotification;
 
-                // Initialiser la connexion
+                Console.WriteLine($"[VM] Events attachés");
+
                 await _signalRService.InitializeAsync();
+                Console.WriteLine($"[VM] SignalR initialisé - État: {_signalRService.IsConnected}");
 
-                // Rejoindre le groupe de cette commande
                 await _signalRService.JoinCommandeGroup(idCommande);
-
-                Console.WriteLine($"[VM] SignalR initialisé pour commande {idCommande}");
+                Console.WriteLine($"[VM] Groupe rejoint pour commande {idCommande}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[VM] Erreur init SignalR: {ex.Message}");
+                Console.WriteLine($"[VM] Stack: {ex.StackTrace}");
             }
         }
 

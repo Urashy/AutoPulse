@@ -243,27 +243,39 @@ namespace Api_c_sharp.Hubs
 
         // Méthode statique pour notifier un changement d'état de commande
         public static async Task NotifyCommandeStateChanged(
-            IHubContext<MessageHub> hubContext,
-            int idCommande,
-            int newState,
-            string stateName,
-            int? idAcheteur,
-            int? idVendeur)
+    IHubContext<MessageHub> hubContext,
+    int idCommande,
+    int newState,
+    string stateName,
+    int? idAcheteur,
+    int? idVendeur)
         {
             var groupName = $"commande_{idCommande}";
 
+            Console.WriteLine($"📦 [Hub] NotifyCommandeStateChanged appelé:");
+            Console.WriteLine($"   - Groupe: {groupName}");
+            Console.WriteLine($"   - NewState: {newState}");
+            Console.WriteLine($"   - StateName: {stateName}");
+
+            var payload = new
+            {
+                IdCommande = idCommande,
+                NewState = newState,
+                StateName = stateName,
+                Timestamp = DateTime.UtcNow
+            };
+
+            Console.WriteLine($"   - Payload JSON: {System.Text.Json.JsonSerializer.Serialize(payload)}");
+
             await hubContext.Clients.Group(groupName)
-                .SendAsync("CommandeStateChanged", new
-                {
-                    IdCommande = idCommande,
-                    NewState = newState,
-                    StateName = stateName,
-                    Timestamp = DateTime.UtcNow
-                });
+                .SendAsync("CommandeStateChanged", payload);
+
+            Console.WriteLine($"   ✅ SendAsync 'CommandeStateChanged' exécuté pour groupe {groupName}");
 
             // Notification personnalisée pour l'acheteur
             if (idAcheteur.HasValue && UserConnections.TryGetValue(idAcheteur.Value, out var acheteurConnections))
             {
+                Console.WriteLine($"   📨 Envoi notification à acheteur {idAcheteur.Value} ({acheteurConnections.Count} connexions)");
                 foreach (var connectionId in acheteurConnections)
                 {
                     await hubContext.Clients.Client(connectionId)
@@ -280,6 +292,7 @@ namespace Api_c_sharp.Hubs
             // Notification personnalisée pour le vendeur
             if (idVendeur.HasValue && UserConnections.TryGetValue(idVendeur.Value, out var vendeurConnections))
             {
+                Console.WriteLine($"   📨 Envoi notification à vendeur {idVendeur.Value} ({vendeurConnections.Count} connexions)");
                 foreach (var connectionId in vendeurConnections)
                 {
                     await hubContext.Clients.Client(connectionId)
@@ -293,7 +306,7 @@ namespace Api_c_sharp.Hubs
                 }
             }
 
-            Console.WriteLine($"📦 Commande {idCommande} state changed to {newState} ({stateName})");
+            Console.WriteLine($"📦 [Hub] Notifications envoyées pour commande {idCommande}");
         }
 
         // Messages pour l'acheteur

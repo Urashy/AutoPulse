@@ -101,9 +101,6 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
     /// </returns>
     [ActionName("Put")]
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Put(int id, [FromBody] CommandeUpdateDTO dto)
     {
         if (!ModelState.IsValid)
@@ -114,8 +111,13 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
         if (toUpdate == null)
             return NotFound();
 
-        // ✅ Mémoriser l'ancien état AVANT la mise à jour
+        // ✅ LOGS DE DEBUG
         var oldStateId = toUpdate.IdEtatCommande;
+        Console.WriteLine($"🔍 [Controller] Commande {id}");
+        Console.WriteLine($"   - Ancien état: {oldStateId}");
+        Console.WriteLine($"   - Nouvel état: {dto.IdEtatCommande}");
+        Console.WriteLine($"   - HubContext null?: {_hubContext == null}");
+        Console.WriteLine($"   - État changé?: {dto.IdEtatCommande != oldStateId}");
 
         // Logique métier pour l'annonce
         if (dto.IdEtatCommande == 5)
@@ -127,24 +129,37 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
         }
 
         var updatedEntity = _mapper.Map<Commande>(dto);
-
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
+        // ✅ NOTIFICATION SIGNALR
         if (_hubContext != null && dto.IdEtatCommande != oldStateId)
         {
             var commandeUpdated = await _manager.GetByIdAsync(id);
             string newStateName = commandeUpdated?.EtatCommandeCommandeNav?.Libelle ?? "État inconnu";
 
+            Console.WriteLine($"🔔 [Controller] Envoi notification SignalR:");
+            Console.WriteLine($"   - IdCommande: {dto.IdCommande}");
+            Console.WriteLine($"   - NewState: {dto.IdEtatCommande}");
+            Console.WriteLine($"   - StateName: {newStateName}");
+            Console.WriteLine($"   - IdAcheteur: {dto.IdAcheteur}");
+            Console.WriteLine($"   - IdVendeur: {dto.IdVendeur}");
+
             await MessageHub.NotifyCommandeStateChanged(
                 _hubContext,
                 dto.IdCommande,
                 dto.IdEtatCommande,
-                newStateName,  
+                newStateName,
                 dto.IdAcheteur,
                 dto.IdVendeur
             );
 
-            Console.WriteLine($"🔔 [Controller] Notification envoyée: Commande {dto.IdCommande} -> État {dto.IdEtatCommande} ({newStateName})");
+            Console.WriteLine($"✅ [Controller] Notification envoyée");
+        }
+        else
+        {
+            Console.WriteLine($"❌ [Controller] Notification NON envoyée");
+            if (_hubContext == null) Console.WriteLine("   Raison: HubContext null");
+            if (dto.IdEtatCommande == oldStateId) Console.WriteLine("   Raison: État inchangé");
         }
 
         return NoContent();
