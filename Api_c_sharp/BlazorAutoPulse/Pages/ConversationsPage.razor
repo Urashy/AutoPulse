@@ -82,7 +82,13 @@
                         }
                     </div>
                     <div class="conversation-info">
-                        <h4>@conv.LibelleAnnonce</h4>
+                        <div class="conversation-header-row">
+                            <h4>@conv.LibelleAnnonce</h4>
+                            @if (conv.AOffre)
+                            {
+                                <span class="offre-badge">💰 Offre</span>
+                            }
+                        </div>
                         <p class="last-message">
                             @(string.IsNullOrEmpty(conv.DernierMessage) ? "Aucun message" :
                             conv.DernierMessage.Length > 40 ? conv.DernierMessage.Substring(0, 40) + "..." : conv.DernierMessage)
