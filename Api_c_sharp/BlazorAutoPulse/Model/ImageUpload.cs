@@ -9,5 +9,6 @@ namespace BlazorAutoPulse.Model
         public int? IdCompte { get; set; }
 
         public IBrowserFile File { get; set; }
+        public byte[] ImageBytes { get; set; }
     }
 }
