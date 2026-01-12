@@ -168,7 +168,6 @@ namespace BlazorAutoPulse.ViewModel
                     CurrentUserId = null;
                 }
 
-                // Charger l'annonce
                 Annonce = await _annonceService.GetAnnonceDetailById(idAnnonce);
             
                 if (Annonce != null)
