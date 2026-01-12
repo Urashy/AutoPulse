@@ -114,11 +114,10 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
         if (toUpdate == null)
             return NotFound();
 
-        string state = toUpdate.EtatCommandeCommandeNav.Libelle;
+        // ✅ Mémoriser l'ancien état AVANT la mise à jour
+        var oldStateId = toUpdate.IdEtatCommande;
 
-        // Mémoriser l'ancien état
-        var oldState = toUpdate.IdEtatCommande;
-
+        // Logique métier pour l'annonce
         if (dto.IdEtatCommande == 5)
         {
             Annonce e = await _managerannonce.GetByIdAsync(dto.IdAnnonce);
@@ -128,25 +127,29 @@ public class CommandeController(CommandeManager _manager, IMapper _mapper, IJour
         }
 
         var updatedEntity = _mapper.Map<Commande>(dto);
+
         await _manager.UpdateAsync(toUpdate, updatedEntity);
 
-        // 🔔 Notifier via SignalR si l'état a changé
-        if (_hubContext != null && dto.IdEtatCommande != oldState)
+        if (_hubContext != null && dto.IdEtatCommande != oldStateId)
         {
+            var commandeUpdated = await _manager.GetByIdAsync(id);
+            string newStateName = commandeUpdated?.EtatCommandeCommandeNav?.Libelle ?? "État inconnu";
 
             await MessageHub.NotifyCommandeStateChanged(
                 _hubContext,
                 dto.IdCommande,
                 dto.IdEtatCommande,
-                state,
+                newStateName,  
                 dto.IdAcheteur,
                 dto.IdVendeur
             );
+
+            Console.WriteLine($"🔔 [Controller] Notification envoyée: Commande {dto.IdCommande} -> État {dto.IdEtatCommande} ({newStateName})");
         }
 
         return NoContent();
     }
-        
+
     /// <summary>
     /// Supprime une commande existante.
     /// </summary>

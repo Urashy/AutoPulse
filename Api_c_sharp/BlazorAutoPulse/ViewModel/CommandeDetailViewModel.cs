@@ -685,8 +685,16 @@ namespace BlazorAutoPulse.ViewModel
                 // Mettre à jour l'état local
                 Commande.IdEtatCommande = newState;
 
-                // Rafraîchir l'UI
-                _refreshUI?.Invoke();
+                // ✅ IMPORTANT: Rafraîchir l'UI sur le thread UI
+                try
+                {
+                    _refreshUI?.Invoke();
+                    Console.WriteLine($"✅ [VM] UI rafraîchie");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ [VM] Erreur rafraîchissement UI: {ex.Message}");
+                }
 
                 // Notification visuelle
                 _notificationService.ShowInfo(

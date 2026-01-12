@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
+using System.Net;
 
 namespace BlazorAutoPulse.Service.WebService
 {
@@ -26,6 +27,7 @@ namespace BlazorAutoPulse.Service.WebService
                       ?? "https://localhost:7272/hubs/message";
         }
 
+
         public async Task InitializeAsync()
         {
             if (_hubConnection != null)
@@ -33,12 +35,27 @@ namespace BlazorAutoPulse.Service.WebService
 
             try
             {
+                Console.WriteLine($"🔧 [SignalR] Initialisation pour commandes...");
+
                 _hubConnection = new HubConnectionBuilder()
                     .WithUrl(_hubUrl, options =>
                     {
-                        options.UseDefaultCredentials = true;
+                        // ✅ Pour Blazor WASM, utiliser les cookies HTTP
+                        options.Credentials = CredentialCache.DefaultCredentials;
+                        options.UseStatefulReconnect = true;
+
+                        // ✅ IMPORTANT : Permettre l'envoi des cookies
+                        options.HttpMessageHandlerFactory = (handler) =>
+                        {
+                            if (handler is HttpClientHandler clientHandler)
+                            {
+                                clientHandler.UseCookies = true;
+                                clientHandler.CookieContainer = new CookieContainer();
+                            }
+                            return handler;
+                        };
                     })
-                    .WithAutomaticReconnect()
+                    .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5) })
                     .Build();
 
                 // Écouter les changements d'état
@@ -48,7 +65,7 @@ namespace BlazorAutoPulse.Service.WebService
                     int newState = (int)data.NewState;
                     string stateName = (string)data.StateName;
 
-                    Console.WriteLine($"[SignalR] Commande {idCommande} -> État {newState}");
+                    Console.WriteLine($"📥 [SignalR] Commande {idCommande} -> État {newState} ({stateName})");
                     OnCommandeStateChanged?.Invoke(idCommande, newState, stateName);
                 });
 
@@ -58,35 +75,46 @@ namespace BlazorAutoPulse.Service.WebService
                     string message = (string)data.Message;
                     int newState = (int)data.NewState;
 
-                    Console.WriteLine($"[SignalR] Notification: {message}");
+                    Console.WriteLine($"📥 [SignalR] Notification: {message}");
                     OnCommandeNotification?.Invoke(message);
 
                     // Afficher une notification visuelle
                     _notificationService.ShowInfo("Mise à jour de commande", message);
                 });
 
+                Console.WriteLine($"🔧 [SignalR] Démarrage de la connexion...");
                 await _hubConnection.StartAsync();
-                Console.WriteLine("[SignalR] Connexion établie pour les commandes");
+                Console.WriteLine($"✅ [SignalR] Connexion établie (État: {_hubConnection.State})");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[SignalR] Erreur connexion: {ex.Message}");
+                Console.WriteLine($"❌ [SignalR] Erreur connexion: {ex.Message}");
+                Console.WriteLine($"❌ [SignalR] Type: {ex.GetType().Name}");
+                Console.WriteLine($"❌ [SignalR] Stack: {ex.StackTrace}");
             }
         }
 
         public async Task JoinCommandeGroup(int idCommande)
         {
+            Console.WriteLine($"🔧 [SignalR] Tentative de rejoindre commande_{idCommande}");
+            Console.WriteLine($"🔧 [SignalR] État connexion: {_hubConnection?.State}");
+
             if (_hubConnection?.State == HubConnectionState.Connected)
             {
                 try
                 {
                     await _hubConnection.InvokeAsync("JoinCommande", idCommande);
-                    Console.WriteLine($"[SignalR] Rejoint le groupe commande_{idCommande}");
+                    Console.WriteLine($"✅ [SignalR] Groupe commande_{idCommande} rejoint avec succès");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[SignalR] Erreur JoinCommande: {ex.Message}");
+                    Console.WriteLine($"❌ [SignalR] Erreur JoinCommande: {ex.Message}");
+                    Console.WriteLine($"❌ [SignalR] Stack trace: {ex.StackTrace}");
                 }
+            }
+            else
+            {
+                Console.WriteLine($"❌ [SignalR] Impossible de rejoindre le groupe - État: {_hubConnection?.State}");
             }
         }
 
