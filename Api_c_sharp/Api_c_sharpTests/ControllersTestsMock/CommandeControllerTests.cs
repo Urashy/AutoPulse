@@ -1,10 +1,12 @@
 ﻿using Api_c_sharp.Controllers;
+using Api_c_sharp.Hubs;
 using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.Interfaces;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoMapper;
 using AutoPulse.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections.Generic;
@@ -303,6 +305,102 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Put_DoesNotSendSignalRNotification_WhenStateDoesNotChange()
+        {
+            // Arrange
+            var mockHubContext = new Mock<IHubContext<MessageHub>>();
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+
+            mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
+            mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+
+            var controllerWithHub = new CommandeController(
+                _mockManager.Object,
+                _mapper,
+                _mockJournal.Object,
+                _mockManagerannonce.Object,
+                mockHubContext.Object
+            );
+
+            var entity = new Commande
+            {
+                IdCommande = 1,
+                IdEtatCommande = 2,
+                IdAnnonce = 1
+            };
+
+            var dto = new CommandeUpdateDTO
+            {
+                IdCommande = 1,
+                IdEtatCommande = 2, // Même état
+                IdAnnonce = 1,
+                IdAcheteur = 10,
+                IdVendeur = 20
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(entity);
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await controllerWithHub.Put(1, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            // Vérifie qu'aucune notification n'a été envoyée
+            mockClientProxy.Verify(
+                c => c.SendCoreAsync(
+                    "CommandeStateChanged",
+                    It.IsAny<object[]>(),
+                    default
+                ),
+                Times.Never
+            );
+        }
+
+        [TestMethod]
+        public async Task Put_WorksCorrectly_WhenHubContextIsNull()
+        {
+            // Arrange
+            var controllerWithoutHub = new CommandeController(
+                _mockManager.Object,
+                _mapper,
+                _mockJournal.Object,
+                _mockManagerannonce.Object,
+                null // HubContext null
+            );
+
+            var entity = new Commande
+            {
+                IdCommande = 1,
+                IdEtatCommande = 1,
+                IdAnnonce = 1
+            };
+
+            var dto = new CommandeUpdateDTO
+            {
+                IdCommande = 1,
+                IdEtatCommande = 3,
+                IdAnnonce = 1,
+                IdAcheteur = 10,
+                IdVendeur = 20
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(entity);
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()))
+                       .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await controllerWithoutHub.Put(1, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            // Pas d'exception levée malgré HubContext null
         }
         #endregion
 
