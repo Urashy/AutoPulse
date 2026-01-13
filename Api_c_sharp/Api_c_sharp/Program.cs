@@ -23,6 +23,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//------------------------------DÉTECTION ENVIRONNEMENT------------------------------
+var isProduction = builder.Environment.IsProduction();
+Console.WriteLine($"🚀 Environnement détecté : {(isProduction ? "PRODUCTION (Azure)" : "DEVELOPMENT (Local)")}");
+
 //------------------------------Connection DB------------------------------
 var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
 
@@ -147,16 +151,18 @@ builder.Services.AddControllers().AddJsonOptions(opt =>
     opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
-//------------------------------CORS - CONFIGURATION CORRIGÉE------------------------------
+//------------------------------CORS - CONFIGURATION DYNAMIQUE------------------------------
+var allowedOrigins = isProduction
+    ? new[] { "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net" }
+    : new[] { "http://localhost:5296", "https://localhost:5296" };
+
+Console.WriteLine($"📡 Origines CORS autorisées : {string.Join(", ", allowedOrigins)}");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:5296",
-            "https://localhost:5296",
-            "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
-        )
+        policy.WithOrigins(allowedOrigins)
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials()
@@ -191,12 +197,6 @@ if (app.Environment.IsDevelopment())
 app.Use(async (context, next) =>
 {
     var origin = context.Request.Headers["Origin"].ToString();
-    var allowedOrigins = new[]
-    {
-        "http://localhost:5296",
-        "https://localhost:5296",
-        "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
-    };
 
     if (!string.IsNullOrEmpty(origin) && allowedOrigins.Contains(origin))
     {
