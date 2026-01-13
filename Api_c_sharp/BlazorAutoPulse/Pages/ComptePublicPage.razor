@@ -215,7 +215,10 @@ else
                         @if (VM.avis != null && VM.avis.Any())
                         {
                             <div class="avis-list">
-                                <h4>Oui y'a un avis</h4>
+                                @foreach (var avis in VM.avis)
+                                {
+                                    <AvisComposant Avis="@avis" idCompte="@IdUtilisateur"/>
+                                }
                             </div>
                         }
                         else

@@ -12,7 +12,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual async Task<IEnumerable<Avis>> GetAvisByCompteId(int compteId)
         {
-            return await dbSet.Where(c => c.IdJugeur == compteId || c.IdJugee == compteId ).OrderBy(a => a.DateAvis).ToListAsync();
+            return await dbSet.Include(a => a.CompteJugeeNav).Include(a => a.CompteJugeurNav).Where(c => c.IdJugeur == compteId || c.IdJugee == compteId ).OrderBy(a => a.DateAvis).ToListAsync();
         }
         public virtual async Task<bool> ExisteDejaAsync(int idCommande, int idJugeur)
         {

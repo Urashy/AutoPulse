@@ -14,6 +14,7 @@ public class ComptePublicViewModel
     private readonly ICompteService _compteService;
     private readonly IBloqueService _bloqueService;
     private readonly IAnnonceService _annonceService;
+    private readonly IAvisService _avisService;
     private readonly NotificationService _notificationService;
     private readonly IImageService _imageService;
     
@@ -53,12 +54,14 @@ public class ComptePublicViewModel
         IBloqueService bloqueService,
         NotificationService notificationService,
         IAnnonceService annonceService,
+        IAvisService avisService,
         IImageService imageService)
     {
         _compteService = compteService;
         _bloqueService = bloqueService;
         _notificationService = notificationService;
         _annonceService = annonceService;
+        _avisService = avisService;
         _imageService = imageService;
     }
     public async Task InitializeAsync(int idCompte, Action refreshUI, NavigationManager nav)
@@ -73,6 +76,7 @@ public class ComptePublicViewModel
 
             compte = await _compteService.GetMe();
             annonces = await _annonceService.GetByCompteID(comptePublic.IdCompte);
+            avis = await _avisService.GetAvisByCompte(comptePublic.IdCompte);
             
             await ABloquer(false);
             if (EstBloque)

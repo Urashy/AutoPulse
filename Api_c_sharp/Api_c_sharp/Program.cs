@@ -23,11 +23,26 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+//------------------------------Connection DB (CORRIGÉ)------------------------------
+// Choix de la chaîne de connexion selon l'environnement
+string connectionString;
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+}
+else
+{
+    // Sur Azure, priorité à la variable d'environnement
+    connectionString = Environment.GetEnvironmentVariable("AZURE_POSTGRESQL_CONNECTIONSTRING")
+                      ?? builder.Configuration.GetConnectionString("AzureConnection");
+}
 
-builder.Services.AddDbContext<AutoPulseBdContext>(options =>
-    options.UseNpgsql(connectionString));
+// Log pour déboguer
+Console.WriteLine($"Environnement: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"Connexion utilisée: {connectionString?.Substring(0, Math.Min(50, connectionString.Length))}...");
+
+//builder.Services.AddDbContext<AutoPulseBdContext>(options =>
+//    options.UseNpgsql(connectionString));
 
 //------------------------------Mapper------------------------------
 builder.Services.AddAutoMapper(typeof(MapperProfile));
@@ -147,7 +162,7 @@ builder.Services.AddControllers().AddJsonOptions(opt =>
     opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
-//------------------------------CORS - CONFIGURATION CORRIGÉE------------------------------
+//------------------------------CORS - CONFIGURATION------------------------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor", policy =>
@@ -159,9 +174,8 @@ builder.Services.AddCors(options =>
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
-        .AllowCredentials()
-        .WithExposedHeaders("*")
-        .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+        .AllowCredentials();
+
     });
 });
 
@@ -179,47 +193,32 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownNetworks.Clear();
 });
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.AddServerHeader = false;
+});
+
 var app = builder.Build();
 
+// Configuration du pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// Middleware pour forcer les headers CORS (en cas de problème Azure)
-app.Use(async (context, next) =>
+else
 {
-    var origin = context.Request.Headers["Origin"].ToString();
-    var allowedOrigins = new[]
-    {
-        "http://localhost:5296",
-        "https://localhost:5296",
-        "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
-    };
+    //app.UseExceptionHandler("/Error");
+    app.UseHsts();
+}
 
-    if (!string.IsNullOrEmpty(origin) && allowedOrigins.Contains(origin))
-    {
-        context.Response.Headers["Access-Control-Allow-Origin"] = origin;
-        context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
-        context.Response.Headers["Access-Control-Allow-Headers"] = context.Request.Headers["Access-Control-Request-Headers"].ToString();
-        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH";
-    }
-
-    // Gérer les requêtes OPTIONS (preflight)
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        await context.Response.CompleteAsync();
-        return;
-    }
-
-    await next();
-});
-
-app.UseHttpsRedirection();
 
 app.UseForwardedHeaders();
+if (!app.Environment.IsProduction())
+{
+app.UseHttpsRedirection();
+}
+
 
 app.UseCors("AllowBlazor");
 
@@ -229,5 +228,19 @@ app.UseAuthorization();
 
 app.MapHub<MessageHub>("/messagehub");
 app.MapControllers();
+
+// Avant app.Run()
+app.MapGet("/health", async (AutoPulseBdContext db) =>
+{
+    try
+    {
+        await db.Database.CanConnectAsync();
+        return Results.Ok(new { status = "healthy", database = "connected" });
+    }
+    catch (Exception ex)
+    {
+        return Results.Ok(new { status = "unhealthy", error = ex.Message });
+    }
+});
 
 app.Run();
