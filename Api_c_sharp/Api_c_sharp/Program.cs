@@ -363,8 +363,7 @@ app.MapGet("/test-db", async (AutoPulseBdContext db) =>
             error = "PostgreSQL Error",
             message = npgEx.Message,
             code = npgEx.ErrorCode,
-            detail = npgEx.Detail,
-            hint = npgEx.Hint
+            detail = npgEx.Data,
         }, statusCode: 500);
     }
     catch (Exception ex)
