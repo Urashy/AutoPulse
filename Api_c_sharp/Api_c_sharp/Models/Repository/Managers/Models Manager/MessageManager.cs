@@ -11,7 +11,15 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
         public MessageManager(AutoPulseBdContext context) : base(context)
         {
         }
-        
+
+
+        public override async Task<Message> AddAsync(Message entity)
+        {
+            Conversation? conversation = context.Conversations.FirstOrDefault(c => c.IdConversation == entity.IdConversation);
+            conversation.DateDernierMessage = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+            return await base.AddAsync(entity);
+        }
         public virtual async Task<IEnumerable<Message>> GetMessagesByConversationAndMarkAsRead(int conversationId, int userId)
         {
             // Récupérer les messages NON LUS de l'autre utilisateur
