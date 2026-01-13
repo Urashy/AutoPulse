@@ -198,7 +198,6 @@ public class ConversationViewModel : IDisposable
         }
     }
 
-    // ========== NOUVEAU : Sélection du filtre annonce ==========
     public async Task SelectAnnonceFilter(ChangeEventArgs e)
     {
         if (!int.TryParse(e.Value?.ToString(), out int idAnnonce))
@@ -259,6 +258,14 @@ public class ConversationViewModel : IDisposable
             if (offre != null)
             {
                 offre.EstAccepte = estAccepte;
+                try
+                {
+                    CommandeEnCours = await _commandeService.GetCommandeByIdConv(SelectedConversation.IdConversation);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Erreur chargement commande: {ex.Message}");
+                }
                 Console.WriteLine($"✅ Offre {idOffre} mise à jour en temps réel");
                 NotifyStateChanged();
             }
@@ -823,5 +830,9 @@ public class ConversationViewModel : IDisposable
                 }
             }
         }
+        Console.WriteLine("test 1");
+        await _conversationState.ReloadConversationsAsync();
+        await LoadConversations(SelectedAnnonceFilter);
+        Console.WriteLine("test 2");
     }
 }

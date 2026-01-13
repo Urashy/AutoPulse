@@ -223,9 +223,43 @@ namespace Api_c_sharp.Hubs
                 Console.WriteLine($"💰 Notification d'offre envoyée à l'utilisateur {userId} (valeur: {offreValeur}€)");
             }
         }
+        
+        public static async Task SendOffre(
+            IHubContext<MessageHub> hubContext,
+            int idConversation,
+            int idCompte,
+            string contenuMessage,
+            DateTime dateEnvoie,
+            int idMessage,
+            int idOffre,
+            decimal offreValeur,
+            int idAnnonce)
+        {
+            if (UserConnections.TryGetValue(idCompte, out var connections))
+            {
+                foreach (var connectionId in connections)
+                {
+                    await hubContext.Clients.Client(connectionId)
+                        .SendAsync(
+                            "ReceiveMessageWithOffre",
+                            idConversation,
+                            idCompte,
+                            contenuMessage,
+                            dateEnvoie,
+                            idMessage,
+                            idOffre,
+                            offreValeur,
+                            idAnnonce
+                        );
+                }
+
+                Console.WriteLine(
+                    $"💰 Offre envoyée | Conv={idConversation} | Offre={offreValeur}€ | IdOffre={idOffre}"
+                );
+            }
+        }
 
         // COMMANDES
-
 
         // Rejoindre le groupe d'une commande spécifique
         public async Task JoinCommande(int idCommande)

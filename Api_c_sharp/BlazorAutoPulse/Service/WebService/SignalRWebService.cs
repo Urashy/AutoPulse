@@ -123,7 +123,6 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
             try
             {
                 var json = System.Text.Json.JsonSerializer.Serialize(data);
-                Console.WriteLine($"[SignalR] NewOffre received: {json}");
                 var notification = System.Text.Json.JsonSerializer.Deserialize<OffreNotification>(json);
                 Console.WriteLine($"[SignalR] NewOffre received: {notification.IdOffre}");
         

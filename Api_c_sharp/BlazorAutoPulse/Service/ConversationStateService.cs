@@ -224,6 +224,7 @@ public class ConversationStateService : IDisposable
             foreach (var conv in freshConversations)
             {
                 await _signalR.JoinConversation(conv.IdConversation);
+                Console.WriteLine(conv.LibelleAnnonce);
                 await GetImageProfil(conv.IdParticipant);
             }
         
