@@ -23,12 +23,18 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//------------------------------DÉTECTION ENVIRONNEMENT------------------------------
-var isProduction = builder.Environment.IsProduction();
-Console.WriteLine($"🚀 Environnement détecté : {(isProduction ? "PRODUCTION (Azure)" : "DEVELOPMENT (Local)")}");
-
-//------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+//------------------------------Connection DB (CORRIGÉ)------------------------------
+// Choix de la chaîne de connexion selon l'environnement
+string connectionString;
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+}
+else
+{
+    // Sur Azure (Production), on utilise la connexion Azure
+    connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+}
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -151,18 +157,16 @@ builder.Services.AddControllers().AddJsonOptions(opt =>
     opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
-//------------------------------CORS - CONFIGURATION DYNAMIQUE------------------------------
-var allowedOrigins = isProduction
-    ? new[] { "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net" }
-    : new[] { "http://localhost:5296", "https://localhost:5296" };
-
-Console.WriteLine($"📡 Origines CORS autorisées : {string.Join(", ", allowedOrigins)}");
-
+//------------------------------CORS - CONFIGURATION------------------------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
+        policy.WithOrigins(
+            "http://localhost:5296",
+            "https://localhost:5296",
+            "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
+        )
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials()
@@ -187,16 +191,32 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
+// Configuration du pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    // AJOUTÉ: Gestion des erreurs en Production
+    // Cela permet de ne pas renvoyer de détails techniques aux utilisateurs,
+    // mais d'éviter l'erreur "ExpectedJsonTokens" en cas de crash serveur (500).
+    app.UseExceptionHandler("/Error");
+    // La valeur par défaut HSTS est de 30 jours.
+    app.UseHsts();
 }
 
 // Middleware pour forcer les headers CORS (en cas de problème Azure)
 app.Use(async (context, next) =>
 {
     var origin = context.Request.Headers["Origin"].ToString();
+    var allowedOrigins = new[]
+    {
+        "http://localhost:5296",
+        "https://localhost:5296",
+        "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
+    };
 
     if (!string.IsNullOrEmpty(origin) && allowedOrigins.Contains(origin))
     {
@@ -221,7 +241,6 @@ app.UseHttpsRedirection();
 
 app.UseForwardedHeaders();
 
-// ORDRE CRITIQUE: CORS AVANT ROUTING
 app.UseCors("AllowBlazor");
 
 app.UseRouting();
