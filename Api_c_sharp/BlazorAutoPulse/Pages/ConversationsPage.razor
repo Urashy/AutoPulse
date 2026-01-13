@@ -86,7 +86,7 @@
                             <h4>@conv.LibelleAnnonce</h4>
                             @if (conv.AOffre)
                             {
-                                <span class="offre-badge">💰 Offre</span>
+                                <span class="offre-badge @(conv.OffreAccepte == null ? "" : conv.OffreAccepte == true ? "offre-accepte" : "offre-refuse")">💰 Offre</span>
                             }
                         </div>
                         <p class="last-message">

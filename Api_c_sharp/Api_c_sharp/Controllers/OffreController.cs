@@ -85,6 +85,7 @@ namespace Api_c_sharp.Controllers
                 await MessageHub.SendOffre(
                     _hubContext,
                     messageAssocie.IdConversation,
+                    messageAssocie.IdCompte,
                     idDestinataire,
                     messageAssocie.ContenuMessage,
                     messageAssocie.DateEnvoiMessage,

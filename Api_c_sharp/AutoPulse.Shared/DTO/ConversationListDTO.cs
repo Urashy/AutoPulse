@@ -12,4 +12,5 @@ public class ConversationListDTO
     
     public int NombreNonLu { get; set; }
     public bool AOffre { get; set; }
+    public bool? OffreAccepte { get; set; }
 }
