@@ -41,8 +41,8 @@ else
 Console.WriteLine($"Environnement: {builder.Environment.EnvironmentName}");
 Console.WriteLine($"Connexion utilisée: {connectionString?.Substring(0, Math.Min(50, connectionString.Length))}...");
 
-//builder.Services.AddDbContext<AutoPulseBdContext>(options =>
-//    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<AutoPulseBdContext>(options =>
+    options.UseNpgsql(connectionString));
 
 //------------------------------Mapper------------------------------
 builder.Services.AddAutoMapper(typeof(MapperProfile));
