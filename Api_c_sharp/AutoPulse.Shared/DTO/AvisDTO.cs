@@ -3,6 +3,7 @@ namespace AutoPulse.Shared.DTO;
 public class AvisListDTO
 {
     public int IdAvis { get; set; }
+    public int IdJugee { get; set; }
     public string? PseudoJugeur { get; set; }
     public DateTime DateAvis { get; set; }
     public string? ContenuAvis { get; set; }
