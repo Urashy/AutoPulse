@@ -82,16 +82,17 @@ namespace Api_c_sharp.Controllers
                     annonce.Libelle
                 );
                 
-                await _hubContext.Clients.Group($"conversation_{messageAssocie.IdConversation}")
-                    .SendAsync("ReceiveMessageWithOffre",
-                        messageAssocie.IdConversation,
-                        messageAssocie.IdCompte,
-                        messageAssocie.ContenuMessage,
-                        messageAssocie.DateEnvoiMessage,
-                        messageAssocie.IdMessage,
-                        entity.IdOffre,
-                        entity.Valeur,
-                        entity.IdAnnonce);
+                await MessageHub.SendOffre(
+                    _hubContext,
+                    messageAssocie.IdConversation,
+                    idDestinataire,
+                    messageAssocie.ContenuMessage,
+                    messageAssocie.DateEnvoiMessage,
+                    messageAssocie.IdMessage,
+                    entity.IdOffre,
+                    entity.Valeur,
+                    entity.IdAnnonce
+                );
             }
 
             // Retourne bien les deux clés

@@ -13,6 +13,7 @@ using Api_c_sharp.Models.Repository.Managers;
 using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using Api_c_sharp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +24,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -150,7 +151,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor",
         policy => policy
-            .WithOrigins("http://localhost:5296", "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net")
+            .WithOrigins("http://localhost:5296")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
@@ -159,6 +160,12 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<EfWarmupService>();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.KnownProxies.Clear();
+    options.KnownNetworks.Clear();
+});
 
 var app = builder.Build();
 
@@ -173,6 +180,11 @@ app.UseHttpsRedirection();
 app.UseCors("AllowBlazor");
 
 app.MapHub<MessageHub>("/messagehub");
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.UseRouting();
 app.UseAuthentication();
