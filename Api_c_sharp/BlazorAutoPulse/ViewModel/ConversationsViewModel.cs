@@ -372,6 +372,12 @@ public class ConversationViewModel : IDisposable
                 Console.WriteLine($"⚠️ Message déjà présent (doublon SignalR évité)");
             }
         }
+        else
+        {
+            await _conversationState.ReloadConversationsAsync();
+            await LoadConversations(SelectedAnnonceFilter);
+            NotifyStateChanged();
+        }
     }
 
     private void HandleMessagesRead(int conversationId, int userIdReader)
@@ -687,14 +693,6 @@ public class ConversationViewModel : IDisposable
                 {
                     Console.WriteLine($"❌ Erreur création offre: {ex.Message}");
                 }
-            }
-            else
-            {
-                await _signalR.SendMessage(
-                    SelectedConversation.IdConversation,
-                    CurrentUserId,
-                    messageText
-                );
             }
 
             if (filesToUpload.Any())

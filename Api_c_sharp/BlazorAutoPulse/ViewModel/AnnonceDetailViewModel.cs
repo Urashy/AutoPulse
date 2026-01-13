@@ -969,6 +969,8 @@ namespace BlazorAutoPulse.ViewModel
                 offreAmount = 0;
                 showOffreMode = false;
                 showContactPopup = false;
+                await ExistConv();
+                _refreshUI?.Invoke();
             }
             catch (Exception ex)
             {

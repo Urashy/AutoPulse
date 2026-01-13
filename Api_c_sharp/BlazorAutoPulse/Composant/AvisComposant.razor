@@ -1,85 +1,90 @@
-﻿@using AutoPulse.Shared.DTO
-@using BlazorAutoPulse.ViewModel
-@inject AvisComposantViewModel AvisVM
-@inject NavigationManager Navigation
+@using AutoPulse.Shared.DTO
 
 <div class="avis-card">
-    <div class="avis-header">
-        <h3 class="avis-pseudoJugeur">@Avis.PseudoJugeur</h3>
+    <div class="avis-type-badge @(idCompte == Avis.IdJugee ? "badge-received" : "badge-given")">
+        @if (idCompte == Avis.IdJugee)
+        {
+            <span class="badge-icon">📨</span>
+            <span>Avis reçu</span>
+        }
+        else
+        {
+            <span class="badge-icon">✍️</span>
+            <span>Avis posté</span>
+        }
     </div>
-
+    
     <div class="avis-content">
-        <div class="avis-row">
-            <div class="avis-contenu">
-                <span class="avis-label">Avis</span>
-                <span class="avis-value">
-                    @Avis.ContenuAvis
-                </span>
+        <div class="avis-top">
+            <div class="avis-author-section">
+                <div class="author-avatar">
+                    <span>@GetInitial(Avis.PseudoJugeur)</span>
+                </div>
+                <div class="author-info">
+                    <span class="author-name">@Avis.PseudoJugeur</span>
+                    <span class="avis-date">
+                        <span class="date-icon">🕒</span>
+                        @FormatDate(Avis.DateAvis)
+                    </span>
+                </div>
+            </div>
+            
+            <div class="avis-rating">
+                <div class="rating-stars">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star @(i <= Avis.NoteAvis ? "filled" : "")">★</span>
+                    }
+                </div>
+                <span class="rating-value">@Avis.NoteAvis/5</span>
             </div>
         </div>
-
-        <div class="avis-row">
-            <div class="avis-date">
-                <span class="avis-label">Date de l'avis'</span>
-                <span class="avis-value">
-                    @Avis.DateAvis
-                </span>
-            </div>
+        
+        <div class="avis-comment-section">
+            @if (!string.IsNullOrEmpty(Avis.ContenuAvis))
+            {
+                <p class="avis-comment">@Avis.ContenuAvis</p>
+            }
+            else
+            {
+                <p class="avis-comment no-comment">
+                    <span class="no-comment-icon">💬</span>
+                    Aucun commentaire laissé
+                </p>
+            }
         </div>
     </div>
-
-    @if (ShowActions)
-    {
-        <div class="avis-actions">
-            <button class="avis-btn" @onclick="EditAvis" @onclick:stopPropagation="true">
-                <span>✏️</span>
-                <span>Modifier</span>
-            </button>
-            <button class="avis-btn danger" @onclick="DeleteAvis" @onclick:stopPropagation="true">
-                <span>🗑️</span>
-                <span>Supprimer</span>
-            </button>
-        </div>
-    }
 </div>
 
 @code {
     [Parameter]
-    public AvisListDTO Avis { get; set; }
-
+    public AvisListDTO Avis { get; set; } = null!;
+    
     [Parameter]
-    public bool ShowActions { get; set; } = false;
+    public int idCompte { get; set; }
 
-    [Parameter]
-    public bool IsPrincipal { get; set; } = false;
-
-    [Parameter]
-    public EventCallback<AvisListDTO> OnEdit { get; set; }
-
-    [Parameter]
-    public EventCallback<AvisListDTO> OnDelete { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    private string GetInitial(string? pseudo)
     {
-        if (Avis != null)
-        {
-            await AvisVM.InitializeAsync(Avis, StateHasChanged);
-        }
+        if (string.IsNullOrEmpty(pseudo))
+            return "?";
+        return pseudo[0].ToString().ToUpper();
     }
 
-    private async Task EditAvis()
+    private string FormatDate(DateTime date)
     {
-        if (OnEdit.HasDelegate)
-        {
-            await OnEdit.InvokeAsync(Avis);
-        }
-    }
-
-    private async Task DeleteAvis()
-    {
-        if (OnDelete.HasDelegate)
-        {
-            await OnDelete.InvokeAsync(Avis);
-        }
+        var diff = DateTime.Now - date;
+        
+        if (diff.TotalDays < 1)
+            return "Aujourd'hui";
+        if (diff.TotalDays < 2)
+            return "Hier";
+        if (diff.TotalDays < 7)
+            return $"Il y a {(int)diff.TotalDays} jours";
+        if (diff.TotalDays < 30)
+            return $"Il y a {(int)(diff.TotalDays / 7)} semaine" + ((int)(diff.TotalDays / 7) > 1 ? "s" : "");
+        if (diff.TotalDays < 365)
+            return $"Il y a {(int)(diff.TotalDays / 30)} mois";
+        
+        return date.ToString("dd/MM/yyyy");
     }
 }
