@@ -32,9 +32,14 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    // Sur Azure (Production), on utilise la connexion Azure
-    connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+    // Sur Azure, priorité à la variable d'environnement
+    connectionString = Environment.GetEnvironmentVariable("AZURE_POSTGRESQL_CONNECTIONSTRING")
+                      ?? builder.Configuration.GetConnectionString("AzureConnection");
 }
+
+// Log pour déboguer
+Console.WriteLine($"Environnement: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"Connexion utilisée: {connectionString?.Substring(0, Math.Min(50, connectionString.Length))}...");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -249,5 +254,19 @@ app.UseAuthorization();
 
 app.MapHub<MessageHub>("/messagehub");
 app.MapControllers();
+
+// Avant app.Run()
+app.MapGet("/health", async (AutoPulseBdContext db) =>
+{
+    try
+    {
+        await db.Database.CanConnectAsync();
+        return Results.Ok(new { status = "healthy", database = "connected" });
+    }
+    catch (Exception ex)
+    {
+        return Results.Ok(new { status = "unhealthy", error = ex.Message });
+    }
+});
 
 app.Run();
