@@ -24,25 +24,58 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB (CORRIGÉ)------------------------------
-// Choix de la chaîne de connexion selon l'environnement
 string connectionString;
+
 if (builder.Environment.IsDevelopment())
 {
     connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+    Console.WriteLine("Environnement: Development");
 }
 else
 {
-    // Sur Azure, priorité à la variable d'environnement
-    connectionString = Environment.GetEnvironmentVariable("AZURE_POSTGRESQL_CONNECTIONSTRING")
-                      ?? builder.Configuration.GetConnectionString("AzureConnection");
+    // Sur Azure, essayer plusieurs sources dans l'ordre
+    // 1. Variable d'environnement standard Azure
+    connectionString = Environment.GetEnvironmentVariable("AZURE_POSTGRESQL_CONNECTIONSTRING");
+
+    // 2. Si vide, essayer avec le format App Settings
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        connectionString = Environment.GetEnvironmentVariable("CUSTOMCONNSTR_AZURE_POSTGRESQL_CONNECTIONSTRING");
+    }
+
+    // 3. Si toujours vide, fallback sur appsettings
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+    }
+
+    Console.WriteLine($"Environnement: {builder.Environment.EnvironmentName}");
 }
 
-// Log pour déboguer
-Console.WriteLine($"Environnement: {builder.Environment.EnvironmentName}");
-Console.WriteLine($"Connexion utilisée: {connectionString?.Substring(0, Math.Min(50, connectionString.Length))}...");
+// Log sécurisé (sans afficher le mot de passe)
+if (!string.IsNullOrEmpty(connectionString))
+{
+    var safeLog = connectionString.Split(';')[0]; // Affiche juste Host=...
+    Console.WriteLine($"Connexion configurée: {safeLog}...");
+}
+else
+{
+    Console.WriteLine("ERREUR: Aucune connection string trouvée!");
+    throw new InvalidOperationException("Connection string manquante!");
+}
 
+// IMPORTANT: Décommenter et enregistrer le DbContext
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    options.UseNpgsql(connectionString);
+
+    // Optionnel: ajouter des logs pour le debug
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
+    }
+});
 
 //------------------------------Mapper------------------------------
 builder.Services.AddAutoMapper(typeof(MapperProfile));
@@ -208,17 +241,14 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    //app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
-
 
 app.UseForwardedHeaders();
 if (!app.Environment.IsProduction())
 {
-app.UseHttpsRedirection();
+    app.UseHttpsRedirection();
 }
-
 
 app.UseCors("AllowBlazor");
 
@@ -229,17 +259,34 @@ app.UseAuthorization();
 app.MapHub<MessageHub>("/messagehub");
 app.MapControllers();
 
-// Avant app.Run()
 app.MapGet("/health", async (AutoPulseBdContext db) =>
 {
     try
     {
-        await db.Database.CanConnectAsync();
-        return Results.Ok(new { status = "healthy", database = "connected" });
+        var canConnect = await db.Database.CanConnectAsync();
+        if (canConnect)
+        {
+            // Test une vraie requête
+            var count = await db.Set<Compte>().CountAsync();
+            return Results.Ok(new
+            {
+                status = "healthy",
+                database = "connected",
+                compteCount = count,
+                timestamp = DateTime.UtcNow
+            });
+        }
+        return Results.Json(new { status = "unhealthy", error = "Cannot connect" }, statusCode: 503);
     }
     catch (Exception ex)
     {
-        return Results.Ok(new { status = "unhealthy", error = ex.Message });
+        Console.WriteLine($"Health check error: {ex}");
+        return Results.Json(new
+        {
+            status = "unhealthy",
+            error = ex.Message,
+            stackTrace = ex.StackTrace
+        }, statusCode: 503);
     }
 });
 
