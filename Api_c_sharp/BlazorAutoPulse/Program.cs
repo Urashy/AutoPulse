@@ -54,7 +54,6 @@ namespace BlazorAutoPulse
 
             builder.Services.AddHttpClient("RefreshClient", client =>
             {
-                // ICI : On utilise la variable dynamique apiBaseUrl
                 client.BaseAddress = new Uri(apiBaseUrl);
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
             });
