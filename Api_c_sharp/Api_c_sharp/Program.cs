@@ -23,7 +23,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+var connectionString = builder.Configuration.GetConnectionString("AzureConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
@@ -46,9 +46,6 @@ builder.Services.AddScoped<CommandeManager>();
 builder.Services.AddScoped<CompteManager>();
 builder.Services.AddScoped<ConversationManager>();
 builder.Services.AddScoped<CouleurManager>();
-builder.Services.AddScoped<EtatAnnonceManager>();
-builder.Services.AddScoped<EtatCompteManager>();
-builder.Services.AddScoped<EtatSignalementManager>();
 builder.Services.AddScoped<FactureManager>();
 builder.Services.AddScoped<FavoriManager>();
 builder.Services.AddScoped<ImageManager>();
@@ -153,7 +150,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor",
         policy => policy
-            .WithOrigins("http://localhost:5296")
+            .WithOrigins("http://localhost:5296", "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()

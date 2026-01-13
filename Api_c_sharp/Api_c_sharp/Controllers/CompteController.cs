@@ -544,7 +544,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Path = "/"
             });
 
@@ -552,7 +552,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Path = "/"
             });
 
@@ -678,7 +678,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             var accessCookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Secure = true,
                 Expires = DateTimeOffset.UtcNow.AddMinutes(15),
                 Path = "/"
@@ -1123,7 +1123,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var accessCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = SameSiteMode.None,
             Secure = true,
             Expires = rememberMe ? DateTimeOffset.UtcNow.AddMinutes(15) : null,
             Path = "/"
@@ -1132,7 +1132,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var refreshCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = SameSiteMode.None,
             Secure = true,
             // ✅ Si rememberMe = true : 30 jours, sinon : session cookie
             Expires = rememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null,

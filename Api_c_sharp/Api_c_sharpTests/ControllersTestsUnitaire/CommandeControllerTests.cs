@@ -465,6 +465,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdMoyenPaiement = _commandeCommun.IdMoyenPaiement,
                 Date = DateTime.UtcNow,
                 IdEtatCommande = 4,
+                IdOffre = _commandeCommun.IdOffre
+
             };
 
             // Act
@@ -495,6 +497,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdMoyenPaiement = _commandeCommun.IdMoyenPaiement,
                 Date = DateTime.UtcNow,
                 IdEtatCommande = 5,
+                IdOffre = _commandeCommun.IdOffre
             };
 
             // Act
