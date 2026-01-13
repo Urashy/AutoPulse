@@ -267,7 +267,8 @@ public class ConversationViewModel : IDisposable
                     Console.WriteLine($"❌ Erreur chargement commande: {ex.Message}");
                 }
                 Console.WriteLine($"✅ Offre {idOffre} mise à jour en temps réel");
-                NotifyStateChanged();
+                await _conversationState.ReloadConversationsAsync();
+                await LoadConversations(SelectedAnnonceFilter);
             }
         }
     }
@@ -674,16 +675,6 @@ public class ConversationViewModel : IDisposable
                     {
                         Console.WriteLine($"✅ Offre {offreCreee.IdOffre} de {offreAmountToSend:N0} € créée");
 
-                        await _signalR.SendMessageWithOffre(
-                            SelectedConversation.IdConversation,
-                            CurrentUserId,
-                            messageText,
-                            createdMessage.IdMessage,
-                            offreCreee.IdOffre,
-                            offreAmountToSend,
-                            annonceIdToSend.Value
-                        );
-
                         await LoadMessages(SelectedConversation.IdConversation);
                         
                         if (OnScrollRequested != null)
@@ -735,6 +726,8 @@ public class ConversationViewModel : IDisposable
         finally
         {
             IsUploadingFiles = false;
+            await _conversationState.ReloadConversationsAsync();
+            await LoadConversations(SelectedAnnonceFilter);
             NotifyStateChanged();
         }
     }
@@ -750,6 +743,8 @@ public class ConversationViewModel : IDisposable
                 if (SelectedConversation != null)
                 {
                     await LoadMessages(SelectedConversation.IdConversation);
+                    await _conversationState.ReloadConversationsAsync();
+                    await LoadConversations(SelectedAnnonceFilter);
                 }
             }
         }
@@ -819,9 +814,8 @@ public class ConversationViewModel : IDisposable
                         }
                     }
                 };
-
+                
                 Messages.Add(newMsg);
-                Console.WriteLine($"✅ Message avec offre de {offreValeur}€ (IdOffre={idOffre}) ajouté");
                 NotifyStateChanged();
 
                 if (OnScrollRequested != null)
@@ -830,9 +824,8 @@ public class ConversationViewModel : IDisposable
                 }
             }
         }
-        Console.WriteLine("test 1");
+        
         await _conversationState.ReloadConversationsAsync();
         await LoadConversations(SelectedAnnonceFilter);
-        Console.WriteLine("test 2");
     }
 }
