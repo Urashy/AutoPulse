@@ -204,11 +204,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    // AJOUTÉ: Gestion des erreurs en Production
-    // Cela permet de ne pas renvoyer de détails techniques aux utilisateurs,
-    // mais d'éviter l'erreur "ExpectedJsonTokens" en cas de crash serveur (500).
-    app.UseExceptionHandler("/Error");
-    // La valeur par défaut HSTS est de 30 jours.
+    //app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
