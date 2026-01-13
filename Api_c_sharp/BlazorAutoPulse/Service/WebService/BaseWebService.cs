@@ -12,76 +12,138 @@ public abstract class BaseWebService<T> : IService<T> where T : class
 {
     protected readonly HttpClient _httpClient;
     protected abstract string ApiEndpoint { get; }
-    
+
     protected BaseWebService(IHttpClientFactory factory)
     {
         _httpClient = factory.CreateClient("ApiClient");
     }
 
-    protected string BuildUrl(string relativeUrl)
+    protected string BuildUrl(string relativeUrl = "")
     {
-        return $"{ApiEndpoint}/{relativeUrl}";
+        return string.IsNullOrEmpty(relativeUrl)
+            ? ApiEndpoint
+            : $"{ApiEndpoint}/{relativeUrl}";
     }
 
     public virtual async Task<IEnumerable<T>> GetAllAsync()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl("GetAll"));
-        var response = await SendWithCredentialsAsync(request);
+        try
+        {
+            // GET api/Marque
+            var request = new HttpRequestMessage(HttpMethod.Get, ApiEndpoint);
+            var response = await SendWithCredentialsAsync(request);
 
-        response.EnsureSuccessStatusCode();
+            var rawContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"🔍 GET {ApiEndpoint} → {response.StatusCode}");
+            Console.WriteLine($"🔍 Content: {rawContent.Substring(0, Math.Min(200, rawContent.Length))}...");
 
-        return await response.Content.ReadFromJsonAsync<IEnumerable<T>>();
+            response.EnsureSuccessStatusCode();
+
+            return JsonSerializer.Deserialize<IEnumerable<T>>(rawContent,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? Enumerable.Empty<T>();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"❌ HTTP Error GetAllAsync: {ex.Message}");
+            throw;
+        }
+        catch (JsonException ex)
+        {
+            Console.WriteLine($"❌ JSON Error GetAllAsync: {ex.Message}");
+            throw;
+        }
     }
 
     public virtual async Task<T> GetByIdAsync(int id)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl($"GetById/{id.ToString()}"));
-        var response = await SendWithCredentialsAsync(request);
+        try
+        {
+            // GET api/Marque/5
+            var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(id.ToString()));
+            var response = await SendWithCredentialsAsync(request);
 
-        response.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<T>();
+            return await response.Content.ReadFromJsonAsync<T>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ GetByIdAsync({id}): {ex.Message}");
+            throw;
+        }
     }
 
     public virtual async Task<T> CreateAsync(T entity)
     {
-        var json = JsonSerializer.Serialize(entity);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        try
+        {
+            // POST api/Marque
+            var request = new HttpRequestMessage(HttpMethod.Post, ApiEndpoint)
+            {
+                Content = JsonContent.Create(entity)
+            };
 
-        var request = new HttpRequestMessage(HttpMethod.Post, BuildUrl("Post"));
-        request.Content = content;
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
 
-        var response = await SendWithCredentialsAsync(request);
-
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<T>();
+            return await response.Content.ReadFromJsonAsync<T>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ CreateAsync: {ex.Message}");
+            throw;
+        }
     }
 
     public virtual async Task UpdateAsync(int id, T entity)
     {
-        var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl($"Put/{id}"))
+        try
         {
-            Content = JsonContent.Create(entity)
-        };
-        
-        var response = await SendWithCredentialsAsync(request);
-        response.EnsureSuccessStatusCode();
+            // PUT api/Marque/5
+            var request = new HttpRequestMessage(HttpMethod.Put, BuildUrl(id.ToString()))
+            {
+                Content = JsonContent.Create(entity)
+            };
+
+            var response = await SendWithCredentialsAsync(request);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ UpdateAsync({id}): {ex.Message}");
+            throw;
+        }
     }
 
     public virtual async Task<string?> DeleteAsync(int id)
     {
-        var request = new HttpRequestMessage(HttpMethod.Delete, BuildUrl($"Delete/{id}"));
-        var response = await SendWithCredentialsAsync(request);
-
-        if (response.IsSuccessStatusCode)
+        try
         {
-            return null;
-        }
+            // DELETE api/Marque/5
+            var request = new HttpRequestMessage(HttpMethod.Delete, BuildUrl(id.ToString()));
+            var response = await SendWithCredentialsAsync(request);
 
-        return await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ DeleteAsync({id}): {ex.Message}");
+            return ex.Message;
+        }
     }
-    
+
+    protected async Task<HttpResponseMessage> SendWithCredentialsAsync(HttpRequestMessage request)
+    {
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        return await _httpClient.SendAsync(request);
+    }
+
     public async Task<ServiceResult<T>> PostWithErrorHandlingAsync(T entity, string action = "Post")
     {
         try
@@ -103,7 +165,7 @@ public abstract class BaseWebService<T> : IService<T> where T : class
             if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                
+
                 try
                 {
                     var validationError = JsonSerializer.Deserialize<ValidationErrorResponse>(
@@ -116,7 +178,7 @@ public abstract class BaseWebService<T> : IService<T> where T : class
                         var errorMessages = validationError.Errors
                             .SelectMany(e => e.Value)
                             .ToList();
-                        
+
                         return ServiceResult<T>.ErrorResult(
                             string.Join("\n", errorMessages),
                             validationError.Errors
@@ -137,10 +199,5 @@ public abstract class BaseWebService<T> : IService<T> where T : class
             return ServiceResult<T>.ErrorResult("Une erreur s'est produite");
         }
     }
-    
-    protected async Task<HttpResponseMessage> SendWithCredentialsAsync(HttpRequestMessage request)
-    {
-        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-        return await _httpClient.SendAsync(request);
-    }
+
 }
