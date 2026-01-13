@@ -21,14 +21,7 @@ namespace BlazorAutoPulse
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
-
-            // ========================================
-            // CONFIGURATION DE L'URL DE L'API
-            // ========================================
-            var apiBaseUrl = builder.HostEnvironment.IsDevelopment()
-                ? "http://localhost:5086/api/"
-                : "https://azure-api-autopulse-hrd5ahhxdxdtcagd.francecentral-01.azurewebsites.net/api/";
-
+            
             // ========================================
             // CONFIGURATION AUTHENTIFICATION
             // ========================================
@@ -36,18 +29,18 @@ namespace BlazorAutoPulse
             builder.Services.AddTransient<AuthMessageHandler>();
 
             builder.Services.AddHttpClient("ApiClient", client =>
-            {
-                client.BaseAddress = new Uri(apiBaseUrl);
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-            })
+                {
+                    client.BaseAddress = new Uri("http://localhost:5086/api/");
+                    client.DefaultRequestHeaders.Add("Accept", "application/json");
+                })
                 .AddHttpMessageHandler<AuthMessageHandler>();
 
             builder.Services.AddHttpClient("RefreshClient", client =>
             {
-                client.BaseAddress = new Uri(apiBaseUrl);
+                client.BaseAddress = new Uri("http://localhost:5086/api/");
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
             });
-
+            
             builder.Services.AddScoped<IServiceConnexion>(sp =>
             {
                 var factory = sp.GetRequiredService<IHttpClientFactory>();
@@ -75,12 +68,13 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IModeleService, ModeleWebService>();
             builder.Services.AddScoped<IServiceConnexion, ConnexionWebService>();
             builder.Services.AddScoped<IPostImageService, PostImageWebService>();
-            builder.Services.AddScoped<ICompteService, CompteWebService>();
+            builder.Services.AddScoped<ICompteService, CompteWebService>();  
             builder.Services.AddScoped<IFavorisService, FavoriWebService>();
             builder.Services.AddScoped<IImageService, ImageWebService>();
             builder.Services.AddScoped<IReinitialiseMdp, ReinitialisationMdpWebService>();
             builder.Services.AddScoped<ICouleurService, CouleurWebService>();
             builder.Services.AddScoped<ISignalRService, SignalRWebService>();
+            builder.Services.AddScoped<CommandeSignalRWebService>();
             builder.Services.AddScoped<IConversationService, ConversationWebService>();
             builder.Services.AddScoped<ITypeCompteService, TypeCompteWebService>();
             builder.Services.AddScoped<IAdresseService, AdresseWebService>();
@@ -100,7 +94,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IPlainteService, PlainteWebService>();
             builder.Services.AddScoped<IOffreService, OffreWebService>();
             builder.Services.AddScoped<ConversationStateService>();
-            builder.Services.AddScoped<IAutoCompleteService, AdresseAutoCompleteService>();
+            builder.Services.AddScoped<IAutoCompleteService,AdresseAutoCompleteService>();
             builder.Services.AddScoped<IA2fService, A2fWebService>();
             builder.Services.AddScoped<ITokenEmailService, TokenEmailWebService>();
             builder.Services.AddScoped<IImmatService, ImmatWebService>();
@@ -156,7 +150,7 @@ namespace BlazorAutoPulse
                 client.DefaultRequestHeaders.Add("User-Agent", "BlazorAutoPulse/1.0");
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
-
+            
             //----------------------- State service
             builder.Services.AddScoped<ConversationStateService>();
 

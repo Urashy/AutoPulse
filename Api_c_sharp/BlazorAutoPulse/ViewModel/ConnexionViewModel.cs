@@ -81,7 +81,6 @@ public class ConnexionViewModel
                 MotDePasse = motDePasseUtilisateur
             };
 
-            // ✅ Passer rememberMe au service
             var response = await _serviceConnexion.LoginUser(loginRequest, rememberMe);
 
             if (response.IsSuccessStatusCode)

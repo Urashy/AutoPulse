@@ -453,8 +453,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             if (a2fActif || doitReactiverA2f)
             {
                 // Envoyer code A2F par email
-                var rand = new Random();
-                var codeA2f = rand.Next(0, 9999999).ToString("D7");
+                var codeA2f = GenerateSecureA2fCode();
                 var expiration = DateTime.UtcNow.AddMinutes(15);
 
                 var tokenA2f = new TokenEmail
@@ -487,7 +486,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             var refreshToken = GenerateRefreshToken();
 
             // ✅ Stocker le refresh token en base (hashé)
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var ipAddress = GetClientIpAddress();
             var userAgent = Request.Headers["User-Agent"].ToString();
 
             await _refreshTokenManager.StoreRefreshTokenAsync(
@@ -544,7 +543,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Strict,
                 Path = "/"
             });
 
@@ -552,7 +551,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Strict,
                 Path = "/"
             });
 
@@ -678,16 +677,13 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             var accessCookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Strict,
                 Secure = true,
                 Expires = DateTimeOffset.UtcNow.AddMinutes(15),
                 Path = "/"
             };
 
             Response.Cookies.Append("access_token", newAccessToken, accessCookieOptions);
-
-            // ✅ OPTIONNEL : Si rotation activée, mettre à jour aussi le refresh token
-            // Response.Cookies.Append("refresh_token", newRefreshToken, refreshCookieOptions);
 
             Console.WriteLine("✅ Access token rafraîchi avec succès");
 
@@ -1123,7 +1119,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var accessCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            SameSite = SameSiteMode.None,
+            SameSite = SameSiteMode.Strict,
             Secure = true,
             Expires = rememberMe ? DateTimeOffset.UtcNow.AddMinutes(15) : null,
             Path = "/"
@@ -1132,7 +1128,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         var refreshCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            SameSite = SameSiteMode.None,
+            SameSite = SameSiteMode.Strict,
             Secure = true,
             // ✅ Si rememberMe = true : 30 jours, sinon : session cookie
             Expires = rememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null,
@@ -1181,6 +1177,39 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         await client.AuthenticateAsync(user, password);
         await client.SendAsync(emailMessage);
         await client.DisconnectAsync(true);
+    }
+    
+    private string GetClientIpAddress()
+    {
+        var forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwardedFor))
+        {
+            return forwardedFor.Split(',').First().Trim();
+        }
+
+        var realIp = HttpContext.Request.Headers["X-Real-IP"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(realIp))
+        {
+            return realIp;
+        }
+
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+    
+        if (ipAddress == "::1")
+        {
+            return "127.0.0.1";
+        }
+
+        return ipAddress ?? "Unknown";
+    }
+    
+    private static string GenerateSecureA2fCode()
+    {
+        using var rng = RandomNumberGenerator.Create();
+        var bytes = new byte[4];
+        rng.GetBytes(bytes);
+        var number = BitConverter.ToUInt32(bytes, 0) % 10000000;
+        return number.ToString("D7");
     }
 #endregion
 }
