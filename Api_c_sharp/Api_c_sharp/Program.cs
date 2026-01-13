@@ -175,8 +175,7 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials()
-        .WithExposedHeaders("*")
-        .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+
     });
 });
 
@@ -194,6 +193,11 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownNetworks.Clear();
 });
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.AddServerHeader = false;
+});
+
 var app = builder.Build();
 
 // Configuration du pipeline HTTP
@@ -208,39 +212,13 @@ else
     app.UseHsts();
 }
 
-// Middleware pour forcer les headers CORS (en cas de problème Azure)
-app.Use(async (context, next) =>
-{
-    var origin = context.Request.Headers["Origin"].ToString();
-    var allowedOrigins = new[]
-    {
-        "http://localhost:5296",
-        "https://localhost:5296",
-        "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
-    };
-
-    if (!string.IsNullOrEmpty(origin) && allowedOrigins.Contains(origin))
-    {
-        context.Response.Headers["Access-Control-Allow-Origin"] = origin;
-        context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
-        context.Response.Headers["Access-Control-Allow-Headers"] = context.Request.Headers["Access-Control-Request-Headers"].ToString();
-        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH";
-    }
-
-    // Gérer les requêtes OPTIONS (preflight)
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        await context.Response.CompleteAsync();
-        return;
-    }
-
-    await next();
-});
-
-app.UseHttpsRedirection();
 
 app.UseForwardedHeaders();
+if (!app.Environment.IsProduction())
+{
+app.UseHttpsRedirection();
+}
+
 
 app.UseCors("AllowBlazor");
 
