@@ -28,7 +28,7 @@ var isProduction = builder.Environment.IsProduction();
 Console.WriteLine($"🚀 Environnement détecté : {(isProduction ? "PRODUCTION (Azure)" : "DEVELOPMENT (Local)")}");
 
 //------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
 
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
     options.UseNpgsql(connectionString));
