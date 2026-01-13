@@ -1,4 +1,4 @@
- using System.Text;
+using System.Text;
 using Api_c_sharp.Hubs;
 using Api_c_sharp.Mapper;
 using Api_c_sharp.Models;
@@ -96,7 +96,7 @@ builder.Services.AddHttpClient<IIAService, IAManager>(client =>
 {
     var pythonApiUrl = builder.Configuration["PythonAPI:BaseUrl"] ?? "http://localhost:8000";
     var timeout = builder.Configuration.GetValue<int>("PythonAPI:Timeout", 120);
-    
+
     client.BaseAddress = new Uri(pythonApiUrl);
     client.Timeout = TimeSpan.FromSeconds(timeout);
 });
@@ -147,22 +147,34 @@ builder.Services.AddControllers().AddJsonOptions(opt =>
     opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
+//------------------------------CORS - CONFIGURATION CORRIGÉE------------------------------
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowBlazor",
-        policy => policy
-            .WithOrigins("http://localhost:5296")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-            .SetIsOriginAllowed(_ => true));
+    options.AddPolicy("AllowBlazor", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost:5296",
+            "https://localhost:5296",
+            "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()
+        .WithExposedHeaders("*")
+        .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+    });
 });
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+});
+
 builder.Services.AddHostedService<EfWarmupService>();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     options.KnownProxies.Clear();
     options.KnownNetworks.Clear();
 });
@@ -175,21 +187,47 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Middleware pour forcer les headers CORS (en cas de problème Azure)
+app.Use(async (context, next) =>
+{
+    var origin = context.Request.Headers["Origin"].ToString();
+    var allowedOrigins = new[]
+    {
+        "http://localhost:5296",
+        "https://localhost:5296",
+        "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
+    };
+
+    if (!string.IsNullOrEmpty(origin) && allowedOrigins.Contains(origin))
+    {
+        context.Response.Headers["Access-Control-Allow-Origin"] = origin;
+        context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
+        context.Response.Headers["Access-Control-Allow-Headers"] = context.Request.Headers["Access-Control-Request-Headers"].ToString();
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH";
+    }
+
+    // Gérer les requêtes OPTIONS (preflight)
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.StatusCode = 200;
+        await context.Response.CompleteAsync();
+        return;
+    }
+
+    await next();
+});
+
 app.UseHttpsRedirection();
 
+app.UseForwardedHeaders();
+
 app.UseCors("AllowBlazor");
-
-app.MapHub<MessageHub>("/messagehub");
-
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
 
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<MessageHub>("/messagehub");
 app.MapControllers();
 
 app.Run();
