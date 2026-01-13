@@ -290,4 +290,124 @@ app.MapGet("/health", async (AutoPulseBdContext db) =>
     }
 });
 
+app.MapGet("/ping", () => Results.Ok(new
+{
+    status = "alive",
+    timestamp = DateTime.UtcNow,
+    environment = app.Environment.EnvironmentName
+}));
+
+// Test configuration
+app.MapGet("/test-config", (IConfiguration config) =>
+{
+    try
+    {
+        var jwtIssuer = config["Jwt:Issuer"];
+        var pythonApi = config["PythonAPI:BaseUrl"];
+
+        // NE PAS logger le mot de passe complet !
+        var connStr = Environment.GetEnvironmentVariable("AZURE_POSTGRESQL_CONNECTIONSTRING");
+        var connStrFromConfig = config.GetConnectionString("AzureConnection");
+
+        return Results.Ok(new
+        {
+            jwtConfigured = !string.IsNullOrEmpty(jwtIssuer),
+            pythonApiConfigured = !string.IsNullOrEmpty(pythonApi),
+            envVarExists = !string.IsNullOrEmpty(connStr),
+            configExists = !string.IsNullOrEmpty(connStrFromConfig),
+            connStrSource = !string.IsNullOrEmpty(connStr) ? "Environment Variable" :
+                           !string.IsNullOrEmpty(connStrFromConfig) ? "AppSettings" : "None",
+            // Afficher juste le début sans le mot de passe
+            connStrPreview = (connStr ?? connStrFromConfig ?? "NULL")
+                .Split(';')[0] + "..."
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { error = ex.Message, stackTrace = ex.StackTrace }, statusCode: 500);
+    }
+});
+
+// Test DB simple sans manager
+app.MapGet("/test-db", async (AutoPulseBdContext db) =>
+{
+    try
+    {
+        // Test 1 : Connexion
+        var canConnect = await db.Database.CanConnectAsync();
+        if (!canConnect)
+        {
+            return Results.Json(new
+            {
+                error = "Cannot connect to database",
+                canConnect = false
+            }, statusCode: 503);
+        }
+
+        // Test 2 : Requête simple
+        var compteCount = await db.Set<Compte>().CountAsync();
+
+        return Results.Ok(new
+        {
+            status = "db_ok",
+            canConnect = true,
+            compteCount = compteCount,
+            timestamp = DateTime.UtcNow
+        });
+    }
+    catch (Npgsql.NpgsqlException npgEx)
+    {
+        // Erreur PostgreSQL spécifique
+        return Results.Json(new
+        {
+            error = "PostgreSQL Error",
+            message = npgEx.Message,
+            code = npgEx.ErrorCode,
+            detail = npgEx.Detail,
+            hint = npgEx.Hint
+        }, statusCode: 500);
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new
+        {
+            error = ex.GetType().Name,
+            message = ex.Message,
+            stackTrace = ex.StackTrace
+        }, statusCode: 500);
+    }
+});
+
+// Health check amélioré
+app.MapGet("/health", async (AutoPulseBdContext db) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (canConnect)
+        {
+            var count = await db.Set<Compte>().CountAsync();
+            return Results.Ok(new
+            {
+                status = "healthy",
+                database = "connected",
+                compteCount = count,
+                timestamp = DateTime.UtcNow
+            });
+        }
+        return Results.Json(new { status = "unhealthy", error = "Cannot connect" }, statusCode: 503);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Health check error: {ex}");
+        return Results.Json(new
+        {
+            status = "unhealthy",
+            error = ex.Message,
+            type = ex.GetType().Name,
+            innerError = ex.InnerException?.Message
+        }, statusCode: 503);
+    }
+});
+
 app.Run();
