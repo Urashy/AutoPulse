@@ -205,6 +205,7 @@ builder.Services.AddCors(options =>
             "https://localhost:5296",
             "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
         )
+        .SetIsOriginAllowedToAllowWildcardSubdomains()
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials();
