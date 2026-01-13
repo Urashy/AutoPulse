@@ -374,7 +374,6 @@ namespace BlazorAutoPulse.ViewModel
         
         private void HandleOffreNotification(OffreNotification notif)
         {
-            Console.WriteLine($"💰 Nouvelle offre reçue: {notif.Valeur}€ pour {notif.AnnonceLibelle}");
             notificationsCount++;
             
             _notificationToastService.ShowInfo(

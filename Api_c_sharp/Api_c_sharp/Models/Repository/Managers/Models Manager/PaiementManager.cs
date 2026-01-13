@@ -34,15 +34,22 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 .Where(a => annonceIds.Contains(a.IdAnnonce))
                 .ToDictionaryAsync(a => a.IdAnnonce);
 
+            var carteBancaireIds = derniersPaiementsParAnnonce.Select(p => p.IdCarteBancaire).ToList();
+            var cartesBancaires = await context.CarteBancaires
+                .Where(c => carteBancaireIds.Contains(c.IdCarteBancaire))
+                .ToDictionaryAsync(c => c.IdCarteBancaire);
+
             foreach (var paiement in derniersPaiementsParAnnonce)
             {
                 if (!annonces.TryGetValue(paiement.IdAnnonce, out var annonce))
-                    return paiementCrees;
+                    continue;
+                if (!cartesBancaires.TryGetValue((int)paiement.IdCarteBancaire, out var carteBancaire))
+                    continue;
 
                 if (annonce.ProchaineMiseEnAvant == null)
                 {
                     if (annonce.IdMiseEnAvant == 1)
-                        return paiementCrees;
+                        continue;
 
                     var newPaiement = new Paiement
                     {

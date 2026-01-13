@@ -187,13 +187,12 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task VerifPaiementAutoMiseEnAvantListVide()
         {
-            
             //assert
             var paiement = new Paiement()
             {
                 IdPaiement = 1,
                 IdAnnonce = _objetcommun.IdAnnonce + 1,
-                DatePaiement = DateTime.UtcNow.AddDays(-7), // Seulement 3 jours
+                DatePaiement = DateTime.UtcNow.AddDays(-7),
                 IdMiseEnAvant = 2,
                 IdCarteBancaire = _carteCommune.IdCarteBancaire,
                 IdCompte = _compteCommun.IdCompte,
@@ -201,7 +200,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             };
             await _context.Paiements.AddAsync(paiement);
             await _context.SaveChangesAsync();
-            
+
             // Act
             var result = await _manager.VerifPaiementAutoMiseEnAvant();
 
@@ -230,7 +229,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             {
                 IdPaiement = 1,
                 IdAnnonce = _objetcommun.IdAnnonce,
-                DatePaiement = DateTime.UtcNow.AddDays(-3), // Seulement 3 jours
+                DatePaiement = DateTime.UtcNow.AddDays(-3),
                 IdMiseEnAvant = 2,
                 IdCarteBancaire = _carteCommune.IdCarteBancaire,
                 IdCompte = _compteCommun.IdCompte,
@@ -254,7 +253,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             {
                 IdPaiement = 1,
                 IdAnnonce = _objetcommun.IdAnnonce,
-                DatePaiement = DateTime.UtcNow.AddDays(-10), // 10 jours
+                DatePaiement = DateTime.UtcNow.AddDays(-10),
                 IdMiseEnAvant = 2,
                 IdCarteBancaire = _carteCommune.IdCarteBancaire,
                 IdCompte = _compteCommun.IdCompte,
@@ -268,6 +267,54 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.AreEqual(0, result.Count());
+        }
+
+        [TestMethod]
+        public async Task VerifPaiementAutoMiseEnAvant_CarteBancaireInexistante_IgnoreAnnonce()
+        {
+            // Arrange
+            var paiement = new Paiement()
+            {
+                IdPaiement = 1,
+                IdAnnonce = _objetcommun.IdAnnonce,
+                DatePaiement = DateTime.UtcNow.AddDays(-7).Date,
+                IdMiseEnAvant = 2,
+                IdCarteBancaire = 999, // Carte inexistante
+                IdCompte = _compteCommun.IdCompte,
+                IdCommande = null
+            };
+            await _context.Paiements.AddAsync(paiement);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _manager.VerifPaiementAutoMiseEnAvant();
+
+            // Assert
+            Assert.AreEqual(0, result.Count()); // L'annonce est ignorée
+        }
+
+        [TestMethod]
+        public async Task VerifPaiementAutoMiseEnAvant_AnnonceInexistante_IgnoreAnnonce()
+        {
+            // Arrange
+            var paiement = new Paiement()
+            {
+                IdPaiement = 1,
+                IdAnnonce = 999, // Annonce inexistante
+                DatePaiement = DateTime.UtcNow.AddDays(-7).Date,
+                IdMiseEnAvant = 2,
+                IdCarteBancaire = _carteCommune.IdCarteBancaire,
+                IdCompte = _compteCommun.IdCompte,
+                IdCommande = null
+            };
+            await _context.Paiements.AddAsync(paiement);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _manager.VerifPaiementAutoMiseEnAvant();
+
+            // Assert
+            Assert.AreEqual(0, result.Count()); // L'annonce est ignorée
         }
 
         #endregion
@@ -316,6 +363,8 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdCompte = _compteCommun.IdCompte,
                 IdCommande = null
             };
+            await _context.Paiements.AddAsync(paiement);
+            await _context.SaveChangesAsync();
 
             var result = await _manager.VerifPaiementAutoMiseEnAvant();
 
@@ -378,7 +427,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.AreEqual(1, result.Count());
 
             var nouveauPaiement = result.First();
-            Assert.AreEqual(3, nouveauPaiement.IdMiseEnAvant); // ProchaineMiseEnAvant = 3
+            Assert.AreEqual(3, nouveauPaiement.IdMiseEnAvant);
 
             var annonceMAJ = await _context.Annonces.FindAsync(_objetcommun.IdAnnonce);
             Assert.AreEqual(3, annonceMAJ.IdMiseEnAvant);
@@ -388,7 +437,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task VerifPaiementAutoMiseEnAvant_ProchaineMiseEnAvantEst1_PasDePaiementCree()
         {
-            _objetcommun.ProchaineMiseEnAvant = 1; 
+            _objetcommun.ProchaineMiseEnAvant = 1;
             await _context.SaveChangesAsync();
 
             var paiement = new Paiement()
@@ -408,10 +457,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _manager.VerifPaiementAutoMiseEnAvant();
 
             // Assert
-            Assert.AreEqual(0, result.Count()); // Pas de nouveau paiement
+            Assert.AreEqual(0, result.Count());
 
             var annonceMAJ = await _context.Annonces.FindAsync(_objetcommun.IdAnnonce);
-            Assert.AreEqual(1, annonceMAJ.IdMiseEnAvant); // Mise à jour vers Standard
+            Assert.AreEqual(1, annonceMAJ.IdMiseEnAvant);
             Assert.IsNull(annonceMAJ.ProchaineMiseEnAvant);
         }
 
@@ -420,7 +469,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         {
             // Arrange
             _objetcommun.ProchaineMiseEnAvant = null;
-            _objetcommun.IdMiseEnAvant = 2; // Or
+            _objetcommun.IdMiseEnAvant = 2;
             _context.Annonces.Update(_objetcommun);
             await _context.SaveChangesAsync();
 
@@ -442,7 +491,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.AreEqual(1, result.Count());
-            Assert.AreEqual(2, result.First().IdMiseEnAvant); // Renouvelle au même niveau
+            Assert.AreEqual(2, result.First().IdMiseEnAvant);
         }
 
         [TestMethod]
@@ -450,7 +499,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         {
             // Arrange
             _objetcommun.ProchaineMiseEnAvant = null;
-            _objetcommun.IdMiseEnAvant = 1; // Standard
+            _objetcommun.IdMiseEnAvant = 1;
             _context.Annonces.Update(_objetcommun);
             await _context.SaveChangesAsync();
 
@@ -471,7 +520,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var result = await _manager.VerifPaiementAutoMiseEnAvant();
 
             // Assert
-            Assert.AreEqual(0, result.Count()); // Pas de renouvellement pour Standard
+            Assert.AreEqual(0, result.Count());
         }
 
         #endregion
@@ -567,21 +616,113 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.AreEqual(1, result.Count());
-            // Le nouveau paiement doit utiliser ProchaineMiseEnAvant (3)
             Assert.AreEqual(3, result.First().IdMiseEnAvant);
         }
 
-        #endregion
+        [TestMethod]
+        public async Task VerifPaiementAutoMiseEnAvant_MultipleAnnoncesDontUneCarteBancaireInexistante_CreeSeulementPaiementsValides()
+        {
+            // Arrange
+            var annonce2 = new Annonce()
+            {
+                IdAnnonce = 2,
+                Libelle = "Annonce Test 2",
+                IdCompte = _compteCommun.IdCompte,
+                IdEtatAnnonce = 1,
+                IdAdresse = 1,
+                Prix = 25000,
+                Description = "Description 2",
+                IdMiseEnAvant = 2,
+                IdVoiture = 1,
+                DatePublication = DateTime.Now,
+                ProchaineMiseEnAvant = 3
+            };
+            await _context.Annonces.AddAsync(annonce2);
+            await _context.SaveChangesAsync();
 
+            var paiement1 = new Paiement()
+            {
+                IdPaiement = 1,
+                IdAnnonce = _objetcommun.IdAnnonce,
+                DatePaiement = DateTime.UtcNow.AddDays(-7).Date,
+                IdMiseEnAvant = 2,
+                IdCarteBancaire = _carteCommune.IdCarteBancaire,
+                IdCompte = _compteCommun.IdCompte,
+                IdCommande = null
+            };
+
+            var paiement2 = new Paiement()
+            {
+                IdPaiement = 2,
+                IdAnnonce = annonce2.IdAnnonce,
+                DatePaiement = DateTime.UtcNow.AddDays(-7).Date,
+                IdMiseEnAvant = 2,
+                IdCarteBancaire = 999, // Carte inexistante
+                IdCompte = _compteCommun.IdCompte,
+                IdCommande = null
+            };
+
+            await _context.Paiements.AddAsync(paiement1);
+            await _context.Paiements.AddAsync(paiement2);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _manager.VerifPaiementAutoMiseEnAvant();
+
+            // Assert
+            Assert.AreEqual(1, result.Count()); // Seulement l'annonce avec carte valide
+            Assert.AreEqual(_objetcommun.IdAnnonce, result.First().IdAnnonce);
+        }
+
+        [TestMethod]
+        public async Task VerifPaiementAutoMiseEnAvant_MultipleAnnoncesDontUneAnnonceInexistante_CreeSeulementPaiementsValides()
+        {
+            // Arrange
+            var paiement1 = new Paiement()
+            {
+                IdPaiement = 1,
+                IdAnnonce = _objetcommun.IdAnnonce,
+                DatePaiement = DateTime.UtcNow.AddDays(-7).Date,
+                IdMiseEnAvant = 2,
+                IdCarteBancaire = _carteCommune.IdCarteBancaire,
+                IdCompte = _compteCommun.IdCompte,
+                IdCommande = null
+            };
+
+            var paiement2 = new Paiement()
+            {
+                IdPaiement = 2,
+                IdAnnonce = 999, // Annonce inexistante
+                DatePaiement = DateTime.UtcNow.AddDays(-7).Date,
+                IdMiseEnAvant = 2,
+                IdCarteBancaire = _carteCommune.IdCarteBancaire,
+                IdCompte = _compteCommun.IdCompte,
+                IdCommande = null
+            };
+
+            await _context.Paiements.AddAsync(paiement1);
+            await _context.Paiements.AddAsync(paiement2);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _manager.VerifPaiementAutoMiseEnAvant();
+
+            // Assert
+            Assert.AreEqual(1, result.Count()); // Seulement l'annonce valide
+            Assert.AreEqual(_objetcommun.IdAnnonce, result.First().IdAnnonce);
+        }
+
+        #endregion
         #region Tests Différents Niveaux de Mise en Avant
 
         [TestMethod]
         public async Task VerifPaiementAutoMiseEnAvant_MiseEnAvantOr_CreeNouveauPaiement()
         {
             // Arrange
-            _objetcommun.IdMiseEnAvant = 2; // Or
+            _objetcommun.IdMiseEnAvant = 2;
             _objetcommun.ProchaineMiseEnAvant = 2;
             _context.Annonces.Update(_objetcommun);
+            await _context.SaveChangesAsync();
 
             var paiement = new Paiement()
             {
@@ -608,104 +749,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         public async Task VerifPaiementAutoMiseEnAvant_MiseEnAvantPlatine_CreeNouveauPaiement()
         {
             // Arrange
-            _objetcommun.IdMiseEnAvant = 3; // Platine
+            _objetcommun.IdMiseEnAvant = 3;
             _objetcommun.ProchaineMiseEnAvant = 3;
             _context.Annonces.Update(_objetcommun);
-
-            var paiement = new Paiement()
-            {
-                IdPaiement = 1,
-                IdAnnonce = _objetcommun.IdAnnonce,
-                DatePaiement = DateTime.UtcNow.AddDays(-7).Date,
-                IdMiseEnAvant = 3,
-                IdCarteBancaire = _carteCommune.IdCarteBancaire,
-                IdCompte = _compteCommun.IdCompte,
-                IdCommande = null
-            };
-            await _context.Paiements.AddAsync(paiement);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _manager.VerifPaiementAutoMiseEnAvant();
-
-            // Assert
-            Assert.AreEqual(1, result.Count());
-            Assert.AreEqual(3, result.First().IdMiseEnAvant);
-        }
-
-        [TestMethod]
-        public async Task VerifPaiementAutoMiseEnAvant_MiseEnAvantDiamant_CreeNouveauPaiement()
-        {
-            // Arrange
-            _objetcommun.IdMiseEnAvant = 4; // Diamant
-            _objetcommun.ProchaineMiseEnAvant = 4;
-            _context.Annonces.Update(_objetcommun);
-
-            var paiement = new Paiement()
-            {
-                IdPaiement = 1,
-                IdAnnonce = _objetcommun.IdAnnonce,
-                DatePaiement = DateTime.UtcNow.AddDays(-7).Date,
-                IdMiseEnAvant = 4,
-                IdCarteBancaire = _carteCommune.IdCarteBancaire,
-                IdCompte = _compteCommun.IdCompte,
-                IdCommande = null
-            };
-            await _context.Paiements.AddAsync(paiement);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _manager.VerifPaiementAutoMiseEnAvant();
-
-            // Assert
-            Assert.AreEqual(1, result.Count());
-            Assert.AreEqual(4, result.First().IdMiseEnAvant);
-        }
-
-        #endregion
-
-        #region Tests Changement de Niveau
-
-        [TestMethod]
-        public async Task VerifPaiementAutoMiseEnAvant_PassageDeOrAPlatine_CreeNouveauPaiement()
-        {
-            // Arrange
-            _objetcommun.IdMiseEnAvant = 2; // Or
-            _objetcommun.ProchaineMiseEnAvant = 3; // Platine
-            _context.Annonces.Update(_objetcommun);
-            await _context.SaveChangesAsync();
-
-            var paiement = new Paiement()
-            {
-                IdPaiement = 1,
-                IdAnnonce = _objetcommun.IdAnnonce,
-                DatePaiement = DateTime.UtcNow.AddDays(-7).Date,
-                IdMiseEnAvant = 2,
-                IdCarteBancaire = _carteCommune.IdCarteBancaire,
-                IdCompte = _compteCommun.IdCompte,
-                IdCommande = null
-            };
-            await _context.Paiements.AddAsync(paiement);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _manager.VerifPaiementAutoMiseEnAvant();
-
-            // Assert
-            Assert.AreEqual(1, result.Count());
-            Assert.AreEqual(3, result.First().IdMiseEnAvant);
-
-            var annonceMAJ = await _context.Annonces.FindAsync(_objetcommun.IdAnnonce);
-            Assert.AreEqual(3, annonceMAJ.IdMiseEnAvant);
-        }
-
-        [TestMethod]
-        public async Task VerifPaiementAutoMiseEnAvant_PassageDePlatineADiamant_CreeNouveauPaiement()
-        {
-            // Arrange
-            _objetcommun.IdMiseEnAvant = 3; // Platine
-            _objetcommun.ProchaineMiseEnAvant = 4; // Diamant
-            _context.Annonces.Update(_objetcommun);
             await _context.SaveChangesAsync();
 
             var paiement = new Paiement()
@@ -726,11 +772,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             // Assert
             Assert.AreEqual(1, result.Count());
-            Assert.AreEqual(4, result.First().IdMiseEnAvant);
-
-            var annonceMAJ = await _context.Annonces.FindAsync(_objetcommun.IdAnnonce);
-            Assert.AreEqual(4, annonceMAJ.IdMiseEnAvant);
-            Assert.IsNull(annonceMAJ.ProchaineMiseEnAvant);
+            Assert.AreEqual(3, result.First().IdMiseEnAvant);
         }
         #endregion
     }

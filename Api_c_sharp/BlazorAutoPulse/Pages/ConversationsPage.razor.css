@@ -707,3 +707,11 @@
     white-space: nowrap;
     box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
 }
+
+.offre-accepte {
+    background: linear-gradient(135deg, #86efac, #bbf7d0);
+}
+
+.offre-refuse {
+    background: linear-gradient(135deg, #fca5a5, #fecaca);
+}πmess

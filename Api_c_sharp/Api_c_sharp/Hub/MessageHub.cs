@@ -176,28 +176,6 @@ namespace Api_c_sharp.Hubs
     
             Console.WriteLine($"💬 New conversation {conversationId} notification sent to user {receiverId}");
         }
-
-        public async Task SendMessageWithOffre(
-            int conversationId,
-            int senderId,
-            string message,
-            DateTime dateTime,
-            int idMessage,
-            int idOffre,
-            decimal offreValeur,
-            int idAnnonce)
-        {
-            await Clients.Group($"conversation_{conversationId}")
-                .SendAsync("ReceiveMessageWithOffre",
-                    conversationId,
-                    senderId,
-                    message,
-                    dateTime,
-                    idMessage,
-                    idOffre,
-                    offreValeur,
-                    idAnnonce);
-        }
         
         public static async Task SendOffreNotification(
             IHubContext<MessageHub> hubContext,
@@ -228,6 +206,7 @@ namespace Api_c_sharp.Hubs
             IHubContext<MessageHub> hubContext,
             int idConversation,
             int idCompte,
+            int idDestinataire,
             string contenuMessage,
             DateTime dateEnvoie,
             int idMessage,
@@ -235,7 +214,7 @@ namespace Api_c_sharp.Hubs
             decimal offreValeur,
             int idAnnonce)
         {
-            if (UserConnections.TryGetValue(idCompte, out var connections))
+            if (UserConnections.TryGetValue(idDestinataire, out var connections))
             {
                 foreach (var connectionId in connections)
                 {

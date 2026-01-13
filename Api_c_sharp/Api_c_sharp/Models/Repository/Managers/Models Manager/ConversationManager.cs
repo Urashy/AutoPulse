@@ -28,8 +28,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             {
                 query = query
                     .Where(c => c.IdAnnonce == annonceId)
-                    .OrderBy(c => c.IdAnnonce)
-                    .ThenByDescending(c => c.DateDernierMessage);
+                    .OrderByDescending(c => c.DateDernierMessage);
             }
             else
             {
