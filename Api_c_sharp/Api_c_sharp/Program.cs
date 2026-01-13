@@ -260,36 +260,6 @@ app.UseAuthorization();
 app.MapHub<MessageHub>("/messagehub");
 app.MapControllers();
 
-app.MapGet("/health", async (AutoPulseBdContext db) =>
-{
-    try
-    {
-        var canConnect = await db.Database.CanConnectAsync();
-        if (canConnect)
-        {
-            // Test une vraie requête
-            var count = await db.Set<Compte>().CountAsync();
-            return Results.Ok(new
-            {
-                status = "healthy",
-                database = "connected",
-                compteCount = count,
-                timestamp = DateTime.UtcNow
-            });
-        }
-        return Results.Json(new { status = "unhealthy", error = "Cannot connect" }, statusCode: 503);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Health check error: {ex}");
-        return Results.Json(new
-        {
-            status = "unhealthy",
-            error = ex.Message,
-            stackTrace = ex.StackTrace
-        }, statusCode: 503);
-    }
-});
 
 app.MapGet("/ping", () => Results.Ok(new
 {
