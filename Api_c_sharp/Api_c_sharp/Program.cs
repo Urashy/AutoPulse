@@ -203,13 +203,11 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
             "http://localhost:5296",
             "https://localhost:5296",
-            "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
+            "https://blazor-autopulse-c2ehbpd0hzh9e8he.francecentral-01.azurewebsites.net"
         )
-        .SetIsOriginAllowedToAllowWildcardSubdomains()
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials();
-
     });
 });
 
