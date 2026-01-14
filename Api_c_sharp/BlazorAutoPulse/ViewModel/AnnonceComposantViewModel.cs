@@ -53,10 +53,8 @@ namespace BlazorAutoPulse.ViewModel
         public async Task ToggleFavoriteStatus(int idannonce)
         {
             if (!_currentUserId.HasValue) return;
-
             try
             {
-                // ✅ Utilisation du FavorisStateService qui gère automatiquement SignalR
                 bool newStatus = await _favorisStateService.ToggleFavorisAsync(idannonce);
                 IsFavorite = newStatus;
                 

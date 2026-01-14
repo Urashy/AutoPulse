@@ -136,13 +136,13 @@ else
                 @if (VM.IsConnected)
                 {
                     <li class="profile-menu" @onclick="VM.NavigateToProfile">
-                        <img src="@VM.ImageSource" alt="Profil" class="profile-picture" />
+                        <img src="@VM.ImageSource" alt="Profil" class="profile-picture" data-testid='btn-compte'/>
                     </li>
                 }
                 else
                 {
                     <NavLink href="connexion">
-                        <span class="btn-login"> Connexion </span>
+                        <span class="btn-login" data-testid='btn-connexion-layout'> Connexion </span>
                     </NavLink>
                 }
 

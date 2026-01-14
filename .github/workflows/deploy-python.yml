@@ -1,0 +1,52 @@
+name: Deploy Python AI
+
+on:
+  push:
+    branches:
+      - PreProd
+    paths:
+      - 'Api_Python/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          cd Api_Python
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          # On installe les libs dans un dossier local pour les inclure dans le zip
+
+      - name: Zip artifact for deployment
+        run: |
+          cd Api_Python
+          # On zip tout le contenu du dossier Api_Python
+          zip -r ../python-app.zip .
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AC81ACE20E074FE88433827663290332 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BF9BC93926C741F29479A26AFBE70A21 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4D473F9256354052A48DC56E8376C348 }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'python-autopulse' 
+          package: ./python-app.zip
+          startup-command: 'gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app'
