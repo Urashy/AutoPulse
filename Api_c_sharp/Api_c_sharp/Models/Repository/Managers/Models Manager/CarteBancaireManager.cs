@@ -40,12 +40,24 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             return carte;
         }
 
-        public override Task<CarteBancaire> AddAsync(CarteBancaire entity)
+        public override async Task<CarteBancaire> AddAsync(CarteBancaire entity)
         {
             entity.NumeroCarte = EncryptCardNumber(entity.NumeroCarte);
             entity.CodeSecurite = EncryptCardNumber(entity.CodeSecurite);
             entity.DateExpiration = new DateTime(entity.DateExpiration.Year, entity.DateExpiration.Month, 1).ToUniversalTime();
-            return base.AddAsync(entity);
+            return await base.AddAsync(entity);
+        }
+
+        public override async Task DeleteAsync(CarteBancaire entity)
+        {
+
+            List<Paiement> paiements = await context.Paiements.Where(p => p.IdCarteBancaire == entity.IdCarteBancaire).ToListAsync();
+            foreach (var paiement in paiements)
+            {
+                paiement.IdCarteBancaire = null;
+            }
+            await context.SaveChangesAsync();
+            await base.DeleteAsync(entity);
         }
 
         public virtual async Task<IEnumerable<CarteBancaire>> GetCarteBancaireByCompteId(int compteid)

@@ -6,6 +6,7 @@
     <!-- Champ de recherche par nom -->
     <div class="search-input-group">
         <input type="text"
+               data-testid="search-nom"
                @bind="VM.Nom"
                @bind:event="oninput"
                placeholder="🔍 Rechercher par nom de véhicule..."
@@ -17,7 +18,7 @@
         <!-- Marque -->
         <div class="filter-group">
             <label>Marque</label>
-            <select value="@VM.SelectedMarque" @onchange="VM.OnMarqueChanged">
+            <select data-testid="select-marque" value="@VM.SelectedMarque" @onchange="VM.OnMarqueChanged">
                 <option value="0">Toutes les marques</option>
                 @if (VM.AllMarques != null)
                 {
@@ -47,7 +48,7 @@
         <!-- Carburant -->
         <div class="filter-group">
             <label>Carburant</label>
-            <select value="@VM.SelectedCarburant" @onchange="e => { VM.SelectedCarburant = e.Value?.ToString() ?? string.Empty; }">
+            <select data-testid="select-carburant" value="@VM.SelectedCarburant" @onchange="e => { VM.SelectedCarburant = e.Value?.ToString() ?? string.Empty; }">
                 <option value="0">Tous les carburants</option>
                 @if (VM.AllCarburants != null)
                 {
@@ -181,8 +182,8 @@
     </div>
 
     <div class="action-buttons">
-        <button @onclick="HandleRecherche" class="btn-primary">🔍 Rechercher</button>
-        <button @onclick="HandleReset" class="btn-secondary">🔄 Réinitialiser</button>
+        <button data-testid="btn-search" @onclick ="HandleRecherche" class="btn-primary">🔍 Rechercher</button>
+        <button data-testid="btn-reset" @onclick="HandleReset" class="btn-secondary">🔄 Réinitialiser</button>
     </div>
 </div>
 

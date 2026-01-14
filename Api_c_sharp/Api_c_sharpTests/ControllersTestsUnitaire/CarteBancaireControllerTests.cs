@@ -206,6 +206,37 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         }
 
         [TestMethod]
+        public async Task DeleteCarteBancaireWithPaiementsTest()
+        {
+            // Arrange - Créer un paiement lié à la carte bancaire
+            var paiement = new Paiement
+            {
+                IdPaiement = 1,
+                IdCarteBancaire = _objetcommun.IdCarteBancaire,
+                IdAnnonce = 1,
+                DatePaiement = DateTime.Now,
+                IdCompte = 1
+            };
+            _context.Paiements.Add(paiement);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdCarteBancaire);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            // Vérifier que la carte a été supprimée
+            var deletedCarteBancaire = await _manager.GetByIdAsync(_objetcommun.IdCarteBancaire);
+            Assert.IsNull(deletedCarteBancaire);
+
+            // Vérifier que le paiement existe toujours mais que IdCarteBancaire est null
+            var paiementAfterDelete = await _context.Paiements.FindAsync(1);
+            Assert.IsNotNull(paiementAfterDelete);
+            Assert.IsNull(paiementAfterDelete.IdCarteBancaire);
+        }
+
+        [TestMethod]
         public async Task NotFoundDeleteCarteBancaireTest()
         {
             // Act
@@ -215,6 +246,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
         }
         #endregion
+
 
         #region PUT
         [TestMethod]
@@ -286,8 +318,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             Assert.IsInstanceOfType(result, typeof(BadRequestResult));
         }
         #endregion
-
-        // Ajoutez ces tests dans votre classe CarteBancaireControllerTests
 
         #region Tests Types de Cartes
 

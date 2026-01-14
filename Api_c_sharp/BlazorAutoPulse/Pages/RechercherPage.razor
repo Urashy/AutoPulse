@@ -28,7 +28,7 @@
             <p class="pagination-info">@VM.PaginationInfo</p>
         </div>
 
-        <div class="cars-grid">
+        <div class="cars-grid" data-testid="results-grid">
             @foreach (var a in VM.FilteredAnnonces)
             {
                 <AnnonceComposant Annonce="@a" divClass="car-card"/>

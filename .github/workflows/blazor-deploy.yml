@@ -1,4 +1,4 @@
-name: Deploy Blazor Front
+name: Deploy Blazor (Reverse Engineered)
 
 on:
   push:
@@ -10,7 +10,6 @@ jobs:
   build:
     runs-on: windows-latest
 
-    
     steps:
       - uses: actions/checkout@v4
 
@@ -19,33 +18,37 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      - name: Build Solution
+      - name: Build Solution (Auto-detect)
         run: |
           $solution = Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1
           if (-not $solution) { throw "Aucun fichier .sln trouve !" }
           dotnet build $solution.FullName --configuration Release
 
-      - name: Publish Blazor Project
-        # Cherche le .csproj du Blazor et le publie
+      - name: Publish Blazor Project (Auto-detect)
         run: |
+          # Recherche du projet Blazor spécifiquement
           $project = Get-ChildItem -Path . -Filter BlazorAutoPulse.csproj -Recurse | Select-Object -First 1
           if (-not $project) { throw "Projet BlazorAutoPulse.csproj introuvable !" }
-          dotnet publish $project.FullName -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+          # Pour Blazor WASM sur Windows, on publie tout, le dossier wwwroot sera dedans
+          dotnet publish $project.FullName -c Release -o "${{env.DOTNET_ROOT}}/blazorapp"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: blazor-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ${{env.DOTNET_ROOT}}/blazorapp/wwwroot
 
   deploy:
     runs-on: windows-latest
     needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     
     permissions:
-      id-token: write  # Obligatoire pour la connexion Azure OIDC
+      id-token: write
       contents: read
-      
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -55,14 +58,14 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          # Utilise les mêmes secrets d'identification (c'est le même compte Azure)
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_29490C3EFCAE4DB79706AD541CCA59B9 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_11AA53028D1543F4A16DACC535C4CEFB }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3A97941F844A4C51B04E1F4A65F70F44 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D1964CACFC5B48278E8C72393C6E707A }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B1C8FBF083BD401DA06411253E1FF0EF }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_63B2137F1871410D93DA74480FA683B2 }}
 
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'Azure-Blazor-AutoPulse' # Vérifiez le nom de votre WebApp Front sur Azure
+          app-name: 'blazor-autopulse'
           slot-name: 'Production'
           package: .

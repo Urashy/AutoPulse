@@ -332,6 +332,39 @@ namespace Api_c_sharp.ControllersMock.Tests
         }
 
         [TestMethod]
+        public async Task DeleteCarteBancaireWithPaiementsTest()
+        {
+            // Arrange
+            var carteMasquee = new CarteBancaire
+            {
+                IdCarteBancaire = 1,
+                NumeroCarte = "************1234",
+                CodeSecurite = "***",
+                DateExpiration = DateTime.Now,
+                IdCompte = 1,
+                TypeCarte = "VISA",
+                NomCarte = "carte perso",
+                NomTitulaire = "Jean Dupont"
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCarteBancaire))
+                       .ReturnsAsync(carteMasquee);
+
+            // Le DeleteAsync override gère automatiquement la dissociation des paiements
+            _mockManager.Setup(m => m.DeleteAsync(It.IsAny<CarteBancaire>()))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.Delete(_objetcommun.IdCarteBancaire);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            // Vérifier que DeleteAsync a été appelé (il contient la logique de dissociation)
+            _mockManager.Verify(m => m.DeleteAsync(It.IsAny<CarteBancaire>()), Times.Once);
+        }
+
+        [TestMethod]
         public async Task NotFoundDeleteCarteBancaireTest()
         {
             // Arrange
@@ -343,6 +376,7 @@ namespace Api_c_sharp.ControllersMock.Tests
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            _mockManager.Verify(m => m.DeleteAsync(It.IsAny<CarteBancaire>()), Times.Never);
         }
         #endregion
 
