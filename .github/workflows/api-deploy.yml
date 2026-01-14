@@ -28,8 +28,8 @@ jobs:
 
     - name: Restore and Build Shared
       run: |
-        dotnet restore ./AutoPulse.Shared/AutoPulse.Shared.csproj
-        dotnet build ./AutoPulse.Shared/AutoPulse.Shared.csproj --configuration Release --no-restore
+        dotnet restore Api_c_sharp/AutoPulse.Shared/AutoPulse.Shared.csproj
+        dotnet build Api_c_sharp/AutoPulse.Shared/AutoPulse.Shared.csproj --configuration Release --no-restore
 
     - name: Restore and Build API
       run: |
