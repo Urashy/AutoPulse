@@ -64,8 +64,30 @@ public class CreationCompteViewModel
     
     public async Task InitializeAsync(Action refreshUI, NavigationManager nav)
     {
+        Reset();
         _refreshUI = refreshUI;
         _nav = nav;
+    }
+    
+    public void Reset()
+    {
+        compte = new CompteCreateDTO();
+        compte.IdTypeCompte = 1;
+        compte.DateNaissance = new DateTime(2000, 1, 1);
+        compte.EstSuspendu = false;
+        
+        motDePasse = string.Empty;
+        memeMotDePasse = true;
+        messageErreur = null;
+        
+        pro = false;
+        afficherA2f = false;
+        activerA2f = false;
+        codeA2f = string.Empty;
+        codeA2fEnvoye = false;
+        isLoadingA2f = false;
+        showPopUp = false;
+        seconds = 3;
     }
 
     public async Task CreateCompteAsync()

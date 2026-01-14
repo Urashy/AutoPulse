@@ -11,6 +11,7 @@ public class AdminBenchmarkIAViewModel
 
     public bool IsLoading { get; private set; } = true;
     public bool IsSyncing { get; private set; } = false;
+    public bool IsReloading { get; private set; } = false;
     public bool IsHealthy { get; private set; } = false;
     public bool IsCheckingHealth { get; private set; } = false;
 
@@ -185,6 +186,37 @@ public class AdminBenchmarkIAViewModel
         finally
         {
             IsSyncing = false;
+            _refreshUI?.Invoke();
+        }
+    }
+    
+    public async Task ReloadIA()
+    {
+        IsReloading = true;
+        _refreshUI?.Invoke();
+
+        try
+        {
+            var result = await _iaService.ReloadAsync();
+            
+            if (result)
+            {
+                ShowSuccess($"IA entièrement rechargé");
+                await LoadAllData();
+            }
+            else
+            {
+                ShowError("Vérifier que le service soit disponible");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur SyncBenchmarks: {ex.Message}");
+            ShowError("Erreur lors de la synchronisation");
+        }
+        finally
+        {
+            IsReloading = false;
             _refreshUI?.Invoke();
         }
     }

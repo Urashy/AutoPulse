@@ -109,7 +109,20 @@ public class IAManager : IIAService
             return false;
         }
     }
-    
+
+    public async Task<bool> ReloadModelsAsync()
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync($"{_pythonApiUrl}/reload", new {});
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public virtual async Task<IEnumerable<BenchmarkIAListDTO>> GetAllBenchmarksAsync()
     {
         var benchmarks = await _context.BenchmarksIA

@@ -102,6 +102,58 @@ public class IAController : ControllerBase
             });
         }
     }
+    
+    /// <summary>
+    /// Endpoint pour recharger les modèles IA.
+    /// Cette opération force le rechargement de tous les modèles d'intelligence artificielle
+    /// (CNN pour reconnaissance visuelle, modèles de prédiction de prix, etc.)
+    /// </summary>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description><see cref="OkResult"/> si le rechargement a réussi (200 OK)</description></item>
+    /// <item><description><see cref="StatusCodeResult"/> 503 si le service IA est indisponible</description></item>
+    /// <item><description><see cref="StatusCodeResult"/> 500 si une erreur interne s'est produite</description></item>
+    /// </list>
+    /// </returns>
+    [ActionName("Reload")]
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Reload()
+    {
+        try
+        {
+            var success = await _iaService.ReloadModelsAsync();
+        
+            if (success)
+            {
+                return Ok(new { message = "Les modèles IA ont été rechargés avec succès" });
+            }
+        
+            return StatusCode(503, new
+            {
+                message = "Le service IA n'a pas pu recharger les modèles",
+                detail = "Le rechargement a échoué"
+            });
+        }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode(503, new
+            {
+                message = "Le service IA est temporairement indisponible",
+                detail = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "Une erreur interne s'est produite lors du rechargement",
+                detail = ex.Message
+            });
+        }
+    }
 
     private string? ValidateData(DataAI data)
     {
