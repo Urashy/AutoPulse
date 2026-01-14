@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 # FastAPI et serveur
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
@@ -9,11 +11,12 @@ joblib==1.3.2
 numpy==1.26.3
 pandas==2.1.4
 
+# Deep Learning (Version CPU explicite ~180Mo au lieu de 2Go)
+torch==2.1.2+cpu
+torchvision==0.16.2+cpu
+
 # Traitement d'images
 Pillow==10.2.0
 
 # Logging et utilitaires
 python-multipart==0.0.6
-
-torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
-torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cpu
