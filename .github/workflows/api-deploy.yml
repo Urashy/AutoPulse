@@ -1,0 +1,81 @@
+name: Deploy API to Azure (with credentials)
+
+on:
+  push:
+    branches:
+      - PreProd
+    paths:
+      - 'Api_c_sharp/**'
+      - 'AutoPulse.Shared/**'
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: api-autopulse-d8hgfvgjbsapataf
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore and Build Shared
+      run: |
+        dotnet restore ./AutoPulse.Shared/AutoPulse.Shared.csproj
+        dotnet build ./AutoPulse.Shared/AutoPulse.Shared.csproj --configuration Release --no-restore
+
+    - name: Restore and Build API
+      run: |
+        dotnet restore ./Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj
+        dotnet build ./Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj --configuration Release --no-restore
+
+    - name: Publish API
+      run: dotnet publish ./Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj --configuration Release --no-build --output ./publish
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: api-app
+        path: ./publish
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: api-app
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: .
+
+    - name: Logout from Azure
+      run: az logout
+
+    - name: Health Checks
+      run: |
+        sleep 30
+        echo "Testing endpoints..."
+        curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/ping || echo "⚠️ Ping failed"
+        curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health || echo "⚠️ Health failed"

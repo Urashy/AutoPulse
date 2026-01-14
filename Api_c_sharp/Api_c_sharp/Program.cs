@@ -23,7 +23,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//------------------------------Connection DB (CORRIGÉ)------------------------------
 string connectionString;
 
 if (builder.Environment.IsDevelopment())
@@ -33,17 +32,14 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    // Sur Azure, essayer plusieurs sources dans l'ordre
-    // 1. Variable d'environnement standard Azure
+
     connectionString = Environment.GetEnvironmentVariable("AZURE_POSTGRESQL_CONNECTIONSTRING");
 
-    // 2. Si vide, essayer avec le format App Settings
     if (string.IsNullOrEmpty(connectionString))
     {
         connectionString = Environment.GetEnvironmentVariable("CUSTOMCONNSTR_AZURE_POSTGRESQL_CONNECTIONSTRING");
     }
 
-    // 3. Si toujours vide, fallback sur appsettings
     if (string.IsNullOrEmpty(connectionString))
     {
         connectionString = builder.Configuration.GetConnectionString("AzureConnection");
@@ -64,7 +60,6 @@ else
     throw new InvalidOperationException("Connection string manquante!");
 }
 
-// IMPORTANT: Décommenter et enregistrer le DbContext
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
 {
     options.UseNpgsql(connectionString);
@@ -203,13 +198,11 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
             "http://localhost:5296",
             "https://localhost:5296",
-            "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
+            "https://blazor-autopulse-c2ehbpd0hzh9e8he.francecentral-01.azurewebsites.net"
         )
-        .SetIsOriginAllowedToAllowWildcardSubdomains()
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials();
-
     });
 });
 
@@ -381,3 +374,5 @@ app.MapGet("/health", async (AutoPulseBdContext db) =>
 });
 
 app.Run();
+ 
+ //test

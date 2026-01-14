@@ -22,8 +22,8 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
 
     public SignalRWebService()
     {
-        //"http://localhost:5086/messagehub";
-        _hubUrl = "https://azure-api-autopulse-hrd5ahhxdxdtcagd.francecentral-01.azurewebsites.net/messagehub";
+        //"http://localhost:5086/messagehub";/
+        _hubUrl = "https://api-autopulse-d8hgfvgjbsapataf.francecentral-01.azurewebsites.net/messagehub";
 
         Console.WriteLine("[SignalR] Service initialized with hub URL: " + _hubUrl);
     }
