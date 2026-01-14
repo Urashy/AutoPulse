@@ -378,4 +378,5 @@ app.MapGet("/health", async (AutoPulseBdContext db) =>
     }
 });
 
-app.Run();
+app.Run();/ /   T e s t   C I / C D  
+ 
