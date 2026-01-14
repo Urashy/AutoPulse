@@ -172,4 +172,4 @@ namespace BlazorAutoPulse
             await builder.Build().RunAsync();
         }
     }
-}
+}//
