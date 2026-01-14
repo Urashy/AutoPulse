@@ -47,7 +47,6 @@ class VisionRecognitionService(IModelService):
             # Décodage de l'image
             image = self._decode_image(data.image_base64)
             
-            # Préparation de l'image
             transform = repo.get_transform()
             device = repo.get_device()
             img_tensor = transform(image).unsqueeze(0).to(device)
