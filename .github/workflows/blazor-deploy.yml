@@ -42,7 +42,6 @@ jobs:
   deploy:
     runs-on: windows-latest
     needs: build
-    # J'ai retiré le bloc 'environment' ici aussi
     
     permissions:
       id-token: write
@@ -57,9 +56,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AC81ACE20E074FE88433827663290332 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BF9BC93926C741F29479A26AFBE70A21 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4D473F9256354052A48DC56E8376C348 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_98CF53B667C345DDB85390421A8B85BD }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7BE03D1230C84B26AF57F1BCC9BFD50F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_091D1EB795584A6DB7257A0CF181F4FD }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
