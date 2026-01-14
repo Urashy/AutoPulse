@@ -55,7 +55,7 @@
 
             <div class="pagination">
                 <button class="pagination-btn"
-                        data-testid="pagination-next"
+                        data-testid="pagination-prev"
                         @onclick="async () => await VM.GoToPreviousPage()"
                         disabled="@(!paginationData.CanGoToPrevious)">
                     ← Précédent
@@ -87,6 +87,7 @@
                 }
 
                 <button class="pagination-btn"
+                        data-testid="pagination-next"
                         @onclick="async () => await VM.GoToNextPage()"
                         disabled="@(!paginationData.CanGoToNext)">
                     Suivant →
