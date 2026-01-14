@@ -51,6 +51,40 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             _context.Avis.RemoveRange(_context.Avis);
             await _context.SaveChangesAsync();
 
+            TypeCompte typeCompte = new TypeCompte() { IdTypeCompte = 1, Libelle = "Standard" }; 
+            EtatCompte etatCompte = new EtatCompte() { IdEtatCompte = 1, Libelle = "Actif" };
+
+            Compte compte1 = new Compte() { 
+                IdCompte = 1,
+                Pseudo = "Jugee",
+                Email = "jugee@gmail;com",
+                MotDePasse = "MotDePasse1!",
+                IdTypeCompte = 1,
+                IdEtatCompte = 1,
+                Prenom = "Test",
+                Nom = "Tests",
+                DateCreation = DateTime.Now,
+                DateDerniereConnexion = DateTime.Now,
+                DateNaissance = new DateTime(1990, 1, 1)
+
+            };
+
+
+            Compte compte2 = new Compte()
+            {
+                IdCompte = 2,
+                Pseudo = "jugeur",
+                Email = "jugeur@gmail;com",
+                MotDePasse = "MotDePasse1!",
+                IdTypeCompte = 1,
+                Prenom = "Test2",
+                Nom = "Tests2",
+                DateCreation = DateTime.Now,
+                DateDerniereConnexion = DateTime.Now,
+                DateNaissance = new DateTime(1990, 1, 1)
+
+            };
+
             // Création d'un avis commun
             var avis = new Avis()
             {
@@ -63,6 +97,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 NoteAvis = 5
             };
 
+            await _context.TypesCompte.AddAsync(typeCompte);
+            await _context.EtatComptes.AddAsync(etatCompte);
+            await _context.Comptes.AddAsync(compte1);
+            await _context.Comptes.AddAsync(compte2);
             await _context.Avis.AddAsync(avis);
             await _context.SaveChangesAsync();
 
