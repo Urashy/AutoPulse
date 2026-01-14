@@ -42,7 +42,7 @@
             </div>
         }
 
-        <div class="cars-grid">
+        <div class="cars-grid" data-testid="results-grid">
             @foreach (var a in VM.allAnnonces)
             {
                 <AnnonceComposant Annonce="@a" divClass="car-card"/>
@@ -55,6 +55,7 @@
 
             <div class="pagination">
                 <button class="pagination-btn"
+                        data-testid="pagination-next"
                         @onclick="async () => await VM.GoToPreviousPage()"
                         disabled="@(!paginationData.CanGoToPrevious)">
                     ← Précédent

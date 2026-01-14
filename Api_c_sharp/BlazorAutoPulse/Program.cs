@@ -29,8 +29,6 @@ namespace BlazorAutoPulse
             // On récupère l'URL sur laquelle le site tourne actuellement
             var currentUrl = builder.HostEnvironment.BaseAddress;
 
-            // Si l'URL contient "localhost", on utilise l'API locale.
-            // Sinon (c'est qu'on est sur Azure), on utilise l'API Azure.
             string apiBaseUrl = currentUrl.Contains("localhost")
                 ? "http://localhost:5086/api/"
                 : "https://azure-api-autopulse-hrd5ahhxdxdtcagd.francecentral-01.azurewebsites.net/api/";

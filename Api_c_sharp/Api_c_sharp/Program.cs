@@ -23,11 +23,59 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//------------------------------Connection DB------------------------------
-var connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+//------------------------------Connection DB (CORRIGÉ)------------------------------
+string connectionString;
 
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("LocaleConnection");
+    Console.WriteLine("Environnement: Development");
+}
+else
+{
+    // Sur Azure, essayer plusieurs sources dans l'ordre
+    // 1. Variable d'environnement standard Azure
+    connectionString = Environment.GetEnvironmentVariable("AZURE_POSTGRESQL_CONNECTIONSTRING");
+
+    // 2. Si vide, essayer avec le format App Settings
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        connectionString = Environment.GetEnvironmentVariable("CUSTOMCONNSTR_AZURE_POSTGRESQL_CONNECTIONSTRING");
+    }
+
+    // 3. Si toujours vide, fallback sur appsettings
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        connectionString = builder.Configuration.GetConnectionString("AzureConnection");
+    }
+
+    Console.WriteLine($"Environnement: {builder.Environment.EnvironmentName}");
+}
+
+// Log sécurisé (sans afficher le mot de passe)
+if (!string.IsNullOrEmpty(connectionString))
+{
+    var safeLog = connectionString.Split(';')[0]; // Affiche juste Host=...
+    Console.WriteLine($"Connexion configurée: {safeLog}...");
+}
+else
+{
+    Console.WriteLine("ERREUR: Aucune connection string trouvée!");
+    throw new InvalidOperationException("Connection string manquante!");
+}
+
+// IMPORTANT: Décommenter et enregistrer le DbContext
 builder.Services.AddDbContext<AutoPulseBdContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    options.UseNpgsql(connectionString);
+
+    // Optionnel: ajouter des logs pour le debug
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
+    }
+});
 
 //------------------------------Mapper------------------------------
 builder.Services.AddAutoMapper(typeof(MapperProfile));
@@ -147,7 +195,7 @@ builder.Services.AddControllers().AddJsonOptions(opt =>
     opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
-//------------------------------CORS - CONFIGURATION CORRIGÉE------------------------------
+//------------------------------CORS - CONFIGURATION------------------------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor", policy =>
@@ -157,11 +205,11 @@ builder.Services.AddCors(options =>
             "https://localhost:5296",
             "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
         )
+        .SetIsOriginAllowedToAllowWildcardSubdomains()
         .AllowAnyHeader()
         .AllowAnyMethod()
-        .AllowCredentials()
-        .WithExposedHeaders("*")
-        .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+        .AllowCredentials();
+
     });
 });
 
@@ -179,47 +227,29 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownNetworks.Clear();
 });
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.AddServerHeader = false;
+});
+
 var app = builder.Build();
 
+// Configuration du pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// Middleware pour forcer les headers CORS (en cas de problème Azure)
-app.Use(async (context, next) =>
+else
 {
-    var origin = context.Request.Headers["Origin"].ToString();
-    var allowedOrigins = new[]
-    {
-        "http://localhost:5296",
-        "https://localhost:5296",
-        "https://azure-blazor-autopulse-a9e3eqdbhmg9a3d9.francecentral-01.azurewebsites.net"
-    };
-
-    if (!string.IsNullOrEmpty(origin) && allowedOrigins.Contains(origin))
-    {
-        context.Response.Headers["Access-Control-Allow-Origin"] = origin;
-        context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
-        context.Response.Headers["Access-Control-Allow-Headers"] = context.Request.Headers["Access-Control-Request-Headers"].ToString();
-        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH";
-    }
-
-    // Gérer les requêtes OPTIONS (preflight)
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        await context.Response.CompleteAsync();
-        return;
-    }
-
-    await next();
-});
-
-app.UseHttpsRedirection();
+    app.UseHsts();
+}
 
 app.UseForwardedHeaders();
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowBlazor");
 
@@ -229,5 +259,125 @@ app.UseAuthorization();
 
 app.MapHub<MessageHub>("/messagehub");
 app.MapControllers();
+
+
+app.MapGet("/ping", () => Results.Ok(new
+{
+    status = "alive",
+    timestamp = DateTime.UtcNow,
+    environment = app.Environment.EnvironmentName
+}));
+
+// Test configuration
+app.MapGet("/test-config", (IConfiguration config) =>
+{
+    try
+    {
+        var jwtIssuer = config["Jwt:Issuer"];
+        var pythonApi = config["PythonAPI:BaseUrl"];
+
+        // NE PAS logger le mot de passe complet !
+        var connStr = Environment.GetEnvironmentVariable("AZURE_POSTGRESQL_CONNECTIONSTRING");
+        var connStrFromConfig = config.GetConnectionString("AzureConnection");
+
+        return Results.Ok(new
+        {
+            jwtConfigured = !string.IsNullOrEmpty(jwtIssuer),
+            pythonApiConfigured = !string.IsNullOrEmpty(pythonApi),
+            envVarExists = !string.IsNullOrEmpty(connStr),
+            configExists = !string.IsNullOrEmpty(connStrFromConfig),
+            connStrSource = !string.IsNullOrEmpty(connStr) ? "Environment Variable" :
+                           !string.IsNullOrEmpty(connStrFromConfig) ? "AppSettings" : "None",
+            // Afficher juste le début sans le mot de passe
+            connStrPreview = (connStr ?? connStrFromConfig ?? "NULL")
+                .Split(';')[0] + "..."
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { error = ex.Message, stackTrace = ex.StackTrace }, statusCode: 500);
+    }
+});
+
+// Test DB simple sans manager
+app.MapGet("/test-db", async (AutoPulseBdContext db) =>
+{
+    try
+    {
+        // Test 1 : Connexion
+        var canConnect = await db.Database.CanConnectAsync();
+        if (!canConnect)
+        {
+            return Results.Json(new
+            {
+                error = "Cannot connect to database",
+                canConnect = false
+            }, statusCode: 503);
+        }
+
+        // Test 2 : Requête simple
+        var compteCount = await db.Set<Compte>().CountAsync();
+
+        return Results.Ok(new
+        {
+            status = "db_ok",
+            canConnect = true,
+            compteCount = compteCount,
+            timestamp = DateTime.UtcNow
+        });
+    }
+    catch (Npgsql.NpgsqlException npgEx)
+    {
+        // Erreur PostgreSQL spécifique
+        return Results.Json(new
+        {
+            error = "PostgreSQL Error",
+            message = npgEx.Message,
+            code = npgEx.ErrorCode,
+            detail = npgEx.Data,
+        }, statusCode: 500);
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new
+        {
+            error = ex.GetType().Name,
+            message = ex.Message,
+            stackTrace = ex.StackTrace
+        }, statusCode: 500);
+    }
+});
+
+// Health check amélioré
+app.MapGet("/health", async (AutoPulseBdContext db) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (canConnect)
+        {
+            var count = await db.Set<Compte>().CountAsync();
+            return Results.Ok(new
+            {
+                status = "healthy",
+                database = "connected",
+                compteCount = count,
+                timestamp = DateTime.UtcNow
+            });
+        }
+        return Results.Json(new { status = "unhealthy", error = "Cannot connect" }, statusCode: 503);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Health check error: {ex}");
+        return Results.Json(new
+        {
+            status = "unhealthy",
+            error = ex.Message,
+            type = ex.GetType().Name,
+            innerError = ex.InnerException?.Message
+        }, statusCode: 503);
+    }
+});
 
 app.Run();
