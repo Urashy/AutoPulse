@@ -37,7 +37,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: blazor-app
-          # Déployer TOUT le contenu publié, pas seulement wwwroot
           path: ./published_app
 
   deploy:
