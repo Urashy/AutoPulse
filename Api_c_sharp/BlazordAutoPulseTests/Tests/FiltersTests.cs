@@ -21,7 +21,6 @@ namespace BlazordAutoPulseTests
             for (int i = 0; i < count; i++)
             {
                 var nom = await annonces.Nth(i).Locator("[data-testid='title']").InnerTextAsync();
-                Console.WriteLine(nom);
                 Assert.Contains("Alpine", nom);
             }
         }
@@ -80,7 +79,6 @@ namespace BlazordAutoPulseTests
                     .Trim();
 
                 int price = int.Parse(numeric);
-                Console.WriteLine(price);
                 Assert.InRange(price, 5000, 10000);
             }
         }
@@ -102,7 +100,6 @@ namespace BlazordAutoPulseTests
             for (int i = 0; i < count; i++)
             {
                 var nom = await annonces.Nth(i).Locator("[data-testid='title']").InnerTextAsync();
-                Console.WriteLine(nom);
                 Assert.Contains("Audi", nom);
             }
         }
