@@ -374,5 +374,3 @@ app.MapGet("/health", async (AutoPulseBdContext db) =>
 });
 
 app.Run();
- 
- //test

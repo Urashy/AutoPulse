@@ -5,8 +5,11 @@ on:
     branches:
       - PreProd
     paths:
-      - 'BlazorAutoPulse/**'
-      - 'AutoPulse.Shared/**'
+      # CORRECTION ICI : Ajout du dossier parent Api_c_sharp
+      - 'Api_c_sharp/BlazorAutoPulse/**'
+      - 'Api_c_sharp/AutoPulse.Shared/**'
+      # Au cas où tu touches au fichier wwwroot ou autre à la racine du projet blazor
+      - 'Api_c_sharp/BlazorAutoPulse/wwwroot/**' 
   workflow_dispatch:
 
 env:
@@ -26,18 +29,19 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
+    # CORRECTION DES CHEMINS CI-DESSOUS (ajout de Api_c_sharp/)
     - name: Restore and Build Shared
       run: |
-        dotnet restore ./AutoPulse.Shared/AutoPulse.Shared.csproj
-        dotnet build ./AutoPulse.Shared/AutoPulse.Shared.csproj --configuration Release --no-restore
+        dotnet restore Api_c_sharp/AutoPulse.Shared/AutoPulse.Shared.csproj
+        dotnet build Api_c_sharp/AutoPulse.Shared/AutoPulse.Shared.csproj --configuration Release --no-restore
 
     - name: Restore and Build Blazor
       run: |
-        dotnet restore ./BlazorAutoPulse/BlazorAutoPulse.csproj
-        dotnet build ./BlazorAutoPulse/BlazorAutoPulse.csproj --configuration Release --no-restore
+        dotnet restore Api_c_sharp/BlazorAutoPulse/BlazorAutoPulse.csproj
+        dotnet build Api_c_sharp/BlazorAutoPulse/BlazorAutoPulse.csproj --configuration Release --no-restore
 
     - name: Publish Blazor
-      run: dotnet publish ./BlazorAutoPulse/BlazorAutoPulse.csproj --configuration Release --no-build --output ./publish
+      run: dotnet publish Api_c_sharp/BlazorAutoPulse/BlazorAutoPulse.csproj --configuration Release --no-build --output ./publish
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4

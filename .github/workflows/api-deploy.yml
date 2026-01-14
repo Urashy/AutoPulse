@@ -5,8 +5,8 @@ on:
     branches:
       - PreProd
     paths:
+      # On surveille tout le dossier parent car tout est dedans
       - 'Api_c_sharp/**'
-      - 'AutoPulse.Shared/**'
   workflow_dispatch:
 
 env:
@@ -28,16 +28,16 @@ jobs:
 
     - name: Restore and Build Shared
       run: |
-        dotnet restore ./AutoPulse.Shared/AutoPulse.Shared.csproj
-        dotnet build ./AutoPulse.Shared/AutoPulse.Shared.csproj --configuration Release --no-restore
+        dotnet restore Api_c_sharp/AutoPulse.Shared/AutoPulse.Shared.csproj
+        dotnet build Api_c_sharp/AutoPulse.Shared/AutoPulse.Shared.csproj --configuration Release --no-restore
 
     - name: Restore and Build API
       run: |
-        dotnet restore ./Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj
-        dotnet build ./Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj --configuration Release --no-restore
+        dotnet restore Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj
+        dotnet build Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj --configuration Release --no-restore
 
     - name: Publish API
-      run: dotnet publish ./Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj --configuration Release --no-build --output ./publish
+      run: dotnet publish Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj --configuration Release --no-build --output ./publish
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
