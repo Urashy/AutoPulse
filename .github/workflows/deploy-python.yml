@@ -24,18 +24,12 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: |
-          cd Api_Python
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
-          # On installe les libs dans un dossier local pour les inclure dans le zip
-
       - name: Zip artifact for deployment
         run: |
           cd Api_Python
-          # On zip tout le contenu du dossier Api_Python
-          zip -r ../python-app.zip .
+          # On zip JUSTE le code et le requirements.txt
+          # On exclut tout ce qui est lourd ou inutile
+          zip -r ../python-app.zip . -x "venv/*" -x ".venv/*" -x "__pycache__/*" -x "*.git*" -x "*.pth" -x "*.pt" -x "*.pkl"
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -47,6 +41,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'python-autopulse' 
+          app-name: 'python-autopulse'
           package: ./python-app.zip
-          startup-command: 'gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app'
+          startup-command: 'gunicorn --bind=0.0.0.0 --timeout 600 -w 4 -k uvicorn.workers.UvicornWorker main:app'
