@@ -140,7 +140,7 @@ namespace BlazorAutoPulse.Services
                     Console.WriteLine($"✅ Annonce {idAnnonce} retirée des favoris et quittée sur SignalR");
                     
                     OnFavorisChanged?.Invoke();
-                    return true;
+                    return false;
                 }
 
                 return !result;
@@ -158,15 +158,12 @@ namespace BlazorAutoPulse.Services
         public async Task<bool> ToggleFavorisAsync(int idAnnonce)
         {
             bool isFavorite = _favorisAnnonceIds.Contains(idAnnonce);
-
             if (isFavorite)
             {
                 return await RemoveFavorisAsync(idAnnonce);
             }
-            else
-            {
-                return await AddFavorisAsync(idAnnonce);
-            }
+
+            return await AddFavorisAsync(idAnnonce);
         }
 
         /// <summary>
