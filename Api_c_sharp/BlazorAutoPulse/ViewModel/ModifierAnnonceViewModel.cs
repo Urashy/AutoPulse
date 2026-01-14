@@ -1,7 +1,10 @@
 using AutoPulse.Shared.DTO;
+using BlazorAutoPulse.Helper;
+using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace BlazorAutoPulse.ViewModel
 {
@@ -10,6 +13,8 @@ namespace BlazorAutoPulse.ViewModel
         private readonly IAnnonceService _annonceService;
         private readonly IVoitureService _voitureService;
         private readonly ICompteService _compteService;
+        private readonly IPostImageService _postImageService;
+        private readonly IImageService _imageService;
         private readonly NotificationService _notificationService;
 
         public AnnonceDetailDTO? Annonce { get; private set; }
@@ -24,6 +29,22 @@ namespace BlazorAutoPulse.ViewModel
         
         public bool showPaiementMavModal { get; set; } = false;
         public int IdCbUse { get; set; } = 0;
+        
+        // ============================================================================
+        // PROPRIÉTÉS POUR LE CARROUSEL D'IMAGES
+        // ============================================================================
+        public List<ImageUpload> imageUpload { get; set; } = new();
+        public List<string> nomPhotos { get; set; } = new();
+        public List<int> ExistingImageIds { get; private set; } = new();
+        public List<int> imagesToDelete { get; set; } = new();
+        public bool IsLoadingImages { get; private set; } = false;
+        
+        public int CurrentImageIndex { get; set; } = 0;
+        public bool CanGoPrevious => CurrentImageIndex > 0;
+        public bool CanGoNext => CurrentImageIndex < TotalImageCount - 1;
+        private Dictionary<int, string> _imageCache = new Dictionary<int, string>();
+        
+        public int TotalImageCount => ExistingImageIds.Count + imageUpload.Count;
         
         private int _selectedMavId;
         public int selectedMavId
@@ -50,11 +71,15 @@ namespace BlazorAutoPulse.ViewModel
             IAnnonceService annonceService,
             ICompteService compteService,
             IVoitureService voitureService,
+            IPostImageService postImageService,
+            IImageService imageService,
             NotificationService notificationService)
         {
             _annonceService = annonceService;
             _compteService = compteService;
             _voitureService = voitureService;
+            _postImageService = postImageService;
+            _imageService = imageService;
             _notificationService = notificationService;
         }
 
@@ -64,8 +89,16 @@ namespace BlazorAutoPulse.ViewModel
             _nav = nav;
             IsLoading = true;
             successMessage = null;
+            
+            // ✅ Initialiser les collections pour éviter les NullReferenceException
+            ExistingImageIds = new List<int>();
+            imageUpload = new List<ImageUpload>();
+            nomPhotos = new List<string>();
+            imagesToDelete = new List<int>();
+            errors = new Dictionary<string, string>();
+            
             _refreshUI?.Invoke();
-
+            
             try
             {
                 // Vérifier que l'utilisateur est connecté
@@ -80,15 +113,32 @@ namespace BlazorAutoPulse.ViewModel
                     _nav?.NavigateTo("/connexion");
                     return;
                 }
-
                 // Charger l'annonce
                 Annonce = await _annonceService.GetAnnonceDetailById(idAnnonce);
-                selectedMavId = Annonce.IdMiseEnAvant;
-                Voiture = await _voitureService.GetByIdAsync(Annonce.IdVoiture);
-                Console.WriteLine(Annonce.IdVoiture);
 
-                // Vérifier que l'utilisateur est bien le propriétaire
-                if (Annonce == null || Annonce.IdVendeur != CurrentUserId)
+                if (Annonce == null)
+                {
+                    Console.WriteLine("❌ Annonce introuvable");
+                    _nav?.NavigateTo("/");
+                    return;
+                }
+
+                selectedMavId = Annonce.IdMiseEnAvant;
+                
+                Voiture = await _voitureService.GetByIdAsync(Annonce.IdVoiture);
+
+                if (Voiture == null)
+                {
+                    Console.WriteLine("❌ Voiture introuvable");
+                    _nav?.NavigateTo("/");
+                    return;
+                }
+
+                await LoadAllImages();
+                
+                Console.WriteLine($"Annonce chargée: {Annonce.IdVoiture}, {ExistingImageIds.Count} images");
+
+                if (Annonce.IdVendeur != CurrentUserId)
                 {
                     _notificationService.ShowError(
                         "Accès refusé",
@@ -101,7 +151,9 @@ namespace BlazorAutoPulse.ViewModel
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors du chargement de l'annonce: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 Annonce = null;
+                Voiture = null;
             }
             finally
             {
@@ -109,6 +161,265 @@ namespace BlazorAutoPulse.ViewModel
                 _refreshUI?.Invoke();
             }
         }
+
+        // ============================================================================
+        // MÉTHODES CARROUSEL D'IMAGES (approche IImageService)
+        // ============================================================================
+        
+        // ✅ Charger tous les IDs d'images (comme AnnonceDetailViewModel)
+        private async Task LoadAllImages()
+        {
+            if (Voiture == null)
+            {
+                Console.WriteLine("⚠️ Voiture est null, impossible de charger les images");
+                ExistingImageIds = new List<int>();
+                return;
+            }
+
+            IsLoadingImages = true;
+            _refreshUI?.Invoke();
+
+            try
+            {
+                ExistingImageIds = await _imageService.GetAllImageIdsByVoitureId(Voiture.IdVoiture);
+
+                if (ExistingImageIds == null)
+                {
+                    Console.WriteLine("⚠️ GetAllImageIdsByVoitureId a retourné null");
+                    ExistingImageIds = new List<int>();
+                }
+                else if (!ExistingImageIds.Any())
+                {
+                    Console.WriteLine("⚠️ Aucune image trouvée pour cette voiture");
+                }
+                else
+                {
+                    Console.WriteLine($"✅ {ExistingImageIds.Count} image(s) chargée(s)");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erreur lors du chargement des images: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                ExistingImageIds = new List<int>();
+            }
+            finally
+            {
+                IsLoadingImages = false;
+                _refreshUI?.Invoke();
+            }
+        }
+        
+        public async Task UploadImage(InputFileChangeEventArgs e)
+        {
+            var files = e.GetMultipleFiles(10);
+
+            try
+            {
+                foreach (var file in files)
+                {
+                    nomPhotos.Add(file.Name);
+
+                    try
+                    {
+                        const long maxFileSize = 10 * 1024 * 1024;
+
+                        using var memoryStream = new MemoryStream();
+                        using var stream = file.OpenReadStream(maxFileSize);
+                        await stream.CopyToAsync(memoryStream);
+
+                        var imageBytes = memoryStream.ToArray();
+                        var base64 = Convert.ToBase64String(imageBytes);
+
+                        ImageUpload image = new ImageUpload
+                        {
+                            File = file,
+                            ImageBytes = imageBytes
+                        };
+                        imageUpload.Add(image);
+
+                        // Cache pour les nouvelles images uploadées
+                        var imageIndex = ExistingImageIds.Count + imageUpload.Count - 1;
+                        _imageCache[imageIndex] = $"data:{file.ContentType};base64,{base64}";
+
+                        Console.WriteLine($"✅ Image {imageIndex} chargée : {file.Name} ({imageBytes.Length} bytes)");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Erreur lors du chargement de {file.Name}: {ex.Message}");
+                    }
+
+                    _refreshUI?.Invoke();
+                }
+                
+                // Supprimer l'erreur photos si on a maintenant des images
+                if (TotalImageCount > 0 && errors.ContainsKey("photos"))
+                {
+                    errors.Remove("photos");
+                }
+            }
+            catch
+            {
+            }
+        }
+        
+        public void NextImage()
+        {
+            if (CanGoNext)
+            {
+                CurrentImageIndex++;
+                _refreshUI?.Invoke();
+            }
+        }
+        
+        public void PreviousImage()
+        {
+            if (CanGoPrevious)
+            {
+                CurrentImageIndex--;
+                _refreshUI?.Invoke();
+            }
+        }
+        
+        public void SelectImage(int index)
+        {
+            if (index >= 0 && index < TotalImageCount)
+            {
+                CurrentImageIndex = index;
+                _refreshUI?.Invoke();
+            }
+        }
+        
+        // ✅ Récupérer l'URL de l'image courante (images existantes via IImageService)
+        public string GetCurrentImageUrl()
+        {
+            if (TotalImageCount == 0 || CurrentImageIndex < 0 || CurrentImageIndex >= TotalImageCount)
+                return string.Empty;
+
+            try
+            {
+                // Si c'est une image existante, utiliser IImageService
+                if (CurrentImageIndex < ExistingImageIds.Count)
+                {
+                    var imageId = ExistingImageIds[CurrentImageIndex];
+                    var imageUrl = _imageService.GetImage(imageId);
+                    return imageUrl ?? string.Empty;
+                }
+            
+                // Si c'est une nouvelle image uploadée, utiliser le cache
+                if (_imageCache.ContainsKey(CurrentImageIndex))
+                {
+                    return _imageCache[CurrentImageIndex];
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erreur GetCurrentImageUrl: {ex.Message}");
+            }
+
+            return string.Empty;
+        }
+        
+        // ✅ Récupérer l'URL d'une miniature
+        public string GetThumbnailUrl(int index)
+        {
+            if (index < 0 || index >= TotalImageCount)
+                return string.Empty;
+
+            try
+            {
+                // Si c'est une image existante, utiliser IImageService
+                if (index < ExistingImageIds.Count)
+                {
+                    var imageId = ExistingImageIds[index];
+                    var imageUrl = _imageService.GetImage(imageId);
+                    return imageUrl ?? string.Empty;
+                }
+
+                // Si c'est une nouvelle image uploadée, utiliser le cache
+                if (_imageCache.ContainsKey(index))
+                {
+                    return _imageCache[index];
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erreur GetThumbnailUrl pour index {index}: {ex.Message}");
+            }
+
+            return string.Empty;
+        }
+        
+        public void RemoveImage(int index)
+        {
+            if (index >= 0 && index < TotalImageCount)
+            {
+                // Si c'est une image existante
+                if (index < ExistingImageIds.Count)
+                {
+                    // Marquer l'image pour suppression (vous pourrez l'implémenter côté serveur)
+                    var imageIdToDelete = ExistingImageIds[index];
+                    imagesToDelete.Add(imageIdToDelete);
+                    ExistingImageIds.RemoveAt(index);
+                    Console.WriteLine($"🗑️ Image {imageIdToDelete} marquée pour suppression");
+                }
+                else
+                {
+                    // Si c'est une nouvelle image uploadée
+                    var newImageIndex = index - ExistingImageIds.Count;
+                    if (newImageIndex >= 0 && newImageIndex < imageUpload.Count)
+                    {
+                        imageUpload.RemoveAt(newImageIndex);
+                        nomPhotos.RemoveAt(newImageIndex);
+                    }
+                }
+                
+                // Réorganiser le cache
+                var newCache = new Dictionary<int, string>();
+                for (int i = 0; i < TotalImageCount; i++)
+                {
+                    if (i < index && _imageCache.ContainsKey(i))
+                    {
+                        newCache[i] = _imageCache[i];
+                    }
+                    else if (i >= index && _imageCache.ContainsKey(i + 1))
+                    {
+                        newCache[i] = _imageCache[i + 1];
+                    }
+                }
+                _imageCache = newCache;
+        
+                if (CurrentImageIndex >= TotalImageCount && TotalImageCount > 0)
+                {
+                    CurrentImageIndex = TotalImageCount - 1;
+                }
+                else if (TotalImageCount == 0)
+                {
+                    CurrentImageIndex = 0;
+                }
+        
+                if (TotalImageCount == 0 && !errors.ContainsKey("photos"))
+                {
+                    errors.Add("photos", "Au moins une photo est requise");
+                }
+        
+                _refreshUI?.Invoke();
+            }
+        }
+        
+        public void RemoveCurrentImage()
+        {
+            RemoveImage(CurrentImageIndex);
+        }
+        
+        public bool IsExistingImage(int index)
+        {
+            return index < ExistingImageIds.Count;
+        }
+
+        // ============================================================================
+        // MÉTHODES EXISTANTES (validation, sauvegarde, etc.)
+        // ============================================================================
 
         private bool ValidateForm()
         {
@@ -122,6 +433,10 @@ namespace BlazorAutoPulse.ViewModel
 
             if (Annonce?.Prix == null || Annonce.Prix <= 0)
                 errors.Add("prix", "Le prix doit être supérieur à 0");
+            
+            // Validation des images
+            if (TotalImageCount == 0)
+                errors.Add("photos", "Au moins une photo est requise");
 
             // Validation de la voiture
             if (Voiture != null)
@@ -212,6 +527,9 @@ namespace BlazorAutoPulse.ViewModel
 
             if (Annonce == null || Voiture == null || !CurrentUserId.HasValue)
             {
+                Console.WriteLine("❌ SaveChanges: Annonce, Voiture ou CurrentUserId est null");
+                errors.Add("general", "Erreur: données manquantes");
+                _refreshUI?.Invoke();
                 return;
             }
 
@@ -263,6 +581,43 @@ namespace BlazorAutoPulse.ViewModel
                 };
 
                 await _voitureService.UpdateVoitureAsync(Voiture.IdVoiture, updateVoitureDto);
+                
+                // Supprimer les images marquées pour suppression
+                if (imagesToDelete != null && imagesToDelete.Any())
+                {
+                    Console.WriteLine($"🗑️ Suppression de {imagesToDelete.Count} image(s)");
+                    foreach (int imageId in imagesToDelete)
+                    {
+                        try
+                        {
+                            await _imageService.DeleteAsync(imageId);
+                            Console.WriteLine($"🗑️ Image {imageId} supprimée");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"❌ Erreur suppression image {imageId}: {ex.Message}");
+                        }
+                    }
+                }
+                
+                // Ajouter les nouvelles images
+                if (imageUpload != null && imageUpload.Any())
+                {
+                    Console.WriteLine($"📤 Upload de {imageUpload.Count} nouvelle(s) image(s)");
+                    foreach (ImageUpload image in imageUpload)
+                    {
+                        try
+                        {
+                            image.IdVoiture = Voiture.IdVoiture;
+                            await _postImageService.CreateAsync(image);
+                            Console.WriteLine($"✅ Image uploadée: {image.File?.Name}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"❌ Erreur upload image: {ex.Message}");
+                        }
+                    }
+                }
 
                 _notificationService.ShowSuccess(
                     "Modification réussie",
@@ -281,6 +636,7 @@ namespace BlazorAutoPulse.ViewModel
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de la mise à jour: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 errors.Add("general", "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
                 _notificationService.ShowError(
                     "Erreur",

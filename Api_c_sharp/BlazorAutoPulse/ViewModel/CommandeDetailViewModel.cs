@@ -698,12 +698,6 @@ namespace BlazorAutoPulse.ViewModel
                 {
                     Console.WriteLine($"❌ [VM] Erreur rafraîchissement UI: {ex.Message}");
                 }
-
-                // Notification visuelle
-                _notificationService.ShowInfo(
-                    "Commande mise à jour",
-                    $"La commande est maintenant : {stateName}"
-                );
             }
         }
 

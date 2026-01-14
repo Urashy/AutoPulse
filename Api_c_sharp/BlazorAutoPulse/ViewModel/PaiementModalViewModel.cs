@@ -19,7 +19,7 @@ public class PaiementModalViewModel
     public int? SelectedCarteId { get; private set; }
     public List<CarteBancaireDTO> CartesBancaires { get; private set; } = [];
     public MiseEnAvantDTO MiseEnAvantDTO { get; private set; }
-    public CommandeDTO CommandeDto { get; private set; }
+    public CommandeDetailDTO CommandeDto { get; private set; }
 
     public bool CanPay => SelectedCarteId.HasValue;
 
@@ -70,9 +70,9 @@ public class PaiementModalViewModel
         {
             if (Id != -1)
             {
-                CommandeDto = await _commandeService.GetByIdAsync(Id);
-                title = $"Numéro de commande: {CommandeDto.IdCommande} / Annonce : {CommandeDto.LibelleAnnonce}";
-                prix = CommandeDto.Montant.HasValue ? (double)CommandeDto.Montant.Value : 0;
+                CommandeDto = await _commandeService.GetCommandeDetailById(Id);
+                title = $"Numéro de commande: {CommandeDto.IdCommande} \n\nAnnonce : {CommandeDto.Annonce.Libelle}";
+                prix = (double)CommandeDto.Offre.Valeur;
             }
         }
 

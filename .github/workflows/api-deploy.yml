@@ -1,81 +1,71 @@
-name: Deploy API to Azure (with credentials)
+name: Deploy API (Reverse Engineered)
 
 on:
   push:
     branches:
       - PreProd
-    paths:
-      - 'Api_c_sharp/**'
-      - 'AutoPulse.Shared/**'
   workflow_dispatch:
-
-env:
-  AZURE_WEBAPP_NAME: api-autopulse-d8hgfvgjbsapataf
-  DOTNET_VERSION: '8.0.x'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    
+    runs-on: windows-latest
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
 
-    - name: Restore and Build Shared
-      run: |
-        dotnet restore ./AutoPulse.Shared/AutoPulse.Shared.csproj
-        dotnet build ./AutoPulse.Shared/AutoPulse.Shared.csproj --configuration Release --no-restore
+      - name: Build Solution (Auto-detect)
+        run: |
+          $solution = Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1
+          if (-not $solution) { throw "Aucun fichier .sln trouve !" }
+          Write-Host "Solution found: $($solution.FullName)"
+          dotnet build $solution.FullName --configuration Release
 
-    - name: Restore and Build API
-      run: |
-        dotnet restore ./Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj
-        dotnet build ./Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj --configuration Release --no-restore
+      - name: Publish API Project (Auto-detect)
+        run: |
+          # J'ai remis ta logique qui cherche le csproj spécifique
+          $project = Get-ChildItem -Path . -Filter Api_c_sharp.csproj -Recurse | Select-Object -First 1
+          if (-not $project) { throw "Projet Api_c_sharp.csproj introuvable !" }
+          dotnet publish $project.FullName -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
-    - name: Publish API
-      run: dotnet publish ./Api_c_sharp/Api_c_sharp/Api_c_sharp.csproj --configuration Release --no-build --output ./publish
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: api-app
-        path: ./publish
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-app
+          path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: api-app
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-app
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D1964CACFC5B48278E8C72393C6E707A }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B1C8FBF083BD401DA06411253E1FF0EF }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_63B2137F1871410D93DA74480FA683B2 }}
 
-    - name: Login to Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Deploy to Azure Web App
-      id: deploy-to-webapp
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        package: .
-
-    - name: Logout from Azure
-      run: az logout
-
-    - name: Health Checks
-      run: |
-        sleep 30
-        echo "Testing endpoints..."
-        curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/ping || echo "⚠️ Ping failed"
-        curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health || echo "⚠️ Health failed"
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'api-autopulse' 
+          slot-name: 'Production'
+          package: .
