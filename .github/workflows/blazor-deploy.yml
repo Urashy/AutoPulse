@@ -31,13 +31,15 @@ jobs:
         run: |
           $project = Get-ChildItem -Path . -Filter BlazorAutoPulse.csproj -Recurse | Select-Object -First 1
           if (-not $project) { throw "Projet BlazorAutoPulse.csproj introuvable !" }
-          dotnet publish $project.FullName -c Release -o "${{env.DOTNET_ROOT}}/blazorapp"
+          # On publie dans un dossier précis "published_app"
+          dotnet publish $project.FullName -c Release -o ./published_app
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: blazor-app
-          path: ${{env.DOTNET_ROOT}}/blazorapp/wwwroot
+          # On prend uniquement le contenu de wwwroot généré
+          path: ./published_app/wwwroot
 
   deploy:
     runs-on: windows-latest
@@ -52,6 +54,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: blazor-app
+          path: ./site-content
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -64,4 +67,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'blazor-autopulse'
-          package: .
+          package: ./site-content
