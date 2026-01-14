@@ -18,7 +18,6 @@ MODEL_PATHS: Dict[str, str] = {
 }
 
 # Configuration de l'API
-#
 API_TITLE = "API IA Automobile"
 API_VERSION = "4.0.0"
 API_DESCRIPTION = "Architecture propre avec pattern Repository"
