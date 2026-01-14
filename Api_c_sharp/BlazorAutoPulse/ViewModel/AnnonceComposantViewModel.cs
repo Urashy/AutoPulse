@@ -7,6 +7,7 @@ namespace BlazorAutoPulse.ViewModel
     public class AnnonceComposantViewModel
     {
         private readonly IImageService _imageService;
+        private readonly IFavorisService _favorisService;
         private readonly FavoriStateService _favorisStateService;
 
         public bool IsFavorite { get; private set; }
@@ -16,9 +17,11 @@ namespace BlazorAutoPulse.ViewModel
 
         public AnnonceComposantViewModel(
             IImageService imageService,
+            IFavorisService favorisService,
             FavoriStateService favorisStateService)
         {
             _imageService = imageService;
+            _favorisService = favorisService;
             _favorisStateService = favorisStateService;
         }
 
@@ -31,8 +34,7 @@ namespace BlazorAutoPulse.ViewModel
 
             if (_currentUserId.HasValue && annonce != null)
             {
-                // ✅ Utilisation du FavorisStateService pour vérifier le statut
-                IsFavorite = _favorisStateService.IsFavorite(annonce.IdAnnonce);
+                IsFavorite = await _favorisService.IsFavorite((int)_currentUserId, _currentAnnonceId);
             }
         }
 
@@ -51,10 +53,8 @@ namespace BlazorAutoPulse.ViewModel
         public async Task ToggleFavoriteStatus(int idannonce)
         {
             if (!_currentUserId.HasValue) return;
-
             try
             {
-                // ✅ Utilisation du FavorisStateService qui gère automatiquement SignalR
                 bool newStatus = await _favorisStateService.ToggleFavorisAsync(idannonce);
                 IsFavorite = newStatus;
                 

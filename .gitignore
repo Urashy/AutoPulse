@@ -3,3 +3,13 @@
 **/obj/
 *.user
 *.suo
+
+*.pth
+*.pt
+*.pkl
+*.joblib
+*.onnx
+*.h5
+
+venv/
+__pycache__/

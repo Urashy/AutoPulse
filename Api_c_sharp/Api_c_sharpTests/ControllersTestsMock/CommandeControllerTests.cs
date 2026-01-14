@@ -21,15 +21,24 @@ namespace Api_c_sharp.ControllersMock.Tests
         private Mock<CommandeManager> _mockManager;
         private IMapper _mapper;
         private Mock<IJournalService> _mockJournal;
-        private CommandeController _controller;
         private Mock<AnnonceManager> _mockManagerannonce;
+        private Mock<IHubContext<MessageHub>> _mockHubContext;
+        private Mock<IHubClients> _mockClients;
+        private Mock<IClientProxy> _mockClientProxy;
+        private CommandeController _controller;
 
         [TestInitialize]
-        public void Setup()
+        public void Initialize()
         {
             _mockManager = new Mock<CommandeManager>(null);
             _mockManagerannonce = new Mock<AnnonceManager>(null);
             _mockJournal = new Mock<IJournalService>();
+            _mockHubContext = new Mock<IHubContext<MessageHub>>();
+            _mockClients = new Mock<IHubClients>();
+            _mockClientProxy = new Mock<IClientProxy>();
+
+            _mockHubContext.Setup(h => h.Clients).Returns(_mockClients.Object);
+            _mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(_mockClientProxy.Object);
 
             var config = new MapperConfiguration(cfg =>
             {
@@ -40,8 +49,9 @@ namespace Api_c_sharp.ControllersMock.Tests
             });
 
             _mapper = config.CreateMapper();
-            _controller = new CommandeController(_mockManager.Object, _mapper, _mockJournal.Object, _mockManagerannonce.Object);
+            _controller = new CommandeController(_mockManager.Object, _mapper, _mockJournal.Object, _mockManagerannonce.Object,_mockHubContext.Object);
         }
+
 
         #region GET
         [TestMethod]
@@ -463,6 +473,165 @@ namespace Api_c_sharp.ControllersMock.Tests
             // Assert
             Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
         }
+        #endregion
+
+        #region SignalR Notification Tests
+
+        [TestMethod]
+        public async Task Put_SendsSignalRNotification_WhenStateChanges()
+        {
+            // Arrange
+            var etatCommande = new EtatCommande
+            {
+                IdEtatCommande = 3,
+                Libelle = "En cours de livraison"
+            };
+
+            var entity = new Commande
+            {
+                IdCommande = 1,
+                IdEtatCommande = 1,
+                IdAnnonce = 1,
+                EtatCommandeCommandeNav = new EtatCommande
+                {
+                    IdEtatCommande = 1,
+                    Libelle = "En attente"
+                }
+            };
+
+            var commandeAfterUpdate = new Commande
+            {
+                IdCommande = 1,
+                IdEtatCommande = 3,
+                IdAnnonce = 1,
+                EtatCommandeCommandeNav = etatCommande
+            };
+
+            var dto = new CommandeUpdateDTO
+            {
+                IdCommande = 1,
+                IdEtatCommande = 3, // Changement d'état
+                IdAnnonce = 1,
+                IdAcheteur = 10,
+                IdVendeur = 20
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(1))
+                       .ReturnsAsync(entity);
+
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()))
+                       .Returns(Task.CompletedTask);
+
+            // Simuler le retour après update avec le nouvel état
+            _mockManager.SetupSequence(m => m.GetByIdAsync(1))
+                       .ReturnsAsync(entity)
+                       .ReturnsAsync(commandeAfterUpdate);
+
+            // Act
+            var result = await _controller.Put(1, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            // Vérifier que la notification SignalR a été envoyée au groupe de la commande
+            _mockClientProxy.Verify(
+                c => c.SendCoreAsync(
+                    "CommandeStateChanged",
+                    It.Is<object[]>(args =>
+                        args.Length == 1 &&
+                        args[0] != null
+                    ),
+                    default
+                ),
+                Times.Once,
+                "La notification SignalR devrait être envoyée une fois"
+            );
+
+            // Vérifier que le bon groupe a été ciblé (commande_{id})
+            _mockClients.Verify(
+                c => c.Group("commande_1"),
+                Times.Once,
+                "Le groupe de la commande devrait être ciblé"
+            );
+        }
+
+        [TestMethod]
+        public async Task Put_UpdatesAnnonceAndSendsNotification_WhenEtatCommandeIs5()
+        {
+            // Arrange
+            var annonce = new Annonce { IdAnnonce = 1, IdEtatAnnonce = 1 };
+
+            var etatCommande = new EtatCommande
+            {
+                IdEtatCommande = 5,
+                Libelle = "Livrée"
+            };
+
+            var entity = new Commande
+            {
+                IdCommande = 1,
+                IdEtatCommande = 1,
+                IdAnnonce = 1,
+                EtatCommandeCommandeNav = new EtatCommande
+                {
+                    IdEtatCommande = 1,
+                    Libelle = "En attente"
+                }
+            };
+
+            var commandeAfterUpdate = new Commande
+            {
+                IdCommande = 1,
+                IdEtatCommande = 5,
+                IdAnnonce = 1,
+                EtatCommandeCommandeNav = etatCommande
+            };
+
+            var dto = new CommandeUpdateDTO
+            {
+                IdCommande = 1,
+                IdEtatCommande = 5, // État "Livrée"
+                IdAnnonce = 1,
+                IdAcheteur = 1,
+                IdVendeur = 2
+            };
+
+            _mockManager.Setup(m => m.GetByIdAsync(1))
+                       .ReturnsAsync(entity);
+
+            _mockManagerannonce.Setup(m => m.GetByIdAsync(1)).ReturnsAsync(annonce);
+            _mockManagerannonce.Setup(m => m.UpdateAsync(It.IsAny<Annonce>(), It.Is<Annonce>(a => a.IdEtatAnnonce == 2)))
+                              .Returns(Task.CompletedTask);
+
+            _mockManager.Setup(m => m.UpdateAsync(It.IsAny<Commande>(), It.IsAny<Commande>()))
+                       .Returns(Task.CompletedTask);
+
+            _mockManager.SetupSequence(m => m.GetByIdAsync(1))
+                       .ReturnsAsync(entity)
+                       .ReturnsAsync(commandeAfterUpdate);
+
+            // Act
+            var result = await _controller.Put(1, dto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+
+            // Vérifier que l'annonce a été mise à jour
+            _mockManagerannonce.Verify(m => m.GetByIdAsync(1), Times.Once);
+            _mockManagerannonce.Verify(m => m.UpdateAsync(It.IsAny<Annonce>(), It.Is<Annonce>(a => a.IdEtatAnnonce == 2)), Times.Once);
+
+            // Vérifier que la notification a été envoyée au groupe de la commande
+            _mockClientProxy.Verify(
+                c => c.SendCoreAsync(
+                    "CommandeStateChanged",
+                    It.IsAny<object[]>(),
+                    default
+                ),
+                Times.Once,
+                "La notification devrait être envoyée une fois même quand l'annonce est mise à jour"
+            );
+        }
+
         #endregion
     }
 }

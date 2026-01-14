@@ -256,12 +256,12 @@ namespace Api_c_sharp.Hubs
 
         // Méthode statique pour notifier un changement d'état de commande
         public static async Task NotifyCommandeStateChanged(
-    IHubContext<MessageHub> hubContext,
-    int idCommande,
-    int newState,
-    string stateName,
-    int? idAcheteur,
-    int? idVendeur)
+            IHubContext<MessageHub> hubContext,
+            int idCommande,
+            int newState,
+            string stateName,
+            int? idAcheteur,
+            int? idVendeur)
         {
             var groupName = $"commande_{idCommande}";
 
@@ -289,16 +289,30 @@ namespace Api_c_sharp.Hubs
             if (idAcheteur.HasValue && UserConnections.TryGetValue(idAcheteur.Value, out var acheteurConnections))
             {
                 Console.WriteLine($"   📨 Envoi notification à acheteur {idAcheteur.Value} ({acheteurConnections.Count} connexions)");
-                foreach (var connectionId in acheteurConnections)
+                
+                // Filtrer les connectionId null ou vides
+                var validConnections = acheteurConnections.Where(c => !string.IsNullOrEmpty(c)).ToList();
+                
+                Console.WriteLine($"   📨 Connexions valides: {validConnections.Count}/{acheteurConnections.Count}");
+                
+                foreach (var connectionId in validConnections)
                 {
-                    await hubContext.Clients.Client(connectionId)
-                        .SendAsync("CommandeNotification", new
-                        {
-                            IdCommande = idCommande,
-                            Message = GetNotificationMessageForBuyer(newState),
-                            NewState = newState,
-                            Type = "commande_update"
-                        });
+                    try
+                    {
+                        await hubContext.Clients.Client(connectionId)
+                            .SendAsync("CommandeNotification", new
+                            {
+                                IdCommande = idCommande,
+                                Message = GetNotificationMessageForBuyer(newState),
+                                NewState = newState,
+                                Type = "commande_update"
+                            });
+                        Console.WriteLine($"   ✅ Notification envoyée à connexion {connectionId}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"   ❌ Erreur envoi notification à {connectionId}: {ex.Message}");
+                    }
                 }
             }
 
@@ -306,16 +320,30 @@ namespace Api_c_sharp.Hubs
             if (idVendeur.HasValue && UserConnections.TryGetValue(idVendeur.Value, out var vendeurConnections))
             {
                 Console.WriteLine($"   📨 Envoi notification à vendeur {idVendeur.Value} ({vendeurConnections.Count} connexions)");
-                foreach (var connectionId in vendeurConnections)
+                
+                // Filtrer les connectionId null ou vides
+                var validConnections = vendeurConnections.Where(c => !string.IsNullOrEmpty(c)).ToList();
+                
+                Console.WriteLine($"   📨 Connexions valides: {validConnections.Count}/{vendeurConnections.Count}");
+                
+                foreach (var connectionId in validConnections)
                 {
-                    await hubContext.Clients.Client(connectionId)
-                        .SendAsync("CommandeNotification", new
-                        {
-                            IdCommande = idCommande,
-                            Message = GetNotificationMessageForSeller(newState),
-                            NewState = newState,
-                            Type = "commande_update"
-                        });
+                    try
+                    {
+                        await hubContext.Clients.Client(connectionId)
+                            .SendAsync("CommandeNotification", new
+                            {
+                                IdCommande = idCommande,
+                                Message = GetNotificationMessageForSeller(newState),
+                                NewState = newState,
+                                Type = "commande_update"
+                            });
+                        Console.WriteLine($"   ✅ Notification envoyée à connexion {connectionId}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"   ❌ Erreur envoi notification à {connectionId}: {ex.Message}");
+                    }
                 }
             }
 
