@@ -1,9 +1,12 @@
-name: Deploy Blazor (Reverse Engineered)
+name: Deploy Blazor
 
 on:
   push:
     branches:
       - PreProd
+    paths:
+      - 'Api_c_sharp/BlazorAutoPulse/**'
+      - 'Api_c_sharp/AutoPulse.Shared/**'
   workflow_dispatch:
 
 jobs:
@@ -18,18 +21,16 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      - name: Build Solution (Auto-detect)
+      - name: Build Solution
         run: |
           $solution = Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1
           if (-not $solution) { throw "Aucun fichier .sln trouve !" }
           dotnet build $solution.FullName --configuration Release
 
-      - name: Publish Blazor Project (Auto-detect)
+      - name: Publish Blazor Project
         run: |
-          # Recherche du projet Blazor spécifiquement
           $project = Get-ChildItem -Path . -Filter BlazorAutoPulse.csproj -Recurse | Select-Object -First 1
           if (-not $project) { throw "Projet BlazorAutoPulse.csproj introuvable !" }
-          # Pour Blazor WASM sur Windows, on publie tout, le dossier wwwroot sera dedans
           dotnet publish $project.FullName -c Release -o "${{env.DOTNET_ROOT}}/blazorapp"
 
       - name: Upload artifact
@@ -58,14 +59,12 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D1964CACFC5B48278E8C72393C6E707A }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B1C8FBF083BD401DA06411253E1FF0EF }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_63B2137F1871410D93DA74480FA683B2 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AC81ACE20E074FE88433827663290332 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BF9BC93926C741F29479A26AFBE70A21 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4D473F9256354052A48DC56E8376C348 }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'blazor-autopulse'
-          slot-name: 'Production'
           package: .

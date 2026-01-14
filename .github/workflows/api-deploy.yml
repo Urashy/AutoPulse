@@ -1,9 +1,12 @@
-name: Deploy API (Reverse Engineered)
+name: Deploy API
 
 on:
   push:
     branches:
       - PreProd
+    paths:
+      - 'Api_c_sharp/Api_c_sharp/**'
+      - 'Api_c_sharp/AutoPulse.Shared/**'
   workflow_dispatch:
 
 jobs:
@@ -18,16 +21,14 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      - name: Build Solution (Auto-detect)
+      - name: Build Solution
         run: |
           $solution = Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1
           if (-not $solution) { throw "Aucun fichier .sln trouve !" }
-          Write-Host "Solution found: $($solution.FullName)"
           dotnet build $solution.FullName --configuration Release
 
-      - name: Publish API Project (Auto-detect)
+      - name: Publish API Project
         run: |
-          # J'ai remis ta logique qui cherche le csproj spécifique
           $project = Get-ChildItem -Path . -Filter Api_c_sharp.csproj -Recurse | Select-Object -First 1
           if (-not $project) { throw "Projet Api_c_sharp.csproj introuvable !" }
           dotnet publish $project.FullName -c Release -o "${{env.DOTNET_ROOT}}/myapp"
@@ -58,14 +59,12 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D1964CACFC5B48278E8C72393C6E707A }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B1C8FBF083BD401DA06411253E1FF0EF }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_63B2137F1871410D93DA74480FA683B2 }}
-
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_98CF53B667C345DDB85390421A8B85BD }} 
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7BE03D1230C84B26AF57F1BCC9BFD50F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_091D1EB795584A6DB7257A0CF181F4FD }}
+          
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'api-autopulse' 
-          slot-name: 'Production'
+          app-name: 'api-autopulse'
           package: .
