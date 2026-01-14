@@ -1,0 +1,199 @@
+"""
+Service de prédiction de prix
+"""
+import logging
+import pandas as pd
+import numpy as np
+from typing import List
+from .base_service import IModelService
+from schemas.dto import DataPrediction, ResultatPrediction, InfluencingFactor
+from repositories.repository_manager import ModelRepositoryManager
+from config.settings import DEFAULT_CURRENCY, DEFAULT_CONFIDENCE_SCORE
+
+logger = logging.getLogger(__name__)
+
+
+class PricePredictionService(IModelService):
+    """Service pour prédire le prix d'un véhicule"""
+    
+    def __init__(self, repo_manager: ModelRepositoryManager):
+        self.repo_manager = repo_manager
+    
+    def is_available(self) -> bool:
+        """Vérifie si le modèle de prix est disponible"""
+        return self.repo_manager.price_repo.get_model() is not None
+    
+    def predict(self, data: DataPrediction) -> ResultatPrediction:
+        """
+        Prédit le prix d'un véhicule
+        
+        Args:
+            data: Caractéristiques du véhicule
+            
+        Returns:
+            Prédiction du prix avec les facteurs d'influence
+        """
+        model = self.repo_manager.price_repo.get_model()
+        
+        if model is None:
+            return ResultatPrediction(
+                success=False,
+                error="Modèle de prix non disponible"
+            )
+        
+        try:
+            # Préparation des données AVEC feature engineering
+            df = self._prepare_dataframe(data)
+            
+            # Nettoyage des valeurs manquantes
+            df.replace(["-", "?", "None", "none", "null", "NaN", "nan", ""], np.nan, inplace=True)
+            
+            # Prédiction (le modèle prédit en log, donc on retransforme)
+            predicted_price_log = model.predict(df)[0]
+            predicted_price = np.expm1(predicted_price_log)  # Transformation inverse du log1p
+            
+            # Extraction des facteurs d'influence
+            top_factors = self._extract_feature_importance(model, df)
+            
+            logger.info(f"✅ Prix prédit: {predicted_price:.2f}€")
+            
+            return ResultatPrediction(
+                success=True,
+                predicted_price=float(predicted_price),
+                currency=DEFAULT_CURRENCY,
+                confidence_score=DEFAULT_CONFIDENCE_SCORE,
+                top_influencing_factors=top_factors
+            )
+        
+        except Exception as e:
+            logger.error(f"❌ Erreur lors de la prédiction de prix: {e}", exc_info=True)
+            return ResultatPrediction(
+                success=False,
+                error=str(e)
+            )
+    
+    def _prepare_dataframe(self, data: DataPrediction) -> pd.DataFrame:
+        """
+        Prépare un DataFrame avec feature engineering
+        IMPORTANT: Calcule automatiquement les features engineerées
+        """
+        # ===== EXTRACTION ET NETTOYAGE =====
+        prod_year = data.prod_year if data.prod_year else 2015
+        
+        # Nettoyer le kilométrage
+        mileage_str = str(data.mileage) if data.mileage else "100000"
+        mileage = float(mileage_str.replace('km', '').replace(',', '').replace(' ', '').strip())
+        
+        cylinders = data.cylinders if data.cylinders else 4.0
+        engine_volume = data.engine_volume if data.engine_volume else 2.0
+        manufacturer = (data.manufacturer or "TOYOTA").strip()
+        airbags = data.airbags if data.airbags else 4
+        
+        # ===== FEATURE ENGINEERING =====
+        current_year = 2025
+        
+        # 1. Car_Age (âge de la voiture)
+        car_age = current_year - prod_year
+        car_age = max(0, min(car_age, 50))  # Borner entre 0 et 50 ans
+        
+        # 2. Mileage_per_Year (kilométrage moyen par an)
+        mileage_per_year = mileage / (car_age + 1)
+        
+        # 3. Age_Category (catégorie d'âge)
+        if car_age <= 3:
+            age_category = "New"
+        elif car_age <= 7:
+            age_category = "Recent"
+        elif car_age <= 15:
+            age_category = "Used"
+        else:
+            age_category = "Old"
+        
+        # 4. Usage_Category (catégorie d'usage)
+        if mileage_per_year <= 10000:
+            usage_category = "Low"
+        elif mileage_per_year <= 20000:
+            usage_category = "Medium"
+        elif mileage_per_year <= 50000:
+            usage_category = "High"
+        else:
+            usage_category = "VeryHigh"
+        
+        # 5. Is_Premium (marque premium)
+        premium_brands = ["LEXUS", "MERCEDES-BENZ", "MERCEDES", "BMW", "AUDI", "PORSCHE", "LAND"]
+        is_premium = 1 if any(brand in manufacturer.upper() for brand in premium_brands) else 0
+        
+        # 6. Engine_Efficiency (efficacité moteur)
+        engine_efficiency = engine_volume / (cylinders + 0.1)
+        
+        # ===== CRÉATION DU DATAFRAME COMPLET =====
+        return pd.DataFrame([{
+            # Features originales
+            "Manufacturer": manufacturer,
+            "Model": (data.model or "Unknown").strip(),
+            "Prod. year": prod_year,
+            "Category": (data.category or "Sedan").strip(),
+            "Leather interior": 1 if data.leather_interior == "Yes" else 0,
+            "Fuel type": (data.fuel_type or "Petrol").strip(),
+            "Engine volume": engine_volume,
+            "Mileage": mileage,
+            "Cylinders": cylinders,
+            "Gear box type": (data.gear_box_type or "Manual").strip(),
+            "Drive wheels": (data.drive_wheels or "Front").strip(),
+            "Doors": float(str(data.doors or "4").replace('-', '').strip()),
+            "Wheel": (data.wheel or "Left wheel").strip(),
+            "Color": (data.color or "Black").strip(),
+            "Airbags": airbags,
+            
+            # Features engineerées (calculées automatiquement)
+            "Car_Age": car_age,
+            "Mileage_per_Year": mileage_per_year,
+            "Age_Category": age_category,
+            "Usage_Category": usage_category,
+            "Is_Premium": is_premium,
+            "Engine_Efficiency": engine_efficiency
+        }])
+    
+    def _extract_feature_importance(
+        self,
+        model,
+        df: pd.DataFrame
+    ) -> List[InfluencingFactor]:
+        """
+        Extrait les facteurs d'influence les plus importants
+        
+        Args:
+            model: Pipeline scikit-learn
+            df: DataFrame des features
+            
+        Returns:
+            Liste des 5 facteurs les plus importants
+        """
+        try:
+            # Récupération du GradientBoosting et du preprocesseur
+            gb = model.named_steps["gb"]  # CHANGÉ: "rf" -> "gb"
+            preproc = model.named_steps["prep"]
+            
+            # Récupération des noms de features
+            num_cols = preproc.transformers_[0][2]
+            cat_cols = preproc.transformers_[1][2]
+            ohe = preproc.named_transformers_["cat"].named_steps["ohe"]
+            feature_names = list(num_cols) + list(ohe.get_feature_names_out(cat_cols))
+            
+            # Récupération des importances
+            importances = gb.feature_importances_
+            
+            # Top 5 features
+            sorted_idx = np.argsort(importances)[::-1][:5]
+            
+            return [
+                InfluencingFactor(
+                    feature=feature_names[i],
+                    importance=float(importances[i])
+                )
+                for i in sorted_idx
+            ]
+        
+        except Exception as e:
+            logger.warning(f"Impossible d'extraire les importances: {e}")
+            return []
