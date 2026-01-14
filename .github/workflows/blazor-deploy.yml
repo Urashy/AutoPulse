@@ -31,15 +31,14 @@ jobs:
         run: |
           $project = Get-ChildItem -Path . -Filter BlazorAutoPulse.csproj -Recurse | Select-Object -First 1
           if (-not $project) { throw "Projet BlazorAutoPulse.csproj introuvable !" }
-          # On publie dans un dossier précis "published_app"
           dotnet publish $project.FullName -c Release -o ./published_app
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: blazor-app
-          # On prend uniquement le contenu de wwwroot généré
-          path: ./published_app/wwwroot
+          # Déployer TOUT le contenu publié, pas seulement wwwroot
+          path: ./published_app
 
   deploy:
     runs-on: windows-latest
