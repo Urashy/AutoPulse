@@ -10,8 +10,8 @@
         <div class="sidebar-header">
             <h2>💬 Conversations</h2>
 
-            <!-- NOUVEAU : Filtre par annonce -->
-            <div class="annonce-filter">
+            <!-- Filtre par annonce avec @key -->
+            <div class="annonce-filter" @key="VM.SelectedAnnonceFilter">
                 @if (VM.IsLoadingAnnonces)
                 {
                     <div class="loading-filter">⏳ Chargement...</div>
@@ -64,9 +64,11 @@
         }
         else
         {
+            <!-- 🔥 @key sur la liste des conversations pour éviter le re-render complet -->
             @foreach (var conv in VM.ConversationsFiltered)
             {
                 <div class="conversation-item @(VM.SelectedConversation?.IdConversation == conv.IdConversation ? "active" : "")"
+                     @key="conv.IdConversation"
                      @onclick="() => VM.SelectConversation(conv)">
                     <div class="conversation-avatar">
                         @if (VM.ImageSources.ContainsKey(conv.IdParticipant) &&
@@ -113,7 +115,8 @@
         }
         else
         {
-            <div class="conversation-header">
+            <!-- 🔥 @key sur le header de conversation -->
+            <div class="conversation-header" @key="@($"header-{VM.SelectedConversation.IdConversation}")">
                 <div class="conversation-avatar">
                     @if (VM.ImageSources.ContainsKey(VM.SelectedConversation.IdParticipant) &&
                          !string.IsNullOrEmpty(VM.ImageSources[VM.SelectedConversation.IdParticipant]))
@@ -149,7 +152,9 @@
                 }
             </div>
 
-            <MessageContainer Messages="@VM.Messages"
+            <!-- 🔥 @key sur le MessageContainer pour optimiser le rendu -->
+            <MessageContainer @key="@($"messages-{VM.SelectedConversation.IdConversation}")"
+                              Messages="@VM.Messages"
                               CurrentUserId="@VM.CurrentUserId"
                               ParticipantId="@VM.SelectedConversation.IdParticipant"
                               IsLoadingMessages="@VM.IsLoadingMessages"
@@ -210,10 +215,11 @@
 
                 @if (VM.SelectedFiles.Any())
                 {
+                    <!-- 🔥 @key sur les fichiers sélectionnés -->
                     <div class="selected-files-preview">
                         @foreach (var file in VM.SelectedFiles)
                         {
-                            <div class="file-preview-item">
+                            <div class="file-preview-item" @key="file.Name">
                                 <span class="file-name">📎 @file.Name</span>
                                 <button @onclick="() => VM.RemoveFile(file)" class="remove-file-btn">✕</button>
                             </div>

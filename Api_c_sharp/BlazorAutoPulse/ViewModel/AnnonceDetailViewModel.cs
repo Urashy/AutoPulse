@@ -187,7 +187,7 @@ namespace BlazorAutoPulse.ViewModel
                 // Vérifier si l'annonce est en favoris
                 if (Annonce != null && CurrentUserId.HasValue)
                 {
-                    IsFavorite = _favorisStateService.IsFavorite(idAnnonce);
+                    IsFavorite = await _favorisService.IsFavorite((int)CurrentUserId, Annonce.IdAnnonce);
 
                     await _vueService.CreateAsync(new VueDTO
                     {
@@ -773,10 +773,6 @@ namespace BlazorAutoPulse.ViewModel
             _nav.NavigateTo("/conversations");
         }
 
-        /// <summary>
-        /// Calcule le décalage CSS pour le défilement
-        /// Chaque carte fait environ 20% de largeur (100% / 5)
-        /// </summary>
         public string GetCarouselTransform()
         {
             var cardWidth = 260;
@@ -786,9 +782,6 @@ namespace BlazorAutoPulse.ViewModel
             return $"translateX(-{offset}px)";
         }
 
-        /// <summary>
-        /// Défile d'une carte vers la gauche
-        /// </summary>
         public void PreviousSimilar()
         {
             if (CanGoPreviousSimilar)
@@ -798,9 +791,6 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        /// <summary>
-        /// Défile d'une carte vers la droite
-        /// </summary>
         public void NextSimilar()
         {
             if (CanGoNextSimilar)
@@ -810,9 +800,6 @@ namespace BlazorAutoPulse.ViewModel
             }
         }
 
-        /// <summary>
-        /// Va directement à une position spécifique
-        /// </summary>
         public void GoToSimilarPage(int pageIndex)
         {
             if (pageIndex >= 0 && pageIndex < TotalSimilarPages)
