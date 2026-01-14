@@ -34,8 +34,8 @@ jobs:
       - name: Zip artifact for deployment
         run: |
           cd Api_Python
-          # On zip tout le contenu du dossier Api_Python
-          zip -r ../python-app.zip .
+          # Zip avec exclusion des dossiers inutiles/dangereux
+          zip -r ../python-app.zip . -x "venv/*" -x ".venv/*" -x "__pycache__/*" -x "*.git*"
 
       - name: Login to Azure
         uses: azure/login@v2
