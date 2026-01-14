@@ -42,9 +42,6 @@ jobs:
   deploy:
     runs-on: windows-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     
     permissions:
       id-token: write
@@ -59,12 +56,12 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_98CF53B667C345DDB85390421A8B85BD }} 
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_98CF53B667C345DDB85390421A8B85BD }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7BE03D1230C84B26AF57F1BCC9BFD50F }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_091D1EB795584A6DB7257A0CF181F4FD }}
-          
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'api-autopulse'
+          app-name: 'api-autopulse-d8hgfvgjbsapataf'
           package: .

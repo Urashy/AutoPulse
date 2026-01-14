@@ -42,9 +42,7 @@ jobs:
   deploy:
     runs-on: windows-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    # J'ai retiré le bloc 'environment' ici aussi
     
     permissions:
       id-token: write
