@@ -354,7 +354,6 @@ namespace BlazorAutoPulse.ViewModel
         public async Task ApplyCnnResult()
         {
             if (cnnResult == null || !cnnResult.Success) return;
-
             // Rechercher la marque
             var marque = _vmAll.allMarques?.FirstOrDefault(m => 
                 m.LibelleMarque.ToLower() == cnnResult.Manufacturer.ToLower());
@@ -362,6 +361,7 @@ namespace BlazorAutoPulse.ViewModel
             if (marque != null)
             {
                 VoitureDetailDto.IdMarque = marque.IdMarque;
+                OnMarqueChanged(marque.IdMarque);
                 
                 // Utiliser la méthode de filtrage existante de VMAll
                 await _vmAll.FiltrerModeleParMarquePublic(marque.IdMarque);
@@ -380,6 +380,7 @@ namespace BlazorAutoPulse.ViewModel
                 if (modele != null)
                 {
                     VoitureDetailDto.IdModele = modele.IdModele;
+                    OnModeleChanged(modele.IdModele);
                 }
             }
 

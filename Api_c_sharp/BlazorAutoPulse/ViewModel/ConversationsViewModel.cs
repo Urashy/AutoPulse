@@ -45,6 +45,10 @@ public class ConversationViewModel : IDisposable
     private System.Threading.Timer? _typingTimer;
     private bool _typingNotified = false;
     
+    // 🔥 NOUVEAU : Debounce pour éviter les rafraîchissements multiples
+    private System.Threading.Timer? _refreshDebounceTimer;
+    private bool _hasPendingRefresh = false;
+    
     public event Action? _refreshUI;
 
     public List<ConversationListDTO> Conversations => _conversationState.Conversations;
@@ -71,7 +75,6 @@ public class ConversationViewModel : IDisposable
     
     public event Func<Task>? OnScrollRequested;
 
-    // ========== NOUVEAU : Filtrage par annonce ==========
     public List<AnnonceDTO> MesAnnonces { get; private set; } = new();
     public int SelectedAnnonceFilter { get; private set; } = 0;
     public bool IsLoadingAnnonces { get; private set; } = false;
@@ -114,21 +117,49 @@ public class ConversationViewModel : IDisposable
     {
         await _conversationState.InitializeAsync();
         await LoadMesAnnonces();
-        await LoadConversations(0); // Charge toutes les conversations au départ
+        await LoadConversations(0);
     }
 
-    // ========== NOUVEAU : Chargement des conversations avec filtre ==========
-    private async Task LoadConversations(int idAnnonce)
+    // 🔥 OPTIMISATION : Rafraîchissement avec debounce
+    private void NotifyStateChanged(bool immediate = false)
+    {
+        if (immediate)
+        {
+            _hasPendingRefresh = false;
+            _refreshDebounceTimer?.Dispose();
+            _refreshUI?.Invoke();
+        }
+        else
+        {
+            _hasPendingRefresh = true;
+            _refreshDebounceTimer?.Dispose();
+            _refreshDebounceTimer = new System.Threading.Timer(_ =>
+            {
+                if (_hasPendingRefresh)
+                {
+                    _hasPendingRefresh = false;
+                    _refreshUI?.Invoke();
+                }
+            }, null, 50, Timeout.Infinite); // Debounce de 50ms
+        }
+    }
+
+    // 🔥 OPTIMISATION : Chargement des conversations SANS rafraîchissement multiple
+    private async Task LoadConversations(int idAnnonce, bool forceRefresh = false)
     {
         IsLoading = true;
-        NotifyStateChanged();
+        if (forceRefresh)
+        {
+            NotifyStateChanged(immediate: true);
+        }
 
         try
         {
             var conversations = await _conversationService.GetConversationsByCompteID(CurrentUserId, idAnnonce);
             ConversationsFiltered = conversations.ToList();
             
-            // Rejoindre les conversations SignalR et charger les images
+            // Traiter en batch sans rafraîchir à chaque itération
+            var imagesToLoad = new List<int>();
             foreach (var conv in ConversationsFiltered)
             {
                 if (!_conversationState.Conversations.Any(c => c.IdConversation == conv.IdConversation))
@@ -138,8 +169,14 @@ public class ConversationViewModel : IDisposable
                 
                 if (!ImageSources.ContainsKey(conv.IdParticipant))
                 {
-                    await GetImageProfil(conv.IdParticipant);
+                    imagesToLoad.Add(conv.IdParticipant);
                 }
+            }
+            
+            // Charger toutes les images en parallèle
+            if (imagesToLoad.Any())
+            {
+                await Task.WhenAll(imagesToLoad.Select(id => GetImageProfil(id)));
             }
             
             Console.WriteLine($"✅ {ConversationsFiltered.Count} conversations chargées (filtre annonce: {idAnnonce})");
@@ -152,7 +189,7 @@ public class ConversationViewModel : IDisposable
         finally
         {
             IsLoading = false;
-            NotifyStateChanged();
+            NotifyStateChanged(immediate: true);
         }
     }
 
@@ -175,7 +212,6 @@ public class ConversationViewModel : IDisposable
         }
     }
 
-    // ========== NOUVEAU : Chargement des annonces de l'utilisateur ==========
     private async Task LoadMesAnnonces()
     {
         IsLoadingAnnonces = true;
@@ -206,7 +242,7 @@ public class ConversationViewModel : IDisposable
         }
         
         if (SelectedAnnonceFilter == idAnnonce)
-            return; // Pas de changement
+            return;
         
         SelectedAnnonceFilter = idAnnonce;
         SelectedConversation = null;
@@ -214,7 +250,7 @@ public class ConversationViewModel : IDisposable
         
         Console.WriteLine($"🔍 Filtrage par annonce: {(idAnnonce == 0 ? "Toutes" : idAnnonce.ToString())}");
         
-        await LoadConversations(idAnnonce);
+        await LoadConversations(idAnnonce, forceRefresh: true);
     }
 
     public async Task SelectConversation(ConversationListDTO conv)
@@ -224,7 +260,7 @@ public class ConversationViewModel : IDisposable
         await LoadMessages(conv.IdConversation);
         await LoadOffre(conv.IdConversation);
         await ABloquer(true);
-        NotifyStateChanged();
+        NotifyStateChanged(immediate: true);
         
         if (OnScrollRequested != null)
         {
@@ -247,8 +283,7 @@ public class ConversationViewModel : IDisposable
 
     private async void HandleOffreStatusChanged(int idOffre, bool? estAccepte)
     {
-        if (SelectedConversation == null) return;
-
+        bool stateChanged = false;
         var message = Messages.FirstOrDefault(m =>
             m.Offres != null && m.Offres.Any(o => o.IdOffre == idOffre));
 
@@ -258,6 +293,8 @@ public class ConversationViewModel : IDisposable
             if (offre != null)
             {
                 offre.EstAccepte = estAccepte;
+                stateChanged = true;
+                
                 try
                 {
                     CommandeEnCours = await _commandeService.GetCommandeByIdConv(SelectedConversation.IdConversation);
@@ -266,10 +303,20 @@ public class ConversationViewModel : IDisposable
                 {
                     Console.WriteLine($"❌ Erreur chargement commande: {ex.Message}");
                 }
+                
                 Console.WriteLine($"✅ Offre {idOffre} mise à jour en temps réel");
-                await _conversationState.ReloadConversationsAsync();
-                await LoadConversations(SelectedAnnonceFilter);
             }
+        }
+
+        _ = Task.Run(async () =>
+        {
+            await _conversationState.ReloadConversationsAsync();
+            await LoadConversations(SelectedAnnonceFilter);
+        });
+
+        if (stateChanged)
+        {
+            NotifyStateChanged(immediate: true);
         }
     }
 
@@ -280,14 +327,12 @@ public class ConversationViewModel : IDisposable
 
         try
         {
-            // Chercher dans ConversationsFiltered au lieu de Conversations
             var conv = ConversationsFiltered.FirstOrDefault(c => c.IdConversation == conversationId);
             if (conv != null && conv.NombreNonLu > 0)
             {
                 Console.WriteLine($"📭 Marquage de {conv.NombreNonLu} messages comme lus");
                 conv.NombreNonLu = 0;
                 
-                // Mettre à jour aussi dans Conversations global si présent
                 var globalConv = Conversations.FirstOrDefault(c => c.IdConversation == conversationId);
                 if (globalConv != null)
                 {
@@ -324,6 +369,7 @@ public class ConversationViewModel : IDisposable
         NotifyStateChanged();
     }
 
+    // 🔥 OPTIMISATION : Mise à jour locale + rechargement en background
     private async void HandleMessageReceived(int conversationId, int senderId, string message, DateTime date)
     {
         if (SelectedConversation?.IdConversation == conversationId)
@@ -360,7 +406,7 @@ public class ConversationViewModel : IDisposable
             {
                 Messages.Add(newMsg);
                 Console.WriteLine($"📨 Message reçu de {senderId}: {message.Substring(0, Math.Min(30, message.Length))}...");
-                NotifyStateChanged();
+                NotifyStateChanged(immediate: true);
             
                 if (OnScrollRequested != null)
                 {
@@ -372,12 +418,13 @@ public class ConversationViewModel : IDisposable
                 Console.WriteLine($"⚠️ Message déjà présent (doublon SignalR évité)");
             }
         }
-        else
+        
+        // 🔥 Rechargement en arrière-plan SANS bloquer l'UI
+        _ = Task.Run(async () =>
         {
             await _conversationState.ReloadConversationsAsync();
             await LoadConversations(SelectedAnnonceFilter);
-            NotifyStateChanged();
-        }
+        });
     }
 
     private void HandleMessagesRead(int conversationId, int userIdReader)
@@ -462,11 +509,6 @@ public class ConversationViewModel : IDisposable
             await SendMessageWithOffre();
         }
     }
-
-    private void NotifyStateChanged()
-    {
-        _refreshUI?.Invoke();
-    }
     
     public void RemoveFile(IBrowserFile file)
     {
@@ -528,6 +570,7 @@ public class ConversationViewModel : IDisposable
         _signalR.OnOffreStatusChanged -= HandleOffreStatusChanged;
         _signalR.OnMessageWithOffreReceived -= HandleMessageWithOffreReceived;
         _typingTimer?.Dispose();
+        _refreshDebounceTimer?.Dispose();
     }
 
     public async Task ToggleOffreMode()
@@ -724,8 +767,13 @@ public class ConversationViewModel : IDisposable
         finally
         {
             IsUploadingFiles = false;
-            await _conversationState.ReloadConversationsAsync();
-            await LoadConversations(SelectedAnnonceFilter);
+            
+            _ = Task.Run(async () =>
+            {
+                await _conversationState.ReloadConversationsAsync();
+                await LoadConversations(SelectedAnnonceFilter);
+            });
+            
             NotifyStateChanged();
         }
     }
@@ -741,8 +789,12 @@ public class ConversationViewModel : IDisposable
                 if (SelectedConversation != null)
                 {
                     await LoadMessages(SelectedConversation.IdConversation);
-                    await _conversationState.ReloadConversationsAsync();
-                    await LoadConversations(SelectedAnnonceFilter);
+                    
+                    _ = Task.Run(async () =>
+                    {
+                        await _conversationState.ReloadConversationsAsync();
+                        await LoadConversations(SelectedAnnonceFilter);
+                    });
                 }
             }
         }
@@ -814,7 +866,7 @@ public class ConversationViewModel : IDisposable
                 };
                 
                 Messages.Add(newMsg);
-                NotifyStateChanged();
+                NotifyStateChanged(immediate: true);
 
                 if (OnScrollRequested != null)
                 {
@@ -823,7 +875,10 @@ public class ConversationViewModel : IDisposable
             }
         }
         
-        await _conversationState.ReloadConversationsAsync();
-        await LoadConversations(SelectedAnnonceFilter);
+        _ = Task.Run(async () =>
+        {
+            await _conversationState.ReloadConversationsAsync();
+            await LoadConversations(SelectedAnnonceFilter);
+        });
     }
 }

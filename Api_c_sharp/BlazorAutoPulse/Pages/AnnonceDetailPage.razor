@@ -259,21 +259,21 @@ else if (VM.Annonce == null)
 else
 {
     <div class="detail-container">
-        <!-- En-tête avec retour et menu options -->
         <div class="header-nav">
             <button @onclick="() => Navigation.NavigateTo('/'.ToString())" class="btn-back">← Retour</button>
             
             <div class="header-actions">
-                <button @onclick="VM.ToggleViewer3D" class="btn-3d">
-                    @(VM.show3DViewer ? "🖼️ Voir les photos" : "🎨 Visualiseur 3D")
-                </button>
+                @if(VM.Annonce.LienModeleBlender != null)
+                {
+                    <button @onclick="VM.ToggleViewer3D" class="btn-3d">
+                        @(VM.show3DViewer ? "🖼️ Voir les photos" : "🎨 Visualiseur 3D")
+                    </button>
+                }
 
-                <!-- Photo de profil du vendeur -->
                 <button @onclick="VM.VoirProfilVendeur" class="seller-profile-badge">
                     <img src="@VM.ProfileImageSource" alt="Vendeur" class="seller-profile-picture" />
                 </button>
 
-                <!-- Menu d'options -->
                 <div class="options-menu">
                     <button @onclick="VM.ToggleOptionsMenu" class="btn-options">
                         <span class="menu-icon">⚙️</span>
@@ -333,7 +333,6 @@ else
             </div>
         </div>
 
-        <!-- Visualiseur 3D (optionnel) -->
         @if (VM.show3DViewer)
         {
             <div class="viewer-3d-section">
@@ -373,7 +372,6 @@ else
         }
         else
         {
-            <!-- Conteneur caché pour le préchargement -->
             <div style="position: absolute; left: -9999px; width: 800px; height: 600px; visibility: hidden;">
                 <div id="car3DViewer" class="viewer-3d"></div>
             </div>
@@ -435,7 +433,6 @@ else
             </div>
         </div>
 
-        <!-- Reste du code existant (informations principales, caractéristiques, etc.) -->
         <div class="main-info-section">
             <div class="price-section">
                 <h1>@VM.Annonce.Libelle</h1>
@@ -560,7 +557,6 @@ else
             </div>
         }
 
-        <!-- Caractéristiques détaillées -->
         <div class="details-section">
             <h2>Caractéristiques détaillées</h2>
             <div class="specs-grid">
@@ -640,7 +636,6 @@ else
 
         @if (VM.Annonce != null)
         {
-            <!-- Section IA - Estimation de prix -->
             <div class="ia-section">
                 <h2>🤖 Estimations par Intelligence Artificielle</h2>
                 <p class="ia-disclaimer">
@@ -667,7 +662,6 @@ else
                     </button>
                 </div>
 
-                @* Affichage du résultat de prédiction *@
                 @if (VM.priceResult != null && VM.priceResult.Success)
                 {
                     <div class="ia-price-result">
@@ -724,7 +718,6 @@ else
             </div>
         }
 
-        <!-- Actions -->
         <div class="actions-section">
             @if (VM.CurrentUserId.HasValue)
             {

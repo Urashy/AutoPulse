@@ -35,13 +35,36 @@
     @if (ShowActions)
     {
         <div class="card-actions">
-            <button class="card-btn danger" @onclick="DeleteCard" @onclick:stopPropagation="true">
+            <button class="card-btn danger" @onclick="ShowDeleteConfirmation" @onclick:stopPropagation="true">
                 <span>🗑️</span>
                 <span>Supprimer</span>
             </button>
         </div>
     }
 </div>
+
+@if (showConfirmDialog)
+{
+    <div class="modal-overlay" @onclick="CloseConfirmDialog">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>⚠️ Confirmer la suppression</h3>
+            </div>
+            <div class="modal-body">
+                <p>Si cette carte est associée à un paiement de mise en avant, le paiement sera supprimé.</p>
+                <p><strong>Voulez-vous vraiment supprimer cette carte ?</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" @onclick="CloseConfirmDialog">
+                    Annuler
+                </button>
+                <button class="modal-btn confirm" @onclick="ConfirmDelete">
+                    Oui, supprimer la carte
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     [Parameter]
@@ -52,6 +75,8 @@
 
     [Parameter]
     public EventCallback<CarteBancaireDTO> OnDelete { get; set; }
+
+    private bool showConfirmDialog = false;
 
     private bool IsExpired()
     {
@@ -64,8 +89,20 @@
         return DateTime.Now > expirationDate;
     }
 
-    private async Task DeleteCard()
+    private void ShowDeleteConfirmation()
     {
+        showConfirmDialog = true;
+    }
+
+    private void CloseConfirmDialog()
+    {
+        showConfirmDialog = false;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        showConfirmDialog = false;
+
         if (OnDelete.HasDelegate)
         {
             await OnDelete.InvokeAsync(CarteBancaire);
