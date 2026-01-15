@@ -12,8 +12,7 @@ public class TokenEmail
     public int IdTokenEmail { get; set; }
     
     [Column("com_id")]
-    [Required]
-    public int IdCompte { get; set; }
+    public int? IdCompte { get; set; }
     
     [Column("com_email")]
     [Required]

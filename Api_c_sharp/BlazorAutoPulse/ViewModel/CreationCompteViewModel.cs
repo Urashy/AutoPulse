@@ -35,6 +35,8 @@ public class CreationCompteViewModel
     private NavigationManager _nav;
     public bool showPopUp { get; set; }
     public int seconds { get; set; }
+    
+    private System.Threading.Timer? _countdownTimer;
 
     public CreationCompteViewModel(
         ICompteService compteService, 
@@ -55,7 +57,7 @@ public class CreationCompteViewModel
         compte.EstSuspendu = false;
         memeMotDePasse = true;
         showPopUp = false;
-        seconds = 3;
+        seconds = 5;
         afficherA2f = false;
         activerA2f = false;
         codeA2fEnvoye = false;
@@ -87,7 +89,27 @@ public class CreationCompteViewModel
         codeA2fEnvoye = false;
         isLoadingA2f = false;
         showPopUp = false;
-        seconds = 3;
+        seconds = 5;
+        
+        _countdownTimer?.Dispose();
+        _countdownTimer = null;
+    }
+
+    /// <summary>
+    /// ✅ Vérifie en temps réel si les mots de passe correspondent
+    /// </summary>
+    public void VerifierCorrespondanceMotDePasse()
+    {
+        // Ne vérifie que si les deux champs ont du contenu
+        if (!string.IsNullOrEmpty(compte.MotDePasse) && !string.IsNullOrEmpty(motDePasse))
+        {
+            memeMotDePasse = compte.MotDePasse == motDePasse;
+        }
+        else
+        {
+            // Si un des champs est vide, on considère qu'il n'y a pas d'erreur à afficher
+            memeMotDePasse = true;
+        }
     }
 
     public async Task CreateCompteAsync()
@@ -108,6 +130,13 @@ public class CreationCompteViewModel
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(compte.MotDePasse))
+        {
+            messageErreur = "Le mot de passe est requis";
+            _refreshUI?.Invoke();
+            return;
+        }
+
         if (compte.MotDePasse != motDePasse)
         {
             messageErreur = "Les mots de passe ne correspondent pas";
@@ -122,17 +151,16 @@ public class CreationCompteViewModel
 
             if (result.Success)
             {
-                // ✅ Afficher le message de succès avec redirection
                 _notificationService.ShowSuccess(
                     "Compte créé !",
                     "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception."
                 );
             
                 showPopUp = true;
+                seconds = 5;
                 _refreshUI?.Invoke();
             
-                await Task.Delay(5000);
-                _nav?.NavigateTo("/connexion");
+                await StartCountdownAndRedirect();
             }
             else
             {
@@ -148,13 +176,40 @@ public class CreationCompteViewModel
         }
     }
 
+    private async Task StartCountdownAndRedirect()
+    {
+        _countdownTimer = new System.Threading.Timer(async _ =>
+        {
+            seconds--;
+            _refreshUI?.Invoke();
+
+            if (seconds <= 0)
+            {
+                _countdownTimer?.Dispose();
+                _countdownTimer = null;
+                _nav?.NavigateTo("/connexion");
+            }
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+    }
+
     public async Task SkipA2f()
     {
         showPopUp = true;
+        seconds = 3;
         _refreshUI?.Invoke();
         
-        await Task.Delay(3000);
-        _nav?.NavigateTo("/connexion");
+        _countdownTimer = new System.Threading.Timer(async _ =>
+        {
+            seconds--;
+            _refreshUI?.Invoke();
+
+            if (seconds <= 0)
+            {
+                _countdownTimer?.Dispose();
+                _countdownTimer = null;
+                _nav?.NavigateTo("/connexion");
+            }
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
     }
 
     public async Task EnvoyerCodeA2f()
@@ -213,7 +268,6 @@ public class CreationCompteViewModel
 
         try
         {
-            // Vérifier le code
             var verifDto = new TokenEmailVerifDTO
             {
                 Email = compte.Email,
@@ -231,7 +285,6 @@ public class CreationCompteViewModel
                 return;
             }
 
-            // Activer l'A2F
             var compteCreated = await _compteService.GetByNameAsync(compte.Email);
 
             var activationDto = new A2fActivationDTO
@@ -250,17 +303,28 @@ public class CreationCompteViewModel
             }
             else
             {
-                _notificationService.ShowSuccess(
+                _notificationService.ShowError(
                     "Erreur A2F",
                     "Erreur lors de l'activation de l'A2F"
                 );
             }
 
             showPopUp = true;
+            seconds = 3;
             _refreshUI?.Invoke();
             
-            await Task.Delay(3000);
-            _nav?.NavigateTo("/connexion");
+            _countdownTimer = new System.Threading.Timer(async _ =>
+            {
+                seconds--;
+                _refreshUI?.Invoke();
+
+                if (seconds <= 0)
+                {
+                    _countdownTimer?.Dispose();
+                    _countdownTimer = null;
+                    _nav?.NavigateTo("/connexion");
+                }
+            }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
         }
         catch (Exception ex)
         {
@@ -302,5 +366,11 @@ public class CreationCompteViewModel
     {
         pro = !pro;
         _refreshUI?.Invoke();
+    }
+    
+    public void Dispose()
+    {
+        _countdownTimer?.Dispose();
+        _countdownTimer = null;
     }
 }
