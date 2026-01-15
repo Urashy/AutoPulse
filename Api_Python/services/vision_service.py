@@ -49,6 +49,7 @@ class VisionRecognitionService(IModelService):
             self.quality_model = None
 
         # Transformation standard (reste inchangé)
+        #test
         self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
