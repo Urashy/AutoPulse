@@ -23,8 +23,8 @@ def check_file(path: str, name: str) -> bool:
 def check_vision_checkpoint(path: str):
     """Vérifie le format du checkpoint vision"""
     try:
-        # import torch
-        # checkpoint = torch.load(path, map_location='cpu')
+        import torch
+        checkpoint = torch.load(path, map_location='cpu')
         
         has_model = 'model' in checkpoint
         has_model_state_dict = 'model_state_dict' in checkpoint
