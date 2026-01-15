@@ -83,22 +83,35 @@ public class ConnexionViewModel
 
             var response = await _serviceConnexion.LoginUser(loginRequest, rememberMe);
 
-            if (response.IsSuccessStatusCode)
+            // ✅ CORRECTION: Vérifier d'abord le code 202 (Accepted) pour l'A2F
+            if (response.StatusCode == HttpStatusCode.Accepted)
             {
-                // Connexion réussie sans A2F
-                _nav?.NavigateTo("/", forceLoad: true);
-            }
-            else if (response.StatusCode == HttpStatusCode.Accepted)
-            {
+                Console.WriteLine("✅ Code A2F requis");
+                
                 // Code A2F requis
                 var content = await response.Content.ReadFromJsonAsync<A2fResponse>();
                 
-                requiresA2f = true;
-                mustReactivateA2f = content?.MustReactivate ?? false;
-                userId = content?.UserId ?? 0;
-                userEmail = content?.Email ?? emailUtilisateur;
+                if (content != null)
+                {
+                    requiresA2f = true;
+                    mustReactivateA2f = content.MustReactivate;
+                    userId = content.UserId;
+                    userEmail = content.Email ?? emailUtilisateur;
 
-                messageErreur = "";
+                    messageErreur = "";
+                    
+                    Console.WriteLine($"A2F activé: requiresA2f={requiresA2f}, mustReactivate={mustReactivateA2f}, userId={userId}");
+                }
+                else
+                {
+                    messageErreur = "Erreur lors de la récupération des informations A2F";
+                }
+            }
+            else if (response.IsSuccessStatusCode)
+            {
+                // Connexion réussie sans A2F (200 OK)
+                Console.WriteLine("✅ Connexion réussie sans A2F");
+                _nav?.NavigateTo("/", forceLoad: true);
             }
             else if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
@@ -106,11 +119,14 @@ public class ConnexionViewModel
             }
             else
             {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ Erreur inattendue: {response.StatusCode} - {errorContent}");
                 messageErreur = "Une erreur est survenue. Veuillez réessayer.";
             }
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"❌ Exception dans ConnexionUtilisateur: {ex.Message}");
             messageErreur = "Erreur de connexion. Vérifiez votre connexion internet.";
         }
         finally

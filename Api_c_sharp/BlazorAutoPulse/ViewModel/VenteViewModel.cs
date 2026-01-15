@@ -224,7 +224,14 @@ namespace BlazorAutoPulse.ViewModel
             try
             {
                 compte = await _compteService.GetMe();
-                compteAdresses = (await _adresseService.GetAdresseByCompte(compte.IdCompte)).ToList();
+                try
+                {
+                    compteAdresses = (await _adresseService.GetAdresseByCompte(compte.IdCompte)).ToList();
+                }
+                catch
+                {
+                    Console.WriteLine("Pas d'adresse pour l'utilisateur");
+                }
             }
             catch (Exception ex)
             {
@@ -1319,6 +1326,7 @@ namespace BlazorAutoPulse.ViewModel
             IdCbUse = id;
         }
         
+        // Dans CreateAnnonce, avant la boucle d'upload des images
         public async Task CreateAnnonce()
         {
             showErrors = true;
@@ -1331,6 +1339,7 @@ namespace BlazorAutoPulse.ViewModel
             
             try
             {
+                // 1. D'abord créer l'adresse
                 AdresseDTO resultAdr = new AdresseDTO();
                 if (selectedAddressId == null)
                 {
@@ -1343,14 +1352,38 @@ namespace BlazorAutoPulse.ViewModel
                     resultAdr = await _adresseService.GetByIdAsync(selectedAddressId.Value);
                 }
                 
+                // 2. Créer la voiture
                 VoitureDetailDTO resultVoitureDetailDto = await _voitureService.CreateAsync(VoitureDetailDto);
                 
+                // 3. CORRECTION: Upload des images en utilisant les bytes déjà chargés
                 foreach (ImageUpload image in imageUpload)
                 {
+                    // Vérifier que les bytes sont disponibles
+                    if (image.ImageBytes == null || image.ImageBytes.Length == 0)
+                    {
+                        Console.WriteLine($"⚠️ Image sans bytes, tentative de rechargement...");
+                        
+                        // Essayer de recharger si nécessaire
+                        try
+                        {
+                            const long maxFileSize = 10 * 1024 * 1024;
+                            using var memoryStream = new MemoryStream();
+                            using var stream = image.File.OpenReadStream(maxFileSize);
+                            await stream.CopyToAsync(memoryStream);
+                            image.ImageBytes = memoryStream.ToArray();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"❌ Impossible de charger l'image: {ex.Message}");
+                            continue; // Passer à l'image suivante
+                        }
+                    }
+                    
                     image.IdVoiture = resultVoitureDetailDto.IdVoiture;
                     await _postImageService.CreateAsync(image);
                 }
                 
+                // 4. Créer les associations de couleurs
                 foreach (int couleur in selectedCouleurs)
                 {
                     APourCouleurDTO aPourCouleur = new APourCouleurDTO()
@@ -1361,21 +1394,28 @@ namespace BlazorAutoPulse.ViewModel
                     await _aPourCouleurService.CreateAsync(aPourCouleur);
                 }
 
+                // 5. Créer l'annonce
                 annonce.IdCB = IdCbUse;
                 annonce.IdAdresse = resultAdr.IdAdresse;
                 annonce.IdVoiture = resultVoitureDetailDto.IdVoiture;
                 annonce.IdCompte = compte.IdCompte;
                 await _annonceService.CreateAnnonceAsync(annonce);
-                _nav.NavigateTo("/");
-
+                
+                // 6. Nettoyer et rediriger
                 VoitureDetailDto = new VoitureDetailDTO();
                 adresse = new AdresseCreateDTO();
                 annonce = new AnnonceCreateDTO();
                 nomPhotos = new List<string>();
                 selectedCouleurs = new List<int>();
+                imageUpload = new List<ImageUpload>();
+                _imageCache.Clear();
+                
+                _nav.NavigateTo("/");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ Erreur création annonce: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 errors.Add("general", "Une erreur est survenue lors de la publication de l'annonce. Veuillez réessayer.");
                 _refreshUI?.Invoke();
             }

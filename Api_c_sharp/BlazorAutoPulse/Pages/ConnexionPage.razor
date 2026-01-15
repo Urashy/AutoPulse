@@ -93,7 +93,7 @@
             {
                 <!-- Formulaire A2F -->
                 <div class="a2f-container">
-                    @if (VM.mustReactivateA2f)
+                    @if (VM.mustReactivateA2f || VM.requiresA2f)
                     {
                         <div class="info-box warning">
                             <span class="info-icon">⚠️</span>

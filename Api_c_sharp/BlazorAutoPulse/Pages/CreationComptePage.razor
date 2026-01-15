@@ -52,7 +52,7 @@
                 <div class="form-group @(!VM.memeMotDePasse && !string.IsNullOrEmpty(VM.motDePasse) ? "error shake" : VM.memeMotDePasse && !string.IsNullOrEmpty(VM.motDePasse) && !string.IsNullOrEmpty(VM.compte.MotDePasse) ? "success" : "")">
                     <label>Mot de passe</label>
                     <input type="password"
-                           placeholder="••••••••"
+                           placeholder="Exemple : MotDePasse123!"
                            value="@VM.compte.MotDePasse"
                            @oninput="@((e) => OnPasswordChange(e.Value?.ToString()))"
                            required
