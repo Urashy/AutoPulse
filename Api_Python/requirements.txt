@@ -9,5 +9,6 @@ pandas==2.1.4
 catboost
 python-multipart==0.0.6
 Pillow==10.2.0
-torch==2.1.2+cpu --index-url https://download.pytorch.org/whl/cpu
-torchvision==0.16.2+cpu --index-url https://download.pytorch.org/whl/cpu
+# On force la version CPU pour aller vite et éviter les erreurs
+torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
+torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cpu
