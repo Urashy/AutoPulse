@@ -2,6 +2,7 @@
 using Microsoft.Playwright;
 using Xunit;
 
+namespace BlazordAutoPulseTests;
 public class PaginationTests : BaseTest
 {
     [Fact]
