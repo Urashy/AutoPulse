@@ -213,5 +213,37 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 ? (compte.A2fActif, compte.DateDerniereActivationA2f)
                 : (false, null);
         }
+        
+        public async Task EnregistrerTokenEmail(TokenEmail token)
+        {
+            await context.TokenEmails.AddAsync(token);
+            await context.SaveChangesAsync();
+        }
+
+        public async Task<TokenEmail?> GetTokenEmailByToken(string token)
+        {
+            return await context.TokenEmails
+                .FirstOrDefaultAsync(t => t.Token == token && t.TypeToken == "EMAIL_VERIFICATION");
+        }
+
+        public async Task MarquerEmailVerifie(int idCompte)
+        {
+            var compte = await GetByIdAsync(idCompte);
+            if (compte != null)
+            {
+                compte.EmailVerif = true;
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public async Task MarquerTokenUtilise(int idToken)
+        {
+            var token = await context.TokenEmails.FindAsync(idToken);
+            if (token != null)
+            {
+                token.Utilise = true;
+                await context.SaveChangesAsync();
+            }
+        }
     }
 }

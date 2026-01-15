@@ -425,3 +425,44 @@ footer a:hover {
         width: 100%;
     }
 }
+
+.btn-resend-email {
+    background: #2196F3;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+
+.btn-resend-email:hover {
+    background: #1976D2;
+}
+
+.verification-message {
+    padding: 12px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.verification-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.verification-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.info-text {
+    font-size: 14px;
+    color: #666;
+    margin: 15px 0;
+}

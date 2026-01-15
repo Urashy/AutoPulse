@@ -97,6 +97,63 @@
         </div>
     </div>
 }
+@* Modal Email non vérifié *@
+@if (VM.IsConnected && VM.IsEmailNotVerified)
+{
+    <div class="suspended-overlay">
+        <div class="suspended-modal">
+            <div class="suspended-icon">📧</div>
+            <h2>Email non vérifié</h2>
+            <p>Vous devez vérifier votre adresse email pour accéder à toutes les fonctionnalités de la plateforme.</p>
+            <p class="info-text">Un email de vérification a été envoyé lors de votre inscription. Veuillez vérifier votre boîte de réception.</p>
+            
+            <div class="suspended-actions">
+                <button @onclick="VM.OpenEmailVerificationModal" class="btn-resend-email">
+                    Renvoyer l'email de vérification
+                </button>
+                <button @onclick="VM.LogoutSuspendedAccount" class="btn-logout-suspended">
+                    Se déconnecter
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Modal pour renvoyer l'email *@
+@if (VM.ShowEmailVerificationModal)
+{
+    <div class="modal-overlay" @onclick="VM.CloseEmailVerificationModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <h3>Renvoyer l'email de vérification</h3>
+            <p>Vous n'avez pas reçu l'email de vérification ? Nous pouvons vous en renvoyer un nouveau.</p>
+            
+            @if (!string.IsNullOrEmpty(VM.EmailVerificationMessage))
+            {
+                <div class="verification-message @(VM.EmailVerificationMessage.Contains("✅") ? "success" : "error")">
+                    @VM.EmailVerificationMessage
+                </div>
+            }
+            
+            <div class="modal-actions">
+                <button @onclick="VM.RenvoyerEmailVerification" 
+                        class="btn-confirm" 
+                        disabled="@VM.IsResendingEmail">
+                    @if (VM.IsResendingEmail)
+                    {
+                        <span>Envoi en cours...</span>
+                    }
+                    else
+                    {
+                        <span>Renvoyer l'email</span>
+                    }
+                </button>
+                <button @onclick="VM.CloseEmailVerificationModal" class="btn-cancel">
+                    Annuler
+                </button>
+            </div>
+        </div>
+    </div>
+}
 else
 {
     <!-- Layout normal -->

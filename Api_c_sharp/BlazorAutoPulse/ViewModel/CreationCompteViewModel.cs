@@ -92,10 +92,8 @@ public class CreationCompteViewModel
 
     public async Task CreateCompteAsync()
     {
-        // Reset message d'erreur
         messageErreur = null;
 
-        // Validation côté client
         if (string.IsNullOrWhiteSpace(compte.Pseudo))
         {
             messageErreur = "Le pseudo est requis";
@@ -124,29 +122,27 @@ public class CreationCompteViewModel
 
             if (result.Success)
             {
-                afficherA2f = true;
+                // ✅ Afficher le message de succès avec redirection
+                _notificationService.ShowSuccess(
+                    "Compte créé !",
+                    "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception."
+                );
+            
+                showPopUp = true;
                 _refreshUI?.Invoke();
+            
+                await Task.Delay(5000);
+                _nav?.NavigateTo("/connexion");
             }
             else
             {
                 messageErreur = result.ErrorMessage;
-                
-                Console.WriteLine($"Erreur création compte: {result.ErrorMessage}");
-                
-                if (result.ValidationErrors != null)
-                {
-                    foreach (var error in result.ValidationErrors)
-                    {
-                        Console.WriteLine($"  {error.Key}: {string.Join(", ", error.Value)}");
-                    }
-                }
-                
                 _refreshUI?.Invoke();
             }
         }
         catch (Exception ex)
         {
-            messageErreur = "Une erreur inattendue s'est produite lors de la création du compte";
+            messageErreur = "Une erreur inattendue s'est produite";
             Console.WriteLine($"Exception CreateCompteAsync: {ex.Message}");
             _refreshUI?.Invoke();
         }

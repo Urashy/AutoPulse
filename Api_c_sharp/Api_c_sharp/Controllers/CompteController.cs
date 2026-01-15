@@ -121,11 +121,29 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         entity.DateCreation = DateTime.UtcNow;
         entity.DateDerniereConnexion = DateTime.UtcNow;
         entity.IdEtatCompte = 1;
+        entity.EmailVerif = false; // ✅ Email non vérifié par défaut
 
         try
         {
             await _manager.AddAsync(entity);
             await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
+        
+            // ✅ Générer et envoyer le token de vérification
+            string token = GenerateSecureToken();
+            var expiration = DateTime.UtcNow.AddHours(24);
+
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = entity.IdCompte,
+                Email = entity.Email,
+                Token = token,
+                Expiration = expiration,
+                Utilise = false,
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            await _manager.EnregistrerTokenEmail(tokenEmail);
+            await EnvoyerEmailVerification(entity.Email, token);
 
             return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
         }
@@ -273,6 +291,88 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         await _manager.DeleteAsync(entity);
         return NoContent();
     }
+#endregion
+
+#region Vérification Email
+
+/// <summary>
+/// Envoie un email de vérification à un utilisateur.
+/// </summary>
+/// <param name="idCompte">Identifiant du compte.</param>
+[ActionName("EnvoyerEmailVerification")]
+[HttpPost("{idCompte}")]
+[ProducesResponseType(StatusCodes.Status200OK)]
+[ProducesResponseType(StatusCodes.Status404NotFound)]
+public async Task<IActionResult> EnvoyerEmailVerification(int idCompte)
+{
+    var compte = await _manager.GetByIdAsync(idCompte);
+
+    if (compte == null)
+        return NotFound();
+
+    string token = GenerateSecureToken();
+    var expiration = DateTime.UtcNow.AddHours(24);
+
+    var tokenEmail = new TokenEmail
+    {
+        IdCompte = compte.IdCompte,
+        Email = compte.Email,
+        Token = token,
+        Expiration = expiration,
+        Utilise = false,
+        TypeToken = "EMAIL_VERIFICATION"
+    };
+
+    await _manager.EnregistrerTokenEmail(tokenEmail);
+    await EnvoyerEmailVerification(compte.Email, token);
+
+    return Ok(new { message = "Email de vérification envoyé" });
+}
+
+/// <summary>
+/// Vérifie l'email d'un compte via un token.
+/// </summary>
+/// <param name="token">Token de vérification.</param>
+[ActionName("VerifierEmail")]
+[HttpGet("{token}")]
+[ProducesResponseType(StatusCodes.Status200OK)]
+[ProducesResponseType(StatusCodes.Status400BadRequest)]
+public async Task<IActionResult> VerifierEmail(string token)
+{
+    try
+    {
+        var tokenEmail = await _manager.GetTokenEmailByToken(token);
+
+        if (tokenEmail == null || tokenEmail.Utilise)
+        {
+            return BadRequest(new { message = "Token invalide ou déjà utilisé" });
+        }
+
+        if (tokenEmail.Expiration < DateTime.UtcNow)
+        {
+            return BadRequest(new { message = "Le token a expiré" });
+        }
+
+        var compte = await _manager.GetByIdAsync(tokenEmail.IdCompte);
+
+        if (compte == null)
+        {
+            return NotFound(new { message = "Compte introuvable" });
+        }
+
+        // Marquer l'email comme vérifié
+        await _manager.MarquerEmailVerifie(compte.IdCompte);
+        await _manager.MarquerTokenUtilise(tokenEmail.IdTokenEmail);
+
+        return Ok(new { message = "Email vérifié avec succès" });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erreur VerifierEmail: {ex.Message}");
+        return StatusCode(500, new { message = "Erreur serveur" });
+    }
+}
+
 #endregion
 
 #region Autre methode
@@ -453,7 +553,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             if (a2fActif || doitReactiverA2f)
             {
                 // Envoyer code A2F par email
-                var codeA2f = GenerateSecureA2fCode();
+                var codeA2f = GenerateSecureCode();
                 var expiration = DateTime.UtcNow.AddMinutes(15);
 
                 var tokenA2f = new TokenEmail
@@ -1179,6 +1279,26 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         await client.DisconnectAsync(true);
     }
     
+    private async Task EnvoyerEmailVerif(string email, string code)
+    {
+        string message = @"Cliquer pour activer votre mail";
+
+        var emailMessage = new MimeMessage();
+        emailMessage.From.Add(new MailboxAddress("AutoPulse", "no-reply@autopulse.com"));
+        emailMessage.To.Add(new MailboxAddress("", email));
+        emailMessage.Subject = "Vérification de mail";
+        emailMessage.Body = new TextPart("plain") { Text = message };
+
+        string user = config["Email:GmailUser"];
+        string password = config["Email:GmailPass"];
+
+        using var client = new SmtpClient();
+        await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(user, password);
+        await client.SendAsync(emailMessage);
+        await client.DisconnectAsync(true);
+    }
+    
     private string GetClientIpAddress()
     {
         var forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
@@ -1203,13 +1323,74 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         return ipAddress ?? "Unknown";
     }
     
-    private static string GenerateSecureA2fCode()
+    private static string GenerateSecureCode()
     {
         using var rng = RandomNumberGenerator.Create();
         var bytes = new byte[4];
         rng.GetBytes(bytes);
         var number = BitConverter.ToUInt32(bytes, 0) % 10000000;
         return number.ToString("D7");
+    }
+    
+    private async Task EnvoyerEmailVerification(string email, string token)
+    {
+        string verificationUrl = $"{config["App:FrontendUrl"]}/verification-email/{token}";
+        
+        string htmlMessage = $@"
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }}
+                    .container {{ background-color: white; padding: 30px; border-radius: 10px; max-width: 600px; margin: 0 auto; }}
+                    .button {{ background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; }}
+                    h1 {{ color: #333; }}
+                    p {{ color: #666; line-height: 1.6; }}
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <h1>🎉 Bienvenue sur AutoPulse !</h1>
+                    <p>Merci de vous être inscrit. Pour activer votre compte, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :</p>
+                    <a href='{verificationUrl}' class='button'>Vérifier mon email</a>
+                    <p style='margin-top: 30px; font-size: 12px; color: #999;'>
+                        Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.<br>
+                        Ce lien expire dans 24 heures.
+                    </p>
+                </div>
+            </body>
+            </html>
+        ";
+
+        var emailMessage = new MimeMessage();
+        emailMessage.From.Add(new MailboxAddress("AutoPulse", "no-reply@autopulse.com"));
+        emailMessage.To.Add(new MailboxAddress("", email));
+        emailMessage.Subject = "Vérification de votre adresse email - AutoPulse";
+        
+        var bodyBuilder = new BodyBuilder
+        {
+            HtmlBody = htmlMessage,
+            TextBody = $"Bienvenue sur AutoPulse ! Veuillez vérifier votre email en visitant : {verificationUrl}"
+        };
+        
+        emailMessage.Body = bodyBuilder.ToMessageBody();
+
+        string user = config["Email:GmailUser"];
+        string password = config["Email:GmailPass"];
+
+        using var client = new SmtpClient();
+        await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(user, password);
+        await client.SendAsync(emailMessage);
+        await client.DisconnectAsync(true);
+    }
+
+    private static string GenerateSecureToken()
+    {
+        using var rng = RandomNumberGenerator.Create();
+        var bytes = new byte[32];
+        rng.GetBytes(bytes);
+        return Convert.ToBase64String(bytes).Replace("+", "-").Replace("/", "_").Replace("=", "");
     }
 #endregion
 }
