@@ -9,6 +9,9 @@ pandas==2.1.4
 catboost
 python-multipart==0.0.6
 Pillow==10.2.0
-# On force la version CPU pour aller vite et éviter les erreurs
-torch==2.1.2+cpu --index-url https://download.pytorch.org/whl/cpu
-torchvision==0.16.2+cpu --index-url https://download.pytorch.org/whl/cpu
+
+# --- C'EST ICI QUE CA SE JOUE ---
+# On force l'index CPU pour ne pas télécharger les 3Go de Nvidia
+--find-links https://download.pytorch.org/whl/cpu/torch_stable.html
+torch==2.1.2+cpu
+torchvision==0.16.2+cpu
