@@ -334,7 +334,8 @@ namespace Api_c_sharp.Migrations
                     com_google_id = table.Column<string>(type: "text", nullable: true),
                     com_auth_provider = table.Column<string>(type: "text", nullable: true),
                     com_a2f_actif = table.Column<bool>(type: "boolean", nullable: false),
-                    com_date_derniere_activation_a2f = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    com_date_derniere_activation_a2f = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    com_email_verif = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -564,7 +565,7 @@ namespace Api_c_sharp.Migrations
                 {
                     tke_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    com_id = table.Column<int>(type: "integer", nullable: false),
+                    com_id = table.Column<int>(type: "integer", nullable: true),
                     com_email = table.Column<string>(type: "text", nullable: false),
                     tke_token = table.Column<string>(type: "text", nullable: false),
                     tke_expiration = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -579,8 +580,7 @@ namespace Api_c_sharp.Migrations
                         column: x => x.com_id,
                         principalSchema: "public",
                         principalTable: "t_e_compte_com",
-                        principalColumn: "com_id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "com_id");
                 });
 
             migrationBuilder.CreateTable(
