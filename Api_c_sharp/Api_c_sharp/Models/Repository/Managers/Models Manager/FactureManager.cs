@@ -25,7 +25,6 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
 
         public virtual byte[]? GenererPdfFactureParCommande(int commandeId)
         {
-            // ✅ CORRECTION : Utiliser _context au lieu de dbSet
             var commande = _context.Commandes
                 .Include(c => c.AcheteurCommande)
                 .Include(c => c.VendeurCommande)

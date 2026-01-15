@@ -8,7 +8,7 @@ Convertit entre les deux formats :
 Usage:
     python convert_vision_checkpoint.py input.pth output.pth [--to-new|--to-old]
 """
-import torch
+# import torch
 import sys
 import argparse
 from pathlib import Path
@@ -35,7 +35,7 @@ def convert_checkpoint(input_path: str, output_path: str, to_format: str = 'new'
     
     # Charger le checkpoint
     print("📥 Chargement du checkpoint...")
-    checkpoint = torch.load(input_path, map_location='cpu')
+    # checkpoint = torch.load(input_path, map_location='cpu')
     
     # Détecter le format actuel
     has_model = 'model' in checkpoint
@@ -105,7 +105,7 @@ def convert_checkpoint(input_path: str, output_path: str, to_format: str = 'new'
     
     # Vérification
     print("\n✅ Vérification du fichier converti...")
-    verify = torch.load(output_path, map_location='cpu')
+    # verify = torch.load(output_path, map_location='cpu')
     
     if to_format == 'new':
         assert 'model' in verify, "Erreur: 'model' manquant!"

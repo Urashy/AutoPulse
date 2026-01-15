@@ -1,7 +1,7 @@
 """
 Architectures des modèles de deep learning
 """
-import torch.nn as nn
+# import torch.nn as nn
 from torchvision.models import efficientnet_v2_m, EfficientNet_V2_M_Weights
 
 

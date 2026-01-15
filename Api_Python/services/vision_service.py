@@ -2,7 +2,7 @@
 Service de reconnaissance visuelle de véhicules
 """
 import logging
-import torch
+# import torch
 import base64
 from io import BytesIO
 from PIL import Image
@@ -29,14 +29,14 @@ class VisionRecognitionService(IModelService):
                 self.model = None
 
             if os.path.exists('saved_ia/car_classifier_best.pth'):
-                self.classifier = torch.load('saved_ia/car_classifier_best.pth', map_location=self.device)
+                # self.classifier = torch.load('saved_ia/car_classifier_best.pth', map_location=self.device)
                 self.classifier.eval()
             else:
                 print("⚠️ ATTENTION: car_classifier_best.pth introuvable.")
                 self.classifier = None
 
             if os.path.exists('saved_ia/vehicle_quality_model.pth'):
-                self.quality_model = torch.load('saved_ia/vehicle_quality_model.pth', map_location=self.device)
+                # self.quality_model = torch.load('saved_ia/vehicle_quality_model.pth', map_location=self.device)
                 self.quality_model.eval()
             else:
                 print("⚠️ ATTENTION: vehicle_quality_model.pth introuvable.")

@@ -1,12 +1,12 @@
 """
 Repository pour le modèle de reconnaissance visuelle
 """
-import torch
+# import torch
 import json
 import logging
 from pathlib import Path
 from typing import Optional, Dict
-import torchvision.transforms as transforms
+# import torchvision.transforms as transforms
 from .base_repository import ModelRepositoryBase
 from models.architectures import CarClassifier
 from config.settings import VISION_IMAGE_SIZE, VISION_NORMALIZE_MEAN, VISION_NORMALIZE_STD
@@ -42,7 +42,7 @@ class VisionModelRepository(ModelRepositoryBase):
             self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             
             # Chargement du checkpoint
-            checkpoint = torch.load(model_path, map_location=self._device)
+            # checkpoint = torch.load(model_path, map_location=self._device)
             
             # Chargement des métadonnées
             if metadata_path and Path(metadata_path).exists():
