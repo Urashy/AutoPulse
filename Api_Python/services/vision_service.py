@@ -41,7 +41,7 @@ class VisionRecognitionService(IModelService):
             else:
                 print("⚠️ ATTENTION: vehicle_quality_model.pth introuvable.")
                 self.quality_model = None
-                ²
+                
         except Exception as e:
             print(f"❌ Erreur non bloquante au chargement des modèles Vision: {e}")
             self.model = None
