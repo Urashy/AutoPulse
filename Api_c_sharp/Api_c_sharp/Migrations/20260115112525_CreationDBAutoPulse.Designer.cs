@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api_c_sharp.Migrations
 {
     [DbContext(typeof(AutoPulseBdContext))]
-    [Migration("20260114093915_CreationDBAutoPulse")]
+    [Migration("20260115112525_CreationDBAutoPulse")]
     partial class CreationDBAutoPulse
     {
         /// <inheritdoc />
@@ -554,6 +554,10 @@ namespace Api_c_sharp.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("com_email");
+
+                    b.Property<bool>("EmailVerif")
+                        .HasColumnType("boolean")
+                        .HasColumnName("com_email_verif");
 
                     b.Property<string>("GoogleId")
                         .HasColumnType("text")
@@ -1409,7 +1413,7 @@ namespace Api_c_sharp.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("tke_expiration");
 
-                    b.Property<int>("IdCompte")
+                    b.Property<int?>("IdCompte")
                         .HasColumnType("integer")
                         .HasColumnName("com_id");
 
@@ -2116,9 +2120,7 @@ namespace Api_c_sharp.Migrations
                 {
                     b.HasOne("Api_c_sharp.Models.Entity.Compte", "CompteTokenNav")
                         .WithMany("TokensEmail")
-                        .HasForeignKey("IdCompte")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("IdCompte");
 
                     b.Navigation("CompteTokenNav");
                 });
