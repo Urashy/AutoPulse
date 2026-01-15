@@ -214,19 +214,19 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                 : (false, null);
         }
         
-        public async Task EnregistrerTokenEmail(TokenEmail token)
+        public virtual async Task EnregistrerTokenEmail(TokenEmail token)
         {
             await context.TokenEmails.AddAsync(token);
             await context.SaveChangesAsync();
         }
 
-        public async Task<TokenEmail?> GetTokenEmailByToken(string token)
+        public virtual async Task<TokenEmail?> GetTokenEmailByToken(string token)
         {
             return await context.TokenEmails
                 .FirstOrDefaultAsync(t => t.Token == token && t.TypeToken == "EMAIL_VERIFICATION");
         }
 
-        public async Task MarquerEmailVerifie(int idCompte)
+        public virtual async Task MarquerEmailVerifie(int idCompte)
         {
             var compte = await GetByIdAsync(idCompte);
             if (compte != null)
@@ -236,7 +236,7 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
             }
         }
 
-        public async Task MarquerTokenUtilise(int idToken)
+        public virtual async Task MarquerTokenUtilise(int idToken)
         {
             var token = await context.TokenEmails.FindAsync(idToken);
             if (token != null)

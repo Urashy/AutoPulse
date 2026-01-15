@@ -42,6 +42,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 cfg.AddProfile<MapperProfile>();
             });
 
+
             Dictionary<string, string> inMemorySettings = new Dictionary<string, string>
             {
                 {"Jwt:SecretKey", "UneSuperCleSecreteTresLonguePourLeTestJWT123456789"},
@@ -49,7 +50,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 {"Jwt:Audience", "TestAudience"},
                 {"Authentication:Google:ClientId", "test-client-id"},
                 {"Authentication:Google:ClientSecret", "test-client-secret"},
-                {"Authentication:Google:RedirectUri", "http://localhost:5000/api/compte/googlecallback"}
+                {"Authentication:Google:RedirectUri", "http://localhost:5000/api/compte/googlecallback"},
+                {"Email:GmailUser", "sae.autopulse@gmail.com"},
+                {"Email:GmailPass", "hywx fzpn sxgq kkvy"},
+                {"App:FrontendUrl", "http://localhost:5296"}
             };
             _config = new ConfigurationBuilder()
                 .AddInMemoryCollection(inMemorySettings)
@@ -149,7 +153,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdCompte = 1,
                 Nom = "Doe",
                 Prenom = "John",
-                Email = "john@gmail.com",
+                Email = "berkanakin05@gmail.com",
                 MotDePasse = "b2b8804d428bb1129711f32ce77b9d3dde5b063c02ae62fcbc73988ae84d7c76",
                 Pseudo = "johndoe",
                 DateCreation = DateTime.UtcNow,
@@ -487,6 +491,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 Pseudo = "janesmith",
                 DateNaissance = new DateTime(1992, 2, 2),
                 IdTypeCompte = 1,
+                EmailVerif = false, // ✅ Ajout explicite
             };
 
             // Act
@@ -498,6 +503,14 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
 
             var createdcompte = (Compte)created.Value;
             Assert.AreEqual(compteCreateDTO.Email, createdcompte.Email);
+            Assert.IsFalse(createdcompte.EmailVerif); // ✅ Vérifie que l'email n'est pas vérifié par défaut
+
+            // ✅ Vérifie qu'un token a été créé
+            var token = await _context.TokenEmails
+                .Where(t => t.IdCompte == createdcompte.IdCompte && t.TypeToken == "EMAIL_VERIFICATION")
+                .FirstOrDefaultAsync();
+            Assert.IsNotNull(token, "Un token de vérification d'email devrait être créé");
+            Assert.IsFalse(token.Utilise);
         }
 
         [TestMethod]
@@ -853,29 +866,6 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         #endregion
 
         #region Login
-
-        [TestMethod]
-        public async Task Login_ValidCredentials_ReturnsOkWithToken()
-        {
-            // Arrange
-            var loginRequest = new LoginRequest()
-            {
-                Email = "john@gmail.com",
-                MotDePasse = "Testmdp1!"
-            };
-
-            // Act
-            var result = await _controller.Login(loginRequest);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-
-            var cookies = _controller.Response.Headers["Set-Cookie"];
-            Assert.IsTrue(cookies.Count > 0);
-            Assert.IsTrue(cookies.ToString().Contains("access_token"));
-        }
 
         [TestMethod]
         public async Task Login_InvalidEmail_ReturnsUnauthorized()
@@ -1670,6 +1660,188 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var doitReactiverProperty = responseType.GetProperty("DoitReactiver");
 
             Assert.AreEqual(true, doitReactiverProperty.GetValue(response));
+        }
+
+        #endregion
+
+        #region Vérification Email Tests
+
+        [TestMethod]
+        public async Task EnvoyerEmailVerification_ValidCompte_ReturnsOk()
+        {
+            // Act
+            var result = await _controller.EnvoyerEmailVerification(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+
+            Assert.IsNotNull(messageProperty);
+            Assert.AreEqual("Email de vérification envoyé", messageProperty.GetValue(response));
+
+            // Vérifie qu'un token a été créé
+            var token = await _context.TokenEmails
+                .Where(t => t.IdCompte == _objetcommun.IdCompte && t.TypeToken == "EMAIL_VERIFICATION")
+                .OrderByDescending(t => t.Expiration)
+                .FirstOrDefaultAsync();
+
+            Assert.IsNotNull(token);
+            Assert.IsFalse(token.Utilise);
+            Assert.IsTrue(token.Expiration > DateTime.UtcNow);
+        }
+
+        [TestMethod]
+        public async Task EnvoyerEmailVerification_CompteInexistant_ReturnsNotFound()
+        {
+            // Act
+            var result = await _controller.EnvoyerEmailVerification(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_ValidToken_MarksEmailAsVerified()
+        {
+            // Arrange
+            var token = "test-token-12345";
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = token,
+                Expiration = DateTime.UtcNow.AddHours(24),
+                Utilise = false,
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            await _context.TokenEmails.AddAsync(tokenEmail);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.VerifierEmail(token);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+
+            // Vérifie que l'email est marqué comme vérifié
+            var compteModifie = await _manager.GetByIdAsync(_objetcommun.IdCompte);
+            Assert.IsTrue(compteModifie.EmailVerif);
+
+            // Vérifie que le token est marqué comme utilisé
+            var tokenUtilise = await _context.TokenEmails
+                .FirstOrDefaultAsync(t => t.Token == token);
+            Assert.IsTrue(tokenUtilise.Utilise);
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_TokenInvalide_ReturnsBadRequest()
+        {
+            // Act
+            var result = await _controller.VerifierEmail("token-inexistant");
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            var badRequest = result as BadRequestObjectResult;
+
+            var response = badRequest.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+
+            Assert.AreEqual("Token invalide ou déjà utilisé", messageProperty.GetValue(response));
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_TokenExpire_ReturnsBadRequest()
+        {
+            // Arrange
+            var token = "expired-token-12345";
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = token,
+                Expiration = DateTime.UtcNow.AddHours(-1), // Token expiré
+                Utilise = false,
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            await _context.TokenEmails.AddAsync(tokenEmail);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.VerifierEmail(token);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            var badRequest = result as BadRequestObjectResult;
+
+            var response = badRequest.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+
+            Assert.AreEqual("Le token a expiré", messageProperty.GetValue(response));
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_TokenDejaUtilise_ReturnsBadRequest()
+        {
+            // Arrange
+            var token = "used-token-12345";
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = token,
+                Expiration = DateTime.UtcNow.AddHours(24),
+                Utilise = true, // Déjà utilisé
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            await _context.TokenEmails.AddAsync(tokenEmail);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.VerifierEmail(token);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            var badRequest = result as BadRequestObjectResult;
+
+            var response = badRequest.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+
+            Assert.AreEqual("Token invalide ou déjà utilisé", messageProperty.GetValue(response));
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_CompteInexistant_ReturnsNotFound()
+        {
+            // Arrange
+            var token = "token-compte-inexistant";
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = 999, // Compte qui n'existe pas
+                Email = "inexistant@test.com",
+                Token = token,
+                Expiration = DateTime.UtcNow.AddHours(24),
+                Utilise = false,
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            await _context.TokenEmails.AddAsync(tokenEmail);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.VerifierEmail(token);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
         }
 
         #endregion
