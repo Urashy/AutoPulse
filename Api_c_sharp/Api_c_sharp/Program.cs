@@ -292,12 +292,10 @@ app.MapGet("/test-config", (IConfiguration config) =>
     }
 });
 
-// Test DB simple sans manager
 app.MapGet("/test-db", async (AutoPulseBdContext db) =>
 {
     try
     {
-        // Test 1 : Connexion
         var canConnect = await db.Database.CanConnectAsync();
         if (!canConnect)
         {
