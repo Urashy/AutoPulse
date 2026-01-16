@@ -23,7 +23,7 @@ class VisionRecognitionService(IModelService):
         
         try:
             if os.path.exists('saved_ia/yolov8x.pt'):
-                self.model = YOLO('saved_ia/yolov8x.pt')
+                #self.model = YOLO('saved_ia/yolov8x.pt')
             else:
                 print("⚠️ ATTENTION: yolov8x.pt introuvable. Le service Vision démarrera sans YOLO.")
                 self.model = None
