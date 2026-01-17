@@ -24,11 +24,18 @@ jobs:
         with:
           python-version: '3.10'
 
+      # --- ETAPE AJOUTÉE : Installation des dépendances ---
+      - name: Install dependencies
+        run: |
+          cd Api_Python
+          python -m pip install --upgrade pip
+          # On installe les libs dans le dossier spécifique qu'Azure attend
+          pip install -r requirements.txt --target="antenv/lib/python3.10/site-packages"
+
       - name: Zip artifact for deployment
         run: |
           cd Api_Python
-          # On zip JUSTE le code et le requirements.txt
-          # On exclut tout ce qui est lourd ou inutile
+          # On zippe tout, y compris le dossier antenv qu'on vient de créer
           zip -r ../python-app.zip . -x "venv/*" -x ".venv/*" -x "__pycache__/*" -x "*.git*" -x "*.pth" -x "*.pt" -x "*.pkl"
 
       - name: Login to Azure
@@ -43,4 +50,5 @@ jobs:
         with:
           app-name: 'python-autopulse'
           package: ./python-app.zip
+          # Commande de démarrage
           startup-command: 'gunicorn --bind=0.0.0.0 --timeout 600 -w 1 -k uvicorn.workers.UvicornWorker main:app'
