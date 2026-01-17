@@ -16,19 +16,8 @@ logger = logging.getLogger(__name__)
 class PricePredictionService(IModelService):
     """Service pour prédire le prix d'un véhicule"""
     
-    def __init__(self):
-        # Chemin absolu ou relatif robuste
-        self.model_path = os.path.join(os.path.dirname(__file__), '..', 'saved_ia', 'rf_price_model.joblib')
-        self.model = None
-        
-        if os.path.exists(self.model_path):
-            try:
-                self.model = joblib.load(self.model_path)
-                print("✅ Modèle de prix chargé.")
-            except Exception as e:
-                print(f"❌ Erreur chargement modèle prix: {e}")
-        else:
-            print(f"⚠️ Modèle de prix introuvable: {self.model_path}")
+    def __init__(self, repo_manager: ModelRepositoryManager):
+        self.repo_manager = repo_manager
     
     def is_available(self) -> bool:
         """Vérifie si le modèle de prix est disponible"""
@@ -53,7 +42,7 @@ class PricePredictionService(IModelService):
             )
         
         try:
-            # ÉTAPE 1: Récupérer les featuress attendues par le modèle
+            # ÉTAPE 1: Récupérer les features attendues par le modèle
             expected_features = model.feature_names_
             logger.info(f"🔍 Features attendues par le modèle: {expected_features}")
             

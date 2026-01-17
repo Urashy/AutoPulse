@@ -16,22 +16,8 @@ logger = logging.getLogger(__name__)
 class PriceAdjustmentService(IModelService):
     """Service pour ajuster le prix selon la description du véhicule"""
     
-    def __init__(self):
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(os.path.dirname(current_dir))
-        
-        # Chemin relatif plus robuste pour Azure
-        model_path = os.path.join(os.path.dirname(__file__), '..', 'saved_ia', 'adjustment_model_api.pkl')
-        
-        self.model = None
-        if os.path.exists(model_path):
-            try:
-                self.model = joblib.load(model_path)
-                print("✅ Modèle d'ajustement chargé.")
-            except Exception as e:
-                print(f"❌ Erreur chargement modèle ajustement: {e}")
-        else:
-            print(f"⚠️ Modèle ajustement introuvable ici: {model_path}")
+    def __init__(self, repo_manager: ModelRepositoryManager):
+        self.repo_manager = repo_manager
     
     def is_available(self) -> bool:
         """Vérifie si le modèle d'ajustement est disponible"""
