@@ -68,6 +68,12 @@ namespace Api_c_sharp.Models.Repository.Managers.Models_Manager
                                  (compte.AvisJugees?.Any() ?? false) ||
                                  (compte.AvisJugeur?.Any() ?? false);
 
+            List<TokenEmail> tokensASupprimer = await context.TokenEmails
+                .Where(t => t.IdCompte == compte.IdCompte)
+                .ToListAsync();
+            context.TokenEmails.RemoveRange(tokensASupprimer);
+
+
             if (!aDesActivites)
             {
                 List<Adresse> adressesASupprimer = await context.Adresses
