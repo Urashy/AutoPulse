@@ -12,7 +12,7 @@ from schemas.dto import DataCNN, ResultatCNN, TopPrediction
 from repositories.repository_manager import ModelRepositoryManager
 
 logger = logging.getLogger(__name__)
-
+#test
 
 class VisionRecognitionService(IModelService):
     """Service pour identifier un véhicule depuis une image"""
@@ -27,7 +27,6 @@ class VisionRecognitionService(IModelService):
     def predict(self, data: DataCNN) -> ResultatCNN:
         """
         Identifie un véhicule depuis une image encodée en base64
-        
         Args:
             data: Image encodée en base64
             
