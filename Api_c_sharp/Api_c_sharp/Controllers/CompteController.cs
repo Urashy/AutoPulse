@@ -1063,6 +1063,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             if (string.IsNullOrEmpty(existingCompte.GoogleId))
             {
                 existingCompte.GoogleId = userInfo.Id;
+                existingCompte.EmailVerif = true;
                 await _manager.UpdateAsync(existingCompte, existingCompte);
             }
             return (true, existingCompte);
@@ -1085,7 +1086,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             DateNaissance = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc),
 
             IdTypeCompte = 1,
-            IdEtatCompte = 1
+            IdEtatCompte = 1,
+            EmailVerif = true
         };
         await _manager.AddAsync(newCompte);
         return (false, newCompte);

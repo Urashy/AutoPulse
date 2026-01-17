@@ -439,8 +439,17 @@ namespace BlazorAutoPulse.ViewModel
 
         public void ContinuerSuppression()
         {
-            confirmationSuppression = true;
-            _refreshUI?.Invoke();
+            if (confirmationTexte == compte.Pseudo)
+            {
+                confirmationSuppression = true;
+                _refreshUI?.Invoke();
+            }
+            else
+            {
+                _notificationService.ShowError(
+                    "Pseudo incorrecte",
+                    "Le pseudo rentrer pour la suppression est incorrect");
+            }
         }
 
         public void ConfirmDeleteAccount()
