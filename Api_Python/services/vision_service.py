@@ -17,37 +17,8 @@ logger = logging.getLogger(__name__)
 class VisionRecognitionService(IModelService):
     """Service pour identifier un véhicule depuis une image"""
     
-    def __init__(self):
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        print(f"VisionService using device: {self.device}")
-        
-        try:
-            if os.path.exists('saved_ia/car_classifier_best.pth'):
-                self.classifier = torch.load('saved_ia/car_classifier_best.pth', map_location=self.device)
-                self.classifier.eval()
-            else:
-                print("⚠️ ATTENTION: car_classifier_best.pth introuvable.")
-                self.classifier = None
-
-            if os.path.exists('saved_ia/vehicle_quality_model.pth'):
-                self.quality_model = torch.load('saved_ia/vehicle_quality_model.pth', map_location=self.device)
-                self.quality_model.eval()
-            else:
-                print("⚠️ ATTENTION: vehicle_quality_model.pth introuvable.")
-                self.quality_model = None
-                
-        except Exception as e:
-            print(f"❌ Erreur non bloquante au chargement des modèles Vision: {e}")
-            self.model = None
-            self.classifier = None
-            self.quality_model = None
-
-        # Transformation standard (reste inchangé)
-        self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+    def __init__(self, repo_manager: ModelRepositoryManager):
+        self.repo_manager = repo_manager
     
     def is_available(self) -> bool:
         """Vérifie si le modèle de vision est disponible"""
@@ -75,6 +46,7 @@ class VisionRecognitionService(IModelService):
             # Décodage de l'image
             image = self._decode_image(data.image_base64)
             
+            # Préparation de l'image
             transform = repo.get_transform()
             device = repo.get_device()
             img_tensor = transform(image).unsqueeze(0).to(device)
