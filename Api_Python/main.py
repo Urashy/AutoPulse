@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 from typing import Union
-
+#az
 from config.settings import API_TITLE, API_VERSION, API_DESCRIPTION, LOGGING_CONFIG
 from schemas.dto import (
     PredictRequest,

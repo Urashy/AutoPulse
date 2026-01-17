@@ -22,12 +22,6 @@ class VisionRecognitionService(IModelService):
         print(f"VisionService using device: {self.device}")
         
         try:
-            if os.path.exists('saved_ia/yolov8x.pt'):
-                self.model = YOLO('saved_ia/yolov8x.pt')
-            else:
-                print("⚠️ ATTENTION: yolov8x.pt introuvable. Le service Vision démarrera sans YOLO.")
-                self.model = None
-
             if os.path.exists('saved_ia/car_classifier_best.pth'):
                 self.classifier = torch.load('saved_ia/car_classifier_best.pth', map_location=self.device)
                 self.classifier.eval()

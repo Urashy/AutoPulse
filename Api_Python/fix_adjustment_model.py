@@ -25,7 +25,6 @@ def convert_model(input_path: str, output_path: str):
         # Tentative de chargement avec différentes méthodes
         model_dict = None
         
-        # Méthode 1: pickle standard
         try:
             print("   → Essai avec pickle...")
             with open(input_path, 'rb') as f:

@@ -33,7 +33,6 @@ def convert_checkpoint(input_path: str, output_path: str, to_format: str = 'new'
         print(f"❌ Erreur: Fichier non trouvé: {input_path}")
         sys.exit(1)
     
-    # Charger le checkpoint
     print("📥 Chargement du checkpoint...")
     checkpoint = torch.load(input_path, map_location='cpu')
     
