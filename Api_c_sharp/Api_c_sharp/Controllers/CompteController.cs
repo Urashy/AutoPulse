@@ -954,9 +954,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [HttpGet]
     public IActionResult GoogleLogin()
     {
-        var clientId = config["Authentication:Google:ClientId"];
+        var clientId = config["ClientId"] ?? config["Authentication:Google:ClientId"];
         Console.WriteLine(clientId);
-        var redirectUri = config["Authentication:Google:RedirectUri"];
+        var redirectUri = config["RedirectUrl"] ?? config["Authentication:Google:RedirectUri"];
         var scope = "openid profile email";
             
         var googleAuthUrl = $"https://accounts.google.com/o/oauth2/v2/auth?" +
@@ -1006,7 +1006,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 Path = "/",
                 Domain = null
             });
-            
+
             // 6. Rediriger vers le front
             if (existing)
             {
@@ -1024,9 +1024,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 #region Outils Authentification Google
     private async Task<GoogleTokenResponse> ExchangeCodeForToken(string code)
     {
-        var clientId = config["Authentication:Google:ClientId"];
-        var clientSecret = config["Authentication:Google:ClientSecret"];
-        var redirectUri = config["Authentication:Google:RedirectUri"];
+        var clientId = config["ClientId"] ?? config["Authentication:Google:ClientId"];
+        var clientSecret = config["ClientSecret"] ?? config["Authentication:Google:ClientSecret"];
+        var redirectUri = config["RedirectUri"] ?? config["Authentication:Google:RedirectUri"];
 
         using var httpClient = new HttpClient();
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -1171,7 +1171,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <returns>Le jeton JWT généré.</returns>
     private string GenerateJwtToken(LoginRequest compteInfo)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:SecretKey"]));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt__SecretKey"] ?? config["Jwt:SecretKey"]));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         Compte compte = _manager.GetByNameAsync(compteInfo.Email).Result;
         var claims = new[]
@@ -1183,8 +1183,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         };
         
         var token = new JwtSecurityToken(
-            issuer: config["Jwt:Issuer"],
-            audience: config["Jwt:Audience"],
+            issuer: config["Jwt__SecretIssuer"] ?? config["Jwt:Issuer"],
+            audience: config["Jwt__SecretAudience"] ?? config["Jwt:Audience"],
             claims: claims,
             expires: DateTime.Now.AddMinutes(15),
             signingCredentials: credentials
@@ -1437,7 +1437,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         ";
 
         var emailMessage = new MimeMessage();
-        emailMessage.From.Add(new MailboxAddress("AutoPulse", config["Email:GmailUser"]));
+        emailMessage.From.Add(new MailboxAddress("AutoPulse", config["GmailUser"] ?? config["Email:GmailUser"]));
         emailMessage.To.Add(new MailboxAddress("", email));
         emailMessage.Subject = sujet;
         
@@ -1449,8 +1449,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         
         emailMessage.Body = bodyBuilder.ToMessageBody();
 
-        string user = config["Email:GmailUser"];
-        string password = config["Email:GmailPass"];
+        string user = config["GmailUser"] ?? config["Email:GmailUser"];
+        string password = config["GmailPass"] ?? config["Email:GmailPass"];
 
         using var client = new SmtpClient();
         await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
@@ -1494,7 +1494,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     
     private async Task EnvoyerEmailVerification(string email, string token)
     {
-        string verificationUrl = $"{config["App:FrontendUrl"]}/verification-email/{token}";
+        string verificationUrl = $"{config["FrontendUrl"] ?? config["App:FrontendUrl"]}/verification-email/{token}";
         
         string htmlMessage = $@"
             <!DOCTYPE html>
@@ -1707,7 +1707,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         ";
 
         var emailMessage = new MimeMessage();
-        emailMessage.From.Add(new MailboxAddress("AutoPulse", config["Email:GmailUser"]));
+        emailMessage.From.Add(new MailboxAddress("AutoPulse", config["GmailUser"] ?? config["Email:GmailUser"]));
         emailMessage.To.Add(new MailboxAddress("", email));
         emailMessage.Subject = "🎉 Bienvenue sur AutoPulse - Vérifiez votre email";
         
@@ -1731,8 +1731,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         
         emailMessage.Body = bodyBuilder.ToMessageBody();
 
-        string user = config["Email:GmailUser"];
-        string password = config["Email:GmailPass"];
+        string user = config["GmailUser"] ?? config["Email:GmailUser"];
+        string password = config["GmailPass"] ?? config["Email:GmailPass"];
 
         using var client = new SmtpClient();
         await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
