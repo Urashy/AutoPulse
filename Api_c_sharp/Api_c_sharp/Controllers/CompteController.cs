@@ -1494,8 +1494,15 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     
     private async Task EnvoyerEmailVerification(string email, string token)
     {
-        string verificationUrl = $"{config["FrontendUrl"] ?? config["App:FrontendUrl"]}/verification-email/{token}";
-        
+        var baseUrl = config["FrontendUrl"] ?? config["App:FrontendUrl"];
+
+        if (string.IsNullOrEmpty(baseUrl))
+        {
+            throw new Exception("Erreur critique : La variable 'FrontendUrl' n'est pas configurée dans Azure.");
+        }
+
+        string verificationUrl = $"{baseUrl.TrimEnd('/')}/verification-email/{token}";
+
         string htmlMessage = $@"
             <!DOCTYPE html>
             <html>
