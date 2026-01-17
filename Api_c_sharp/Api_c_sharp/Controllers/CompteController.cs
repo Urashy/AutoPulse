@@ -1010,9 +1010,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             // 6. Rediriger vers le front
             if (existing)
             {
-                return Redirect("http://localhost:5296/compte");
+                return Redirect("https://blazor-autopulse-c2ehbpd0hzh9e8he.francecentral-01.azurewebsites.net/compte");
             }
-            return Redirect("http://localhost:5296/complete-profile");
+            return Redirect("https://blazor-autopulse-c2ehbpd0hzh9e8he.francecentral-01.azurewebsites.net/complete-profile");
         }
         catch (Exception ex)
         {
