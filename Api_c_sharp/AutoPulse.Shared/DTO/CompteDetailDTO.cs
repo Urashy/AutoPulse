@@ -18,4 +18,5 @@ public class CompteDetailDTO
     public List<AdresseDTO> Adresses { get; set; } = new List<AdresseDTO>();
     public int idImage { get; set; }
     public bool EstSuspendu{ get; set; }
+    public bool EmailVerif { get; set; }
 }

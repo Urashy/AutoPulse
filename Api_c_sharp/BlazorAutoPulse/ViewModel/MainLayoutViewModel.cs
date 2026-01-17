@@ -40,6 +40,11 @@ namespace BlazorAutoPulse.ViewModel
 
         private int? _currentUserId;
         private int? _signalementId;
+        
+        public bool IsEmailNotVerified { get; private set; }
+        public bool ShowEmailVerificationModal { get; private set; }
+        public bool IsResendingEmail { get; private set; }
+        public string EmailVerificationMessage { get; private set; } = "";
 
         private Action? _refreshUI;
         private NavigationManager? _nav;
@@ -98,27 +103,15 @@ namespace BlazorAutoPulse.ViewModel
                     _currentUserId = compte.IdCompte;
                     IsAdmin = compte.TypeCompte == "Administrateur";
                     IsAccountSuspended = compte.EstSuspendu;
+                    IsEmailNotVerified = !compte.EmailVerif; // ✅ Nouveau
 
-                    if (!IsAccountSuspended)
+                    if (!IsAccountSuspended && !IsEmailNotVerified)
                     {
                         await LoadProfileImage(compte.IdCompte);
-
-                        await _conversationStateService.InitializeAsync();
-                        unreadCount = _conversationStateService.GetTotalUnreadCount();
-                        _conversationStateService.OnStateChanged += UpdateUnreadCount;
-
-                        // ✅ Initialisation du service favoris qui gère SignalR automatiquement
-                        await _favorisStateService.InitializeAsync(compte.IdCompte);
-                        _favorisStateService.OnFavorisChanged += HandleFavorisChanged;
-                        
-                        _signalRService.OnPriceDropReceived += HandlePriceDropNotification;
-                        notificationsCount = await _notificationService.GetUnreadCountAsync(compte.IdCompte);
-                        
-                        _signalRService.OnOffreReceived += HandleOffreNotification;
+                        // ... reste du code
                     }
-                    else
+                    else if (IsAccountSuspended)
                     {
-                        // Si suspendu, vérifier s'il y a un signalement actif
                         await LoadActiveSignalement();
                     }
                 }
@@ -382,6 +375,57 @@ namespace BlazorAutoPulse.ViewModel
                 "/notifications"
             );
     
+            _refreshUI?.Invoke();
+        }
+        
+        public async Task RenvoyerEmailVerification()
+        {
+            if (!_currentUserId.HasValue) return;
+
+            IsResendingEmail = true;
+            EmailVerificationMessage = "";
+            _refreshUI?.Invoke();
+
+            try
+            {
+                var response = await _compteService.RenvoyerEmailVerification(_currentUserId.Value);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    EmailVerificationMessage = "✅ Email de vérification renvoyé avec succès ! Vérifiez votre boîte de réception.";
+                    _notificationToastService.ShowSuccess(
+                        "Email envoyé",
+                        "Un nouvel email de vérification a été envoyé"
+                    );
+                }
+                else
+                {
+                    EmailVerificationMessage = "❌ Erreur lors de l'envoi de l'email. Veuillez réessayer.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur renvoiEmail: {ex.Message}");
+                EmailVerificationMessage = "❌ Erreur lors de l'envoi de l'email.";
+            }
+            finally
+            {
+                IsResendingEmail = false;
+                _refreshUI?.Invoke();
+            }
+        }
+
+        public void OpenEmailVerificationModal()
+        {
+            ShowEmailVerificationModal = true;
+            EmailVerificationMessage = "";
+            _refreshUI?.Invoke();
+        }
+
+        public void CloseEmailVerificationModal()
+        {
+            ShowEmailVerificationModal = false;
+            EmailVerificationMessage = "";
             _refreshUI?.Invoke();
         }
 

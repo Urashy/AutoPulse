@@ -280,4 +280,13 @@ public class CompteWebService : BaseWebService<CompteDetailDTO>, ICompteService
         }
     }
 
+    public async Task<HttpResponseMessage> VerifierEmail(string token)
+    {
+        return await _httpClient.GetAsync($"Compte/VerifierEmail/{token}");
+    }
+
+    public async Task<HttpResponseMessage> RenvoyerEmailVerification(int idCompte)
+    {
+        return await _httpClient.PostAsync($"Compte/EnvoyerEmailVerification/{idCompte}", null);
+    }
 }

@@ -36,6 +36,10 @@ namespace Api_c_sharp.Models.Repository.Interfaces
         Task DesactiverA2f(int idCompte);
         Task<bool> DoitReactiverA2f(int idCompte);
         Task<(bool A2fActif, DateTime? DerniereActivation)> GetStatutA2f(int idCompte);
+        Task EnregistrerTokenEmail(TokenEmail token);
+        Task<TokenEmail?> GetTokenEmailByToken(string token);
+        Task MarquerEmailVerifie(int idCompte);
+        Task MarquerTokenUtilise(int idToken);
     }
 
     public interface IMessageRepository

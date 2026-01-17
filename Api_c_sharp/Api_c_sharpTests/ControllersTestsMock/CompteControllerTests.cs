@@ -42,7 +42,10 @@ namespace Api_c_sharp.ControllersMock.Tests
                 {"Jwt:Audience", "TestAudience"},
                 {"Authentication:Google:ClientId", "test-client-id"},
                 {"Authentication:Google:ClientSecret", "test-client-secret"},
-                {"Authentication:Google:RedirectUri", "http://localhost:5000/api/compte/googlecallback"}
+                {"Authentication:Google:RedirectUri", "http://localhost:5000/api/compte/googlecallback"},
+                {"Email:GmailUser", "sae.autopulse@gmail.com"},
+                {"Email:GmailPass", "hywx fzpn sxgq kkvy"},
+                {"App:FrontendUrl", "http://localhost:5296"}
             };
             _config = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
 
@@ -313,7 +316,8 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
 
-        #region POST
+        #region POST Tests
+
         [TestMethod]
         public async Task PostCompteTest()
         {
@@ -326,14 +330,20 @@ namespace Api_c_sharp.ControllersMock.Tests
                 MotDePasse = "anotherpassword",
                 Pseudo = "janesmith",
                 DateNaissance = new DateTime(1992, 2, 2),
-                IdTypeCompte = 1
+                IdTypeCompte = 1,
+                EmailVerif = false
             };
 
             var compteEntity = _mapper.Map<Compte>(compteCreateDTO);
             compteEntity.IdCompte = 2;
+            compteEntity.EmailVerif = false;
 
             _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
                        .ReturnsAsync(compteEntity)
+                       .Verifiable();
+
+            _mockManager.Setup(m => m.EnregistrerTokenEmail(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask)
                        .Verifiable();
 
             _mockJournalService.Setup(j => j.LogCreationCompteAsync(It.IsAny<int>(), It.IsAny<string>()))
@@ -347,23 +357,102 @@ namespace Api_c_sharp.ControllersMock.Tests
             var created = (CreatedAtActionResult)actionResult.Result;
             var createdCompte = (Compte)created.Value;
             Assert.AreEqual(compteCreateDTO.Email, createdCompte.Email);
+            Assert.IsFalse(createdCompte.EmailVerif);
+
             _mockManager.Verify(m => m.AddAsync(It.IsAny<Compte>()), Times.Once);
+            _mockManager.Verify(m => m.EnregistrerTokenEmail(It.Is<TokenEmail>(t =>
+                t.IdCompte == createdCompte.IdCompte &&
+                t.TypeToken == "EMAIL_VERIFICATION")), Times.Once);
         }
 
         [TestMethod]
-        public async Task BadRequestPostCompteTest()
+        public async Task Post_CreatesCompteWithDefaultValues()
         {
             // Arrange
-            CompteCreateDTO compteCreateDTO = new CompteCreateDTO();
-            _controller.ModelState.AddModelError("Email", "Required");
+            CompteCreateDTO compteCreateDTO = new CompteCreateDTO
+            {
+                Nom = "Test",
+                Prenom = "User",
+                Email = "test@gmail.com",
+                MotDePasse = "password123",
+                Pseudo = "testuser",
+                DateNaissance = new DateTime(1995, 5, 15),
+                IdTypeCompte = 1
+            };
+
+            var compteEntity = _mapper.Map<Compte>(compteCreateDTO);
+            compteEntity.IdCompte = 3;
+            compteEntity.EmailVerif = false;
+            compteEntity.IdEtatCompte = 1;
+            compteEntity.DateCreation = DateTime.UtcNow;
+            compteEntity.DateDerniereConnexion = DateTime.UtcNow;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
+                       .ReturnsAsync(compteEntity);
+
+            _mockManager.Setup(m => m.EnregistrerTokenEmail(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            _mockJournalService.Setup(j => j.LogCreationCompteAsync(It.IsAny<int>(), It.IsAny<string>()))
+                              .Returns(Task.CompletedTask);
 
             // Act
             var actionResult = await _controller.Post(compteCreateDTO);
 
             // Assert
-            Assert.IsInstanceOfType(actionResult.Result, typeof(BadRequestObjectResult));
-            _mockManager.Verify(m => m.AddAsync(It.IsAny<Compte>()), Times.Never);
+            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
+            var created = (CreatedAtActionResult)actionResult.Result;
+            var createdCompte = (Compte)created.Value;
+
+            // Vérifie que les valeurs par défaut sont bien définies
+            Assert.AreEqual(1, createdCompte.IdEtatCompte);
+            Assert.IsFalse(createdCompte.EmailVerif);
+            Assert.IsNotNull(createdCompte.DateCreation);
+            Assert.IsNotNull(createdCompte.DateDerniereConnexion);
+
+            _mockManager.Verify(m => m.EnregistrerTokenEmail(It.IsAny<TokenEmail>()), Times.Once);
         }
+
+        [TestMethod]
+        public async Task Post_LogsCreationCompte()
+        {
+            // Arrange
+            CompteCreateDTO compteCreateDTO = new CompteCreateDTO
+            {
+                Nom = "NewUser",
+                Prenom = "Test",
+                Email = "newuser@gmail.com",
+                MotDePasse = "password",
+                Pseudo = "newuser",
+                DateNaissance = new DateTime(1993, 3, 3),
+                IdTypeCompte = 1
+            };
+
+            var compteEntity = _mapper.Map<Compte>(compteCreateDTO);
+            compteEntity.IdCompte = 5;
+
+            _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
+                       .ReturnsAsync(compteEntity);
+
+            _mockManager.Setup(m => m.EnregistrerTokenEmail(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask);
+
+            _mockJournalService.Setup(j => j.LogCreationCompteAsync(It.IsAny<int>(), It.IsAny<string>()))
+                              .Returns(Task.CompletedTask)
+                              .Verifiable();
+
+            // Act
+            await _controller.Post(compteCreateDTO);
+
+            // Assert
+            _mockJournalService.Verify(j => j.LogCreationCompteAsync(
+                It.IsAny<int>(),
+                It.Is<string>(s => s == compteCreateDTO.Pseudo)),
+                Times.Once);
+
+            _mockManager.Verify(m => m.EnregistrerTokenEmail(It.IsAny<TokenEmail>()), Times.Once);
+        }
+
         #endregion
 
         #region DELETE
@@ -1139,44 +1228,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.UpdateAsync(It.IsAny<Compte>(), It.IsAny<Compte>()), Times.Never);
         }
 
-        [TestMethod]
-        public async Task Post_CreatesCompteWithDefaultValues()
-        {
-            // Arrange
-            CompteCreateDTO compteCreateDTO = new CompteCreateDTO
-            {
-                Nom = "Test",
-                Prenom = "User",
-                Email = "test@gmail.com",
-                MotDePasse = "password123",
-                Pseudo = "testuser",
-                DateNaissance = new DateTime(1995, 5, 15),
-                IdTypeCompte = 1
-            };
-
-            var compteEntity = _mapper.Map<Compte>(compteCreateDTO);
-            compteEntity.IdCompte = 3;
-
-            _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
-                       .ReturnsAsync(compteEntity);
-
-            _mockJournalService.Setup(j => j.LogCreationCompteAsync(It.IsAny<int>(), It.IsAny<string>()))
-                              .Returns(Task.CompletedTask);
-
-            // Act
-            var actionResult = await _controller.Post(compteCreateDTO);
-
-            // Assert
-            Assert.IsInstanceOfType(actionResult.Result, typeof(CreatedAtActionResult));
-            var created = (CreatedAtActionResult)actionResult.Result;
-            var createdCompte = (Compte)created.Value;
-
-            // Vérifie que les valeurs par défaut sont bien définies
-            Assert.AreEqual(1, createdCompte.IdEtatCompte);
-            Assert.IsNotNull(createdCompte.DateCreation);
-            Assert.IsNotNull(createdCompte.DateDerniereConnexion);
-        }
-
+       
         [TestMethod]
         public async Task Logout_LogsDeconnexion()
         {
@@ -1235,39 +1287,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockJournalService.Verify(j => j.LogModificationProfilAsync(_objetcommun.IdCompte), Times.Once);
         }
 
-        [TestMethod]
-        public async Task Post_LogsCreationCompte()
-        {
-            // Arrange
-            CompteCreateDTO compteCreateDTO = new CompteCreateDTO
-            {
-                Nom = "NewUser",
-                Prenom = "Test",
-                Email = "newuser@gmail.com",
-                MotDePasse = "password",
-                Pseudo = "newuser",
-                DateNaissance = new DateTime(1993, 3, 3),
-                IdTypeCompte = 1
-            };
-
-            var compteEntity = _mapper.Map<Compte>(compteCreateDTO);
-            compteEntity.IdCompte = 5;
-
-            _mockManager.Setup(m => m.AddAsync(It.IsAny<Compte>()))
-                       .ReturnsAsync(compteEntity);
-            _mockJournalService.Setup(j => j.LogCreationCompteAsync(It.IsAny<int>(), It.IsAny<string>()))
-                              .Returns(Task.CompletedTask)
-                              .Verifiable();
-
-            // Act
-            await _controller.Post(compteCreateDTO);
-
-            // Assert
-            _mockJournalService.Verify(j => j.LogCreationCompteAsync(
-                It.IsAny<int>(),
-                It.Is<string>(s => s == compteCreateDTO.Pseudo)),
-                Times.Once);
-        }
 
         [TestMethod]
         public void ComputeSha256Hash_ValidString_ReturnsHashedString()
@@ -2289,6 +2308,224 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockManager.Verify(m => m.EnregistrerA2f(It.Is<TokenEmail>(t =>
                 t.Expiration >= startTime.AddMinutes(14.5) &&
                 t.Expiration <= endTime.AddMinutes(15.5))), Times.Once);
+        }
+
+        #endregion
+
+        #region Tests Vérification Email
+
+        [TestMethod]
+        public async Task EnvoyerEmailVerification_ValidCompte_ReturnsOk()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.EnregistrerTokenEmail(It.IsAny<TokenEmail>()))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.EnvoyerEmailVerification(_objetcommun.IdCompte);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+            var okResult = result as OkObjectResult;
+
+            var response = okResult.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+
+            Assert.IsNotNull(messageProperty);
+            Assert.AreEqual("Email de vérification envoyé", messageProperty.GetValue(response));
+
+            _mockManager.Verify(m => m.EnregistrerTokenEmail(It.Is<TokenEmail>(t =>
+                t.IdCompte == _objetcommun.IdCompte &&
+                t.TypeToken == "EMAIL_VERIFICATION" &&
+                !t.Utilise)), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task EnvoyerEmailVerification_CompteInexistant_ReturnsNotFound()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetByIdAsync(999))
+                       .ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.EnvoyerEmailVerification(999);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            _mockManager.Verify(m => m.EnregistrerTokenEmail(It.IsAny<TokenEmail>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_ValidToken_MarksEmailAsVerified()
+        {
+            // Arrange
+            var token = "test-token-12345";
+            var tokenEmail = new TokenEmail
+            {
+                IdTokenEmail = 1,
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = token,
+                Expiration = DateTime.UtcNow.AddHours(24),
+                Utilise = false,
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            _mockManager.Setup(m => m.GetTokenEmailByToken(token))
+                       .ReturnsAsync(tokenEmail);
+
+            _mockManager.Setup(m => m.GetByIdAsync(_objetcommun.IdCompte))
+                       .ReturnsAsync(_objetcommun);
+
+            _mockManager.Setup(m => m.MarquerEmailVerifie(_objetcommun.IdCompte))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            _mockManager.Setup(m => m.MarquerTokenUtilise(tokenEmail.IdTokenEmail))
+                       .Returns(Task.CompletedTask)
+                       .Verifiable();
+
+            // Act
+            var result = await _controller.VerifierEmail(token);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+
+            _mockManager.Verify(m => m.MarquerEmailVerifie(_objetcommun.IdCompte), Times.Once);
+            _mockManager.Verify(m => m.MarquerTokenUtilise(tokenEmail.IdTokenEmail), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_TokenInvalide_ReturnsBadRequest()
+        {
+            // Arrange
+            _mockManager.Setup(m => m.GetTokenEmailByToken("token-inexistant"))
+                       .ReturnsAsync((TokenEmail)null);
+
+            // Act
+            var result = await _controller.VerifierEmail("token-inexistant");
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            var badRequest = result as BadRequestObjectResult;
+
+            var response = badRequest.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+
+            Assert.AreEqual("Token invalide ou déjà utilisé", messageProperty.GetValue(response));
+
+            _mockManager.Verify(m => m.MarquerEmailVerifie(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.MarquerTokenUtilise(It.IsAny<int>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_TokenExpire_ReturnsBadRequest()
+        {
+            // Arrange
+            var token = "expired-token-12345";
+            var tokenEmail = new TokenEmail
+            {
+                IdTokenEmail = 1,
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = token,
+                Expiration = DateTime.UtcNow.AddHours(-1), // Token expiré
+                Utilise = false,
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            _mockManager.Setup(m => m.GetTokenEmailByToken(token))
+                       .ReturnsAsync(tokenEmail);
+
+            // Act
+            var result = await _controller.VerifierEmail(token);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            var badRequest = result as BadRequestObjectResult;
+
+            var response = badRequest.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+
+            Assert.AreEqual("Le token a expiré", messageProperty.GetValue(response));
+
+            _mockManager.Verify(m => m.MarquerEmailVerifie(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.MarquerTokenUtilise(It.IsAny<int>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_TokenDejaUtilise_ReturnsBadRequest()
+        {
+            // Arrange
+            var token = "used-token-12345";
+            var tokenEmail = new TokenEmail
+            {
+                IdTokenEmail = 1,
+                IdCompte = _objetcommun.IdCompte,
+                Email = _objetcommun.Email,
+                Token = token,
+                Expiration = DateTime.UtcNow.AddHours(24),
+                Utilise = true, // Déjà utilisé
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            _mockManager.Setup(m => m.GetTokenEmailByToken(token))
+                       .ReturnsAsync(tokenEmail);
+
+            // Act
+            var result = await _controller.VerifierEmail(token);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            var badRequest = result as BadRequestObjectResult;
+
+            var response = badRequest.Value;
+            var responseType = response.GetType();
+            var messageProperty = responseType.GetProperty("message");
+
+            Assert.AreEqual("Token invalide ou déjà utilisé", messageProperty.GetValue(response));
+
+            _mockManager.Verify(m => m.MarquerEmailVerifie(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.MarquerTokenUtilise(It.IsAny<int>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task VerifierEmail_CompteInexistant_ReturnsNotFound()
+        {
+            // Arrange
+            var token = "token-compte-inexistant";
+            var tokenEmail = new TokenEmail
+            {
+                IdTokenEmail = 1,
+                IdCompte = 999, // Compte qui n'existe pas
+                Email = "inexistant@test.com",
+                Token = token,
+                Expiration = DateTime.UtcNow.AddHours(24),
+                Utilise = false,
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            _mockManager.Setup(m => m.GetTokenEmailByToken(token))
+                       .ReturnsAsync(tokenEmail);
+
+            _mockManager.Setup(m => m.GetByIdAsync(999))
+                       .ReturnsAsync((Compte)null);
+
+            // Act
+            var result = await _controller.VerifierEmail(token);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+
+            _mockManager.Verify(m => m.MarquerEmailVerifie(It.IsAny<int>()), Times.Never);
+            _mockManager.Verify(m => m.MarquerTokenUtilise(It.IsAny<int>()), Times.Never);
         }
 
         #endregion

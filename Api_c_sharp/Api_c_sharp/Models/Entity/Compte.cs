@@ -78,6 +78,9 @@ namespace Api_c_sharp.Models.Entity
 
         [Column("com_date_derniere_activation_a2f")]
         public DateTime? DateDerniereActivationA2f { get; set; }
+        
+        [Column("com_email_verif")]
+        public bool EmailVerif { get; set; } = false;
 
         [InverseProperty(nameof(TokenEmail.CompteTokenNav))]
         public virtual ICollection<TokenEmail> TokensEmail { get; set; } = new List<TokenEmail>();

@@ -121,11 +121,29 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         entity.DateCreation = DateTime.UtcNow;
         entity.DateDerniereConnexion = DateTime.UtcNow;
         entity.IdEtatCompte = 1;
+        entity.EmailVerif = false; // ✅ Email non vérifié par défaut
 
         try
         {
             await _manager.AddAsync(entity);
             await _journalService.LogCreationCompteAsync(entity.IdCompte, entity.Pseudo);
+        
+            // ✅ Générer et envoyer le token de vérification
+            string token = GenerateSecureToken();
+            var expiration = DateTime.UtcNow.AddHours(24);
+
+            var tokenEmail = new TokenEmail
+            {
+                IdCompte = entity.IdCompte,
+                Email = entity.Email,
+                Token = token,
+                Expiration = expiration,
+                Utilise = false,
+                TypeToken = "EMAIL_VERIFICATION"
+            };
+
+            await _manager.EnregistrerTokenEmail(tokenEmail);
+            await EnvoyerEmailVerification(entity.Email, token);
 
             return CreatedAtAction(nameof(GetByID), new { id = entity.IdCompte }, entity);
         }
@@ -273,6 +291,88 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         await _manager.DeleteAsync(entity);
         return NoContent();
     }
+#endregion
+
+#region Vérification Email
+
+    /// <summary>
+    /// Envoie un email de vérification à un utilisateur.
+    /// </summary>
+    /// <param name="idCompte">Identifiant du compte.</param>
+    [ActionName("EnvoyerEmailVerification")]
+    [HttpPost("{idCompte}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> EnvoyerEmailVerification(int idCompte)
+    {
+        var compte = await _manager.GetByIdAsync(idCompte);
+
+        if (compte == null)
+            return NotFound();
+
+        string token = GenerateSecureToken();
+        var expiration = DateTime.UtcNow.AddHours(24);
+
+        var tokenEmail = new TokenEmail
+        {
+            IdCompte = compte.IdCompte,
+            Email = compte.Email,
+            Token = token,
+            Expiration = expiration,
+            Utilise = false,
+            TypeToken = "EMAIL_VERIFICATION"
+        };
+
+        await _manager.EnregistrerTokenEmail(tokenEmail);
+        await EnvoyerEmailVerification(compte.Email, token);
+
+        return Ok(new { message = "Email de vérification envoyé" });
+    }
+
+    /// <summary>
+    /// Vérifie l'email d'un compte via un token.
+    /// </summary>
+    /// <param name="token">Token de vérification.</param>
+    [ActionName("VerifierEmail")]
+    [HttpGet("{token}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifierEmail(string token)
+    {
+        try
+        {
+            var tokenEmail = await _manager.GetTokenEmailByToken(token);
+
+            if (tokenEmail == null || tokenEmail.Utilise)
+            {
+                return BadRequest(new { message = "Token invalide ou déjà utilisé" });
+            }
+
+            if (tokenEmail.Expiration < DateTime.UtcNow)
+            {
+                return BadRequest(new { message = "Le token a expiré" });
+            }
+
+            var compte = await _manager.GetByIdAsync((int)tokenEmail.IdCompte);
+
+            if (compte == null)
+            {
+                return NotFound(new { message = "Compte introuvable" });
+            }
+
+            // Marquer l'email comme vérifié
+            await _manager.MarquerEmailVerifie(compte.IdCompte);
+            await _manager.MarquerTokenUtilise(tokenEmail.IdTokenEmail);
+
+            return Ok(new { message = "Email vérifié avec succès" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur VerifierEmail: {ex.Message}");
+            return StatusCode(500, new { message = "Erreur serveur" });
+        }
+    }
+
 #endregion
 
 #region Autre methode
@@ -453,7 +553,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             if (a2fActif || doitReactiverA2f)
             {
                 // Envoyer code A2F par email
-                var codeA2f = GenerateSecureA2fCode();
+                var codeA2f = GenerateSecureCode();
                 var expiration = DateTime.UtcNow.AddMinutes(15);
 
                 var tokenA2f = new TokenEmail
@@ -854,9 +954,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     [HttpGet]
     public IActionResult GoogleLogin()
     {
-        var clientId = config["Authentication:Google:ClientId"];
+        var clientId = config["ClientId"] ?? config["Authentication:Google:ClientId"];
         Console.WriteLine(clientId);
-        var redirectUri = config["Authentication:Google:RedirectUri"];
+        var redirectUri = config["RedirectUrl"] ?? config["Authentication:Google:RedirectUri"];
         var scope = "openid profile email";
             
         var googleAuthUrl = $"https://accounts.google.com/o/oauth2/v2/auth?" +
@@ -906,7 +1006,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
                 Path = "/",
                 Domain = null
             });
-            
+
             // 6. Rediriger vers le front
             if (existing)
             {
@@ -924,9 +1024,9 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
 #region Outils Authentification Google
     private async Task<GoogleTokenResponse> ExchangeCodeForToken(string code)
     {
-        var clientId = config["Authentication:Google:ClientId"];
-        var clientSecret = config["Authentication:Google:ClientSecret"];
-        var redirectUri = config["Authentication:Google:RedirectUri"];
+        var clientId = config["ClientId"] ?? config["Authentication:Google:ClientId"];
+        var clientSecret = config["ClientSecret"] ?? config["Authentication:Google:ClientSecret"];
+        var redirectUri = config["RedirectUri"] ?? config["Authentication:Google:RedirectUri"];
 
         using var httpClient = new HttpClient();
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -1071,7 +1171,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     /// <returns>Le jeton JWT généré.</returns>
     private string GenerateJwtToken(LoginRequest compteInfo)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:SecretKey"]));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt__SecretKey"] ?? config["Jwt:SecretKey"]));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         Compte compte = _manager.GetByNameAsync(compteInfo.Email).Result;
         var claims = new[]
@@ -1083,8 +1183,8 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         };
         
         var token = new JwtSecurityToken(
-            issuer: config["Jwt:Issuer"],
-            audience: config["Jwt:Audience"],
+            issuer: config["Jwt__SecretIssuer"] ?? config["Jwt:Issuer"],
+            audience: config["Jwt__SecretAudience"] ?? config["Jwt:Audience"],
             claims: claims,
             expires: DateTime.Now.AddMinutes(15),
             signingCredentials: credentials
@@ -1156,21 +1256,201 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
     private async Task EnvoyerEmailA2f(string email, string code, bool isReactivation)
     {
         string sujet = isReactivation
-            ? "Réactivation A2F requise"
-            : "Code de connexion A2F";
+            ? "🔒 Réactivation A2F requise - AutoPulse"
+            : "🔐 Code de connexion A2F - AutoPulse";
+
+        string titre = isReactivation
+            ? "Réactivation de l'authentification à deux facteurs"
+            : "Code de connexion";
 
         string message = isReactivation
-            ? $"Votre authentification à deux facteurs doit être réactivée.\nCode : {code}"
-            : $"Votre code de connexion A2F : {code}";
+            ? "Pour des raisons de sécurité, votre authentification à deux facteurs doit être réactivée. Utilisez le code ci-dessous pour continuer :"
+            : "Pour finaliser votre connexion, veuillez entrer le code suivant :";
+
+        string htmlMessage = $@"
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <style>
+                    body {{
+                        margin: 0;
+                        padding: 0;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                    }}
+                    .email-wrapper {{
+                        padding: 40px 20px;
+                    }}
+                    .email-container {{
+                        max-width: 600px;
+                        margin: 0 auto;
+                        background-color: #ffffff;
+                        border-radius: 16px;
+                        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                        overflow: hidden;
+                    }}
+                    .header {{
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 40px 30px;
+                        text-align: center;
+                    }}
+                    .logo {{
+                        font-size: 32px;
+                        font-weight: bold;
+                        color: #ffffff;
+                        margin-bottom: 10px;
+                    }}
+                    .header-subtitle {{
+                        color: rgba(255, 255, 255, 0.9);
+                        font-size: 16px;
+                        margin: 0;
+                    }}
+                    .content {{
+                        padding: 40px 30px;
+                    }}
+                    h1 {{
+                        color: #2d3748;
+                        font-size: 24px;
+                        margin: 0 0 20px 0;
+                        font-weight: 600;
+                    }}
+                    p {{
+                        color: #4a5568;
+                        line-height: 1.8;
+                        margin: 0 0 30px 0;
+                        font-size: 16px;
+                    }}
+                    .code-container {{
+                        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+                        border: 2px solid #e2e8f0;
+                        border-radius: 12px;
+                        padding: 30px;
+                        text-align: center;
+                        margin: 30px 0;
+                    }}
+                    .code-label {{
+                        color: #718096;
+                        font-size: 14px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        margin-bottom: 15px;
+                        font-weight: 600;
+                    }}
+                    .code {{
+                        font-size: 42px;
+                        font-weight: bold;
+                        color: #667eea;
+                        letter-spacing: 8px;
+                        font-family: 'Courier New', monospace;
+                        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+                    }}
+                    .warning-box {{
+                        background-color: #fff5f5;
+                        border-left: 4px solid #f56565;
+                        padding: 20px;
+                        border-radius: 8px;
+                        margin: 30px 0;
+                    }}
+                    .warning-box p {{
+                        color: #742a2a;
+                        margin: 0;
+                        font-size: 14px;
+                    }}
+                    .info-box {{
+                        background-color: #ebf8ff;
+                        border-left: 4px solid #4299e1;
+                        padding: 20px;
+                        border-radius: 8px;
+                        margin: 30px 0;
+                    }}
+                    .info-box p {{
+                        color: #2c5282;
+                        margin: 0;
+                        font-size: 14px;
+                    }}
+                    .footer {{
+                        background-color: #f7fafc;
+                        padding: 30px;
+                        text-align: center;
+                        border-top: 1px solid #e2e8f0;
+                    }}
+                    .footer p {{
+                        color: #718096;
+                        font-size: 14px;
+                        margin: 5px 0;
+                    }}
+                    .footer-link {{
+                        color: #667eea;
+                        text-decoration: none;
+                    }}
+                    .security-icon {{
+                        font-size: 48px;
+                        margin-bottom: 20px;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class='email-wrapper'>
+                    <div class='email-container'>
+                        <div class='header'>
+                            <div class='logo'>🚗 AutoPulse</div>
+                            <p class='header-subtitle'>Plateforme de vente automobile</p>
+                        </div>
+                        
+                        <div class='content'>
+                            <div class='security-icon'>🔐</div>
+                            <h1>{titre}</h1>
+                            <p>{message}</p>
+                            
+                            <div class='code-container'>
+                                <div class='code-label'>Votre code de sécurité</div>
+                                <div class='code'>{code}</div>
+                            </div>
+                            
+                            <div class='info-box'>
+                                <p><strong>⏱️ Code valide pendant 15 minutes</strong><br>
+                                Ce code expirera automatiquement après 15 minutes pour votre sécurité.</p>
+                            </div>
+                            
+                            <div class='warning-box'>
+                                <p><strong>⚠️ Important</strong><br>
+                                Si vous n'avez pas demandé ce code, quelqu'un essaie peut-être d'accéder à votre compte. 
+                                Nous vous recommandons de changer votre mot de passe immédiatement.</p>
+                            </div>
+                        </div>
+                        
+                        <div class='footer'>
+                            <p><strong>Besoin d'aide ?</strong></p>
+                            <p>Contactez notre support : <a href='mailto:support@autopulse.com' class='footer-link'>support@autopulse.com</a></p>
+                            <p style='margin-top: 20px; color: #a0aec0; font-size: 12px;'>
+                                © 2026 AutoPulse. Tous droits réservés.<br>
+                                Cet email a été envoyé pour des raisons de sécurité.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+        ";
 
         var emailMessage = new MimeMessage();
-        emailMessage.From.Add(new MailboxAddress("AutoPulse", "no-reply@autopulse.com"));
+        emailMessage.From.Add(new MailboxAddress("AutoPulse", config["GmailUser"] ?? config["Email:GmailUser"]));
         emailMessage.To.Add(new MailboxAddress("", email));
         emailMessage.Subject = sujet;
-        emailMessage.Body = new TextPart("plain") { Text = message };
+        
+        var bodyBuilder = new BodyBuilder
+        {
+            HtmlBody = htmlMessage,
+            TextBody = $"{titre}\n\n{message}\n\nCode : {code}\n\nCe code expire dans 15 minutes.\n\n-- AutoPulse"
+        };
+        
+        emailMessage.Body = bodyBuilder.ToMessageBody();
 
-        string user = config["Email:GmailUser"];
-        string password = config["Email:GmailPass"];
+        string user = config["GmailUser"] ?? config["Email:GmailUser"];
+        string password = config["GmailPass"] ?? config["Email:GmailPass"];
 
         using var client = new SmtpClient();
         await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
@@ -1203,13 +1483,270 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
         return ipAddress ?? "Unknown";
     }
     
-    private static string GenerateSecureA2fCode()
+    private static string GenerateSecureCode()
     {
         using var rng = RandomNumberGenerator.Create();
         var bytes = new byte[4];
         rng.GetBytes(bytes);
         var number = BitConverter.ToUInt32(bytes, 0) % 10000000;
         return number.ToString("D7");
+    }
+    
+    private async Task EnvoyerEmailVerification(string email, string token)
+    {
+        string verificationUrl = $"{config["FrontendUrl"] ?? config["App:FrontendUrl"]}/verification-email/{token}";
+        
+        string htmlMessage = $@"
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <style>
+                    body {{
+                        margin: 0;
+                        padding: 0;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                    }}
+                    .email-wrapper {{
+                        padding: 40px 20px;
+                    }}
+                    .email-container {{
+                        max-width: 600px;
+                        margin: 0 auto;
+                        background-color: #ffffff;
+                        border-radius: 16px;
+                        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                        overflow: hidden;
+                    }}
+                    .header {{
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 40px 30px;
+                        text-align: center;
+                    }}
+                    .logo {{
+                        font-size: 32px;
+                        font-weight: bold;
+                        color: #ffffff;
+                        margin-bottom: 10px;
+                    }}
+                    .header-subtitle {{
+                        color: rgba(255, 255, 255, 0.9);
+                        font-size: 16px;
+                        margin: 0;
+                    }}
+                    .content {{
+                        padding: 40px 30px;
+                    }}
+                    .welcome-icon {{
+                        font-size: 64px;
+                        text-align: center;
+                        margin-bottom: 20px;
+                    }}
+                    h1 {{
+                        color: #2d3748;
+                        font-size: 28px;
+                        margin: 0 0 20px 0;
+                        font-weight: 600;
+                        text-align: center;
+                    }}
+                    p {{
+                        color: #4a5568;
+                        line-height: 1.8;
+                        margin: 0 0 20px 0;
+                        font-size: 16px;
+                    }}
+                    .button-container {{
+                        text-align: center;
+                        margin: 40px 0;
+                    }}
+                    .button {{
+                        display: inline-block;
+                        background-color: #ffffff;
+                        color: #667eea;
+                        padding: 16px 40px;
+                        text-decoration: none;
+                        border-radius: 50px;
+                        font-weight: 600;
+                        font-size: 16px;
+                        border: 2px solid #667eea;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+                        transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+                    }}
+                    .button:hover {{
+                        background-color: #f7fafc;
+                        transform: translateY(-2px);
+                        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+                    }}
+                    .features {{
+                        background-color: #f7fafc;
+                        border-radius: 12px;
+                        padding: 30px;
+                        margin: 30px 0;
+                    }}
+                    .feature {{
+                        display: flex;
+                        align-items: center;
+                        margin-bottom: 20px;
+                    }}
+                    .feature:last-child {{
+                        margin-bottom: 0;
+                    }}
+                    .feature-icon {{
+                        font-size: 24px;
+                        margin-right: 15px;
+                        min-width: 30px;
+                    }}
+                    .feature-text {{
+                        color: #2d3748;
+                        font-size: 15px;
+                        margin: 0;
+                    }}
+                    .info-box {{
+                        background-color: #ebf8ff;
+                        border-left: 4px solid #4299e1;
+                        padding: 20px;
+                        border-radius: 8px;
+                        margin: 30px 0;
+                    }}
+                    .info-box p {{
+                        color: #2c5282;
+                        margin: 0;
+                        font-size: 14px;
+                    }}
+                    .footer {{
+                        background-color: #f7fafc;
+                        padding: 30px;
+                        text-align: center;
+                        border-top: 1px solid #e2e8f0;
+                    }}
+                    .footer p {{
+                        color: #718096;
+                        font-size: 14px;
+                        margin: 5px 0;
+                    }}
+                    .footer-link {{
+                        color: #667eea;
+                        text-decoration: none;
+                    }}
+                    .divider {{
+                        height: 1px;
+                        background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+                        margin: 30px 0;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class='email-wrapper'>
+                    <div class='email-container'>
+                        <div class='header'>
+                            <div class='logo'>🚗 AutoPulse</div>
+                            <p class='header-subtitle'>Plateforme de vente automobile</p>
+                        </div>
+                        
+                        <div class='content'>
+                            <div class='welcome-icon'>🎉</div>
+                            <h1>Bienvenue sur AutoPulse !</h1>
+                            
+                            <p>Nous sommes ravis de vous accueillir dans notre communauté. Vous êtes à un clic de profiter de la meilleure plateforme pour acheter et vendre des véhicules.</p>
+                            
+                            <div class='button-container'>
+                                <a href='{verificationUrl}' class='button'>✓ Vérifier mon email</a>
+                            </div>
+                            
+                            <div class='divider'></div>
+                            
+                            <div class='features'>
+                                <h3 style='color: #2d3748; margin-top: 0; font-size: 18px;'>Ce que vous pouvez faire :</h3>
+                                <div class='feature'>
+                                    <div class='feature-icon'>🔍</div>
+                                    <p class='feature-text'>Rechercher parmi des milliers d'annonces de véhicules</p>
+                                </div>
+                                <div class='feature'>
+                                    <div class='feature-icon'>📝</div>
+                                    <p class='feature-text'>Publier vos propres annonces gratuitement</p>
+                                </div>
+                                <div class='feature'>
+                                    <div class='feature-icon'>💬</div>
+                                    <p class='feature-text'>Échanger directement avec les vendeurs</p>
+                                </div>
+                                <div class='feature'>
+                                    <div class='feature-icon'>⭐</div>
+                                    <p class='feature-text'>Sauvegarder vos annonces favorites</p>
+                                </div>
+                            </div>
+                            
+                            <div class='info-box'>
+                                <p><strong>⏱️ Ce lien expire dans 24 heures</strong><br>
+                                Pour des raisons de sécurité, ce lien de vérification ne sera valide que pendant 24 heures.</p>
+                            </div>
+                            
+                            <p style='font-size: 14px; color: #718096; text-align: center; margin-top: 30px;'>
+                                Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+                                <a href='{verificationUrl}' style='color: #667eea; word-break: break-all;'>{verificationUrl}</a>
+                            </p>
+                        </div>
+                        
+                        <div class='footer'>
+                            <p><strong>Besoin d'aide ?</strong></p>
+                            <p>Notre équipe est là pour vous : <a href='mailto:support@autopulse.com' class='footer-link'>support@autopulse.com</a></p>
+                            <p style='margin-top: 20px; color: #a0aec0; font-size: 12px;'>
+                                Vous recevez cet email car vous avez créé un compte sur AutoPulse.<br>
+                                Si vous n'êtes pas à l'origine de cette inscription, vous pouvez ignorer cet email.
+                            </p>
+                            <p style='color: #a0aec0; font-size: 12px; margin-top: 15px;'>
+                                © 2026 AutoPulse. Tous droits réservés.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+        ";
+
+        var emailMessage = new MimeMessage();
+        emailMessage.From.Add(new MailboxAddress("AutoPulse", config["GmailUser"] ?? config["Email:GmailUser"]));
+        emailMessage.To.Add(new MailboxAddress("", email));
+        emailMessage.Subject = "🎉 Bienvenue sur AutoPulse - Vérifiez votre email";
+        
+        var bodyBuilder = new BodyBuilder
+        {
+            HtmlBody = htmlMessage,
+            TextBody = $@"Bienvenue sur AutoPulse !
+
+    Nous sommes ravis de vous accueillir. Pour activer votre compte, veuillez vérifier votre adresse email en visitant ce lien :
+
+    {verificationUrl}
+
+    Ce lien expire dans 24 heures.
+
+    Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.
+
+    -- 
+    L'équipe AutoPulse
+    support@autopulse.com"
+        };
+        
+        emailMessage.Body = bodyBuilder.ToMessageBody();
+
+        string user = config["GmailUser"] ?? config["Email:GmailUser"];
+        string password = config["GmailPass"] ?? config["Email:GmailPass"];
+
+        using var client = new SmtpClient();
+        await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(user, password);
+        await client.SendAsync(emailMessage);
+        await client.DisconnectAsync(true);
+    }
+
+    private static string GenerateSecureToken()
+    {
+        using var rng = RandomNumberGenerator.Create();
+        var bytes = new byte[32];
+        rng.GetBytes(bytes);
+        return Convert.ToBase64String(bytes).Replace("+", "-").Replace("/", "_").Replace("=", "");
     }
 #endregion
 }
