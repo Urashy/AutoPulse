@@ -10,7 +10,6 @@ catboost
 python-multipart==0.0.6
 Pillow==10.2.0
 
-# --- C'EST ICI QUE CA SE JOUE ---
 # On force l'index CPU pour ne pas télécharger les 3Go de Nvidia
 --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
 torch==2.1.2+cpu
