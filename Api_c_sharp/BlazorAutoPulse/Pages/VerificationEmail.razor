@@ -1,0 +1,108 @@
+@page "/verification-email/{Token}"
+@using BlazorAutoPulse.Service.Interface
+@inject ICompteService CompteService
+@inject NavigationManager Navigation
+
+<div class="verification-container">
+    @if (isLoading)
+    {
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Vérification de votre email en cours...</p>
+        </div>
+    }
+    else if (success)
+    {
+        <div class="success-message">
+            <div class="icon-success">✓</div>
+            <h2>Email vérifié avec succès !</h2>
+            <p>Votre compte a été activé. Vous allez être redirigé vers la page de connexion dans @countdown secondes...</p>
+            <button @onclick="RedirectToLogin" class="btn-primary">Se connecter maintenant</button>
+        </div>
+    }
+    else
+    {
+        <div class="error-message">
+            <div class="icon-error">✗</div>
+            <h2>Erreur de vérification</h2>
+            <p>@errorMessage</p>
+            <button @onclick="RedirectToHome" class="btn-secondary">Retour à l'accueil</button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Token { get; set; }
+
+    private bool isLoading = true;
+    private bool success = false;
+    private string errorMessage = "";
+    private int countdown = 5;
+    private System.Threading.Timer? timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VerifierToken();
+    }
+
+    private async Task VerifierToken()
+    {
+        try
+        {
+            var response = await CompteService.VerifierEmail(Token);
+
+            if (response != null && response.IsSuccessStatusCode)
+            {
+                success = true;
+                StartCountdown();
+            }
+            else
+            {
+                success = false;
+                errorMessage = "Le lien de vérification est invalide ou a expiré.";
+            }
+        }
+        catch (Exception ex)
+        {
+            success = false;
+            errorMessage = "Une erreur est survenue lors de la vérification.";
+            Console.WriteLine($"Erreur vérification: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void StartCountdown()
+    {
+        timer = new System.Threading.Timer(async _ =>
+        {
+            countdown--;
+            await InvokeAsync(StateHasChanged);
+
+            if (countdown <= 0)
+            {
+                timer?.Dispose();
+                RedirectToLogin();
+            }
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+    }
+
+    private void RedirectToLogin()
+    {
+        Navigation.NavigateTo("/connexion", forceLoad: true);
+    }
+
+    private void RedirectToHome()
+    {
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

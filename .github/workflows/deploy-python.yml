@@ -43,4 +43,4 @@ jobs:
         with:
           app-name: 'python-autopulse'
           package: ./python-app.zip
-          startup-command: 'gunicorn --bind=0.0.0.0 --timeout 600 -w 4 -k uvicorn.workers.UvicornWorker main:app'
+          startup-command: 'gunicorn -w 1 -k uvicorn.workers.UvicornWorker main:app'

@@ -16,4 +16,6 @@ public interface ICompteService: IService<CompteDetailDTO>
     Task<IEnumerable<CompteGetDTO>> GetByTypeCompteAsync(int idTypeCompte);
     Task<CompteProfilPublicDTO> GetComptePublicById(int id);
     Task <bool> ToggleSuspention(int idCompte,bool e);
+    Task<HttpResponseMessage> VerifierEmail(string token);
+    Task<HttpResponseMessage> RenvoyerEmailVerification(int idCompte);
 }

@@ -45,7 +45,14 @@
         <div class="cars-grid" data-testid="results-grid">
             @foreach (var a in VM.allAnnonces)
             {
-                <AnnonceComposant Annonce="@a" idCompte="@VM.compte.IdCompte" divClass="car-card"/>
+                @if (VM.compte != null)
+                {
+                    <AnnonceComposant Annonce="@a" idCompte="@VM.compte.IdCompte" divClass="car-card" />
+                }
+                else
+                {
+                    <AnnonceComposant Annonce="@a" divClass="car-card" />
+                }
             }
         </div>
 

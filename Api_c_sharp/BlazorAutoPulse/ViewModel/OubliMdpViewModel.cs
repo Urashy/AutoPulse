@@ -41,7 +41,8 @@ public class OubliMdpViewModel
         ReinitialisationMdp = new ReinitialisationMdp()
         {
             Email = "",
-            Code = null
+            Code = null,
+            TypeToken = "",
         };
     }
 
@@ -60,6 +61,7 @@ public class OubliMdpViewModel
 
         CompteDetailDTO compte = await _compteService.GetByNameAsync(ReinitialisationMdp.Email);
         ReinitialisationMdp.IdCompte = compte.IdCompte;
+        ReinitialisationMdp.TypeToken = "OubliMdp";
         await _reinitMdpService.CreateAsync(ReinitialisationMdp);
 
         envoiDemande = true;

@@ -8,6 +8,7 @@ public interface IIAService
 {
     Task<ResultatAI> PredictAsync(DataAI data);
     Task<bool> HealthCheckAsync();
+    Task<bool> ReloadModelsAsync();
     
     //Benchmark
     Task<IEnumerable<BenchmarkIAListDTO>> GetAllBenchmarksAsync();

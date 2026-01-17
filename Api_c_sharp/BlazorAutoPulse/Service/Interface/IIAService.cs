@@ -8,6 +8,7 @@ namespace BlazorAutoPulse.Service.Interface
     {
         Task<ResultatAI> PredictAIAsync(DataAI data);
         Task<bool> HealthCheckAsync();
+        Task<bool> ReloadAsync();
         
         //Benchmark
         Task<IEnumerable<BenchmarkIAListDTO>> GetAllBenchmarksAsync();

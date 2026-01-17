@@ -599,7 +599,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             var entity = await _context.TokenEmails.FirstAsync();
 
             // Act
-            var result = await _controller.InvaliderTokensParType(entity.IdCompte, "REINIT_MDP");
+            var result = await _controller.InvaliderTokensParType((int)entity.IdCompte, "REINIT_MDP");
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(NoContentResult));

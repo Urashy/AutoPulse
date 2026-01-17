@@ -55,7 +55,20 @@ namespace BlazorAutoPulse.Service.WebService
                 return false;
             }
         }
-        
+
+        public async Task<bool> ReloadAsync()
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"/api/IA/Reload", new {});
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public async Task<IEnumerable<BenchmarkIAListDTO>> GetAllBenchmarksAsync()
     {
         try

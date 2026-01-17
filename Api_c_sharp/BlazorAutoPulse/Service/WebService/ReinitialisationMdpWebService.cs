@@ -10,7 +10,7 @@ public class ReinitialisationMdpWebService : BaseWebService<ReinitialisationMdp>
     {
     }
 
-    protected override string ApiEndpoint => "ReinitialisationMotDePasse";
+    protected override string ApiEndpoint => "TokenEmail";
 
     public async Task<bool> VerifCode(ReinitialisationMdp data)
     {

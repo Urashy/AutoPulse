@@ -53,8 +53,22 @@
                 }
                 else
                 {
+                    <span>📈</span>
+                    <span>Lancer le benchmarks</span>
+                }
+            </button>
+            <button class="btn-sync"
+                    @onclick="VM.ReloadIA"
+                    disabled="@VM.IsReloading">
+                @if (VM.IsReloading)
+                {
+                    <span class="spinner-small"></span>
+                    <span>Rechargement...</span>
+                }
+                else
+                {
                     <span>🔄</span>
-                    <span>Synchroniser</span>
+                    <span>Recharger les IA</span>
                 }
             </button>
             <button class="btn-refresh" @onclick="VM.RefreshData" disabled="@VM.IsLoading">
