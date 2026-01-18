@@ -53,7 +53,7 @@ public class CreationCompteViewModel
         
         compte = new CompteCreateDTO();
         compte.IdTypeCompte = 1;
-        compte.DateNaissance = new DateTime(2000, 1, 1);
+        compte.DateNaissance = new DateTime(1900, 1, 1);
         compte.EstSuspendu = false;
         memeMotDePasse = true;
         showPopUp = false;
@@ -75,7 +75,7 @@ public class CreationCompteViewModel
     {
         compte = new CompteCreateDTO();
         compte.IdTypeCompte = 1;
-        compte.DateNaissance = new DateTime(2000, 1, 1);
+        compte.DateNaissance = new DateTime(1900, 1, 1);
         compte.EstSuspendu = false;
         
         motDePasse = string.Empty;
@@ -144,6 +144,13 @@ public class CreationCompteViewModel
             _refreshUI?.Invoke();
             return;
         }
+        
+        if (compte.DateNaissance == new DateTime(1900, 1, 1))
+        {
+            messageErreur = "La date de naissance est requise"; 
+            _refreshUI?.Invoke();
+            return;
+        }
 
         try
         {
@@ -178,7 +185,7 @@ public class CreationCompteViewModel
 
     private async Task StartCountdownAndRedirect()
     {
-        _countdownTimer = new System.Threading.Timer(async _ =>
+        _countdownTimer = new Timer(async _ =>
         {
             seconds--;
             _refreshUI?.Invoke();
@@ -190,152 +197,6 @@ public class CreationCompteViewModel
                 _nav?.NavigateTo("/connexion");
             }
         }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-    }
-
-    public async Task SkipA2f()
-    {
-        showPopUp = true;
-        seconds = 3;
-        _refreshUI?.Invoke();
-        
-        _countdownTimer = new System.Threading.Timer(async _ =>
-        {
-            seconds--;
-            _refreshUI?.Invoke();
-
-            if (seconds <= 0)
-            {
-                _countdownTimer?.Dispose();
-                _countdownTimer = null;
-                _nav?.NavigateTo("/connexion");
-            }
-        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-    }
-
-    public async Task EnvoyerCodeA2f()
-    {
-        isLoadingA2f = true;
-        messageErreur = null;
-        _refreshUI?.Invoke();
-
-        try
-        {
-            var compteCreated = await _compteService.GetByNameAsync(compte.Email);
-
-            var dto = new TokenEmailCreateDTO
-            {
-                IdCompte = compteCreated.IdCompte,
-                Email = compte.Email,
-                TypeToken = "A2F_ACTIVATION"
-            };
-
-            bool success = await _tokenEmailService.EnvoyerToken(dto);
-
-            if (success)
-            {
-                codeA2fEnvoye = true;
-                messageErreur = null;
-            }
-            else
-            {
-                messageErreur = "Erreur lors de l'envoi du code";
-            }
-        }
-        catch (Exception ex)
-        {
-            messageErreur = "Erreur lors de l'envoi du code";
-            Console.WriteLine($"Erreur EnvoyerCodeA2f: {ex.Message}");
-        }
-        finally
-        {
-            isLoadingA2f = false;
-            _refreshUI?.Invoke();
-        }
-    }
-
-    public async Task ValiderCodeA2f()
-    {
-        if (string.IsNullOrWhiteSpace(codeA2f))
-        {
-            messageErreur = "Veuillez saisir le code reçu par email";
-            _refreshUI?.Invoke();
-            return;
-        }
-
-        isLoadingA2f = true;
-        messageErreur = null;
-        _refreshUI?.Invoke();
-
-        try
-        {
-            var verifDto = new TokenEmailVerifDTO
-            {
-                Email = compte.Email,
-                Code = codeA2f,
-                TypeToken = "A2F_ACTIVATION"
-            };
-
-            bool codeValide = await _tokenEmailService.VerifierCode(verifDto);
-
-            if (!codeValide)
-            {
-                messageErreur = "Code invalide ou expiré";
-                isLoadingA2f = false;
-                _refreshUI?.Invoke();
-                return;
-            }
-
-            var compteCreated = await _compteService.GetByNameAsync(compte.Email);
-
-            var activationDto = new A2fActivationDTO
-            {
-                IdCompte = compteCreated.IdCompte
-            };
-
-            bool success = await _a2fService.ActiverA2f(activationDto);
-
-            if (success)
-            {
-                _notificationService.ShowSuccess(
-                    "A2F activé",
-                    "L'authentification à deux facteurs a été activée avec succès"
-                );
-            }
-            else
-            {
-                _notificationService.ShowError(
-                    "Erreur A2F",
-                    "Erreur lors de l'activation de l'A2F"
-                );
-            }
-
-            showPopUp = true;
-            seconds = 3;
-            _refreshUI?.Invoke();
-            
-            _countdownTimer = new System.Threading.Timer(async _ =>
-            {
-                seconds--;
-                _refreshUI?.Invoke();
-
-                if (seconds <= 0)
-                {
-                    _countdownTimer?.Dispose();
-                    _countdownTimer = null;
-                    _nav?.NavigateTo("/connexion");
-                }
-            }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-        }
-        catch (Exception ex)
-        {
-            messageErreur = "Erreur lors de la validation du code";
-            Console.WriteLine($"Erreur ValiderCodeA2f: {ex.Message}");
-        }
-        finally
-        {
-            isLoadingA2f = false;
-            _refreshUI?.Invoke();
-        }
     }
     
     public async Task ConnecterAvecGoogle()

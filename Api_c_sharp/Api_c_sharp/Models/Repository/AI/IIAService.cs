@@ -17,6 +17,10 @@ public interface IIAService
     Task<BenchmarkIAStatsDTO> GetBenchmarkStatsAsync();
     Task<IEnumerable<BenchmarkIAListDTO>> GetBenchmarkHistoryByTypeAsync(string modelType, int limit = 10);
     Task<BenchmarkIADTO> CreateBenchmarkAsync(BenchmarkIACreateDTO benchmark);
-    Task<IEnumerable<BenchmarkIADTO>> SyncBenchmarksFromPythonAsync();
+
+    Task<IEnumerable<BenchmarkIADTO>> SyncBenchmarksFromPythonAsync(
+        IEnumerable<DataCNN> cnnData,
+        IEnumerable<DataAjustement> ajustementData,
+        IEnumerable<DataPrediction> predictionData);
     Task<bool> DeleteBenchmarkAsync(int id);
 }

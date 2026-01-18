@@ -1083,7 +1083,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             DateCreation = DateTime.UtcNow,
             DateDerniereConnexion = DateTime.UtcNow,
 
-            DateNaissance = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            DateNaissance = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc),
 
             IdTypeCompte = 1,
             IdEtatCompte = 1,

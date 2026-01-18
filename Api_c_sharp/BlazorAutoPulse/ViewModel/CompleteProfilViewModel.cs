@@ -61,7 +61,7 @@ namespace BlazorAutoPulse.ViewModel
             messageErreur = null;
 
             // Validation date de naissance
-            if (dateNaissance == default || dateNaissance.Year == 2000)
+            if (dateNaissance == default || dateNaissance.Year == 1900)
             {
                 errors["datenaissance"] = "Veuillez renseigner votre date de naissance";
             }
@@ -158,11 +158,6 @@ namespace BlazorAutoPulse.ViewModel
                 isLoading = false;
                 _refreshUI?.Invoke();
             }
-        }
-
-        public void SkipForNow()
-        {
-            _navigation?.NavigateTo("/compte");
         }
     }
 }
