@@ -7,6 +7,8 @@ import uuid
 import numpy as np
 import platform
 import psutil
+import tracemalloc
+import gc
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from schemas.benchmark_dto import (
@@ -50,6 +52,14 @@ class BenchmarkService:
         test_images = self._get_test_images(request.test_images, request.num_iterations)
         
         metrics = []
+        
+        # ✅ Mesure de la RAM AVANT le benchmark
+        gc.collect()  # Force garbage collection
+        tracemalloc.start()
+        snapshot_start = tracemalloc.take_snapshot()
+        process = psutil.Process()
+        memory_before = process.memory_info().rss / (1024 * 1024)  # MB
+        
         start_time = time.time()
         
         for i in range(request.num_iterations):
@@ -89,6 +99,18 @@ class BenchmarkService:
         
         total_time = time.time() - start_time
         
+        # ✅ Mesure de la RAM APRÈS le benchmark
+        gc.collect()
+        snapshot_end = tracemalloc.take_snapshot()
+        memory_after = process.memory_info().rss / (1024 * 1024)  # MB
+        
+        # Calcul de la différence de RAM
+        top_stats = snapshot_end.compare_to(snapshot_start, 'lineno')
+        memory_diff = sum(stat.size_diff for stat in top_stats) / (1024 * 1024)
+        memory_used = memory_after - memory_before
+        
+        tracemalloc.stop()
+        
         # Calcul des statistiques
         stats = self._calculate_cnn_stats(metrics, total_time)
         
@@ -102,7 +124,7 @@ class BenchmarkService:
             },
             stats=stats,
             detailed_results=metrics if request.include_detailed_results else None,
-            system_info=self._get_system_info()
+            system_info=self._get_system_info("cnn", memory_used, memory_diff)
         )
     
     def benchmark_price(
@@ -124,6 +146,14 @@ class BenchmarkService:
         test_cases = self._get_test_price_cases(request.test_cases, request.num_iterations)
         
         metrics = []
+        
+        # ✅ Mesure de la RAM AVANT le benchmark
+        gc.collect()
+        tracemalloc.start()
+        snapshot_start = tracemalloc.take_snapshot()
+        process = psutil.Process()
+        memory_before = process.memory_info().rss / (1024 * 1024)  # MB
+        
         start_time = time.time()
         
         for i in range(request.num_iterations):
@@ -163,6 +193,18 @@ class BenchmarkService:
         
         total_time = time.time() - start_time
         
+        # ✅ Mesure de la RAM APRÈS le benchmark
+        gc.collect()
+        snapshot_end = tracemalloc.take_snapshot()
+        memory_after = process.memory_info().rss / (1024 * 1024)  # MB
+        
+        # Calcul de la différence de RAM
+        top_stats = snapshot_end.compare_to(snapshot_start, 'lineno')
+        memory_diff = sum(stat.size_diff for stat in top_stats) / (1024 * 1024)
+        memory_used = memory_after - memory_before
+        
+        tracemalloc.stop()
+        
         # Calcul des statistiques
         stats = self._calculate_price_stats(metrics, total_time)
         
@@ -176,7 +218,7 @@ class BenchmarkService:
             },
             stats=stats,
             detailed_results=metrics if request.include_detailed_results else None,
-            system_info=self._get_system_info()
+            system_info=self._get_system_info("prediction", memory_used, memory_diff)
         )
     
     def benchmark_adjustment(
@@ -198,6 +240,14 @@ class BenchmarkService:
         test_cases = self._get_test_adjustment_cases(request.test_cases, request.num_iterations)
         
         metrics = []
+        
+        # ✅ Mesure de la RAM AVANT le benchmark
+        gc.collect()
+        tracemalloc.start()
+        snapshot_start = tracemalloc.take_snapshot()
+        process = psutil.Process()
+        memory_before = process.memory_info().rss / (1024 * 1024)  # MB
+        
         start_time = time.time()
         
         for i in range(request.num_iterations):
@@ -237,6 +287,18 @@ class BenchmarkService:
         
         total_time = time.time() - start_time
         
+        # ✅ Mesure de la RAM APRÈS le benchmark
+        gc.collect()
+        snapshot_end = tracemalloc.take_snapshot()
+        memory_after = process.memory_info().rss / (1024 * 1024)  # MB
+        
+        # Calcul de la différence de RAM
+        top_stats = snapshot_end.compare_to(snapshot_start, 'lineno')
+        memory_diff = sum(stat.size_diff for stat in top_stats) / (1024 * 1024)
+        memory_used = memory_after - memory_before
+        
+        tracemalloc.stop()
+        
         # Calcul des statistiques
         stats = self._calculate_adjustment_stats(metrics, total_time)
         
@@ -250,7 +312,7 @@ class BenchmarkService:
             },
             stats=stats,
             detailed_results=metrics if request.include_detailed_results else None,
-            system_info=self._get_system_info()
+            system_info=self._get_system_info("ajustement", memory_used, memory_diff)
         )
     
     def benchmark_all(self, num_iterations: int = 10) -> AllBenchmarkResults:
@@ -520,20 +582,56 @@ class BenchmarkService:
             }
         ]
     
-    def _get_system_info(self) -> Dict[str, Any]:
-        """Récupère les informations système"""
+    def _get_system_info(
+        self, 
+        model_type: str = "unknown",
+        memory_used_mb: float = 0,
+        memory_diff_mb: float = 0
+    ) -> Dict[str, Any]:
+        """
+        Récupère les informations système avec mesure de RAM spécifique au modèle
+        
+        Args:
+            model_type: Type de modèle (cnn, prediction, ajustement)
+            memory_used_mb: RAM utilisée par le processus (différence RSS)
+            memory_diff_mb: RAM allouée spécifiquement (tracemalloc)
+        """
         try:
+            process = psutil.Process()
+            
             return {
+                # 🖥️ Informations système
                 "platform": platform.platform(),
                 "processor": platform.processor(),
                 "python_version": platform.python_version(),
                 "cpu_count": psutil.cpu_count(),
-                "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 2),
-                "memory_available_gb": round(psutil.virtual_memory().available / (1024**3), 2)
+                
+                # 🌍 RAM globale du système
+                "system_memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 2),
+                "system_memory_available_gb": round(psutil.virtual_memory().available / (1024**3), 2),
+                "system_memory_percent": round(psutil.virtual_memory().percent, 2),
+                
+                # 🔥 RAM du processus Python (Global)
+                "process_memory_rss_mb": round(process.memory_info().rss / (1024**2), 2),
+                "process_memory_vms_mb": round(process.memory_info().vms / (1024**2), 2),
+                "process_memory_percent": round(process.memory_percent(), 2),
+                "process_cpu_percent": round(process.cpu_percent(interval=0.1), 2),
+                
+                # ✅ RAM spécifique à CE benchmark
+                "model_type": model_type,
+                "model_memory_used_mb": round(memory_used_mb, 2),
+                "model_memory_allocated_mb": round(memory_diff_mb, 2),
+                
+                # 📊 Informations additionnelles
+                "num_threads": process.num_threads(),
+                "num_fds": process.num_fds() if hasattr(process, 'num_fds') else None
             }
         except Exception as e:
             logger.warning(f"Impossible de récupérer les infos système: {e}")
-            return {}
+            return {
+                "model_type": model_type,
+                "error": str(e)
+            }
     
     def _generate_overall_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Génère un résumé global de tous les benchmarks"""
@@ -545,14 +643,20 @@ class BenchmarkService:
         # Moyennes globales
         avg_times = []
         total_predictions = 0
+        total_memory_used = 0
         
         for key, result in results.items():
             if result and hasattr(result, 'stats'):
                 avg_times.append(result.stats.avg_inference_time_ms)
                 total_predictions += result.stats.total_iterations
+                
+                # Ajouter la mémoire utilisée
+                if result.system_info and 'model_memory_used_mb' in result.system_info:
+                    total_memory_used += result.system_info['model_memory_used_mb']
         
         if avg_times:
             summary["global_avg_inference_time_ms"] = np.mean(avg_times)
             summary["total_predictions_made"] = total_predictions
+            summary["total_model_memory_used_mb"] = round(total_memory_used, 2)
         
         return summary
