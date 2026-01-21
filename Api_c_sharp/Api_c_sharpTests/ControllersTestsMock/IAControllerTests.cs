@@ -13,13 +13,19 @@ namespace Api_c_sharp.ControllersMock.Tests
     public class IAControllerTests
     {
         private Mock<IIAService> _mockIAService;
+        private Mock<AnnonceManager> _mockAnnonceManager;
+        private Mock<ImageManager> _mockImageManager;
+        private Mock<VoitureManager> _mockVoitureManager;
         private IAController _controller;
 
         [TestInitialize]
         public void Initialize()
         {
+            _mockAnnonceManager = new Mock<AnnonceManager>(null);
+            _mockImageManager = new Mock<ImageManager>(null);
+            _mockVoitureManager = new Mock<VoitureManager>(null);
             _mockIAService = new Mock<IIAService>();
-            _controller = new IAController(_mockIAService.Object);
+            _controller = new IAController(_mockIAService.Object,_mockAnnonceManager.Object,_mockImageManager.Object,_mockVoitureManager.Object);
         }
 
         #region Predict Tests
@@ -825,4 +831,5 @@ namespace Api_c_sharp.ControllersMock.Tests
 
         #endregion
     }
+
 }
