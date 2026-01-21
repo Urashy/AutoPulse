@@ -13,6 +13,7 @@ public class CompteUpdateDTO
     public string? NumeroSiret { get; set; }
     public string? RaisonSociale { get; set; }
     public bool EstSuspendu { get; set; }
+    public bool EmailVerif { get; set; }
 
 }
 

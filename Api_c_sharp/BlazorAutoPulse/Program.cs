@@ -88,7 +88,6 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<IImageService, ImageWebService>();
             builder.Services.AddScoped<IReinitialiseMdp, ReinitialisationMdpWebService>();
             builder.Services.AddScoped<ICouleurService, CouleurWebService>();
-            builder.Services.AddScoped<ISignalRService, SignalRWebService>();
             builder.Services.AddScoped<CommandeSignalRWebService>();
             builder.Services.AddScoped<IConversationService, ConversationWebService>();
             builder.Services.AddScoped<ITypeCompteService, TypeCompteWebService>();
@@ -116,6 +115,7 @@ namespace BlazorAutoPulse
             builder.Services.AddScoped<ICarteBancaireService, CarteBancaireWebService>();
             builder.Services.AddScoped<IAPourConversationService, APourConversationWebService>();
             builder.Services.AddScoped<IFactureService, FactureWebService>();
+            builder.Services.AddScoped<ISignalRService, SignalRWebService>();
 
             //----------------------- View Model
             builder.Services.AddScoped<HomeViewModel>();
@@ -155,9 +155,9 @@ namespace BlazorAutoPulse
             builder.Services.AddTransient<PaiementModalViewModel>();
 
             //----------------------- Singleton
-            builder.Services.AddSingleton<ISignalRService>(sp => new SignalRWebService());
-            builder.Services.AddSingleton<NotificationService>();
-            builder.Services.AddSingleton<FavoriStateService>();
+
+            builder.Services.AddScoped<NotificationService>();
+            builder.Services.AddScoped<FavoriStateService>();
 
             builder.Services.AddHttpClient<IAutoCompleteService, AdresseAutoCompleteService>(client =>
             {

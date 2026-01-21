@@ -142,7 +142,8 @@ namespace BlazorAutoPulse.ViewModel
                     Biographie = string.IsNullOrWhiteSpace(biographie) ? null : biographie.Trim(),
                     IdTypeCompte = isProfessionnel ? 1 : 2,
                     NumeroSiret = isProfessionnel ? numeroSiret?.Trim() : null,
-                    RaisonSociale = isProfessionnel ? raisonSociale?.Trim() : null
+                    RaisonSociale = isProfessionnel ? raisonSociale?.Trim() : null,
+                    EmailVerif = true
                 };
 
                 await _compteService.UpdateAsync(currentUserId.Value, updateDto);

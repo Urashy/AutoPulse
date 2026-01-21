@@ -191,6 +191,11 @@ namespace BlazorAutoPulse.Services
 
             await InitializeAsync(_currentUserId.Value);
         }
+        
+        public async Task SetUser(int idUser)
+        {
+            _currentUserId = idUser;
+        }
 
         public void Dispose()
         {
