@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using System.Text.Json;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests
 {
@@ -21,6 +22,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
     {
         private IAController _controller;
         private IAManager _manager;
+        private ImageManager _imageManager = null!;
+        private AnnonceManager _annonceManager = null!;
+        private VoitureManager _voitureManager = null!;
         private AutoPulseBdContext _context;
         private IMapper _mapper;
         private Mock<HttpMessageHandler> _mockHttpMessageHandler;
@@ -53,7 +57,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 .Returns("http://localhost:8000");
 
             _manager = new IAManager(_context, _mapper, _httpClient, _mockConfiguration.Object, _mockLogger.Object);
-            _controller = new IAController(_manager);
+            _imageManager = new ImageManager(_context);
+            _annonceManager = new AnnonceManager(_context);
+            _voitureManager = new VoitureManager(_context);
+            _controller = new IAController(_manager, _imageManager, _annonceManager, _voitureManager);
 
             await _context.SaveChangesAsync();
         }

@@ -1,5 +1,6 @@
 ﻿using Api_c_sharp.Controllers;
 using Api_c_sharp.Models.Repository.AI;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoPulse.Shared.DTO.IA.Benchmark;
 using AutoPulse.Shared.DTO.IA.Data;
 using AutoPulse.Shared.DTO.IA.Result;
@@ -13,13 +14,19 @@ namespace Api_c_sharp.ControllersMock.Tests
     public class IAControllerTests
     {
         private Mock<IIAService> _mockIAService;
+        private Mock<ImageManager> _mockImageManager = null!;
+        private Mock<AnnonceManager> _mockAnnonceManager = null!;
+        private Mock<VoitureManager> _mockVoitureManager = null!;
         private IAController _controller;
 
         [TestInitialize]
         public void Initialize()
-        {
+        { 
             _mockIAService = new Mock<IIAService>();
-            _controller = new IAController(_mockIAService.Object);
+            _mockImageManager = new Mock<ImageManager>(null!);
+            _mockAnnonceManager = new Mock<AnnonceManager>(null!);
+            _mockVoitureManager = new Mock<VoitureManager>(null!);
+            _controller = new IAController(_mockIAService.Object, _mockImageManager.Object, _mockAnnonceManager.Object, _mockVoitureManager.Object);
         }
 
         #region Predict Tests
@@ -573,7 +580,7 @@ namespace Api_c_sharp.ControllersMock.Tests
                 new BenchmarkIADTO { IdBenchmark = 3, BenchmarkId = "bench_sync_003", ModelType = "ajustement" }
             };
 
-            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync())
+            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync(new DataCNN[1], new DataAjustement[1], new DataPrediction[1]))
                          .ReturnsAsync(syncedBenchmarks)
                          .Verifiable();
 
@@ -585,14 +592,14 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
             var okResult = (OkObjectResult)result.Result;
             Assert.IsNotNull(okResult.Value);
-            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(), Times.Once);
+            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(new DataCNN[1], new DataAjustement[1], new DataPrediction[1]), Times.Once);
         }
 
         [TestMethod]
         public async Task BenchmarkSync_ServiceUnavailable()
         {
             // Arrange
-            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync())
+            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync(new DataCNN[1], new DataAjustement[1], new DataPrediction[1]))
                          .ThrowsAsync(new HttpRequestException("Service IA indisponible"))
                          .Verifiable();
 
@@ -604,7 +611,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
             var objectResult = (ObjectResult)result.Result;
             Assert.AreEqual(503, objectResult.StatusCode);
-            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(), Times.Once);
+            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(new DataCNN[1], new DataAjustement[1], new DataPrediction[1]), Times.Once);
         }
 
         #endregion
@@ -788,7 +795,7 @@ namespace Api_c_sharp.ControllersMock.Tests
         public async Task BenchmarkSync_Error()
         {
             // Arrange
-            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync())
+            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync(new DataCNN[1], new DataAjustement[1], new DataPrediction[1]))
                          .ThrowsAsync(new Exception("Sync error"))
                          .Verifiable();
 
@@ -800,7 +807,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
             var objectResult = (ObjectResult)result.Result;
             Assert.AreEqual(500, objectResult.StatusCode);
-            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(), Times.Once);
+            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(new DataCNN[1], new DataAjustement[1], new DataPrediction[1]), Times.Once);
         }
 
         [TestMethod]
