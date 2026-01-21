@@ -153,7 +153,7 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 IdCompte = 1,
                 Nom = "Doe",
                 Prenom = "John",
-                Email = "berkanakin05@gmail.com",
+                Email = "test@test.com",
                 MotDePasse = "b2b8804d428bb1129711f32ce77b9d3dde5b063c02ae62fcbc73988ae84d7c76",
                 Pseudo = "johndoe",
                 DateCreation = DateTime.UtcNow,
