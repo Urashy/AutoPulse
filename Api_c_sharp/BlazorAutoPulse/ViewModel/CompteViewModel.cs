@@ -467,7 +467,7 @@ namespace BlazorAutoPulse.ViewModel
                     );
 
                     Task.Delay(1000);
-                    _nav.NavigateTo("/");
+                    _nav.NavigateTo("/", forceLoad: true);
                 }
                 catch (Exception ex)
                 {

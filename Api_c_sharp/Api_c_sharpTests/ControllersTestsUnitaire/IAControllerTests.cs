@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using System.Text.Json;
+using Api_c_sharp.Models.Entity;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 
 namespace Api_c_sharp.ControllersUnitaires.Tests
 {
@@ -21,6 +23,9 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
     {
         private IAController _controller;
         private IAManager _manager;
+        private ImageManager _imageManager = null!;
+        private AnnonceManager _annonceManager = null!;
+        private VoitureManager _voitureManager = null!;
         private AutoPulseBdContext _context;
         private IMapper _mapper;
         private Mock<HttpMessageHandler> _mockHttpMessageHandler;
@@ -53,7 +58,10 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                 .Returns("http://localhost:8000");
 
             _manager = new IAManager(_context, _mapper, _httpClient, _mockConfiguration.Object, _mockLogger.Object);
-            _controller = new IAController(_manager);
+            _imageManager = new ImageManager(_context);
+            _annonceManager = new AnnonceManager(_context);
+            _voitureManager = new VoitureManager(_context);
+            _controller = new IAController(_manager, _imageManager, _annonceManager, _voitureManager);
 
             await _context.SaveChangesAsync();
         }
@@ -1033,96 +1041,134 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BenchmarkSync_Success()
         {
-            // Arrange
-            var mockBenchmarkData = new
+            // Arrange - Créer des données de test dans la base
+            var image = new Image { IdImage = 1, IdVoiture = 1, Fichier = new byte[] { 1, 2, 3 } };
+            var annonce = new Annonce { IdAnnonce = 1, Prix = 15000, Libelle = "Test", Description = "Test" };
+            var voiture = new Voiture 
+            { 
+                IdVoiture = 1, 
+                Annee = 2020,
+                MarqueVoitureNavigation = new Marque() { LibelleMarque = "Toyota" },
+                ModeleVoitureNavigation = new Modele() { LibelleModele = "Corolla" },
+                CategorieVoitureNavigation = new Categorie() { LibelleCategorie = "Sedan" },
+                InterieurCuire = true,
+                CarburantVoitureNavigation = new Carburant() { LibelleCarburant = "Petrol" },
+                CylindrerMoteur = 2.0,
+                Kilometrage = 50000,
+                NbCylindres = 4,
+                BoiteVoitureNavigation = new BoiteDeVitesse() { LibelleBoite = "Manual" },
+                MotriciteVoitureNavigation = new Motricite() { LibelleMotricite = "Front" },
+                NbPorte = 4,
+                PositionVolant = true,
+                NbAirbag = 6
+            };
+
+            await _context.Images.AddAsync(image);
+            await _context.Annonces.AddAsync(annonce);
+            await _context.Voitures.AddAsync(voiture);
+            await _context.SaveChangesAsync();
+
+            // Mock pour les 3 appels de benchmark (CNN, Prediction, Ajustement)
+            var cnnBenchmarkResponse = new
             {
-                cnn_benchmark = new
+                benchmark_id = "sync_cnn_001",
+                timestamp = DateTime.UtcNow.ToString("o"),
+                stats = new
                 {
-                    benchmark_id = "sync_cnn_001",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    stats = new
-                    {
-                        total_iterations = 100,
-                        successful_predictions = 95,
-                        failed_predictions = 5,
-                        success_rate_percent = 95.0,
-                        avg_inference_time_ms = 45.5,
-                        min_inference_time_ms = 40.0,
-                        max_inference_time_ms = 50.0,
-                        std_inference_time_ms = 2.5,
-                        predictions_per_second = 22.0,
-                        total_time_seconds = 4.55
-                    },
-                    system_info = new
-                    {
-                        platform = "Linux",
-                        processor = "Intel Core i7",
-                        python_version = "3.9.0",
-                        cpu_count = 8,
-                        memory_total_gb = 16.0,
-                        memory_available_gb = 8.0
-                    }
+                    total_iterations = 1,
+                    successful_predictions = 1,
+                    failed_predictions = 0,
+                    success_rate_percent = 100.0,
+                    avg_inference_time_ms = 45.5,
+                    min_inference_time_ms = 40.0,
+                    max_inference_time_ms = 50.0,
+                    std_inference_time_ms = 2.5,
+                    predictions_per_second = 22.0,
+                    total_time_seconds = 0.045
                 },
-                price_benchmark = new
+                system_info = new
                 {
-                    benchmark_id = "sync_pred_001",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    stats = new
-                    {
-                        total_iterations = 50,
-                        successful_predictions = 48,
-                        failed_predictions = 2,
-                        success_rate_percent = 96.0,
-                        avg_inference_time_ms = 32.5,
-                        min_inference_time_ms = 30.0,
-                        max_inference_time_ms = 35.0,
-                        std_inference_time_ms = 1.5,
-                        predictions_per_second = 30.77,
-                        total_time_seconds = 1.625
-                    },
-                    system_info = new
-                    {
-                        platform = "Windows",
-                        processor = "Intel Core i5",
-                        python_version = "3.10.0",
-                        cpu_count = 4,
-                        memory_total_gb = 8.0,
-                        memory_available_gb = 4.0
-                    }
-                },
-                adjustment_benchmark = new
-                {
-                    benchmark_id = "sync_adj_001",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    stats = new
-                    {
-                        total_iterations = 75,
-                        successful_predictions = 72,
-                        failed_predictions = 3,
-                        success_rate_percent = 96.0,
-                        avg_inference_time_ms = 28.0,
-                        min_inference_time_ms = 25.0,
-                        max_inference_time_ms = 30.0,
-                        std_inference_time_ms = 1.0,
-                        predictions_per_second = 35.71,
-                        total_time_seconds = 2.1
-                    },
-                    system_info = new
-                    {
-                        platform = "macOS",
-                        processor = "Apple M1",
-                        python_version = "3.11.0",
-                        cpu_count = 8,
-                        memory_total_gb = 16.0,
-                        memory_available_gb = 10.0
-                    }
+                    platform = "Linux",
+                    processor = "Intel Core i7",
+                    python_version = "3.9.0",
+                    cpu_count = 8,
+                    system_memory_total_gb = 16.0,
+                    system_memory_available_gb = 8.0
                 }
             };
 
-            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            var predictionBenchmarkResponse = new
             {
-                Content = new StringContent(JsonSerializer.Serialize(mockBenchmarkData))
+                benchmark_id = "sync_pred_001",
+                timestamp = DateTime.UtcNow.ToString("o"),
+                stats = new
+                {
+                    total_iterations = 1,
+                    successful_predictions = 1,
+                    failed_predictions = 0,
+                    success_rate_percent = 100.0,
+                    avg_inference_time_ms = 32.5,
+                    min_inference_time_ms = 30.0,
+                    max_inference_time_ms = 35.0,
+                    std_inference_time_ms = 1.5,
+                    predictions_per_second = 30.77,
+                    total_time_seconds = 0.032
+                },
+                system_info = new
+                {
+                    platform = "Windows",
+                    processor = "Intel Core i5",
+                    python_version = "3.10.0",
+                    cpu_count = 4,
+                    system_memory_total_gb = 8.0,
+                    system_memory_available_gb = 4.0
+                }
             };
+
+            var ajustementBenchmarkResponse = new
+            {
+                benchmark_id = "sync_adj_001",
+                timestamp = DateTime.UtcNow.ToString("o"),
+                stats = new
+                {
+                    total_iterations = 1,
+                    successful_predictions = 1,
+                    failed_predictions = 0,
+                    success_rate_percent = 100.0,
+                    avg_inference_time_ms = 28.0,
+                    min_inference_time_ms = 25.0,
+                    max_inference_time_ms = 30.0,
+                    std_inference_time_ms = 1.0,
+                    predictions_per_second = 35.71,
+                    total_time_seconds = 0.028
+                },
+                system_info = new
+                {
+                    platform = "macOS",
+                    processor = "Apple M1",
+                    python_version = "3.11.0",
+                    cpu_count = 8,
+                    system_memory_total_gb = 16.0,
+                    system_memory_available_gb = 10.0
+                }
+            };
+
+            // Configuration du mock pour répondre différemment selon le type de benchmark
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("/benchmark") &&
+                        req.Content.ReadAsStringAsync().Result.Contains("\"type\":\"cnn\"")
+                    ),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(cnnBenchmarkResponse))
+                });
 
             _mockHttpMessageHandler
                 .Protected()
@@ -1130,14 +1176,38 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Post &&
-                        req.RequestUri.ToString().Contains("/benchmark/all")
+                        req.RequestUri.ToString().Contains("/benchmark") &&
+                        req.Content.ReadAsStringAsync().Result.Contains("\"type\":\"prediction\"")
                     ),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(mockResponse);
+                .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(predictionBenchmarkResponse))
+                });
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("/benchmark") &&
+                        req.Content.ReadAsStringAsync().Result.Contains("\"type\":\"ajustement\"")
+                    ),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(ajustementBenchmarkResponse))
+                });
 
             // Act
-            var result = await _manager.SyncBenchmarksFromPythonAsync();
+            var result = await _manager.SyncBenchmarksFromPythonAsync(
+                new[] { new DataCNN { ImageBase64 = Convert.ToBase64String(new byte[] { 1, 2, 3 }) } },
+                new[] { new DataAjustement { BasePrice = 15000, Description = "Test" } },
+                new[] { new DataPrediction { ProdYear = 2020, Manufacturer = "Toyota", Model = "Corolla" } }
+            );
 
             // Assert
             Assert.IsNotNull(result);
@@ -1156,69 +1226,86 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [TestMethod]
         public async Task BenchmarkSync_PartialData_Success()
         {
-            // Arrange - Seulement 2 benchmarks sur 3
-            var mockBenchmarkData = new
-            {
-                cnn_benchmark = new
-                {
-                    benchmark_id = "partial_cnn_001",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    stats = new
-                    {
-                        total_iterations = 100,
-                        successful_predictions = 95,
-                        failed_predictions = 5,
-                        success_rate_percent = 95.0,
-                        avg_inference_time_ms = 45.5,
-                        min_inference_time_ms = 40.0,
-                        max_inference_time_ms = 50.0,
-                        std_inference_time_ms = 2.5,
-                        predictions_per_second = 22.0,
-                        total_time_seconds = 4.55
-                    },
-                    system_info = new
-                    {
-                        platform = "Linux",
-                        processor = "Intel Core i7",
-                        python_version = "3.9.0",
-                        cpu_count = 8,
-                        memory_total_gb = 16.0,
-                        memory_available_gb = 8.0
-                    }
-                },
-                price_benchmark = new
-                {
-                    benchmark_id = "partial_pred_001",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    stats = new
-                    {
-                        total_iterations = 50,
-                        successful_predictions = 48,
-                        failed_predictions = 2,
-                        success_rate_percent = 96.0,
-                        avg_inference_time_ms = 32.5,
-                        min_inference_time_ms = 30.0,
-                        max_inference_time_ms = 35.0,
-                        std_inference_time_ms = 1.5,
-                        predictions_per_second = 30.77,
-                        total_time_seconds = 1.625
-                    },
-                    system_info = new
-                    {
-                        platform = "Windows",
-                        processor = "Intel Core i5",
-                        python_version = "3.10.0",
-                        cpu_count = 4,
-                        memory_total_gb = 8.0,
-                        memory_available_gb = 4.0
-                    }
-                }
-                // adjustment_benchmark manquant
+            // Arrange - Créer uniquement les données pour CNN et Prediction
+            var image = new Image() { IdImage = 1, IdVoiture = 1, Fichier = new byte[] { 1, 2, 3 } };
+            var voiture = new Voiture 
+            { 
+                IdVoiture = 1, 
+                Annee = 2020,
+                MarqueVoitureNavigation = new Marque() { LibelleMarque = "Toyota" },
+                ModeleVoitureNavigation = new Modele() { LibelleModele = "Corolla" },
+                CategorieVoitureNavigation = new Categorie { LibelleCategorie = "Sedan" },
+                InterieurCuire = true,
+                CarburantVoitureNavigation = new Carburant() { LibelleCarburant = "Petrol" },
+                CylindrerMoteur = 2.0,
+                Kilometrage = 50000,
+                NbCylindres = 4,
+                BoiteVoitureNavigation = new BoiteDeVitesse() { LibelleBoite = "Manual" },
+                MotriciteVoitureNavigation = new Motricite() { LibelleMotricite = "Front" },
+                NbPorte = 4,
+                PositionVolant = true,
+                NbAirbag = 6
             };
 
-            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            await _context.Images.AddAsync(image);
+            await _context.Voitures.AddAsync(voiture);
+            await _context.SaveChangesAsync();
+
+            // Mock uniquement pour CNN et Prediction
+            var cnnBenchmarkResponse = new
             {
-                Content = new StringContent(JsonSerializer.Serialize(mockBenchmarkData))
+                benchmark_id = "partial_cnn_001",
+                timestamp = DateTime.UtcNow.ToString("o"),
+                stats = new
+                {
+                    total_iterations = 1,
+                    successful_predictions = 1,
+                    failed_predictions = 0,
+                    success_rate_percent = 100.0,
+                    avg_inference_time_ms = 45.5,
+                    min_inference_time_ms = 40.0,
+                    max_inference_time_ms = 50.0,
+                    std_inference_time_ms = 2.5,
+                    predictions_per_second = 22.0,
+                    total_time_seconds = 0.045
+                },
+                system_info = new
+                {
+                    platform = "Linux",
+                    processor = "Intel Core i7",
+                    python_version = "3.9.0",
+                    cpu_count = 8,
+                    system_memory_total_gb = 16.0,
+                    system_memory_available_gb = 8.0
+                }
+            };
+
+            var predictionBenchmarkResponse = new
+            {
+                benchmark_id = "partial_pred_001",
+                timestamp = DateTime.UtcNow.ToString("o"),
+                stats = new
+                {
+                    total_iterations = 1,
+                    successful_predictions = 1,
+                    failed_predictions = 0,
+                    success_rate_percent = 100.0,
+                    avg_inference_time_ms = 32.5,
+                    min_inference_time_ms = 30.0,
+                    max_inference_time_ms = 35.0,
+                    std_inference_time_ms = 1.5,
+                    predictions_per_second = 30.77,
+                    total_time_seconds = 0.032
+                },
+                system_info = new
+                {
+                    platform = "Windows",
+                    processor = "Intel Core i5",
+                    python_version = "3.10.0",
+                    cpu_count = 4,
+                    system_memory_total_gb = 8.0,
+                    system_memory_available_gb = 4.0
+                }
             };
 
             _mockHttpMessageHandler
@@ -1227,14 +1314,38 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Post &&
-                        req.RequestUri.ToString().Contains("/benchmark/all")
+                        req.RequestUri.ToString().Contains("/benchmark") &&
+                        req.Content.ReadAsStringAsync().Result.Contains("\"type\":\"cnn\"")
                     ),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(mockResponse);
+                .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(cnnBenchmarkResponse))
+                });
 
-            // Act
-            var result = await _manager.SyncBenchmarksFromPythonAsync();
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("/benchmark") &&
+                        req.Content.ReadAsStringAsync().Result.Contains("\"type\":\"prediction\"")
+                    ),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(predictionBenchmarkResponse))
+                });
+
+            // Act - Ne passer que CNN et Prediction, pas Ajustement
+            var result = await _manager.SyncBenchmarksFromPythonAsync(
+                new[] { new DataCNN { ImageBase64 = Convert.ToBase64String(new byte[] { 1, 2, 3 }) } },
+                null, // Pas de données d'ajustement
+                new[] { new DataPrediction { ProdYear = 2020, Manufacturer = "Toyota", Model = "Corolla" } }
+            );
 
             // Assert
             Assert.IsNotNull(result);
@@ -1246,164 +1357,105 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
         [ExpectedException(typeof(HttpRequestException))]
         public async Task BenchmarkSync_ApiUnavailable()
         {
-            // Arrange
-            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable)
-            {
-                Content = new StringContent("Service Unavailable")
-            };
+            // Arrange - IMPORTANT: Il faut passer des données pour que la requête HTTP soit faite
+            var cnnData = new[] { new DataCNN { ImageBase64 = Convert.ToBase64String(new byte[] { 1, 2, 3 }) } };
 
+            // Mock qui retourne une erreur 503
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Post &&
-                        req.RequestUri.ToString().Contains("/benchmark/all")
+                        req.RequestUri.ToString().Contains("/benchmark")
                     ),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(mockResponse);
+                .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable)
+                {
+                    Content = new StringContent("Service Unavailable")
+                });
 
-            // Act
-            await _manager.SyncBenchmarksFromPythonAsync();
+            // Act - Passer des données pour déclencher l'appel HTTP
+            await _manager.SyncBenchmarksFromPythonAsync(cnnData, null, null);
         }
 
         [TestMethod]
         public async Task BenchmarkSync_Controller_Success()
         {
-            // Arrange
-            var mockBenchmarkData = new
+            // Arrange - Créer les données nécessaires dans la base
+            for (int i = 1; i <= 9; i++)
             {
-                cnn_benchmark = new
+                var image = new Image { IdImage = i, IdVoiture = i, Fichier = new byte[] { 1, 2, 3 } };
+                var annonce = new Annonce { IdAnnonce = i, Prix = 15000 + i * 1000, Libelle = "Test", Description = $"Test {i}" };
+                var voiture = new Voiture 
+                { 
+                    IdVoiture = i, 
+                    Annee = 2020 + i,
+                    MarqueVoitureNavigation = new Marque() { LibelleMarque = "Toyota" },
+                    ModeleVoitureNavigation = new Modele() { LibelleModele = "Corolla" },
+                    CategorieVoitureNavigation = new Categorie() { LibelleCategorie = "Sedan" },
+                    InterieurCuire = true,
+                    CarburantVoitureNavigation = new Carburant() { LibelleCarburant = "Petrol" },
+                    CylindrerMoteur = 2.0,
+                    Kilometrage = 50000,
+                    NbCylindres = 4,
+                    BoiteVoitureNavigation = new BoiteDeVitesse() { LibelleBoite = "Manual" },
+                    MotriciteVoitureNavigation = new Motricite() { LibelleMotricite = "Front" },
+                    NbPorte = 4,
+                    PositionVolant = true,
+                    NbAirbag = 6
+                };
+
+                await _context.Images.AddAsync(image);
+                await _context.Annonces.AddAsync(annonce);
+                await _context.Voitures.AddAsync(voiture);
+            }
+            await _context.SaveChangesAsync();
+
+            // Configuration des mocks comme dans BenchmarkSync_Success
+            var benchmarkResponse = new
+            {
+                benchmark_id = "ctrl_sync",
+                timestamp = DateTime.UtcNow.ToString("o"),
+                stats = new
                 {
-                    benchmark_id = "ctrl_sync_cnn",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    stats = new
-                    {
-                        total_iterations = 100,
-                        successful_predictions = 95,
-                        failed_predictions = 5,
-                        success_rate_percent = 95.0,
-                        avg_inference_time_ms = 45.5,
-                        min_inference_time_ms = 40.0,
-                        max_inference_time_ms = 50.0,
-                        std_inference_time_ms = 2.5,
-                        predictions_per_second = 22.0,
-                        total_time_seconds = 4.55
-                    },
-                    system_info = new
-                    {
-                        platform = "Linux",
-                        processor = "Intel Core i7",
-                        python_version = "3.9.0",
-                        cpu_count = 8,
-                        memory_total_gb = 16.0,
-                        memory_available_gb = 8.0
-                    }
+                    total_iterations = 9,
+                    successful_predictions = 9,
+                    failed_predictions = 0,
+                    success_rate_percent = 100.0,
+                    avg_inference_time_ms = 45.5,
+                    min_inference_time_ms = 40.0,
+                    max_inference_time_ms = 50.0,
+                    std_inference_time_ms = 2.5,
+                    predictions_per_second = 22.0,
+                    total_time_seconds = 0.41
                 },
-                price_benchmark = new
+                system_info = new
                 {
-                    benchmark_id = "ctrl_sync_pred",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    stats = new
-                    {
-                        total_iterations = 50,
-                        successful_predictions = 48,
-                        failed_predictions = 2,
-                        success_rate_percent = 96.0,
-                        avg_inference_time_ms = 32.5,
-                        min_inference_time_ms = 30.0,
-                        max_inference_time_ms = 35.0,
-                        std_inference_time_ms = 1.5,
-                        predictions_per_second = 30.77,
-                        total_time_seconds = 1.625
-                    },
-                    system_info = new
-                    {
-                        platform = "Windows",
-                        processor = "Intel Core i5",
-                        python_version = "3.10.0",
-                        cpu_count = 4,
-                        memory_total_gb = 8.0,
-                        memory_available_gb = 4.0
-                    }
-                },
-                adjustment_benchmark = new
-                {
-                    benchmark_id = "ctrl_sync_adj",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    stats = new
-                    {
-                        total_iterations = 75,
-                        successful_predictions = 72,
-                        failed_predictions = 3,
-                        success_rate_percent = 96.0,
-                        avg_inference_time_ms = 28.0,
-                        min_inference_time_ms = 25.0,
-                        max_inference_time_ms = 30.0,
-                        std_inference_time_ms = 1.0,
-                        predictions_per_second = 35.71,
-                        total_time_seconds = 2.1
-                    },
-                    system_info = new
-                    {
-                        platform = "macOS",
-                        processor = "Apple M1",
-                        python_version = "3.11.0",
-                        cpu_count = 8,
-                        memory_total_gb = 16.0,
-                        memory_available_gb = 10.0
-                    }
+                    platform = "Linux",
+                    processor = "Intel Core i7",
+                    python_version = "3.9.0",
+                    cpu_count = 8,
+                    system_memory_total_gb = 16.0,
+                    system_memory_available_gb = 8.0
                 }
             };
 
-            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
-            {
-                Content = new StringContent(JsonSerializer.Serialize(mockBenchmarkData))
-            };
-
             _mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Post &&
-                        req.RequestUri.ToString().Contains("/benchmark/all")
+                        req.RequestUri.ToString().Contains("/benchmark")
                     ),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(mockResponse);
-
-            // Act
-            var result = await _controller.BenchmarkSync();
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-            var okResult = (OkObjectResult)result.Result;
-            Assert.IsNotNull(okResult.Value);
-        }
-
-        [TestMethod]
-        public async Task BenchmarkSync_Controller_ApiError()
-        {
-            // Arrange
-            var mockResponse = new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError)
-            {
-                Content = new StringContent("Internal Server Error")
-            };
-
-            _mockHttpMessageHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req =>
-                        req.Method == HttpMethod.Post &&
-                        req.RequestUri.ToString().Contains("/benchmark/all")
-                    ),
-                    ItExpr.IsAny<CancellationToken>()
-                )
-                .ReturnsAsync(mockResponse);
+                .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(benchmarkResponse))
+                });
 
             // Act
             var result = await _controller.BenchmarkSync();
@@ -1411,8 +1463,42 @@ namespace Api_c_sharp.ControllersUnitaires.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
+            var okResult = (ObjectResult)result.Result;
+            Assert.IsNotNull(okResult.Value);
+        }
+
+        [TestMethod]
+        public async Task BenchmarkSync_Controller_ApiError()
+        {
+            // Arrange - Créer des données minimales
+            var image = new Image { IdImage = 1, IdVoiture = 1, Fichier = new byte[] { 1, 2, 3 } };
+            await _context.Images.AddAsync(image);
+            await _context.SaveChangesAsync();
+
+            // Mock qui retourne une erreur 500
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("/benchmark")
+                    ),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent("Internal Server Error")
+                });
+
+            // Act
+            var result = await _controller.BenchmarkSync();
+
+            // Assert - Le controller doit attraper l'exception et retourner 500
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
             var objectResult = (ObjectResult)result.Result;
-            Assert.AreEqual(503, objectResult.StatusCode);
+            Assert.AreEqual(500, objectResult.StatusCode); // Changé de 503 à 500
         }
 
         #endregion

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Api_c_sharp.Models.Entity;
 using AutoMapper;
 using AutoPulse.Shared.DTO.IA.Benchmark;
 using AutoPulse.Shared.DTO.IA.Data;
@@ -199,7 +200,7 @@ public class IAManager : IIAService
 
     public async Task<BenchmarkIADTO> CreateBenchmarkAsync(BenchmarkIACreateDTO benchmarkDto)
     {
-        var benchmark = _mapper.Map<Entity.BenchmarkIA>(benchmarkDto);
+        var benchmark = _mapper.Map<BenchmarkIA>(benchmarkDto);
 
         _context.BenchmarksIA.Add(benchmark);
         await _context.SaveChangesAsync();
@@ -207,34 +208,108 @@ public class IAManager : IIAService
         return _mapper.Map<BenchmarkIADTO>(benchmark);
     }
 
-    public async Task<IEnumerable<BenchmarkIADTO>> SyncBenchmarksFromPythonAsync()
+    public async Task<IEnumerable<BenchmarkIADTO>> SyncBenchmarksFromPythonAsync(
+    IEnumerable<DataCNN> cnnData = null,
+    IEnumerable<DataAjustement> ajustementData = null,
+    IEnumerable<DataPrediction> predictionData = null)
     {
         try
         {
             _logger.LogInformation("Synchronisation des benchmarks depuis l'API Python");
 
-            var response = await _httpClient.PostAsJsonAsync($"{_pythonApiUrl}/benchmark/all", new {});
-            response.EnsureSuccessStatusCode();
-
-            var jsonString = await response.Content.ReadAsStringAsync();
-            var benchmarkData = JsonSerializer.Deserialize<JsonElement>(jsonString);
-
             var createdBenchmarks = new List<BenchmarkIADTO>();
 
-            // Traiter chaque type de benchmark
-            var types = new[] { "cnn_benchmark", "price_benchmark", "adjustment_benchmark" };
-            var modelTypes = new[] { "cnn", "prediction", "ajustement" };
-
-            for (int i = 0; i < types.Length; i++)
+            if (cnnData != null && cnnData.Any())
             {
-                if (benchmarkData.TryGetProperty(types[i], out var benchmarkElement))
+                _logger.LogInformation($"Lancement benchmark CNN avec {cnnData.Count()} images");
+                
+                var cnnRequest = new
                 {
-                    var benchmark = ParseBenchmarkFromJson(benchmarkElement, modelTypes[i]);
-                    if (benchmark != null)
+                    type = "cnn",
+                    num_iterations = cnnData.Count(),
+                    include_detailed_results = false,
+                    test_images = cnnData.Select(d => d.ImageBase64).ToList()
+                };
+
+                var cnnResponse = await _httpClient.PostAsJsonAsync($"{_pythonApiUrl}/benchmark", cnnRequest);
+                cnnResponse.EnsureSuccessStatusCode();
+                Console.WriteLine(cnnResponse.Content.ReadAsStringAsync().Result);
+
+                var cnnResult = await cnnResponse.Content.ReadAsStringAsync();
+                var cnnBenchmark = ParseBenchmarkFromJson(JsonSerializer.Deserialize<JsonElement>(cnnResult), "cnn");
+                if (cnnBenchmark != null)
+                {
+                    var created = await CreateBenchmarkAsync(cnnBenchmark);
+                    createdBenchmarks.Add(created);
+                }
+            }
+
+            if (predictionData != null && predictionData.Any())
+            {
+                _logger.LogInformation($"Lancement benchmark Prix avec {predictionData.Count()} cas");
+                
+                var predictionRequest = new
+                {
+                    type = "prediction",
+                    num_iterations = predictionData.Count(),
+                    include_detailed_results = false,
+                    test_cases = predictionData.Select(d => new
                     {
-                        var created = await CreateBenchmarkAsync(benchmark);
-                        createdBenchmarks.Add(created);
-                    }
+                        manufacturer = d.Manufacturer,
+                        model = d.Model,
+                        prod_year = d.ProdYear,
+                        category = d.Category,
+                        leather_interior = d.LeatherInterior,
+                        fuel_type = d.FuelType,
+                        engine_volume = d.EngineVolume,
+                        mileage = d.Mileage,
+                        cylinders = d.Cylinders,
+                        gear_box_type = d.GearBoxType,
+                        drive_wheels = d.DriveWheels,
+                        doors = d.Doors,
+                        wheel = d.Wheel,
+                        color = d.Color,
+                        airbags = d.Airbags
+                    }).ToList()
+                };
+
+                var predictionResponse = await _httpClient.PostAsJsonAsync($"{_pythonApiUrl}/benchmark", predictionRequest);
+                predictionResponse.EnsureSuccessStatusCode();
+
+                var predictionResult = await predictionResponse.Content.ReadAsStringAsync();
+                var predictionBenchmark = ParseBenchmarkFromJson(JsonSerializer.Deserialize<JsonElement>(predictionResult), "prediction");
+                if (predictionBenchmark != null)
+                {
+                    var created = await CreateBenchmarkAsync(predictionBenchmark);
+                    createdBenchmarks.Add(created);
+                }
+            }
+            
+            if (ajustementData != null && ajustementData.Any())
+            {
+                _logger.LogInformation($"Lancement benchmark Ajustement avec {ajustementData.Count()} cas");
+                
+                var ajustementRequest = new
+                {
+                    type = "ajustement",
+                    num_iterations = ajustementData.Count(),
+                    include_detailed_results = false,
+                    test_cases = ajustementData.Select(d => new
+                    {
+                        base_price = d.BasePrice,
+                        description = d.Description
+                    }).ToList()
+                };
+
+                var ajustementResponse = await _httpClient.PostAsJsonAsync($"{_pythonApiUrl}/benchmark", ajustementRequest);
+                ajustementResponse.EnsureSuccessStatusCode();
+
+                var ajustementResult = await ajustementResponse.Content.ReadAsStringAsync();
+                var ajustementBenchmark = ParseBenchmarkFromJson(JsonSerializer.Deserialize<JsonElement>(ajustementResult), "ajustement");
+                if (ajustementBenchmark != null)
+                {
+                    var created = await CreateBenchmarkAsync(ajustementBenchmark);
+                    createdBenchmarks.Add(created);
                 }
             }
 
@@ -263,42 +338,113 @@ public class IAManager : IIAService
     {
         try
         {
-            var stats = element.GetProperty("stats");
-            var systemInfo = element.GetProperty("system_info");
-
-            return new BenchmarkIACreateDTO()
+            _logger.LogInformation($"🔍 Parsing benchmark pour type: {modelType}");
+            
+            if (!element.TryGetProperty("stats", out var stats))
             {
-                BenchmarkId = element.GetProperty("benchmark_id").GetString() ?? string.Empty,
+                _logger.LogError("❌ Propriété 'stats' manquante");
+                return null;
+            }
+
+            if (!element.TryGetProperty("system_info", out var systemInfo))
+            {
+                _logger.LogError("❌ Propriété 'system_info' manquante");
+                return null;
+            }
+
+            var benchmark = new BenchmarkIACreateDTO
+            {
+                BenchmarkId = GetStringProperty(element, "benchmark_id", Guid.NewGuid().ToString()),
                 ModelType = modelType,
                 Timestamp = DateTime.SpecifyKind(
-                    DateTime.Parse(
-                        element.GetProperty("timestamp").GetString() 
-                        ?? DateTime.UtcNow.ToString()
-                    ),
+                    GetDateTimeProperty(element, "timestamp"),
                     DateTimeKind.Utc
                 ),
-                TotalIterations = stats.GetProperty("total_iterations").GetInt32(),
-                SuccessfulPredictions = stats.GetProperty("successful_predictions").GetInt32(),
-                FailedPredictions = stats.GetProperty("failed_predictions").GetInt32(),
-                SuccessRatePercent = stats.GetProperty("success_rate_percent").GetDouble(),
-                AvgInferenceTimeMs = stats.GetProperty("avg_inference_time_ms").GetDouble(),
-                MinInferenceTimeMs = stats.GetProperty("min_inference_time_ms").GetDouble(),
-                MaxInferenceTimeMs = stats.GetProperty("max_inference_time_ms").GetDouble(),
-                StdInferenceTimeMs = stats.GetProperty("std_inference_time_ms").GetDouble(),
-                PredictionsPerSecond = stats.GetProperty("predictions_per_second").GetDouble(),
-                TotalTimeSeconds = stats.GetProperty("total_time_seconds").GetDouble(),
-                Platform = systemInfo.GetProperty("platform").GetString(),
-                Processor = systemInfo.GetProperty("processor").GetString(),
-                PythonVersion = systemInfo.GetProperty("python_version").GetString(),
-                CpuCount = systemInfo.GetProperty("cpu_count").GetInt32(),
-                MemoryTotalGb = systemInfo.GetProperty("memory_total_gb").GetDouble(),
-                MemoryAvailableGb = systemInfo.GetProperty("memory_available_gb").GetDouble()
+                
+                TotalIterations = GetIntProperty(stats, "total_iterations", 0),
+                SuccessfulPredictions = GetIntProperty(stats, "successful_predictions", 0),
+                FailedPredictions = GetIntProperty(stats, "failed_predictions", 0),
+                SuccessRatePercent = GetDoubleProperty(stats, "success_rate_percent", 0.0),
+                AvgInferenceTimeMs = GetDoubleProperty(stats, "avg_inference_time_ms", 0.0),
+                MinInferenceTimeMs = GetDoubleProperty(stats, "min_inference_time_ms", 0.0),
+                MaxInferenceTimeMs = GetDoubleProperty(stats, "max_inference_time_ms", 0.0),
+                StdInferenceTimeMs = GetDoubleProperty(stats, "std_inference_time_ms", 0.0),
+                PredictionsPerSecond = GetDoubleProperty(stats, "predictions_per_second", 0.0),
+                TotalTimeSeconds = GetDoubleProperty(stats, "total_time_seconds", 0.0),
+                
+                Platform = GetStringProperty(systemInfo, "platform", "Unknown"),
+                Processor = GetStringProperty(systemInfo, "processor", "Unknown"),
+                PythonVersion = GetStringProperty(systemInfo, "python_version", "Unknown"),
+                CpuCount = GetIntProperty(systemInfo, "cpu_count", 0),
+                
+                MemoryTotalGb = GetDoubleProperty(systemInfo, "system_memory_total_gb", 0.0),
+                MemoryAvailableGb = GetDoubleProperty(systemInfo, "system_memory_available_gb", 0.0)
             };
+
+            _logger.LogInformation($"✅ Benchmark parsé avec succès: {benchmark.BenchmarkId}");
+            return benchmark;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors du parsing du benchmark {ModelType}", modelType);
+            _logger.LogError(ex, "❌ Erreur lors du parsing du benchmark {ModelType}", modelType);
+            _logger.LogError($"JSON: {element.GetRawText()}");
             return null;
         }
+    }
+
+    // ============================================================================
+    // MÉTHODES UTILITAIRES POUR LE PARSING SÉCURISÉ
+    // ============================================================================
+
+    private string GetStringProperty(JsonElement element, string propertyName, string defaultValue = "")
+    {
+        if (element.TryGetProperty(propertyName, out var property) && 
+            property.ValueKind == JsonValueKind.String)
+        {
+            return property.GetString() ?? defaultValue;
+        }
+        _logger.LogDebug($"⚠️ Propriété '{propertyName}' non trouvée, utilisation de la valeur par défaut: '{defaultValue}'");
+        return defaultValue;
+    }
+
+    private int GetIntProperty(JsonElement element, string propertyName, int defaultValue = 0)
+    {
+        if (element.TryGetProperty(propertyName, out var property))
+        {
+            if (property.ValueKind == JsonValueKind.Number)
+            {
+                return property.GetInt32();
+            }
+        }
+        _logger.LogDebug($"⚠️ Propriété '{propertyName}' non trouvée, utilisation de la valeur par défaut: {defaultValue}");
+        return defaultValue;
+    }
+
+    private double GetDoubleProperty(JsonElement element, string propertyName, double defaultValue = 0.0)
+    {
+        if (element.TryGetProperty(propertyName, out var property))
+        {
+            if (property.ValueKind == JsonValueKind.Number)
+            {
+                return property.GetDouble();
+            }
+        }
+        _logger.LogDebug($"⚠️ Propriété '{propertyName}' non trouvée, utilisation de la valeur par défaut: {defaultValue}");
+        return defaultValue;
+    }
+
+    private DateTime GetDateTimeProperty(JsonElement element, string propertyName)
+    {
+        if (element.TryGetProperty(propertyName, out var property) && 
+            property.ValueKind == JsonValueKind.String)
+        {
+            var dateStr = property.GetString();
+            if (DateTime.TryParse(dateStr, out var date))
+            {
+                return date;
+            }
+        }
+        _logger.LogDebug($"⚠️ Propriété '{propertyName}' non trouvée, utilisation de DateTime.UtcNow");
+        return DateTime.UtcNow;
     }
 }

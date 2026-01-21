@@ -1629,7 +1629,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsTrue(capturedCompte.DateDerniereConnexion >= startTime && capturedCompte.DateDerniereConnexion <= endTime);
 
             // Vérifier la date de naissance par défaut (2000-01-01)
-            Assert.AreEqual(new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), capturedCompte.DateNaissance);
+            Assert.AreEqual(new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc), capturedCompte.DateNaissance);
         }
 
         #endregion

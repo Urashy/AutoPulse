@@ -1,4 +1,8 @@
+using Api_c_sharp.Mapper;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.AI;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
+using AutoPulse.Shared.DTO;
 using AutoPulse.Shared.DTO.IA.Benchmark;
 using AutoPulse.Shared.DTO.IA.Data;
 using AutoPulse.Shared.DTO.IA.Result;
@@ -8,15 +12,8 @@ namespace Api_c_sharp.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class IAController : ControllerBase
+public class IAController (IIAService _iaService, ImageManager _imageManager, AnnonceManager _annonceManager, VoitureManager _voitureManager) : ControllerBase
 {
-    private readonly IIAService _iaService;
-
-    public IAController(IIAService iaService)
-    {
-        _iaService = iaService;
-    }
-
     /// <summary>
     /// Endpoint polymorphe pour toutes les prédictions IA.
     /// Accepte 3 types de requêtes : CNN, Prediction, Ajustement.
@@ -295,10 +292,60 @@ public class IAController : ControllerBase
     {
         try
         {
-            var benchmarks = await _iaService.SyncBenchmarksFromPythonAsync();
+            List<DataCNN> cnnBenchmark = new List<DataCNN>();
+            List<DataAjustement> ajustementBenchmark = new List<DataAjustement>();
+            List<DataPrediction> predictionBenchmark = new List<DataPrediction>();
+
+            for (int i = 1; i < 10; i++)
+            {
+                Image image = await _imageManager.GetFirstImageByVoitureID(i);
+                cnnBenchmark.Add(new DataCNN(){ ImageBase64 = Convert.ToBase64String(image.Fichier)});
+            }
+            
+            for (int i = 1; i < 10; i++)
+            {
+                Annonce annonce = await _annonceManager.GetByIdAsync(i);
+                ajustementBenchmark.Add(new DataAjustement(){BasePrice = annonce.Prix, Description =  annonce.Description ?? "Pas de description"});
+            }
+            
+            for (int i = 1; i < 10; i++)
+            {
+                Voiture voiture = await _voitureManager.GetByIdAsync(i);
+                DataPrediction prediction = new DataPrediction()
+                {
+                    Manufacturer = voiture.MarqueVoitureNavigation?.LibelleMarque ?? "TOYOTA",
+                    Model = voiture.ModeleVoitureNavigation?.LibelleModele ?? "Unknown",
+                    ProdYear = voiture.Annee,
+                    Category = IADataMapper.TranslateCategory(voiture.CategorieVoitureNavigation?.LibelleCategorie ?? "Sedan"),
+                    LeatherInterior = voiture.InterieurCuire ? "Yes" : "No",
+                    FuelType = IADataMapper.TranslateFuelType(voiture.CarburantVoitureNavigation?.LibelleCarburant ?? "Petrol"),
+                    EngineVolume = (float)voiture.CylindrerMoteur,
+                    Mileage = voiture.Kilometrage.ToString(),
+                    Cylinders = voiture.NbCylindres > 0 ? (float)voiture.NbCylindres : 4f,
+                    GearBoxType = IADataMapper.TranslateGearBoxType(voiture.BoiteVoitureNavigation?.LibelleBoite ?? "Manual"),
+                    DriveWheels = IADataMapper.TranslateDriveWheels(voiture.MotriciteVoitureNavigation?.LibelleMotricite ?? "Front"),
+                    Doors = voiture.NbPorte.ToString() ?? "4",
+                    Wheel = voiture.PositionVolant ? "Left wheel" : "Right wheel",
+                    Color = "Black",
+                    Airbags = voiture.NbAirbag,
+                };
+                predictionBenchmark.Add(prediction);
+            }
+            
+            var benchmarks = await _iaService.SyncBenchmarksFromPythonAsync(
+                cnnBenchmark, 
+                ajustementBenchmark, 
+                predictionBenchmark
+            );
             return Ok(new
             {
                 message = $"{benchmarks.Count()} benchmarks synchronisés avec succès",
+                stats = new
+                {
+                    cnn_data = cnnBenchmark.Count(),
+                    ajustement_data = ajustementBenchmark.Count(),
+                    prediction_data = predictionBenchmark.Count()
+                },
                 data = benchmarks
             });
         }
@@ -308,7 +355,7 @@ public class IAController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "Erreur lors de la synchronisation des benchmarks" });
+            return StatusCode(500, new { message = $"Erreur lors de la synchronisation des benchmarks:{ex.Message} " });
         }
     }
 

@@ -1,5 +1,7 @@
 ﻿using Api_c_sharp.Controllers;
+using Api_c_sharp.Models.Entity;
 using Api_c_sharp.Models.Repository.AI;
+using Api_c_sharp.Models.Repository.Managers.Models_Manager;
 using AutoPulse.Shared.DTO.IA.Benchmark;
 using AutoPulse.Shared.DTO.IA.Data;
 using AutoPulse.Shared.DTO.IA.Result;
@@ -13,13 +15,19 @@ namespace Api_c_sharp.ControllersMock.Tests
     public class IAControllerTests
     {
         private Mock<IIAService> _mockIAService;
+        private Mock<ImageManager> _mockImageManager = null!;
+        private Mock<AnnonceManager> _mockAnnonceManager = null!;
+        private Mock<VoitureManager> _mockVoitureManager = null!;
         private IAController _controller;
 
         [TestInitialize]
         public void Initialize()
-        {
+        { 
             _mockIAService = new Mock<IIAService>();
-            _controller = new IAController(_mockIAService.Object);
+            _mockImageManager = new Mock<ImageManager>(null!);
+            _mockAnnonceManager = new Mock<AnnonceManager>(null!);
+            _mockVoitureManager = new Mock<VoitureManager>(null!);
+            _controller = new IAController(_mockIAService.Object, _mockImageManager.Object, _mockAnnonceManager.Object, _mockVoitureManager.Object);
         }
 
         #region Predict Tests
@@ -567,15 +575,63 @@ namespace Api_c_sharp.ControllersMock.Tests
         {
             // Arrange
             var syncedBenchmarks = new List<BenchmarkIADTO>
-            {
-                new BenchmarkIADTO { IdBenchmark = 1, BenchmarkId = "bench_sync_001", ModelType = "cnn" },
-                new BenchmarkIADTO { IdBenchmark = 2, BenchmarkId = "bench_sync_002", ModelType = "prediction" },
-                new BenchmarkIADTO { IdBenchmark = 3, BenchmarkId = "bench_sync_003", ModelType = "ajustement" }
-            };
+    {
+        new BenchmarkIADTO { IdBenchmark = 1, BenchmarkId = "bench_sync_001", ModelType = "cnn" },
+        new BenchmarkIADTO { IdBenchmark = 2, BenchmarkId = "bench_sync_002", ModelType = "prediction" },
+        new BenchmarkIADTO { IdBenchmark = 3, BenchmarkId = "bench_sync_003", ModelType = "ajustement" }
+    };
 
-            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync())
-                         .ReturnsAsync(syncedBenchmarks)
-                         .Verifiable();
+            // Mock des managers pour les boucles de données
+            for (int i = 1; i < 10; i++)
+            {
+                int currentI = i; // Capture pour la closure
+
+                // Mock ImageManager
+                _mockImageManager.Setup(m => m.GetFirstImageByVoitureID(currentI))
+                    .ReturnsAsync(new Image
+                    {
+                        IdImage = currentI,
+                        Fichier = new byte[] { 0x89, 0x50, 0x4E, 0x47 } // Quelques bytes pour simuler une image
+                    });
+
+                // Mock AnnonceManager
+                _mockAnnonceManager.Setup(m => m.GetByIdAsync(currentI))
+                    .ReturnsAsync(new Annonce
+                    {
+                        IdAnnonce = currentI,
+                        Prix = 15000 + (currentI * 1000),
+                        Description = $"Description de l'annonce {currentI}"
+                    });
+
+                // Mock VoitureManager
+                _mockVoitureManager.Setup(m => m.GetByIdAsync(currentI))
+                    .ReturnsAsync(new Voiture
+                    {
+                        IdVoiture = currentI,
+                        Annee = 2020,
+                        Kilometrage = 50000,
+                        CylindrerMoteur = 2.0,
+                        NbCylindres = 4,
+                        InterieurCuire = true,
+                        NbPorte = 4,
+                        PositionVolant = true,
+                        NbAirbag = 6,
+                        MarqueVoitureNavigation = new Marque { LibelleMarque = "Toyota" },
+                        ModeleVoitureNavigation = new Modele { LibelleModele = "Corolla" },
+                        CategorieVoitureNavigation = new Categorie { LibelleCategorie = "Sedan" },
+                        CarburantVoitureNavigation = new Carburant { LibelleCarburant = "Petrol" },
+                        BoiteVoitureNavigation = new BoiteDeVitesse { LibelleBoite = "Manual" },
+                        MotriciteVoitureNavigation = new Motricite { LibelleMotricite = "Front" }
+                    });
+            }
+
+            // Mock du service IA
+            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync(
+                    It.IsAny<IEnumerable<DataCNN>>(),
+                    It.IsAny<IEnumerable<DataAjustement>>(),
+                    It.IsAny<IEnumerable<DataPrediction>>()))
+                .ReturnsAsync(syncedBenchmarks)
+                .Verifiable();
 
             // Act
             var result = await _controller.BenchmarkSync();
@@ -585,16 +641,67 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
             var okResult = (OkObjectResult)result.Result;
             Assert.IsNotNull(okResult.Value);
-            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(), Times.Once);
+
+            // Vérifier que le service a été appelé exactement une fois
+            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(
+                    It.IsAny<IEnumerable<DataCNN>>(),
+                    It.IsAny<IEnumerable<DataAjustement>>(),
+                    It.IsAny<IEnumerable<DataPrediction>>()),
+                Times.Once);
         }
 
         [TestMethod]
         public async Task BenchmarkSync_ServiceUnavailable()
         {
             // Arrange
-            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync())
-                         .ThrowsAsync(new HttpRequestException("Service IA indisponible"))
-                         .Verifiable();
+            // Mock des managers pour les boucles de données
+            for (int i = 1; i < 10; i++)
+            {
+                int currentI = i;
+
+                _mockImageManager.Setup(m => m.GetFirstImageByVoitureID(currentI))
+                    .ReturnsAsync(new Image
+                    {
+                        IdImage = currentI,
+                        Fichier = new byte[] { 0x89, 0x50, 0x4E, 0x47 }
+                    });
+
+                _mockAnnonceManager.Setup(m => m.GetByIdAsync(currentI))
+                    .ReturnsAsync(new Annonce
+                    {
+                        IdAnnonce = currentI,
+                        Prix = 15000,
+                        Description = "Test"
+                    });
+
+                _mockVoitureManager.Setup(m => m.GetByIdAsync(currentI))
+                    .ReturnsAsync(new Voiture
+                    {
+                        IdVoiture = currentI,
+                        Annee = 2020,
+                        Kilometrage = 50000,
+                        CylindrerMoteur = 2.0,
+                        NbCylindres = 4,
+                        InterieurCuire = false,
+                        NbPorte = 4,
+                        PositionVolant = true,
+                        NbAirbag = 6,
+                        MarqueVoitureNavigation = new Marque { LibelleMarque = "Toyota" },
+                        ModeleVoitureNavigation = new Modele { LibelleModele = "Corolla" },
+                        CategorieVoitureNavigation = new Categorie { LibelleCategorie = "Sedan" },
+                        CarburantVoitureNavigation = new Carburant { LibelleCarburant = "Petrol" },
+                        BoiteVoitureNavigation = new BoiteDeVitesse { LibelleBoite = "Manual" },
+                        MotriciteVoitureNavigation = new Motricite { LibelleMotricite = "Front" }
+                    });
+            }
+
+            // Mock du service IA qui lance une HttpRequestException
+            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync(
+                    It.IsAny<IEnumerable<DataCNN>>(),
+                    It.IsAny<IEnumerable<DataAjustement>>(),
+                    It.IsAny<IEnumerable<DataPrediction>>()))
+                .ThrowsAsync(new HttpRequestException("Service IA indisponible"))
+                .Verifiable();
 
             // Act
             var result = await _controller.BenchmarkSync();
@@ -603,8 +710,86 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsNotNull(result);
             Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
             var objectResult = (ObjectResult)result.Result;
+
+            // Le controller retourne 503 pour HttpRequestException
             Assert.AreEqual(503, objectResult.StatusCode);
-            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(), Times.Once);
+
+            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(
+                    It.IsAny<IEnumerable<DataCNN>>(),
+                    It.IsAny<IEnumerable<DataAjustement>>(),
+                    It.IsAny<IEnumerable<DataPrediction>>()),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task BenchmarkSync_Error()
+        {
+            // Arrange
+            // Mock des managers pour les boucles de données
+            for (int i = 1; i < 10; i++)
+            {
+                int currentI = i;
+
+                _mockImageManager.Setup(m => m.GetFirstImageByVoitureID(currentI))
+                    .ReturnsAsync(new Image
+                    {
+                        IdImage = currentI,
+                        Fichier = new byte[] { 0x89, 0x50, 0x4E, 0x47 }
+                    });
+
+                _mockAnnonceManager.Setup(m => m.GetByIdAsync(currentI))
+                    .ReturnsAsync(new Annonce
+                    {
+                        IdAnnonce = currentI,
+                        Prix = 15000,
+                        Description = "Test"
+                    });
+
+                _mockVoitureManager.Setup(m => m.GetByIdAsync(currentI))
+                    .ReturnsAsync(new Voiture
+                    {
+                        IdVoiture = currentI,
+                        Annee = 2020,
+                        Kilometrage = 50000,
+                        CylindrerMoteur = 2.0,
+                        NbCylindres = 4,
+                        InterieurCuire = false,
+                        NbPorte = 4,
+                        PositionVolant = true,
+                        NbAirbag = 6,
+                        MarqueVoitureNavigation = new Marque { LibelleMarque = "Toyota" },
+                        ModeleVoitureNavigation = new Modele { LibelleModele = "Corolla" },
+                        CategorieVoitureNavigation = new Categorie { LibelleCategorie = "Sedan" },
+                        CarburantVoitureNavigation = new Carburant { LibelleCarburant = "Petrol" },
+                        BoiteVoitureNavigation = new BoiteDeVitesse { LibelleBoite = "Manual" },
+                        MotriciteVoitureNavigation = new Motricite { LibelleMotricite = "Front" }
+                    });
+            }
+
+            // Mock du service IA qui lance une exception générique
+            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync(
+                    It.IsAny<IEnumerable<DataCNN>>(),
+                    It.IsAny<IEnumerable<DataAjustement>>(),
+                    It.IsAny<IEnumerable<DataPrediction>>()))
+                .ThrowsAsync(new Exception("Sync error"))
+                .Verifiable();
+
+            // Act
+            var result = await _controller.BenchmarkSync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
+            var objectResult = (ObjectResult)result.Result;
+
+            // Les exceptions génériques retournent 500, pas 503
+            Assert.AreEqual(500, objectResult.StatusCode);
+
+            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(
+                    It.IsAny<IEnumerable<DataCNN>>(),
+                    It.IsAny<IEnumerable<DataAjustement>>(),
+                    It.IsAny<IEnumerable<DataPrediction>>()),
+                Times.Once);
         }
 
         #endregion
@@ -782,25 +967,6 @@ namespace Api_c_sharp.ControllersMock.Tests
             Assert.IsInstanceOfType(result, typeof(ObjectResult));
             var objectResult = (ObjectResult)result;
             Assert.AreEqual(503, objectResult.StatusCode);
-        }
-
-        [TestMethod]
-        public async Task BenchmarkSync_Error()
-        {
-            // Arrange
-            _mockIAService.Setup(s => s.SyncBenchmarksFromPythonAsync())
-                         .ThrowsAsync(new Exception("Sync error"))
-                         .Verifiable();
-
-            // Act
-            var result = await _controller.BenchmarkSync();
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
-            var objectResult = (ObjectResult)result.Result;
-            Assert.AreEqual(500, objectResult.StatusCode);
-            _mockIAService.Verify(s => s.SyncBenchmarksFromPythonAsync(), Times.Once);
         }
 
         [TestMethod]
