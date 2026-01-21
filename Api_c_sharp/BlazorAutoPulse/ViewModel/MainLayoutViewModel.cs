@@ -108,7 +108,7 @@ namespace BlazorAutoPulse.ViewModel
                     if (!IsAccountSuspended && !IsEmailNotVerified)
                     {
                         await LoadProfileImage(compte.IdCompte);
-                        // ... reste du code
+                        _favorisStateService.SetUser((int)_currentUserId);
                     }
                     else if (IsAccountSuspended)
                     {

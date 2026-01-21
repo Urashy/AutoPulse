@@ -354,7 +354,7 @@ public class CompteController(CompteManager _manager, IMapper _compteMapper, ICo
             }
 
             var compte = await _manager.GetByIdAsync((int)tokenEmail.IdCompte);
-
+    
             if (compte == null)
             {
                 return NotFound(new { message = "Compte introuvable" });
