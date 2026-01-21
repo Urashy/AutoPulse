@@ -25,7 +25,7 @@ namespace Api_c_sharp.ControllersMock.Tests
             _mockImageManager = new Mock<ImageManager>(null);
             _mockVoitureManager = new Mock<VoitureManager>(null);
             _mockIAService = new Mock<IIAService>();
-            _controller = new IAController(_mockIAService.Object,_mockAnnonceManager.Object,_mockImageManager.Object,_mockVoitureManager.Object);
+            _controller = new IAController(_mockIAService.Object,_mockImageManager.Object,_mockAnnonceManager.Object,_mockVoitureManager.Object);
         }
 
         #region Predict Tests
@@ -833,3 +833,4 @@ namespace Api_c_sharp.ControllersMock.Tests
     }
 
 }
+
