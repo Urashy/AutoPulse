@@ -2,6 +2,7 @@ using AutoPulse.Shared.DTO;
 using BlazorAutoPulse.Model;
 using BlazorAutoPulse.Service.Interface;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.Components; 
 
 namespace BlazorAutoPulse.Service.WebService;
 
@@ -20,10 +21,20 @@ public class SignalRWebService : ISignalRService, IAsyncDisposable
 
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
-    public SignalRWebService()
+    public SignalRWebService(NavigationManager navigationManager)
     {
-        //"http://localhost:5086/messagehub";/
-        _hubUrl = "https://api-autopulse-d8hgfvgjbsapataf.francecentral-01.azurewebsites.net/messagehub";
+        var currentUrl = navigationManager.BaseUri;
+
+        if (currentUrl.Contains("localhost"))
+        {
+            _hubUrl = "http://localhost:5086/messagehub";
+            Console.WriteLine("[SignalR] Mode DEV (Local) détecté.");
+        }
+        else
+        {
+            _hubUrl = "https://api-autopulse-d8hgfvgjbsapataf.francecentral-01.azurewebsites.net/messagehub";
+            Console.WriteLine("[SignalR] Mode PROD (Azure) détecté.");
+        }
 
         Console.WriteLine("[SignalR] Service initialized with hub URL: " + _hubUrl);
     }
