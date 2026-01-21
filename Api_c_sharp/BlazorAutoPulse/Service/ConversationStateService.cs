@@ -206,41 +206,46 @@ public class ConversationStateService : IDisposable
             $"/annonce/{notification.IdAnnonce}"
         );
     }
-    
+
     public async Task ReloadConversationsAsync()
     {
+        if (!_isInitialized)
+        {
+            Console.WriteLine("⚠️ ConversationStateService non prêt lors du Reload, tentative d'initialisation...");
+            await InitializeAsync();
+        }
+
         if (!_isInitialized || CurrentUserId == 0)
         {
-            Console.WriteLine("⚠️ ConversationStateService non initialisé, impossible de recharger");
+            Console.WriteLine("❌ Échec du rechargement : Service non initialisé ou utilisateur non connecté.");
             return;
         }
 
         Console.WriteLine("🔄 Rechargement des conversations...");
-    
+
         try
         {
             var freshConversations = await _conversationService.GetConversationsByCompteID(CurrentUserId, 0);
-            
+
             foreach (var conv in freshConversations)
             {
                 await _signalR.JoinConversation(conv.IdConversation);
-                Console.WriteLine(conv.LibelleAnnonce);
                 await GetImageProfil(conv.IdParticipant);
             }
-        
+
             Conversations.Clear();
             Conversations.AddRange(freshConversations.OrderByDescending(c => c.DateDernierMessage));
-        
+
             Console.WriteLine($"✅ {Conversations.Count} conversations rechargées");
-        
-            OnStateChanged?.Invoke();
+
+            NotifyStateChanged(); 
         }
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Erreur lors du rechargement des conversations: {ex.Message}");
         }
     }
-    
+
     public async Task<string> GetImageProfilAsync(int idCompte)
     {
         if (ImageSources.ContainsKey(idCompte))
