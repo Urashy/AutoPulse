@@ -139,8 +139,8 @@ public class TokenEmailController(
             Text = corpsMessage
         };
 
-        string? user = _config["Email:GmailUser"];
-        string? password = _config["Email:GmailPass"];
+        string? user = _config["GmailUser"] ?? _config["Email:GmailUser"];
+        string? password = _config["GmailPass"] ?? _config["Email:GmailPass"];
 
         using var client = new SmtpClient();
         await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
